@@ -1,0 +1,35 @@
+<template>
+        <lightning-progress-indicator current-step={currentStep} type="path" variant="base">
+            <lightning-progress-step label="Eligibility" value="1"></lightning-progress-step>
+            <lightning-progress-step label="Loan Details" value="2"></lightning-progress-step>
+            <lightning-progress-step label="Applicant" value="3"></lightning-progress-step>
+            <lightning-progress-step label="Income" value="4"></lightning-progress-step>
+        </lightning-progress-indicator>
+
+        <div class="stepOne">
+           <c-pl-application onloandetails={handleLoanDetails}></c-pl-application>
+           <lightning-button label="Next"  onclick={goToStepTwo}></lightning-button>
+        </div>
+        <div class="stepTwo slds-hide">
+            <c-pl-loan-details></c-pl-loan-details>
+           <!-- <lightning-button label="Save" onclick={handleSave}></lightning-button> -->
+            <lightning-button label="Previous" onclick={goBacktoStepOne}></lightning-button>
+            <lightning-button label="Next"  onclick={goToStepThree}></lightning-button>
+        </div>
+        <div class="stepThree slds-hide">
+            <c-pl-applicant onapplicantrelated={handleIncomeDetails}></c-pl-applicant>
+           <!-- <lightning-button label="Save" onclick={handleSave}></lightning-button> 
+                    <lightning-button label="Next" onclick={goToStepThree}></lightning-button>
+
+            <lightning-button label="Save" onclick={handleSave}></lightning-button> -->
+            <lightning-button label="Next"  onclick={goToStepFour}></lightning-button>
+            <lightning-button label="Previous" onclick={goBacktoStepTwo}></lightning-button>
+        </div>
+     
+        <div class="stepFour slds-hide">
+            <c-pl-income></c-pl-income>
+      
+            <lightning-button label="Save" onclick={handleSave}></lightning-button> 
+            <lightning-button label="Previous" onclick={goBacktoStepThree}></lightning-button>
+        </div>
+</template>

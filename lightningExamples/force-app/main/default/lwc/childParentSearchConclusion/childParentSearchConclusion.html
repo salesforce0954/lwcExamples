@@ -1,0 +1,25 @@
+<template>
+    <lightning-card>
+        <c-child-parent-search ongetapplicantrecords={handleGetApplicantRecords}></c-child-parent-search>
+        <lightning-button title="New" label="New" onclick={newApplicant}></lightning-button>
+    </lightning-card>
+
+    <lightning-card>
+        <template for:each={applicants} for:item="app">
+           <li  key={app.Id}>
+               <div class="slds-p-around_medium lgc-bg">
+                    <lightning-tile label={app.Name} type="media">
+                        <lightning-icon slot="media" icon-name="standard:account"></lightning-icon>
+                        <p class="slds-truncate" title={app.Phone__c} onclick={navigateToApplicant}>{app.Phone__c}</p>
+                        <p class="slds-truncate" title={app.First_Name__c}>{app.First_Name__c}</p>
+                        <p class="slds-truncate" title={app.State__c}>{app.State__c}</p>
+                        <p class="slds-truncate" title={app.isDrivingLicense__c}>{app.isDrivingLicense__c}</p>
+                    </lightning-tile>
+                </div>
+            </li> 
+
+
+        </template>
+    </lightning-card>
+    
+</template>

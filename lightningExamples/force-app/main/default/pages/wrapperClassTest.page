@@ -1,0 +1,25 @@
+<apex:page controller="wrapperClassTest">
+<apex:pageBlock >
+ <apex:form >
+ <apex:commandButton action="{!getSelectedAccounts}" value="Select Accounts"/>
+
+ <apex:pageBlockTable value="{!awList}" var="wa">
+    <apex:column >
+    <apex:inputCheckbox value="{!wa.selectedAccounts}"/>
+    </apex:column>
+    <apex:column value="{!wa.acc.id}"/>
+    <apex:column value="{!wa.acc.name}"/>
+  </apex:pageBlockTable>
+  
+   <apex:pageBlockTable value="{!accountSelected}" var="sa">
+    <apex:column value="{!sa.name}"/>
+    <apex:column value="{!sa.id}"/>
+  </apex:pageBlockTable>
+  
+  
+  </apex:form>
+  
+  
+
+ </apex:pageBlock>
+</apex:page>

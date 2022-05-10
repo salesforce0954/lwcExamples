@@ -1,0 +1,63 @@
+<apex:page controller="educationDetailController" showHeader="false" >
+  
+<!-- <script>
+  function getData()
+  {
+  alert(1);
+  
+  alert(document.getElementById("{!$Component.frm1.blk1.sec1.eduId}").value);
+  
+  }
+  </script>-->
+
+<apex:form id="frm1" >  
+<apex:pageBlock id="blk1">
+<apex:pageBlockSection id="sec1">
+
+<apex:outputField value="{!JobApp.First_Name__c}"/>
+<apex:outputField value="{!JobApp.Last_Name__c}"/>
+
+<apex:repeat value="{!JobApp.Educations__r}" var="je">
+<apex:outputField value="{!je.Qualification__c}"/>
+<apex:outputField value="{!je.Previous_Employment_Salary__c}"/>
+</apex:repeat>
+
+<apex:pageBlockTable value="{!eduListDetails}" var="eduList">
+
+    <apex:column headerValue="Skill Set">
+    <apex:inputField value="{!eduList.Skill_Set__c  }"/>
+    </apex:column>
+    
+    <apex:column headerValue="Organization Name">
+    <apex:inputField value="{!eduList.Organization_Name__c  }"/>
+    </apex:column>
+    
+    <apex:column headerValue="Education">
+    <apex:inputField value="{!eduList.Education__c}" id="eduId1"/>
+    </apex:column>
+    
+</apex:pageBlockTable>
+
+
+
+
+<apex:inputField value="{!eduDetail.Degree__c}"/>
+<apex:inputField value="{!eduDetail.School_Name__c  }"/>
+<apex:inputField value="{!eduDetail.Education__c}" id="eduId"/>
+
+  <!--
+   <apex:repeat value="{!eduListDetails}" var="eduList"> 
+           <apex:inputField value="{!eduList.Organization_Name__c}"/>
+           <apex:inputField value="{!eduList.Skill_Set__c}"/>
+     </apex:repeat>
+     
+     -->
+    <apex:commandButton value="Add" action="{!Add}" onclick="getData();"/>
+    
+    
+
+</apex:pageBlockSection>
+<apex:commandButton action="{!save}" value="Save"/>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

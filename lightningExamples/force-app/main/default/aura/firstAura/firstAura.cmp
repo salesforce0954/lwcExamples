@@ -1,0 +1,12 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="firstAuraClass" >
+    <aura:attribute name="firstName" type="String" default="" access="Private"/>
+    <aura:attribute name="lastName" type="String" default="" access="Private"/>
+     <lightning:card>
+        <lightning:input value="{!v.firstName}" aura:id="fname" type="text" label="First Name"></lightning:input>
+        <lightning:input value="{!v.lastName}" aura:id="lname" type="text" label="Last Name"></lightning:input>
+        
+         <lightning:button onclick="{!c.getFirstName}" aura:id="bValue" label="Get Name"></lightning:button>
+
+    </lightning:card>
+   
+    </aura:component>

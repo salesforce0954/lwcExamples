@@ -1,0 +1,23 @@
+<template>
+  <lightning-button label="Get Contact Name" onclick={getContactName}></lightning-button>
+  <lightning-button label="Delete record" onclick={deleteAccount}></lightning-button>
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Select</th>
+        </tr>
+    <template if:true={accountList.data}>
+        <template for:each={accountList.data} for:item="accList">
+         
+            <tr key={accList.Id}>
+                <td>{accList.Id}</td>
+                <td>{accList.Name}</td>
+                <td><lightning-input type="checkbox" label="" value={accList.Id} onchange={selectAccRecords}></lightning-input></td>
+            </tr>
+    
+    
+           </template>
+        </template>
+    </table>
+</template>

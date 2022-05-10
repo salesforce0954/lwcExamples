@@ -1,0 +1,10 @@
+<template>
+    <lightning-record-edit-form class="Contact" object-api-name="Contact" onsuccess={handleSucess}>
+        <lightning-input-field field-name="FirstName" onchange={firstNameChange}>
+        </lightning-input-field>
+        <lightning-input-field field-name="LastName" onchange={lastNameChange}>
+        </lightning-input-field>
+        <lightning-input-field field-name="Email" onchange={emailChange}>
+        </lightning-input-field>
+    </lightning-record-edit-form>
+</template>

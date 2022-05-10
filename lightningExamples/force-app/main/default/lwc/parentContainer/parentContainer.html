@@ -1,0 +1,18 @@
+<template>
+    <lightning-progress-indicator current-step={currentStep} type="path" variant="base">
+        <lightning-progress-step label="Application" value="1"> </lightning-progress-step>
+    
+    
+        <lightning-progress-step label="Loan Purpose Details" value="2"> </lightning-progress-step>
+    
+    
+    </lightning-progress-indicator>
+
+    <div class="stepOne">
+        <c-application-form onapplicationrecord={handleapplicationrecord}></c-application-form>
+    </div>
+
+    <div class="stepTwo">
+        <c-loan-purpose-details record-id={recordId}></c-loan-purpose-details>
+    </div>
+</template>

@@ -1,0 +1,11 @@
+<template>
+    <lightning-card title="Quotes of the day">
+        <ul>
+            <template for:each={quoteInfo} for:item="quote">
+                <li key={quote.Id} style="padding: 10px">
+                    <c-child-message quote-info={quote}></c-child-message>
+                </li>
+            </template>
+        </ul>
+    </lightning-card> 
+</template>

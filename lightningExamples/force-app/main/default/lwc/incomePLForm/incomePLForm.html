@@ -1,0 +1,53 @@
+<template>
+    
+ <template if:true={isIncomeLength}>
+    <template for:each={finalIncomeValues} for:item="db" for:index="index">
+
+        <lightning-record-edit-form key={keyIndex} object-api-name="Income__c" record-id={db.Id} onsuccess={handleSuccess} onsubmit={handleSuccess}>
+            
+            <lightning-input-field access-key={index} field-name="Id" value={db.Id} class=""></lightning-input-field>
+            <lightning-input-field access-key={index} field-name="Applicant__c" onchange={handleApplicant} value={db.Applicant__c}></lightning-input-field>
+            <lightning-input-field access-key={index} field-name="Employment_Type__c" onchange={handleEmploymentType} value={db.Employment_Type__c} required></lightning-input-field>
+            <lightning-input-field access-key={index} field-name="Total_Income_Amount__c" onchange={handleTotalIncomeAmount} value={db.Total_Income_Amount__c} required></lightning-input-field>
+            <lightning-button-icon icon-name="utility:delete" onclick={deleteRow}   alternative-text="Delete"   class="test slds-m-left_xx-small" title="Delete"></lightning-button-icon>
+
+        </lightning-record-edit-form>
+
+        </template>
+        <lightning-button onclick={submitIncome} variant="brand" type="submit" label="Save"></lightning-button>
+        <lightning-button label="Previous" onclick={goBack}></lightning-button>
+
+ </template>
+ <template if:false={isIncomeLength}>
+    <lightning-record-edit-form  object-api-name="Income__c" record-id={incomeIdStorage} onsuccess={handleSuccess} onsubmit={handleSuccess}>
+        
+        <lightning-input-field  field-name="Id" value={incomeIdStorage} class="slds-hide"></lightning-input-field>
+        <lightning-input-field field-name="Applicant__c" onchange={handleApplicant} value={applicantId}></lightning-input-field>
+        <lightning-input-field field-name="Employment_Type__c" onchange={handleEmploymentType} required></lightning-input-field>
+        <lightning-input-field field-name="Total_Income_Amount__c" onchange={handleTotalIncomeAmount} required></lightning-input-field>
+
+    </lightning-record-edit-form>
+    
+    <template for:each={incomeArray} for:item="item" for:index="index">
+    <lightning-record-edit-form key={keyIndex} object-api-name="Income__c" record-id={incomeIdStorage} onsuccess={handleSuccess} onsubmit={handleSuccess}>
+       
+        <lightning-input-field access-key={index} field-name="Id" name="incomeId" onchange={changeHandler} value={incomeIdStorage} class=""></lightning-input-field>
+        <lightning-input-field access-key={index} field-name="Applicant__c" name="applicantValue" onchange={changeHandler} value={item.Applicant__c}></lightning-input-field>
+        <lightning-input-field  access-key={index} field-name="Employment_Type__c" name="employmentType"   onchange={changeHandler} value={item.Employment_Type__c} required></lightning-input-field>
+        <lightning-input-field  access-key={index} field-name="Total_Income_Amount__c" name="totalIncome"  onchange={changeHandler} value={item.Total_Income_Amount__c} required></lightning-input-field>
+         
+         
+          <lightning-button onclick={deleteRow} label="Delete"></lightning-button>
+  
+</lightning-record-edit-form>
+ </template>
+ <lightning-button onclick={submitIncome} variant="brand" type="submit" label="Save"></lightning-button>
+ <lightning-button label="Previous" onclick={goBack}></lightning-button>
+
+</template>
+    
+    <lightning-button onclick={addIncome} icon-name="utility:add" label="Add income"></lightning-button><br/><br/>
+
+    
+
+</template>

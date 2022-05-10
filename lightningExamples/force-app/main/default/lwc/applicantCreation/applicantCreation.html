@@ -1,0 +1,16 @@
+<template>
+    <lightning-card>
+        <lightning-input label="Application" onchange={handleApplication} value={recordId}></lightning-input>
+        <lightning-input label="FirstName" onchange={handleFirstName} name="firstName"></lightning-input>
+        <lightning-input label="Driving License" type="checkbox" onchange={handleDrivingLicense} name="drivingLicense"></lightning-input>
+        <lightning-input label="Phone" type="phone" onchange={handlePhone} name="phone"></lightning-input>
+      <!-- <lightning-input type="text" onchange={handleState} name="state"></lightning-input> 
+      <template if:true={statePicklist.data}> -->
+      <lightning-combobox onchange={handleState} label="State" options={fieldOptions}></lightning-combobox>
+     <!--  </template> -->
+      <lightning-button onclick={createApplicant} label="Create Applicant"></lightning-button>
+    </lightning-card>
+
+   <lightning-card>
+   </lightning-card>
+</template>

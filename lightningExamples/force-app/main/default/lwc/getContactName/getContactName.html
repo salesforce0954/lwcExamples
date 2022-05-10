@@ -1,0 +1,24 @@
+<template>
+    <lightning-combobox title="contact picklist" 
+    label="contact picklist"
+    value={conValue}
+    placeholder="-Select-"
+    options={conArray}
+    onchange={handleConValue}></lightning-combobox>
+    <c-assign-account-to-users  oncontactname={getContactName}></c-assign-account-to-users>
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <tr>
+            <th>Id</th>
+            <th>Last Name</th>
+        </tr>
+       
+    <template for:each={conList} for:item="con">
+
+        <tr key={con.Id}>
+            
+            <td>{con.Id}</td>
+            <td>{con.LastName}</td>
+        </tr>
+    </template>
+    </table>
+</template>

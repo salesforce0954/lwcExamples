@@ -1,0 +1,8 @@
+.red-border {
+    border: 3px solid red;
+    padding: 50px;
+    width: 250px;
+    height: 250px;
+    float:left;
+    margin-left: 10px;
+}

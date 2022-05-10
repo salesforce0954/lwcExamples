@@ -1,0 +1,22 @@
+<template>
+    <lightning-card>
+        <lightning-input type="text" name="inputOne" onchange={handleFirstNumber}></lightning-input>
+        <lightning-input type="text" name="inputTwo" onchange={handleSecondNumber}></lightning-input>
+        <lightning-button onclick={handleAdd} label="Add"></lightning-button>
+        <lightning-button onclick={handleSub} label="Sub"></lightning-button>
+        <lightning-input type="checkbox" onchange={previousResult} label="Result History"></lightning-input>
+
+        <div>Result : {calculationResult}</div>
+        
+        <template if:true={displayPreviousResult}>
+            <ul>
+            <template iterator:result={prevResult}>
+              <li key={result.value}>
+                <lightning-formatted-text value={result.value}></lightning-formatted-text>
+              </li>
+            </template>
+            </ul>
+        </template>
+        
+   </lightning-card>
+</template>

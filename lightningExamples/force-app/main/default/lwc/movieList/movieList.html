@@ -1,0 +1,20 @@
+<template>
+    <div>
+    <div class="slds-grid slds-gutters">
+    <div class="slds-col slds-size_1-of-3">
+        <img class="logo" src="https://i.pinimg.com/originals/1a/51/a3/1a51a38dc69b958999755c15c5dda05f.jpg"
+        />
+    </div>
+    <div class="slds-col slds-size_2-of-3 slds-p-top_xx-large" >
+        <h1>Remembering Sushant Singh Rajput: 1986–Forever</h1>
+    </div>
+    <template for:each={sushantMovies} for:item="movies">
+        <li key={movies.movieName} style="padding: 10px">
+            <c-movie-tile sushant-movies={movies}></c-movie-tile>
+        </li>
+       
+    </template>
+            
+    </div> 
+</div>  
+</template>

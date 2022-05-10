@@ -1,0 +1,58 @@
+<template>
+
+    <c-ipl-team-names oniplteamname={handleIplTeamId}></c-ipl-team-names>
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <template if:true={teamInfoList}>
+        <tr>
+            <th>Captain Name</th>
+            <th>Player Information</th>
+        </tr>
+        
+        <template for:each={teamInfoList} for:item="teamList">
+        <tr key={teamList.Id}>
+            <td>{teamList.Name}</td>
+            <td><lightning-input type="checkbox" value={teamList.Id} onchange={getPlayerInfo}></lightning-input></td>
+        </tr>
+    </template>
+</template>
+</table>
+
+
+<table class="slds-table slds-table_cell-buffer slds-table_bordered">
+    <template if:true={isChecked}>
+    <tr>
+        <th>Full Name</th>
+        <th>Batting Style</th>
+        <th>Born</th>
+        <th>Playing Role</th>
+    </tr>
+    
+    <template if:true={playerListInfo}>
+    <template for:each={playerListInfo} for:item="playerList" for:index="index">
+    <tr key={playerList.Id}>
+        <td>{playerList.Full_Name__c}</td>
+        <td>{playerList.Batting_Style__c}</td>
+        <td>{playerList.Born__c}</td>
+        <td>{playerList.Playing_Role__c}</td>
+        <td><lightning-button label="Team members" data-index={index} onclick={teamDetails} value={playerList.Full_Name__c} data-key={playerList.key} ></lightning-button></td>
+       <!-- <template for:each={playerArray} for:item="playerInfo">
+            <p key={playerInfo}>{playerInfo}</p>
+        </template>-->
+     
+   
+    </tr>
+</template>
+</template>
+</template>
+</table>
+<table class="slds-table slds-table_cell-buffer slds-table_bordered">
+    <template if:true={playerListInfo}>
+    <tr>
+    <th>Team Information</th>
+    </tr>
+    <tr>
+        <td>{playerArray}</td>
+    </tr>
+</template>
+</table>
+</template>

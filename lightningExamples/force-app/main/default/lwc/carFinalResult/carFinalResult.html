@@ -1,0 +1,9 @@
+<template>
+    <lightning-card>
+       <c-car-search-result-controller car-type-id={carId}></c-car-search-result-controller>
+    </lightning-card>
+
+    <lightning-card>
+        <c-car-type-controller oncartypeselect={handleCarTypeSelect}></c-car-type-controller>
+    </lightning-card>
+</template>

@@ -1,0 +1,10 @@
+<template>
+    <lightning-record-edit-form object-api-name="Loan_purpose__c" onsuccess={handleSuccess}>
+        <lightning-input-field field-name="Loan_amount__c" label="Loan Amount" onchange={handleLoanAmount}></lightning-input-field>
+        <lightning-input-field field-name="Application__c" label="Application" onchange={handleApplication}></lightning-input-field>
+      
+        <!--<lightning-input-field field-name="Loan_Name__c" label="Loan Purpose" onchange={handleLoanPurpose}></lightning-input-field>-->
+
+     <lightning-button label="Save" onclick={createLoanPurpose}></lightning-button>
+    </lightning-record-edit-form>
+</template>

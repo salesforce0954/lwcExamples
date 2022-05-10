@@ -1,0 +1,17 @@
+<template>
+  
+   <template for:each={itemList} for:item="item" for:index="index" >
+
+   <lightning-record-edit-form  key={item.id} object-api-name="Income__c" onsuccess={handleSuccess}>
+        <lightning-input-field field-name="Employment_Type__c"  onchange={handleEmployment}></lightning-input-field>
+        <lightning-input-field field-name="Total_Income_Amount__c" onchange={handleIncome}></lightning-input-field> 
+       <lightning-button label="Add Income" access-key={item.id} id={index} onclick={addIncome}></lightning-button> 
+       
+    </lightning-record-edit-form> 
+
+    </template> 
+    
+
+
+   
+</template>

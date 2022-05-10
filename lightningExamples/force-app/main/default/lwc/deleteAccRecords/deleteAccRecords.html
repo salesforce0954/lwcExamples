@@ -1,0 +1,19 @@
+<template >
+    <lightning-button label="Delete" variant="brand" value={selectRecord} onclick={handleDelete}></lightning-button>
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <tr>
+            <td><b>Name</b></td>
+            <td><b>Phone</b></td>
+            <td><b>Action</b></td>
+        </tr>
+        <template for:each={accounts.data}  for:item="acc">
+            <tr key={acc.Id}>
+                <td>{acc.Name}</td>
+                <td>{acc.Phone}</td>
+                <td><lightning-input type="radio" name="radioButton" value={acc.Id} onchange={handleChange}>
+                </lightning-input></td>
+
+            </tr>
+        </template>
+    </table>
+</template>

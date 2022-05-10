@@ -1,0 +1,29 @@
+<apex:page controller="dynamicCalculator" docType="html-5.0">
+ <apex:form >
+ <apex:pageBlock >
+   <apex:pageBlockSection >
+     <apex:pageBlockSectionItem >
+         X:<apex:input value="{!x}"/>
+     </apex:pageBlockSectionItem>
+     <apex:pageBlockSectionItem >
+        Y:<apex:input value="{!y}"/>
+     </apex:pageBlockSectionItem>
+           <apex:pageBlockSectionItem >
+             <apex:commandButton value="ADD" action="{!addResult}"/>
+           </apex:pageBlockSectionItem>
+           <apex:pageBlockSectionItem >
+             <apex:commandButton value="Sub" action="{!subResult}"/>
+            </apex:pageBlockSectionItem> 
+            <apex:pageBlockSectionItem >
+             <apex:commandButton value="Mul" action="{!mulResult}"/>
+             </apex:pageBlockSectionItem>
+             <apex:pageBlockSectionItem >
+             Total: <apex:outputText value="{!resultAdd}"></apex:outputText>
+             </apex:pageBlockSectionItem>
+
+
+   </apex:pageBlockSection>
+ </apex:pageBlock>
+ 
+ </apex:form>
+</apex:page>

@@ -1,0 +1,26 @@
+<template>
+
+    <lightning-card title="Create Applicant" icon-name="standard:new">
+        <p class="slds-var-p-horizontal_small">
+        <lightning-input type="text" class="validateFirstName" label="First Name :" name="firstName" onchange={firstNameHandler}></lightning-input>
+       </p>
+       <p class="slds-var-p-horizontal_small">
+        <lightning-input type="Phone" class="validatePhone" label="Phone :" name="Phone" onchange={phoneHandler}>      
+        </lightning-input></p>
+        <p class="slds-var-p-horizontal_small">
+  <lightning-input type="checkbox" class="validateDriverLicense" label="isDrivingLicense" name="isCheckbox" onchange={checkboxHandler}>
+        </lightning-input> 
+    </p>
+    <p class="slds-var-p-horizontal_small">
+        <lightning-button icon-name="utility:addUser" label="create applicant"  onclick={createApplicant} variant="brand"></lightning-button>
+    </p>
+    </lightning-card>
+    <lightning-card title="Applicant Details" icon-name="action:upload">
+        <p class="slds-var-p-horizontal_small">
+        <lightning-formatted-text value={getFirstName}></lightning-formatted-text></p>
+        <p class="slds-var-p-horizontal_small">
+        <lightning-formatted-phone value={getPhone}></lightning-formatted-phone></p>
+        <p class="slds-var-p-horizontal_small">
+        <lightning-formatted-text value={getLicense}></lightning-formatted-text></p>
+    </lightning-card>
+</template>

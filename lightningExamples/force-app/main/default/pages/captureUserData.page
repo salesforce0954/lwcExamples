@@ -1,0 +1,8 @@
+<apex:page >
+  <h1>Congratulations</h1>
+   This is your new Apex Page {!$User.FirstName} {!$User.LastName} {!$Profile.Name}
+   <p>The current company name for this 
+      user is: {!$User.CompanyName}</p>
+   <p>Is the user active?  
+      {!$User.IsActive}</p>
+</apex:page>

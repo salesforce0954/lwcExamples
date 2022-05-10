@@ -1,0 +1,31 @@
+<template>
+    <lightning-card icon-name="standard:contact">
+       <!--  <template for:each={applicantData.data} for:item="applicant">
+             <li key={applicant.id}><div>
+               {applicant.First_Name__c}
+
+             </div></li>
+         </template> -->
+         <lightning-card>
+            <lightning-layout>
+                <lightning-layout-item>
+                    <lightning-input type="text" class="firstName" onchange={handleFirstNameValue} label="First Name"></lightning-input>
+                    <lightning-input type="text" class="phoneValue" onchange={handlePhoneNameValue} label="Phone"></lightning-input>
+                    <lightning-input type="text" class="stateValue" onchange={handleStateNameValue} label="State"></lightning-input>
+                    <lightning-button label="Create Applicant" onclick={createApplicant}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout>
+         </lightning-card>
+         <lightning-card>
+            <lightning-layout>
+                <lightning-layout-item>
+                    <lightning-formatted-text value={retFirstName}></lightning-formatted-text>
+                    <lightning-formatted-phone value={retPhoneValue}></lightning-formatted-phone>
+                    <lightning-formatted-text value={retStateValue}></lightning-formatted-text>
+                </lightning-layout-item>
+            </lightning-layout>
+         </lightning-card>
+         
+         
+    </lightning-card>
+</template>

@@ -1,0 +1,18 @@
+<apex:page controller="educationAppController" showHeader="false">
+ <apex:form >
+<apex:pageBlock >
+<apex:pageBlockSection >
+
+<apex:outputField value="{!edu.JobApplication__c}"/>
+<apex:outputField value="{!japp.First_Name__c}"/>
+<apex:outputField value="{!japp.Last_Name__c}"/>
+<apex:inputField value="{!edu.Qualification__c}"/>
+<apex:inputField value="{!edu.Previous_Employment_Salary__c}"/>
+</apex:pageBlockSection>
+<div align="center" draggable="false" >
+<apex:commandButton action="{!save}" value="Save"/>
+<apex:commandButton value="Cancel" action="{!Cancel}"/>
+</div>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

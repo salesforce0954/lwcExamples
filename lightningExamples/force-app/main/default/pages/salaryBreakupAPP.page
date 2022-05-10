@@ -1,0 +1,24 @@
+<apex:page controller="salaryBreakupController" showHeader="false">
+  <apex:form >
+<apex:pageBlock >
+<apex:pageBlockSection >
+
+<apex:outputField value="{!japp.First_Name__c}"/>
+<apex:outputField value="{!japp.Last_Name__c}"/>
+<apex:outputField value="{!emp.Previous_Employment_Salary__c}"/>
+<apex:outputPanel id="expectedSalary" style="display:block
+">
+<apex:outputLabel ><b>Expected Salary</b><apex:inputField value="{!sb.Expected_Salary__c}"/></apex:outputLabel>
+</apex:outputPanel> 
+<apex:outputPanel id="basicsalary">
+<apex:outputLabel ><b>Basic Salary</b><apex:inputField value="{!sb.Basic_Salary__c}"/></apex:outputLabel>
+</apex:outputPanel> 
+<apex:outputPanel >
+<apex:outputLabel >Experience&nbsp;&nbsp;</apex:outputLabel><apex:inputField value="{!sb.Experience__c}" label="Experience"/>
+<apex:actionSupport event="onchange" action="{!getExperience}" reRender="expectedSalary,basicsalary"  />
+</apex:outputPanel>
+</apex:pageBlockSection>
+<apex:commandButton action="{!save}" value="Save"/>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

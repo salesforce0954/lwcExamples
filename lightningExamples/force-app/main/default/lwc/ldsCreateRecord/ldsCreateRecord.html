@@ -1,0 +1,20 @@
+<template>
+    <lightning-card title="Creat and View the Record">
+        <lightning-layout>
+            <lightning-layout-item>
+                <lightning-card title="Create Record">
+                    <lightning-input name="Account Name" onchange={accountNameChangeHandler}></lightning-input>
+                    <lightning-input name="Account Phone" type="Phone" onchange={accountPhoneChangeHandler}></lightning-input>
+                    <lightning-input name="Account Email" type="Website" onchange={accountWebsiteChangeHandler}></lightning-input>
+                    <lightning-button label="Create Record" onclick={createAccountRecord}></lightning-button>
+                </lightning-card>
+            </lightning-layout-item>
+            <lightning-layout-item>
+                <lightning-formatted-text value={retAccountName}></lightning-formatted-text>
+                <lightning-formatted-phone value={retAccountPhone}></lightning-formatted-phone>
+                <lightning-formatted-url value={retAccountURL}></lightning-formatted-url>
+            </lightning-layout-item>
+        </lightning-layout>
+    </lightning-card>
+    
+</template>

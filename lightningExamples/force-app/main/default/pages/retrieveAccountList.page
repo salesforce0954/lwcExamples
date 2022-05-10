@@ -1,0 +1,31 @@
+<apex:page standardController="Account"  extensions="retrieveAccountInfo">
+ 
+ <apex:pageBlock >
+   <apex:form >
+
+  <apex:pageBlockTable value="{!accList}" var="acc">  
+  <apex:column headerValue="Action">
+     <apex:commandlink value="Delete" action="{!doDelete}">
+      <apex:param name="deleteAcc" value="{!acc.Id}"  assignTo="{!deleteAcc}"/>
+    </apex:commandlink>
+    </apex:column>
+     <apex:column value="{!acc.id}"/>
+    <apex:column headerValue="Account name">  
+    <apex:commandlink value="{!acc.Name}" action="{!doListView}">
+      <apex:param name="listView" value="{!acc.Id}"  assignTo="{!listView}"/>
+    </apex:commandlink>
+    </apex:column>
+  </apex:pageBlockTable>
+
+  <apex:pageBlockSection >
+      <apex:inputText value="{!Account.Name}"/>
+    </apex:pageBlockSection>
+    <apex:commandButton action="{!save}" value="Create account"/>
+
+ 
+  </apex:form>
+    
+    
+ </apex:pageBlock>
+  
+</apex:page>

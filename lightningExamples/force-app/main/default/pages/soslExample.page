@@ -1,0 +1,30 @@
+<apex:page controller="soslExample">
+
+     <apex:form >
+       <apex:inputText value="{!name}" />
+       <apex:commandButton action="{!searchName}" value="search" reRender="accnt,cont"/>  
+     </apex:form>
+       
+       <apex:pageBlock title="Accounts">
+         <apex:pageBlockSection >
+            <apex:pageBlockTable value="{!accList}" var="acc" id="accnt">
+              <apex:column value="{!acc.name}"/> 
+              
+            </apex:pageBlockTable>
+            
+         </apex:pageBlockSection>  
+         <div>Account size is : {!accsize}</div>   
+     </apex:pageBlock>
+                   
+
+     <apex:pageBlock title="Contacts">
+         <apex:pageBlockSection >
+            <apex:pageBlockTable value="{!conList}" var="con" id="cont">
+              <apex:column value="{!con.lastname}"/>
+            </apex:pageBlockTable>
+             <apex:outputLabel value="{!consize}">Contacts Size : {!consize}</apex:outputLabel>
+         </apex:pageBlockSection>     
+     </apex:pageBlock>
+
+  
+</apex:page>

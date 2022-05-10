@@ -1,0 +1,17 @@
+<apex:page controller="createCommunityUser">
+ <apex:pageBlock >
+   <apex:form >
+      <apex:outputLabel value="Applicant Type : "></apex:outputLabel>
+        <apex:selectList value="{!applicantType}" size="1">
+          <apex:selectOptions value="{!applicantTypeValues}" ></apex:selectOptions>
+        </apex:selectList> <br/><br/>
+        <apex:outputLabel value="Is Applicant Eligible :"></apex:outputLabel>
+        <apex:inputCheckbox value="{!isApplicantEligible}" label="Is Applicant Eligible" /><br/><br/>
+        <apex:outputLabel value="Status :"></apex:outputLabel>
+        <apex:selectList value="{!status}" size="1">
+          <apex:selectOptions value="{!StatusValues}"></apex:selectOptions>
+        </apex:selectList> <br/><br/>
+        <apex:commandButton action="{!createApplication}" value="Save"/>
+   </apex:form>
+ </apex:pageBlock>
+</apex:page>

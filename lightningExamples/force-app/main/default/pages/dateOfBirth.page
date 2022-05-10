@@ -1,0 +1,23 @@
+<apex:page controller="Example2Ctrl">
+    <apex:form >
+        <div class="form-row">
+            <label>
+                <div class="date">
+                    <span>Birth date</span>
+                    <apex:selectList styleClass="date" value="{!SelectedDay}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!Day}"/>
+                    </apex:selectList>
+
+                    <apex:selectList styleClass="date" value="{!SelectedMonth}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!Month}"/>
+                    </apex:selectList>
+
+                    <apex:selectList styleClass="date" value="{!SelectedYear}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!Year}"/>
+                    </apex:selectList>
+                </div>
+            </label>
+        </div>
+         
+    </apex:form>
+</apex:page>

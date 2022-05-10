@@ -1,0 +1,32 @@
+<template>
+    <lightning-card title="Eligibility criteria" icon-name="standard:account" class="slds-p-horizontal_small">
+      
+      <!--  <template if:true={isAppEligible}>
+        <lightning-input type="checkbox" label="Is Applicant Eligible" value="{}" onchange={handleApplicantEligible} checked></lightning-input> 
+        </template>
+
+        <template if:false={isAppEligible}>
+           <lightning-input type="checkbox" label="Is Applicant Eligible" onchange={handleApplicantEligible}></lightning-input>
+        </template> 
+        <template if:true={isApplicantEligible}>
+            <p>1</p>
+            <input type="checkbox" name="checkbox-toggle-16" aria-describedby="checkbox-toggle-16" checked onchange={handleApplicantEligible}/>
+            <input type="text" value={isApplicantEligible}/>
+        </template>
+        <template if:false={isApplicantEligible}>
+            <p>2</p>
+            <input type="checkbox" name="checkbox-toggle-16" aria-describedby="checkbox-toggle-16" onchange={handleApplicantEligible}/>
+            <input type="text" value={isApplicantEligible}/>
+        </template>   -->   
+        
+        <lightning-record-edit-form class="Application" object-api-name="Application__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicationId}>
+            <lightning-input-field field-name="Id" value={applicationId} class="slds-hide" ></lightning-input-field>
+            <lightning-input-field field-name="is_Applicant_Eligible__c" onchange={handleApplicantEligible} required>            </lightning-input-field>
+
+            <lightning-input-field field-name="Applicant_Type__c" onchange={handleApplicantType} required></lightning-input-field>
+            <lightning-button variant="brand" type="submit" name="save" label="Save"  onclick={handleSubmitButtonClick}></lightning-button>
+        </lightning-record-edit-form>
+    
+    </lightning-card>
+    
+</template>

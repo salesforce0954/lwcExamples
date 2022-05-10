@@ -1,0 +1,16 @@
+<template>
+    <lightning-card title="Create Applicant" icon-name="standard:Account">
+        <lightning-layout-item>
+        </lightning-layout-item>
+        <lightning-record-edit-form object-api-name ="Applicant__c"  onsuccess={handleSuccess} onsubmit={handleSubmit} 
+        onerror ={handleError} onload={handleLoad}>
+       <lightning-input-field field-name="First_Name__c" ></lightning-input-field>
+       <lightning-input-field field-name="Phone__c"></lightning-input-field>
+       <lightning-input-field field-name="isDrivingLicense__c"></lightning-input-field>
+       <lightning-input-field field-name="State__c"></lightning-input-field>
+    
+    <lightning-button type="submit" label="Save" variant="brand"></lightning-button>
+</lightning-record-edit-form>
+    </lightning-card>
+    
+</template>

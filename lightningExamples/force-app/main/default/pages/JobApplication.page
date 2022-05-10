@@ -1,0 +1,16 @@
+<apex:page controller="JobApplicationController" showHeader="false">
+<apex:form >
+<apex:pageBlock >
+<apex:pageBlockSection >
+<apex:inputField value="{!jobApp.First_Name__c }"/>
+<apex:inputField value="{!jobApp.Last_Name__c }"/>
+<apex:inputField value="{!jobApp.DOB__c }"/>
+</apex:pageBlockSection>
+<div align="center" draggable="false" >
+<apex:commandButton action="{!save}" value="Save"/>
+<apex:commandButton value="Cancel" action="{!Cancel}"/>
+</div>
+</apex:pageBlock>
+</apex:form>
+
+</apex:page>

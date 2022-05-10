@@ -1,0 +1,16 @@
+<template>
+        <lightning-button label="Get Accounts" onclick={accountRetrieval}></lightning-button>
+        <table>
+          
+            <tr>
+                 <td>Name</td>
+            </tr>
+       
+            <template for:each={lstAccounts} for:item="acc">
+              <tr key={acc.Id}>               
+                <td>{acc.Name}</td>
+            </tr>        
+            </template>
+
+        </table>
+</template>

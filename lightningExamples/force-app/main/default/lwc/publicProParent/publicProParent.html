@@ -1,0 +1,12 @@
+<template>
+    <lightning-card title="Meeting Room">
+       <!-- <lightning-tile label={meetingRoomInfo.roomName} href="/path/to/somewhere">
+            <p class="slds-truncate" title={meetingRoomInfo.roomName}>Room capacity : {meetingRoomInfo.roomCapacity}</p>
+        </lightning-tile> -->
+        <template if:true={isAllow}>
+        <slot name="roomInfo"></slot>
+        <slot></slot>
+    </template>
+    </lightning-card>
+    
+</template>

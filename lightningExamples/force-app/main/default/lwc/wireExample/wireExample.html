@@ -1,0 +1,27 @@
+<template>
+  <lightning-input type="text" onchange={handleSearchName} label="Search Names"></lightning-input>
+  <lightning-button onclick={retrieveRecords} label="Submit"></lightning-button>
+  <template if:true={applicantResponse}>
+  <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+   <tr>
+       <th>Id</th>
+       <th>Phone</th>
+       <th>First Name</th>
+       <th>State</th>
+       <th>Driving License</th>
+   </tr> 
+  
+  <template for:each={applicantList} for:item="applicant">
+       <tr key={applicant.Id}>
+         <th>{applicant.Id}</th>
+         <th>{applicant.Phone__c}</th>
+         <th>{applicant.First_Name__c}</th>
+         <th>{applicant.State__c}</th>
+         <th>{applicant.isDrivingLicense__c}</th>
+       </tr> 
+      
+  </template>
+
+</table>
+</template>
+</template>

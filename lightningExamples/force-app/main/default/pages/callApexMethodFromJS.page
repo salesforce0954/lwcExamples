@@ -1,0 +1,40 @@
+<apex:page controller="carDetails">
+<apex:form id="frm">
+<!-- <apex:actionfunction name="callfromJS"  action="{!controllerMethodName}" reRender="frm"/> -->
+ 
+</apex:form>
+
+<input type="text" id="carTypes"/>
+<input type="button" onclick="getCarValues();" value="Get the Car Information"/>
+<div id="result"></div>
+
+<script>
+
+function getCarValues(){
+  var Carname = document.getElementById('carTypes').value;
+    Visualforce.remoting.Manager.invokeAction(
+    '{!$RemoteAction.carDetails.getCarDetails}',
+      Carname,
+      function(result,event){
+      if(event.status){
+        var len = result.length;
+        if(len == 0){
+        alert('failed');
+        }else
+        {
+          for(i=0;i<len;i++){
+          
+            var res = 'Build year '+ result[i].Build_Year__c + 'Description '+result[i].Description__c+ 'Available for Rent '+result[i].Available_For_Rent__c;
+            
+          }
+          document.getElementById('result').innerHTML = res;
+        }
+       }
+      }
+   );
+   
+   
+}
+</script>
+
+</apex:page>

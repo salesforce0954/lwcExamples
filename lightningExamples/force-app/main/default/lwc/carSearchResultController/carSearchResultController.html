@@ -1,0 +1,10 @@
+<template>
+    <lightning-card>
+        <template for:each={carData} for:item="car">
+            <p key={car.Id}>
+            <lightning-formatted-text value={car.Name}></lightning-formatted-text>
+            <lightning-formatted-text value={car.Contact__r.Name}></lightning-formatted-text>
+        </p>
+        </template>
+    </lightning-card>
+</template>

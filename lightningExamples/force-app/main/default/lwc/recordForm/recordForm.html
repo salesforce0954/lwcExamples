@@ -1,0 +1,29 @@
+<template>
+    <lightning-record-form
+        object-api-name={accountObject}
+        fields={myFields}
+        mode="Edit"
+        record-id={recordId}
+        onsuccess={handleAccountCreated}>
+        
+    </lightning-record-form>
+    
+    <lightning-record-form
+        object-api-name={accountObject}
+        fields={myFields}
+        record-id={recordId}
+        mode ="readOnly"
+        onsuccess={handleAccountCreated}>
+    </lightning-record-form> 
+  
+  
+    <lightning-record-form
+        object-api-name={accountObject}
+        fields={myFields}
+        mode ="view"
+        record-id ="recordId"
+        onsuccess={handleAccountCreated}
+        > 
+        
+    </lightning-record-form>
+</template>

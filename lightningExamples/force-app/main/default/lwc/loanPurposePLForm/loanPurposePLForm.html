@@ -1,0 +1,11 @@
+<template>
+    <lightning-input type="number" class="loanpurpose" onchange={handleLoanAmount} label="Loan Amount"></lightning-input>
+    <lightning-combobox options={options} class="loanpurpose" label="Loan Name" onchange={handleLoanName}></lightning-combobox>
+
+ 
+  <!--<lightning-record-edit-form class="LoanPurpose" object-api-name="Loan_purpose__c" onsuccess={handleSucess}>
+        <lightning-input-field field-name="Loan_Name__c" onchange={handleLoanName}></lightning-input-field>
+
+    <lightning-input-field field-name="Loan_amount__c" onchange={handleLoanAmount}></lightning-input-field>
+</lightning-record-edit-form> --> 
+</template>

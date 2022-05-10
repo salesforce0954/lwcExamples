@@ -1,0 +1,9 @@
+<template>
+    <lightning-record-edit-form object-api-name="Application__c" onsuccess={handleSuccess}>
+        <lightning-input-field field-name="is_Applicant_Eligible__c" onchange={handleAppEligible} ></lightning-input-field>
+    
+    </lightning-record-edit-form> 
+  <!--  <lightning-input type="checkbox" name="isApplicantEligible" onchange={handleAppEligible}></lightning-input> 
+    <lightning-button label="SAVE" onclick={createApplication}></lightning-button>-->
+    <lightning-button label="SAVE" onclick={handleSubmit}></lightning-button>
+</template>

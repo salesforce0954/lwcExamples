@@ -1,0 +1,65 @@
+<template>    
+    <lightning-card icon-name="utility:database" title="Application details">
+         <lightning-record-edit-form class="ApplicationDetails" object-api-name="Application__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicationDetails.Id}>
+           <lightning-output-field field-name="Id" value={applicationDetails.Id}></lightning-output-field>
+            <lightning-output-field field-name="Applicant_Type__c" value={applicationDetails.Applicant_Type__c}></lightning-output-field>
+            <lightning-output-field field-name="is_Applicant_Eligible__c" value={applicationDetails.is_Applicant_Eligible__c}></lightning-output-field> 
+        </lightning-record-edit-form>
+    </lightning-card>
+    <template if:false={isApplicantLength}>
+    <lightning-card icon-name="utility:database" title="Applicant details">     
+        <lightning-record-edit-form class="ApplicantDetails" object-api-name="Applicant__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicantId}>
+            <lightning-output-field field-name="Id"></lightning-output-field>
+            <lightning-output-field field-name="Application__c"></lightning-output-field>
+            <lightning-output-field field-name="First_Name__c"></lightning-output-field>
+            <lightning-output-field field-name="Last_Name__c"></lightning-output-field>
+            <lightning-output-field field-name="isDrivingLicense__c"></lightning-output-field>
+            <lightning-output-field field-name="isPrimayApplicant__c"></lightning-output-field>
+            <lightning-output-field field-name="Phone__c"></lightning-output-field>
+            <lightning-output-field field-name="State__c"></lightning-output-field>            
+         </lightning-record-edit-form>
+</lightning-card>
+</template>
+<template if:true={isApplicantLength}>
+<lightning-card icon-name="utility:database" title="Applicant details">    
+    <template for:each={applicantValues} for:item="applicant" for:index="index">
+      <lightning-record-edit-form key={applicant.Id} class="ApplicantDetails" object-api-name="Applicant__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicant.Id}>
+          <lightning-output-field field-name="Id" value={applicant.Id}></lightning-output-field>
+          <lightning-output-field field-name="Application__c" value={applicant.Applicantion__c}></lightning-output-field>
+          <lightning-output-field field-name="First_Name__c" value={applicant.First_Name__c}></lightning-output-field>
+          <lightning-output-field field-name="Last_Name__c" value={applicant.Last_Name__c}></lightning-output-field>
+          <lightning-output-field field-name="isPrimayApplicant__c" value={applicant.isPrimaryApplicant__c}></lightning-output-field>
+          <lightning-output-field field-name="Phone__c" value={applicant.Phone__c}></lightning-output-field>
+          <lightning-output-field field-name="State__c" value={applicant.State__c}></lightning-output-field>            
+       </lightning-record-edit-form>
+    </template>
+</lightning-card>
+</template>
+        <lightning-card icon-name="utility:database" title="Expense details">
+
+            <lightning-record-edit-form class="ExpenseDetails" object-api-name="Expenses__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={expenseId}>
+                <lightning-output-field field-name="Id"></lightning-output-field>
+                <lightning-output-field field-name="Applicant__c"></lightning-output-field>
+                <lightning-output-field field-name="Total_Expense__c"></lightning-output-field>
+             </lightning-record-edit-form>
+            </lightning-card>
+
+
+        <lightning-card icon-name="utility:database" title="Income details">
+        <template for:each={incomeArray} for:item="income" for:index="index">
+            <lightning-tabset key={income.Id}  variant="scoped">
+                <lightning-tab icon-name="standard:opportunity_contact_role" label={income.name}  class="slds-theme_shade" >
+            <lightning-record-edit-form key={income.Id} class="IncomeDetails" object-api-name="Income__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={income.Id}>
+                <lightning-output-field field-name="Id" value={income.Id}></lightning-output-field>
+                <lightning-output-field field-name="Applicant__c" value={income.Applicant__c}></lightning-output-field>
+                <lightning-output-field field-name="Employment_Type__c" value={income.Employment_Type__c}></lightning-output-field>
+                <lightning-output-field field-name="Total_Income_Amount__c" value={income.Total_Income_Amount__c}></lightning-output-field>         
+             </lightning-record-edit-form>
+            </lightning-tab>
+            </lightning-tabset>
+            </template>
+            </lightning-card>
+
+    <lightning-button onclick={previous} label="Previous"></lightning-button>
+    <lightning-button onclick={submitApplication} label="Submit"></lightning-button>
+</template>

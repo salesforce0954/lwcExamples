@@ -1,0 +1,31 @@
+<template>
+    <div class="slds-m-horizontal_x-small">
+    <!-- lightning card is a base component -->
+        <lightning-card >
+           <div>
+        <img class="card-img"
+            src={sushantMovies.bannerImg}
+            alt="movie poster"
+        />
+        </div>
+        <br/>
+        <div>
+    <!-- accessing javascript property 
+            <p class="title slds-align_absolute-center">{sushantMovies.movieName}<br/><br/></p>
+            <p class="slds-align_absolute-center">Director : {sushantMovies.director}</p>
+            <p class="slds-align_absolute-center">Release Date : {sushantMovies.releaseDate}<br/></p>
+            <br/> -->
+            <p class="title slds-align_absolute-center">{sushantMovies.movies}<br/><br/></p>
+    <!-- a is anchor tag to redirect to another page. Target- blank will open in
+    new tab -->
+           <a href={sushantMovies.trailer} target="_blank">
+                <lightning-button 
+                    label="Watch Trailer"
+                    class="slds-align_absolute-center">
+                </lightning-button>
+            </a>
+        
+        </div>
+        </lightning-card>
+        </div>
+        </template>

@@ -1,0 +1,16 @@
+<template>
+    <c-applicant-information record-id={recId}></c-applicant-information>
+
+    <template for:each={appRecords} for:item="app"></template>
+        <li key={app.id}>
+           <div>{app.First_Name__c}</div>
+           <div>{app.isDrivingLicense__c}</div>
+           <div>{app.state__c}</div>
+           <div>{app.phone__c}</div>
+        </li>
+
+       
+    </template>
+
+    
+</template>

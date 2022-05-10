@@ -1,0 +1,15 @@
+<template>
+    <lightning-card>
+    
+        <template for:each={meetingRoomDetails} for:item="room">
+            <li key={room.roomName}>
+                <c-public-pro-parent is-allow> 
+                    <lightning-tile label={room.roomName} slot="roomInfo" >
+                        <p class="slds-truncate" title={room.roomName}>Room capacity : {room.roomCapacity}</p>
+                    </lightning-tile>
+                </c-public-pro-parent>
+            </li>
+        </template>
+
+    </lightning-card>
+</template>

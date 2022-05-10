@@ -1,0 +1,62 @@
+<template>
+  
+   
+   <template if:false={isApplicantJoint}> 
+        <lightning-record-edit-form class="Applicant" object-api-name="Applicant__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicantId}>
+    
+        <lightning-input-field field-name="Id" value={applicantId} class="slds-hide"></lightning-input-field>
+        <lightning-input-field field-name="Application__c" onchange={handleApplication} value={applicationValue} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="First_Name__c" onchange={handleFirstName} value={fnSession} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="Last_Name__c" onchange={handleLastName} value={lnSession} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="Address__c" onchange={handleAddress} value={addrSession} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="Phone__c" onchange={handleMobilePhone} value={mobSession} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="isDrivingLicense__c" onchange={handleLicense} value={lcsession} required>
+        </lightning-input-field>
+        <lightning-input-field field-name="State__c" onchange={handleState} value={stSession} required>
+        </lightning-input-field>
+        <lightning-button variant="brand" type="submit" name="save" label="Save" onclick={handleSubmitButtonClick} ></lightning-button>   
+        <lightning-button label="Back" onclick={goBack}></lightning-button>
+    </lightning-record-edit-form>
+    </template> 
+    
+    
+  
+    <template if:true={isApplicantJoint}>
+        <template for:each={applicantJoint} for:item="joint" for:index="index">
+          <lightning-tabset key={joint.Id}  variant="scoped">
+                <lightning-tab icon-name="standard:opportunity_contact_role" label={joint.First_Name__c}  class="slds-theme_shade" > 
+            <lightning-record-edit-form key={joint.Id} class="Applicant" object-api-name="Applicant__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={joint.Id}>
+                <lightning-input-field field-name="Id" value={joint.Id} class="slds-hide"></lightning-input-field>
+                <lightning-input-field field-name="isPrimayApplicant__c" class="slds-hide" onchange={handleApplication} value={joint.isPrimayApplicant__c} >
+                </lightning-input-field>
+                <lightning-input-field field-name="Application__c" onchange={handleApplication} value={joint.Application__c} required>
+                </lightning-input-field>
+                <lightning-input-field field-name="First_Name__c" onchange={handleFirstName} value={joint.First_Name__c} required>
+                </lightning-input-field>
+                <lightning-input-field field-name="Last_Name__c" onchange={handleLastName} value={joint.Last_Name__c} required>
+                </lightning-input-field>
+                <lightning-input-field field-name="Address__c" onchange={handleAddress} value={joint.Address__c} required>
+                </lightning-input-field>
+                <lightning-input-field field-name="Phone__c" onchange={handleMobilePhone} value={joint.Phone__c} required>
+                </lightning-input-field>
+               
+                <lightning-input-field field-name="State__c" onchange={handleState} value={joint.State__c} required>
+                </lightning-input-field>
+              
+            </lightning-record-edit-form>
+         </lightning-tab>
+    </lightning-tabset> 
+        </template>
+        <lightning-button variant="brand" type="submit" name="save" label="Save" onclick={handleSubmitButtonClick} ></lightning-button>   
+        <lightning-button label="Back" onclick={goBack}></lightning-button>
+    </template> 
+    
+
+
+
+</template>
