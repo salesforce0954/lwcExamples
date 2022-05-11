@@ -1,0 +1,116 @@
+<!--/*
+ * @Description: Contract Acceptance page
+ * @Author: August Del Rosario
+ * @Date Created: Jan-28-2014
+ * @History:
+   =====================================================================
+       28-01-14: Created - August
+   =====================================================================
+ */
+ 
+-->
+<!-- action="{!validatePostSubmit}"   --> 
+<apex:page standardController="Application__c" action="{!validatePostSubmit}"  extensions="APP_ContractAcceptanceExt" showheader="false" sidebar="false" cache="false" showHeader="false" id="GETheme" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+ <apex:composition template="{!$Site.Template}"> 
+       <apex:define name="GEDDBody">
+        <style>
+            .loanfields {height:150px;}
+        </style>
+          <section>
+          
+            <div id="header" class="header">
+                <div class="row-fluid header-inner headerlogovr">
+                    <div class="mobilell">
+                        <div class="loginlogout span4 fright removelmargin helplogindesk">
+                            <apex:pageBlock id="pageBlockId">
+                                <div class="span5 fright">
+                                    <apex:form id="headerform">    
+                                        
+                                        <!-- LOGOUT BUTTON -->
+                                        <apex:actionFunction name="headerLogout" action="{!logout}"/>
+                                        <apex:commandButton value="{!$Label.CUI_header_logout}" styleClass="btn btn-block btn-normalc buttonarrowimg" onClick="headerButtons('logout')" rerender="false"/>
+    
+                                    </apex:form>
+                                </div>
+                            </apex:pageBlock>
+                        </div>
+                    </div>
+                </div><!-- header-inner -->
+            </div>
+                    
+            <div class="maincontent">
+                <div class="row-fluid">
+                    <div class="row-fluid span12 loanfields">
+                        <div class="tablemainlist llfields" id="addfields">
+                        
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="clearfix"></div>   
+                </div>
+            </div>
+            <!--DBHZL-238  -->
+            <div class="maincontent  mobileCon responsepages ">
+            
+                <apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                 <apex:outputText >
+                <h2 style="margin-left:350px;"><strong>Contract Acceptance</strong></h2>
+                <div class="divider20"></div>
+                </apex:outputText>
+                </apex:outputPanel>
+            </div>
+            <!-- DBHZL-238 -->
+            
+            <div class="maincontent sidebar-left mobileCon responsepages">
+                <div class="row-fluid">
+
+                    <!-- sidebar -->
+                    <div class="span4 earlyfull sidebar dashboardarea dbshow" style="width:245px;">
+                        <apex:form >
+                            <!-- Sidebar -->
+                            <c:GEDDSidebar responseCode="{!responseCodeControlType}"/>
+                        </apex:form>
+                    </div><!-- span3 sidebar -->
+                        
+                    <!-- column -->
+                    <div class="span8 earlyfull sidebar defaultpage">
+
+                            <apex:outputPanel layout="block" rendered="{!IF(AND(OR(application.Response_Code__c == 'PCO', 
+                                                                                   application.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                                                   application.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                                                application.Acceptance_Channel__c == 'Online Acceptance'), true, false)}">
+
+                               <c:APP_ContractAcceptanceOnline id="onlineComponent" application="{!Application__c.Id}"/>
+                   
+                           </apex:outputPanel>
+
+                           <apex:outputPanel layout="block" rendered="{!IF(AND(OR(application.Response_Code__c == 'PCO', 
+                                                                                   application.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                                                   application.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                                                application.Acceptance_Channel__c == 'Offline Acceptance'), true, false)}">
+                               
+                               <c:APP_ContractAcceptanceOffline application="{!Application__c.Id}" />
+                           
+                           </apex:outputPanel>
+                           
+
+                    </div>
+                    
+                </div><!-- row-fluid -->
+            </div><!-- maincontent -->
+        </section><!-- end of main content -->
+
+</apex:define>
+</apex:composition>
+
+    <script>
+    function headerButtons(action){
+            if(action == 'logout'){
+                //action function
+                headerLogout();
+            }
+        }
+    </script>
+
+</apex:page>

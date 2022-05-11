@@ -1,0 +1,125 @@
+<!--
+/*
+ * @Description: Populates all the attributes for WebAnalytic
+ * @Author: Afreen Khan
+ * @Date Created: Sept-26-2016
+ */ 
+-->
+<apex:component controller="App_WebAnalyticAttributesExt" >
+    <apex:attribute name="basecontroller" type="APP_CommonExt" assignTo="{!pageController}" description="this is a base controller for page"/>
+    
+    <apex:outputPanel >
+        <script src="{!omnitureURL}"></script>
+    </apex:outputPanel>
+    
+    <script>
+    
+    //Define all the required variables
+        var S_totalloanAmount = '{!pageController.totAmount}';
+        var S_loanPurpose = '';
+        var S_primaryEmploymentType__app1  = '';
+        var S_primaryEmploymentType__app2  = '';    
+        var S_TotalIncome__app1  = '';
+        var S_TotalIncome__app2  = '';
+        var S_assetType  = '';
+        var S_debtExempt = false; 
+        var S_TotalDebt  = '';
+   
+       // ApexPages.StandardController sc = new ApexPages.standardController();
+        //var S_productSubType = ApexPages.currentPage().getHeaders().get('Referrer');
+        //var S_currentPage = '{!currentPage}';
+        var S_brokerPage =  '{!brokerPage}';
+        <!-- Displaying product subtype in the console - Added by Suneel -- 16/02/2020 -->
+        var S_productSubType = '{!productSubType}';              
+        <!-- End -->
+    //Populate the Loan Purpose Field
+        <apex:repeat value="{!pageController.loanWrapList}" var="loanWrapper">
+            console.log('the event is ==  {!loanWrapper}');
+            if('{!loanWrapper.loan.Value__c}' != null){
+                    if('{!loanWrapper.loan.Value__c}' == 'Other' && ('{!loanWrapper.loan.Other_Loan_Purpose__c}' == null || '{!loanWrapper.loan.Other_Loan_Purpose__c}' == '')){
+                        if(S_loanPurpose == ''){
+                            var S_loanPurpose = '{!loanWrapper.loan.Value__c}' +' - ' + '{!loanWrapper.loan.Other_Loan_Purpose__c}'  ; 
+                        }else{
+                            var S_loanPurpose = S_loanPurpose  +', '+'{!loanWrapper.loan.Value__c}' +' - ' + '{!loanWrapper.loan.Other_Loan_Purpose__c}'; 
+                        }
+                    }
+                    else{
+                        if(S_loanPurpose == ''){
+                            var S_loanPurpose ='{!loanWrapper.loan.Value__c}'; 
+                        }else{
+                            var S_loanPurpose = S_loanPurpose +', '+ '{!loanWrapper.loan.Value__c}' ; 
+                        }
+                        
+                    }
+                    
+                }   
+        </apex:repeat>
+        
+    
+    //Populate Primary Employment Type for Applicant 1
+        if('{!pageController.applicant.Primary_Employment_Status__c}' != ''){
+             S_primaryEmploymentType__app1 = '{!pageController.applicant.Primary_Employment_Status__c}';
+        }
+        
+    //Populate Primary Employment Type for Applicant 2
+        if('{!pageController.applicant2.Primary_Employment_Status__c}' != ''){
+             S_primaryEmploymentType__app2 = '{!pageController.applicant2.Primary_Employment_Status__c}';
+        }
+    
+    //Populate Total Income for Applicant 1
+        if('{!pageController.applicant.Total_Income__c}' != ''){
+             if('{!pageController.applicant.Total_Income__c}' < 5000){
+                S_TotalIncome__app1 = 'Under $5000';
+             }else{
+                S_TotalIncome__app1 = '$5000 and over';
+             }
+             
+        }
+    
+    //Populate Total Income for Applicant 2         
+        if('{!pageController.applicant2.Total_Income__c}' != ''){
+              if('{!pageController.applicant2.Total_Income__c}' < 5000){
+                S_TotalIncome__app2 = 'Under $5000';
+             }else{
+                S_TotalIncome__app2 = '$5000 and over';
+             }
+        }
+    
+    //Populate Asset Type       
+        <apex:repeat value="{!pageController.applicant.Assets__r}" var="asset">
+            if('{!asset.Asset_Category__c}' !=null){
+                if(S_assetType != ''){
+                    S_assetType = S_assetType + ', ' + '{!asset.Asset_Category__c}' ; 
+                }else{
+                    S_assetType = '{!asset.Asset_Category__c}' ; 
+                }               
+            }
+        </apex:repeat>
+        
+    //Populate Debt Exempt  for applicant 1
+        if('{!pageController.applicant.Debts_Exempt__c}' != ''){  
+             S_debtExempt = '{!pageController.applicant.Debts_Exempt__c}'; 
+        }
+    
+    //Populate total debt for applicant 1
+        if('{!pageController.applicant.Total_Debts__c}' != ''){
+             if('{!pageController.applicant.Total_Debts__c}' < 5000){
+                S_TotalDebt = 'Under $5000';
+             }else{
+                S_TotalDebt = '$5000 and over';
+             }
+        }
+        console.log('S_totalloanAmount' + S_totalloanAmount);
+        console.log('S_loanPurpose' + S_loanPurpose);
+        console.log('S_primaryEmploymentType__app1' + S_primaryEmploymentType__app1);
+        console.log('S_primaryEmploymentType__app2' + S_primaryEmploymentType__app2);
+        console.log('S_TotalIncome__app1' + S_TotalIncome__app1);
+        console.log('S_TotalIncome__app2' + S_TotalIncome__app2);
+        console.log('S_assetType' + S_assetType);
+        console.log('S_debtExempt' + S_debtExempt);
+        console.log('S_TotalDebt' + S_TotalDebt);
+        <!-- Displaying product subtype in the console - Added by Suneel -- 16/02/2020 -->
+        console.log('S_productSubType ' + S_productSubType);
+        <!-- End -->
+    </script>
+</apex:component>

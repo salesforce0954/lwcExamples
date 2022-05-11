@@ -1,0 +1,749 @@
+<!--
+    * @Description: PL Transformation AML Response Page
+    * @Author: Davey Yu
+    * @Date Created: 02-FEB-2016
+    * @History:
+    =====================================================================
+        02-FEB-16: Created - Davey
+        18-MAR-16: Updated - Kabir for story TQLQW-109
+    ===================================================================== 
+-->
+<apex:page controller="APP_GSD_AML_Response_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+        
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_AML_Response_Ext';                     //Used for calling remote action for base controller
+        
+    	// Green Id Access Flag
+    	//MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+    	var greenIdSetup = '{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}';
+    
+        //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+
+    </script>    
+    <style>
+        /*----- Accordion -----*/
+        .accordion, .accordion * {
+            -webkit-box-sizing:border-box; 
+            -moz-box-sizing:border-box; 
+            box-sizing:border-box;
+        }
+        .accordion {
+            /*overflow:hidden;*/
+            box-shadow:0px 1px 3px rgba(0,0,0,0.25);
+            border-radius:3px;
+            /*background:#f7f7f7;*/
+        }
+         
+        /*----- Section Titles -----*/
+        .accordion-section-title {
+            width:100%;
+            padding:15px;
+            display:inline-block;
+            border-bottom:1px solid #848484 !important;
+            background:#6E6E6E;
+            transition:all linear 0.15s;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section-title.active, .accordion-section-title:hover {
+            background:#848484;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section:last-child .accordion-section-title {
+            border-bottom:none;
+        }
+        
+        /*----- Section Content -----*/
+        .accordion-section-content {
+            padding:15px;
+            display:none;
+        }
+        
+        /*don't add in CSS**/
+        ul li {
+            color: #75787b !important;
+            margin: 0 2px 0 0 !important;
+        }
+        td, th { 
+            padding: 5px !important;
+        }
+        table { 
+            border-collapse: collapse !important;
+        }
+
+    </style>
+    <html>
+
+    
+        
+        <form>
+            <apex:include pageName="APP_GSD_BrandScript"/>
+            <!-- PAGE TITLE -->
+            <title>Confirm Your Identity</title>
+            
+            <!-- LOAN DETAILS COMPONENT -->
+            <c:APP_GSD_LoanDetailComponent />
+          
+            <!-- HEADER -->
+            <div id="amlMessage" class="container">
+                <div class="row" id="thumbsRow">
+                    
+                    
+                   <div class="thumbsup_margin middle-content-margin">
+                       <span id="thumbsUp" class="icon_confirm_identity icon_middle_width_lg center-block img-responsive"/>
+                    </div>
+                    
+                    <!-- GREETINGS -->
+                    <!--<div id="greetings" class="text-center center-block">
+                        <span class="module1-label lat-blue">Hi {!$User.FirstName}!</span>
+                    </div>-->
+                    
+                    <div class="secondary-margin text-center center-block">
+                      <span id="" class="module1-label lat-blue"><span id="amlHeader"></span></span>
+                    </div>
+                    <div class="center-block mid-content">
+                      <span class="intro-label lat-dark-grey"><div id="amlSubHeader"></div></span>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+              <div class="text-center">
+                <div class="middle-content-margin">
+                  <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                </div>
+                <div class="gap-content"></div>
+              </div>
+            </div>
+            
+            <!-- Green Id -->
+            <div id="greenId" class="container" style="display:none;">
+                <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">1.</span>
+                      <span id="" class="module3-label lat-blue"><span id="greenIdHeader">Online ID Verification.</span></span>
+                </div>
+                <div style="text-align: left;" >
+                      <span id="intro" class="intro-label lat-dark-grey"><span id="greenIdSubHeader">Simply follow the steps below to complete your ID verification online.</span></span>
+                </div> 
+             
+                <apex:include pageName="GreenId_SimpleUI"/>
+			
+            </div>
+           
+           
+            
+            <div class="AMLSectionGap"></div>
+
+            <!-- AML VERIFICATION METHODS -->
+            <div id="amlVerification" class="container">
+                <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span Id="secTwo" class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">2.</span>
+                      <span id="" class="module3-label lat-blue"><span id="amlVerificationHeader"></span></span>
+                </div>
+                <div style="text-align: left" class="panel-gap-bottom30">
+                      <span id="intro" class="intro-label lat-dark-grey"><span id="amlVerificationSubHeader"></span></span>
+                </div>
+
+                <!-- AML VERIFICATION METHODS SECTION -->	
+                <div id="amlMethods" class="container">
+                    <div class="accordion">
+                        <div class="accordion-heading" onclick="toggleUpDownArrow('amlMethodOption1Accordion')"> 
+                   
+                            <!-- AML VERIFICATION METHODS OPTIONS -->
+                            <a id="amlMethodOption1AccordionHeader" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#amlMethodOption1Accordion" tabindex="-1">
+                                <i id="amlMethodOption1AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                                <div class="accordion-header-sm-text gap-text">
+                                    <span id="accord1Lbla1" class="module5-label"><span id="amlMethod1"></span></span>
+                                </div>
+                                <div class="accordion-header-sm-texta">
+                                    <i id="amlMethodOption1AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                                </div>
+                            </a>
+                       
+                        </div>
+                        <div class="accordion-body collapse" id="amlMethodOption1Accordion">
+                            <div class="accordion-inner" id="amlMethod1AU">
+                                <div class='body-label lat-dark-grey'>{!$Label.APP_GSD_AML_Doc_Certifier_AU}</div>
+                                <a href="" style="cursor:pointer" onClick="showHideCertifiers(this,'AU');" class="lat-blue body-label underline-sm">View List of Certifiers</a>
+                                <br/> 
+                                 <br/>
+                                  <apex:include pageName="APP_GSD_FileUpload"/>
+                                <div id="amlCertifiersTableAU" class="hidden body-label lat-dark-grey cellpad"></div>
+                                <br/>
+                              
+                            </div>
+                             
+
+                            <div class="accordion-inner" id="amlMethod1NZ">
+                             
+                                <div class="body-label lat-dark-grey"><span id="amlMethod1NZAddress"></span></div>
+                                <br/>
+                                <div class='body-label lat-dark-grey'>{!$Label.APP_GSD_AML_Doc_Certifier_NZ}</div>
+                                <br/>
+                                <a href="" style="cursor:pointer" onClick="showHideCertifiers(this,'NZ');" class="lat-blue body-label underline-sm">View List of Certifiers</a>
+                                <br/>
+                                <br/>
+                                  <!--<apex:include pageName="APP_GSD_FileUpload"/>-->
+                                <div id="amlCertifiersTableNZ" class="hidden body-label lat-dark-grey"></div>
+                                
+                            </div>
+                        </div>
+                        </div>
+                        <div style="height: 10px;"></div>
+                            <div class="accordion">
+                                <div class="accordion-heading" onclick="toggleUpDownArrow('amlMethodOption2Accordion')">
+                                    <a id="amlMethodOption2AccordionHeader" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#amlMethodOption2Accordion" tabindex="-1">
+                                        <i id="amlMethodOption2AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                                        <div class="accordion-header-sm-text gap-text">
+                                            <span id="accord2Lbla2" class="module5-label"><span id="amlMethod2"></span></span>
+                                        </div>
+                                        <div class="accordion-header-sm-texta">
+                                            <i id="amlMethodOption2AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="accordion-body collapse" id="amlMethodOption2Accordion">
+                                    <div class="accordion-inner">
+                                        <span class="body-label lat-dark-grey"><span id="amlMethod2Instruction1"></span></span>
+                                        <br/>
+                                        <span class="body-label lat-dark-grey"><span id="amlApplicationNo"></span></span>
+                                        <br/>
+                                        <ul class="body-label lat-dark-grey" id="amlFiles"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                        <div style="height: 10px;"></div>
+                            <div class="accordion" id="amlBranchMethod"> 
+                                <div class="accordion-heading" onclick="toggleUpDownArrow('amlMethodOption3Accordion')">
+                                    <a id="amlMethodOption3AccordionHeader" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#amlMethodOption3Accordion" tabindex="-1">
+                                        <i id="amlMethodOption3AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                                            <div class="accordion-header-sm-text gap-text">
+                                                <span id="accord2Lbla3" class="module5-label"><span id="amlMethod3"></span></span>
+                                            </div>
+                                            <div class="accordion-header-sm-texta">
+                                                <i id="amlMethodOption3AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                                            </div>
+                                    </a>
+                                </div>
+                                <div class="accordion-body collapse" id="amlMethodOption3Accordion">
+                                    <div class="accordion-inner">
+                                        <div id="amlMethod3NZ">
+                                            <span class="body-label lat-dark-grey">{!$Label.APP_GSD_AML_Method_3_SubHeader_GEM}</span><br/>
+                                            <span class="body-label lat-dark-grey">{!$Label.APP_GSD_AML_Address_GEM}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+            
+             <div class="AMLSectionGap"></div>
+            
+            <!-- AML DOCUMENTS -->
+            <div id="amlDocuments" class="container">
+                <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span Id="secThree" class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">3.</span>
+                      <span id="" class="module3-label lat-blue"><span id="amlDocumentsHeader"></span></span>
+                </div>
+                <div style="text-align: left;" class="panel-gap-bottom30">
+                      <span id="intro" class="intro-label lat-dark-grey"><span id="amlDocumentsSubHeader"></span></span>
+                </div> 
+
+                <!-- AML DOCUMENTS OPTIONS -->
+                <div id="amlDocuments">
+                    <div class="accordion" id="amlDocumentOption1">
+                        <div class="accordion-heading" onclick="toggleUpDownArrow('amlDocOption1Accordion')"> 
+                          <div class="">
+                            <a id="amlDocOption1AccordionHeader" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#amlDocOption1Accordion" tabindex="-1">
+                                <i id="amlDocOption1AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                              <div class="accordion-header-sm-text gap-text">
+                                <span id="accord1Lbla1" class="module5-label"><span id="amlDocTitle1"></span></span>
+                              </div>
+                              
+                              <div class="accordion-header-sm-texta">
+                                <i id="amlDocOption1AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="accordion-body collapse" id="amlDocOption1Accordion">
+                            <div class="accordion-inner">
+                                    <div class='body-label lat-dark-grey' id="amlDoc1AU"></div>
+                                    <div class='fine-text lat-dark-grey' id="amlDoc1Legends"></div>
+                                    <div class='body-label lat-dark-grey' id="amlDoc1NZ"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="height: 10px;"></div>
+                    <div class="accordion" id="amlDocumentOption2">
+                        <div class="accordion-heading" onclick="toggleUpDownArrow('amlDocOption2Accordion')"> 
+                          <div class="">
+                            <a id="amlDocOption2AccordionHeader" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#amlDocOption2Accordion" tabindex="-1">
+                                <i id="amlDocOption2AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                              <div class="accordion-header-sm-text gap-text">
+                                <span id="accord1Lbla2" class="module5-label"><span id="amlDocTitle2"></span></span>
+                              </div>
+                              <div class="accordion-header-sm-texta">
+                                <i id="amlDocOption2AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="accordion-body collapse" id="amlDocOption2Accordion">
+                            <div class="accordion-inner">
+                                    <div class='body-label lat-dark-grey' id="amlDoc2AU"></div>
+                                    <div class='fine-text lat-dark-grey' id="amlDoc2Legends"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <br/>
+            <div class="container" id="toprow">
+                <div class="hidden-xs">
+                    <div class="pull-right confirmMarginB btnLRMargin vertical-align btnAlign">
+                        <button class="GSecondary-button module5-label lat-blue noOutline btnText" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;"><i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button>
+                        <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn" id="btnNext" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;">Done<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+                    </div>
+                </div>
+                 <div class="hiddenDiv visible-xs">
+                    <div>
+                        <button class="GPrimary-button module5-label lat-white btnBMargin" id="btnNext" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;width:100%;display:inline !important">Done</button>
+                    </div>
+                    <div>
+                        <button class="GTertiary-button module5-label lat-white" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;width:100%;display:inline !important">Back</button>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <br/>
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+        </form> 
+
+    </html>
+    
+    <script src="../../soap/ajax/36.0/connection.js" type="text/javascript"></script>
+    <script>
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+        
+        var appAMLApplicants = [];
+        /*  Description: retrieve Application record
+         *  Author: Davey Yu
+         *  Date Created: 30-JAN-2016
+        */
+        function getApplicationDetail(){
+             Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_AML_Response_Ext.queryApplicationRecord}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    setAMLPanels(result);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+        
+        /*  Description: Method to set AML Panels based on Region (AU/NZ)
+         *  Author: Davey Yu
+         *  Date Created: 30-JAN-2016
+         *  Input: application record (Application__c)
+        */
+        function setAMLPanels(application){
+
+            $("#amlApplicationNo").html("Please make sure you include your application number: <b>" +application.UID__c+"</b>.");
+
+            if(application.Brand_Country__c == "AU"){
+
+                // SET WORDINGS FOR EACH ELEMENT
+                $("#amlSubHeader").html("{!$Label.APP_GSD_AML_SubHeader_AU}");
+                $("#amlDocumentsHeader").html("{!$Label.APP_GSD_AML_Doc_Header_Latitude}");
+                $("#amlDocumentsSubHeader").html("{!$Label.APP_GSD_AML_Doc_SubHeader_Latitude}");
+                $("#amlDocTitle1").html("{!$Label.APP_GSD_AML_Doc_Title_1_Latitude}");
+                $("#amlDocTitle2").html("{!$Label.APP_GSD_AML_Doc_Title_2_Latitude}");
+                $("#amlVerificationHeader").html("{!$Label.APP_GSD_AML_Method_Header_Latitude}");
+                $("#amlVerificationSubHeader").html("{!$Label.APP_GSD_AML_Method_SubHeader_Latitude}");
+                $("#amlMethod1").html("{!$Label.APP_GSD_AML_Method_1_Header_Latitude}");
+                $("#amlMethod2").html("{!$Label.APP_GSD_AML_Method_2_Header_Latitude}");
+                $("#amlMethod2Instruction1").html("{!$Label.APP_GSD_AML_Method_2_SubHeader_Latitude}");
+
+                //  HIDE IRRELEVANT ELEMENTS
+                $("#amlDoc1NZ").addClass("hidden");
+                $("#amlMethod1NZ").addClass("hidden");
+                $("#amlBranchMethod").addClass("hidden");
+
+            }
+            else if(application.Brand_Country__c == "NZ"){
+
+                // SET WORDINGS FOR EACH ELEMENT
+                $("#amlSubHeader").html("{!$Label.APP_GSD_AML_SubHeader_NZ}");
+                $("#amlDocumentsHeader").html("{!$Label.APP_GSD_AML_Doc_Header_GEM}");
+                $("#amlDocumentsSubHeader").html("{!$Label.APP_GSD_AML_Doc_SubHeader_GEM}");
+                $("#amlDocTitle1").html("{!$Label.APP_GSD_AML_Doc_Title_1_GEM}");
+                $("#amlVerificationHeader").html("{!$Label.APP_GSD_AML_Method_Header_GEM}");
+                $("#amlVerificationSubHeader").html("{!$Label.APP_GSD_AML_Method_SubHeader_GEM}");
+                $("#amlMethod1").html("{!$Label.APP_GSD_AML_Method_1_Header_GEM}");
+                $("#amlMethod3").html("{!$Label.APP_GSD_AML_Method_3_Header_GEM}");
+
+                if(application.Brand_String__c == "{!brandGEM}"){
+                    $("#amlMethod1NZAddress").html("{!$Label.APP_GSD_AML_Method_2_Address_GEM}");
+                    $("#amlMethod2").html("{!$Label.APP_GSD_AML_Method_2_Header_GEM}");
+                    $("#amlMethod2Instruction1").html("{!$Label.APP_GSD_AML_Method_2_SubHeader_GEM}");
+                }
+                else if(application.Brand_String__c == "{!brandKiwi}"){
+                    $("#amlMethod1NZAddress").html("{!$Label.APP_GSD_AML_Method_2_Address_Kiwi}");
+                    $("#amlMethod2").html("{!$Label.APP_GSD_AML_Method_2_Header_Kiwi}");
+                    $("#amlMethod2Instruction1").html("{!$Label.APP_GSD_AML_Method_2_SubHeader_Kiwi}");
+                    $("#amlBranchMethod").addClass("hidden");                    
+                }
+
+                //  HIDE IRRELEVANT ELEMENTS
+                $("#amlDocumentOption2").addClass("hidden");
+                $("#amlMethod1AU").addClass("hidden"); 
+            }
+
+            // SET PAGE HEADERS, SUBHEADERS, AML DOCUMENTS CONTENTS, AML DOWNLOADABLE FILES, AML CERTIFIERS, ETC
+            for(var i=0; i < application.Applicant__r.length; i++){
+                var respCode = application.Applicant__r[i].Response_Code__c;
+                var bCountry = application.Brand_Country__c;
+                var appName = application.Applicant__r[i].First_Name__c;
+                var appEmail = application.Applicant__r[i].Email_Address__c;  // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                getMetaPerApplicant(respCode, bCountry, appName, appEmail);
+            }
+            setAMLDocuments(application.Brand_Lookup__c, application.Brand_Country__c)
+            setAMLDownloadableFiles(application.Brand_Lookup__r.Site__c);
+        }
+        
+        /*  Description: method to retrieve custom metadata types per applicant
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function getMetaPerApplicant(resCode, country, applicantName, applicantEmail){
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.APP_GSD_AML_Response_Ext.retrieveResponseMeta}',resCode,country,
+            function(result, event){
+                if(event.status){
+                    if(result.AML__c){
+                        appAMLApplicants.push(applicantEmail + "/" + applicantName); // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                    }
+                    setHeaders(country);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true});
+        }
+        
+        /*  Description: method to set headers appropriate for some conditions.
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function setHeaders(brandCountry){
+                if(appAMLApplicants.length == 1){
+                    if(appAMLApplicants[0].split("/")[0] == "{!$User.Email__c}"){ // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                        console.log("same");
+                        $("#amlHeader").html("{!$Label.APP_GSD_AML_Header_Single}");
+                    }
+                    else{
+                        $("#amlHeader").html("We need to confirm " + appAMLApplicants[0].split("/")[1] + "'s identity."); // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                    }
+                }
+                else{
+                    $("#amlHeader").html("{!$Label.APP_GSD_AML_Header_Joint}"); 
+                }
+        }
+
+        /*  Description: method to retrieve and set aml downloadable documents from Document object
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function setAMLDownloadableFiles(brandSite){
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_AML_Response_Ext.queryAMLFiles}',
+            brandSite,
+            function(result, event){
+                if(event.status){
+                    for(var i=0; i< result.length;i++){
+                        $("#amlFiles").append("<span class='body-label lat-dark-grey'>"+"<a class='latitude-blue underline-sm' href='" + result[i].documentURL + "' target='_blank'>DOWNLOAD "+result[i].documentName+"</a></span>");
+                        
+                    }
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+        
+        /*  Description: method to retrieve and set section contents from brand content object
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function setAMLDocuments(brandId, brandCountry){
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_AML_Response_Ext.queryAMLDocuments}',
+            brandId,
+            function(result, event){
+                if(event.status){
+                    for(var i=0; i< result.length; i++){
+                        if(brandCountry == "AU"){
+                            if(result[i].Name == "AML_Documents_OptionA"){
+                                $("#amlDoc1AU").append(unescapeHtml(result[i].Output_HTML__c));
+                            }else if(result[i].Name == "AML_Documents_OptionB"){
+                                $("#amlDoc2AU").append(unescapeHtml(result[i].Output_HTML__c));
+                            }else if(result[i].Name == "AML_Certifiers"){
+                                $("#amlCertifiersTableAU").append(unescapeHtml(result[i].Output_HTML__c));
+                            }else if(result[i].Name == "AML_DocumentLegendsA"){
+                                $("#amlDoc1Legends").append(unescapeHtml(result[i].Output_HTML__c));
+                            }else if(result[i].Name == "AML_DocumentLegendsB"){
+                                $("#amlDoc2Legends").append(unescapeHtml(result[i].Output_HTML__c));
+                            }
+                        }
+                        else if(brandCountry == "NZ"){
+                            if(result[i].Name == "AML_Documents_OptionA"){
+                                $("#amlDoc1NZ").append(unescapeHtml(result[i].Output_HTML__c));
+                            }
+                            if(result[i].Name == "AML_Certifiers"){
+                                $("#amlCertifiersTableNZ").append(unescapeHtml(result[i].Output_HTML__c));
+                            }
+                        }
+                    }
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+        
+        /*  Description: method to show/hide certifiers table
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function showHideCertifiers(element, country){
+            if(element.innerHTML == "View List of Certifiers"){
+                element.innerHTML = "Hide List of Certifiers";
+                $("#amlCertifiersTable"+country).removeClass("hidden");
+            }
+            else if(element.innerHTML == "Hide List of Certifiers"){
+                element.innerHTML = "View List of Certifiers";
+                $("#amlCertifiersTable"+country).addClass("hidden");
+            }
+        }
+
+        /*  Description: method to unescapre html tags
+         *  Author: Russell Cadapan
+         *  Date Created: 30-JAN-2016
+        */
+        function unescapeHtml(safe) {
+            return $('<div />').html(safe).text();
+        }
+        /*  Description: Onload functions
+         *  Author: Davey Yu
+         *  Date Created: 30-JAN-2016
+        */
+        $( document ).ready(function() {
+            getApplicationDetail();
+            
+            $('#contId1').removeClass('container');
+           /* $('#GFUploadId').removeClass('fUploadTextMarginTop GIdentity-panel-buttons');*/
+            $('#GFUploadId').removeClass('fUploadTextMarginTop');
+            
+        });
+        
+        function toggleSubtext1(e) {
+            $(e.target)
+                .prev('.accordion-heading')
+                .find("span")
+            
+             if('accordion-toggle down up collapsed'){
+                
+                    $("#accord1Lbla1").toggleClass('module5-label lat-blue');
+                    $("#accord1Lbla2").toggleClass('module5-label lat-blue'); 
+                    $("#accord2Lbla1").toggleClass('module5-label lat-blue');
+                    $("#accord2Lbla2").toggleClass('module5-label lat-blue'); 
+                }
+        }
+        $('#accordion').on('hidden.bs.collapse', toggleSubtext1);
+        $('#accordion').on('shown.bs.collapse', toggleSubtext1);
+        
+        function toggleUpDownArrow(accordionId) {
+            //Commented out by MDAVID - 04/14/16
+            // if (accordionId == 'amlDocOption1Accordion') {
+            //     $("#amlDocOption1AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#amlDocOption1AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else if (accordionId == 'amlDocOption2Accordion'){
+            //     $("#amlDocOption2AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#amlDocOption2AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else if (accordionId == 'amlMethodOption1Accordion'){
+            //     $("#amlMethodOption1AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#amlMethodOption1AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else if (accordionId == 'amlMethodOption2Accordion'){
+            //     $("#amlMethodOption2AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#amlMethodOption2AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else {
+            //     $("#amlMethodOption3AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#amlMethodOption3AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // }
+         }
+         
+         //Added by MDAVID - 04/14/16
+        var siteName = "{!$Site.Name}"; 
+        if (siteName == 'Gem') {
+            
+            //for amlDocOption1AccordionHeader
+            if ($("#amlDocOption1AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#amlDocOption1AccordionHeader').hover(function() {
+                    $("#amlDocOption1AccordionArrow").removeClass('icon_arrow_down');
+                    $("#amlDocOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlDocOption1AccordionEdit").removeClass('icon_edit');
+                    $("#amlDocOption1AccordionEdit").addClass('icon_edit_white');
+                }, function() {
+                    $("#amlDocOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlDocOption1AccordionArrow").addClass('icon_arrow_down');
+                    $("#amlDocOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlDocOption1AccordionEdit").addClass('icon_edit');
+                });
+            }
+            $('#amlDocOption1AccordionHeader').hover(function() {
+                if ($("#amlDocOption1AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#amlDocOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlDocOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlDocOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlDocOption1AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+            
+            //for amlDocOption2AccordionHeader
+            if ($("#amlDocOption2AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#amlDocOption2AccordionHeader').hover(function() {
+                    $("#amlDocOption2AccordionArrow").removeClass('icon_arrow_down');
+                    $("#amlDocOption2AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlDocOption2AccordionEdit").removeClass('icon_edit');
+                    $("#amlDocOption2AccordionEdit").addClass('icon_edit_white');
+                }, function() {
+                    $("#amlDocOption2AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlDocOption2AccordionArrow").addClass('icon_arrow_down');
+                    $("#amlDocOption2AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlDocOption2AccordionEdit").addClass('icon_edit');
+                });
+            }
+            $('#amlDocOption2AccordionHeader').hover(function() {
+                if ($("#amlDocOption2AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#amlDocOption2AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlDocOption2AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlDocOption2AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlDocOption2AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+            
+            //for amlMethodOption1AccordionHeader
+            if ($("#amlMethodOption1AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#amlMethodOption1AccordionHeader').hover(function() {
+                    $("#amlMethodOption1AccordionArrow").removeClass('icon_arrow_down');
+                    $("#amlMethodOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption1AccordionEdit").removeClass('icon_edit');
+                    $("#amlMethodOption1AccordionEdit").addClass('icon_edit_white');
+                }, function() {
+                    $("#amlMethodOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption1AccordionArrow").addClass('icon_arrow_down');
+                    $("#amlMethodOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption1AccordionEdit").addClass('icon_edit');
+                });
+            }
+            $('#amlMethodOption1AccordionHeader').hover(function() {
+                if ($("#amlMethodOption1AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#amlMethodOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption1AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+            
+            //for amlMethodOption2AccordionHeader
+            if ($("#amlMethodOption2AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#amlMethodOption2AccordionHeader').hover(function() {
+                    $("#amlMethodOption2AccordionArrow").removeClass('icon_arrow_down');
+                    $("#amlMethodOption2AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption2AccordionEdit").removeClass('icon_edit');
+                    $("#amlMethodOption2AccordionEdit").addClass('icon_edit_white');
+                }, function() {
+                    $("#amlMethodOption2AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption2AccordionArrow").addClass('icon_arrow_down');
+                    $("#amlMethodOption2AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption2AccordionEdit").addClass('icon_edit');
+                });
+            }
+            $('#amlMethodOption2AccordionHeader').hover(function() {
+                if ($("#amlMethodOption2AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#amlMethodOption2AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption2AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption2AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption2AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+            
+            //for amlMethodOption3AccordionHeader
+            if ($("#amlMethodOption3AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#amlMethodOption3AccordionHeader').hover(function() {
+                    $("#amlMethodOption3AccordionArrow").removeClass('icon_arrow_down');
+                    $("#amlMethodOption3AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption3AccordionEdit").removeClass('icon_edit');
+                    $("#amlMethodOption3AccordionEdit").addClass('icon_edit_white');
+                }, function() {
+                    $("#amlMethodOption3AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption3AccordionArrow").addClass('icon_arrow_down');
+                    $("#amlMethodOption3AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption3AccordionEdit").addClass('icon_edit');
+                });
+            }
+            $('#amlMethodOption3AccordionHeader').hover(function() {
+                if ($("#amlMethodOption3AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#amlMethodOption3AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#amlMethodOption3AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#amlMethodOption3AccordionEdit").removeClass('icon_edit_white');
+                    $("#amlMethodOption3AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+
+        }
+        
+    </script>
+    
+</apex:page>

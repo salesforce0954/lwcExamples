@@ -1,0 +1,182 @@
+<!--
+/**
+* @Description: Joint Assets component (CUI)
+* @Author:Fel Saliba
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - FEl
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      11-05-14: Added jquery to change picklist label of "--None--" to please select - By Akash
+      12-10-14: Added jQuery for Disabling the Ownership status picklist values here for DBHZL-143 -(Devendra)   
+    28/03/2019 - Sprint 3 Keypad on Number field 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointAssets" id="Asset__c-mycomponent">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            //12-10-14: Added jQuery for Disabling the Ownership status picklist values here for DBHZL-143 -(Devendra)       
+            $('[id*=Asset__c___Asset_Category__c]').each(function( index ) {
+                var assetCategory=$( this ).val();
+                if(assetCategory=='{!AssetDeposit}' || assetCategory == '{!AssetKiwiSaver}'){
+                    document.getElementById('GETemplate:GETemplate:mainForm:assetPageBlock:assetPageBlock1:assetRepeatId:'+index+':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').setAttribute("disabled", "disabled");
+                }
+            });
+        });
+        
+    </script>
+<style>
+.mppiovr {padding: 10px 5px 0px 0px !important;}
+@media (max-width: 360px) {
+        .m_ip5_por_column2_1 {width:49% !important;}
+        .m_ip5_por_column2_2 {width:49% !important;margin-left:2% !important;}
+        
+        m_ip5_por_column3_1 {width:32% !important;}
+        m_ip5_por_column3_2 {width:32% !important;margin-left:2%;}
+        m_ip5_por_column3_3 {width:32% !important;margin-left:2%;}
+        .mppiovr {padding: 10px 5px 5px 0px !important;}
+    }
+    
+</style>
+    
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="assetWrap" description="This is the value for the component." type="MyBudgetsAssetWrapper" required="true" />
+    <apex:attribute name="listSize" description="This is the size of list." type="Integer"/>
+    <apex:attribute name="assetCount" description="This is the count of assets." type="Integer"/>
+    <div id="add_fields_1" class="clonedSection">
+        <div class="span12">
+            <!-- Numbered Income heading and divider -->
+            <div class="{!if(assetWrap.rowCount!=0, 'assetsDivider', '')} input100pct">
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <label class="dynamicSubheader">Asset {!assetWrap.rowCount+1}</label>
+                </apex:outputPanel>
+                <hr />
+                <!-- DELETE BUTTON -->
+                <apex:outputPanel rendered="{!listSize>1}">
+                    <div class="minusplusicon mppiovr">
+                        <apex:commandButton value="" rendered="{!assetWrap.rowCount!=0}" styleClass="minusfield minusdark" onclick="deleteRow('{!assetWrap.rowCount}'); return false;" rerender="false"/>
+                    </div>
+                </apex:outputPanel>
+            </div>
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span4')} removelmargin lfs_ast_input input100pct">
+                <label class="pix40 labeldark normaltext">Asset type</label>
+
+                <!-- CATEGORY FIELD -->
+                <apex:inputField styleClass="isPicklistAssetType marginbottom10" onblur="$j(this).valid();" value="{!assetWrap.asset.Asset_Category__c}" style="width:100%" id="Asset__c___Asset_Category__c" >
+              <apex:actionSupport event="onchange" rerender="carFields" oncomplete="disableOwnership('{!assetWrap.rowCount}')"/>
+            </apex:inputField>
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!assetWrap.categoryValid}" value="Error: Please select your asset type."/>
+            
+            </div>
+
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span6 removelmargin', 'span4')} lfs_ast_input_sm input100pct">
+                <label class="pix40 labeldark normaltext">Asset value</label>
+
+                <!-- VALUE FIELD -->
+                <!--Updatedby MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountGreaterZero marginbottom10"
+                                 onblur="$j(this).valid();"  value="{!assetWrap.asset.Asset_Value__c}"  
+                                 style="{!if(country!='NZ','width:94%','')}" onchange="getTotal();" id="Asset__c___Asset_Value__c"/>
+                
+                
+                <!--<apex:inputField styleClass="isRequired input-block-level isAmount vNumberAmount"  value="{!assetWrap.asset.Asset_Value__c}" style="{!if(country!='NZ','width:94%','')}" onchange="getTotal();" id="Asset__c___Asset_Value__c"/>-->
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!assetWrap.valueValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+            </div>
+                
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span6', 'span4')} lfs_ast_input_sm input100pct">
+                <label class="pix40 labeldark normaltext">Asset ownership</label>
+
+                <!-- OWNERSHIP STATUS FIELD-->                
+                <apex:selectList size="1" styleClass="{!if(country=='NZ','','isPicklistAssetOwn marginbottom10')}" value="{!assetWrap.asset.Ownership_Status__c}" id="Asset__c___Ownership_Status__c">
+                    <apex:selectOptions value="{!OwnershipStatus}"/>
+                </apex:selectList>
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!assetWrap.ownershipValid}" value="Error: Please enter the asset ownership status."/>
+            </div>
+                     
+        </div>
+         
+    
+    </div><!-- add_fields_1 -->
+    
+    <div class="clearfix"/>
+
+    <!-- EXTRA FIELDS FOR CAR CATEGORY -->
+    <apex:outputPanel id="carFields">
+        <apex:outputPanel rendered="{!OR(assetWrap.asset.Asset_Category__c == 'Car',assetWrap.asset.Asset_Category__c == 'Motor vehicle')}" >
+            <div id="add_fields_1" class="clonedSection">
+
+                <div class="span12 removelmargin lfs_ast_input_sm input100pct">
+                    <label class="pix40 labeldark normaltext">
+                        Vehicle make:
+                    </label>
+
+                    <!-- MAKE FIELD -->
+                    <apex:inputText styleClass="input-block-level isVehicleMake marginbottom10" value="{!assetWrap.asset.Vehicle_Make__c}" id="Asset__c___Vehicle_Make__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!assetWrap.vehicleMakeValid}" value="Error: Please enter your vehicle make."/>
+                </div>
+                <div class="clearfix"></div>
+                 <div class="{!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span6')} removelmargin lfs_ast_input_sm input100pct">
+                    <label class="pix40 labeldark normaltext">
+                        Vehicle model:
+                    </label>
+
+                    <!-- MODEL FIELD -->                
+                    <apex:inputText styleClass="input-block-level isVehicleModel marginbottom10" value="{!assetWrap.asset.Vehicle_Model__c}" id="Asset__c___Vehicle_Model__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!assetWrap.vehicleModelValid}" value="Error: Please enter your vehicle model."/>
+                </div>
+                
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>
+                
+                 <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12 removelmargin', 'span6')} lfs_ast_input_xsm input100pct">
+                    <label class="pix40 labeldark normaltext">
+                        Year of manufacture:
+                    </label>
+                    
+                    <!-- MANUFACTURE YEAR FIELD -->
+                    <apex:inputText html-mobile-input="tel" html-inputmode="numeric" html-pattern="[0-9]*" styleClass="input-block-level isVehicleYear marginbottom10" value="{!assetWrap.asset.Vehicle_Year__c}" onkeypress="return isNumberKey(event, this)" maxlength="4" id="Asset__c___Vehicle_Year__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!assetWrap.vehicleYearValid}" value="Error: Please enter the year of manufacture."/>
+                </div>
+
+            </div><!-- add_fields_1 -->  
+        </apex:outputPanel>
+    </apex:outputPanel>
+    
+    <!-- FOR PERSPECSYS -->
+    <apex:inputHidden value="{!assetWrap.asset.PRS_RECORD_ID__c}" id="Asset__c___PRS_RECORD_ID__c"/>
+    <apex:inputHidden value="{!assetWrap.asset.Id}" id="Asset__c___Id"/>
+    
+    <script>
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=Asset__c___Ownership_Status__c] option[value="None"]').text("Select");
+            
+            //BEGIN MLASALA 12-SEPT-16 TQLQW-483 - Gen 2 App form
+            $("[id*=Asset__c___Asset_Category__c] > option").each(function(){
+                //Just change label and not value as value has dependencies with code, webservice, etc.
+             //   console.log('$$$: '+$(this).val());
+                if($(this).val() == ''){
+                    $(this).text('Select');
+                } else if($(this).val() == 'House'){
+                    //House -> Property I live at
+                    $(this).text('Property I live at');
+                } else if($(this).val() == 'Rental property/Properties'){
+                    //Rental property/Properties -> Property I rent out
+                    $(this).text('Property I rent out');
+                }
+            });
+            //END MLASALA 12-SEPT-16 TQLQW-483 - Gen 2 App form
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    </script>
+</apex:component>

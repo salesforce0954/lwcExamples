@@ -1,0 +1,8 @@
+.slds-text-link:hover {
+    cursor: pointer;
+}
+
+.custom-tooltip {
+    padding: 5px;
+    vertical-align: bottom;
+}

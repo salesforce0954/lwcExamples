@@ -1,0 +1,1138 @@
+<!--
+/*
+ * @Description: Joint Asset Page for GE Customer UI
+ * @Author: Fel Saliba
+ * @Date Created: 10.OCT.2013
+ * @History:
+   =====================================================================
+       OCT-10-13 (Fel): Created.
+       NOV-25-13 (Mike): Removed mode variables
+       DEC-03-13 (Mike): Applied single set of fields
+       MAR-25-14 (Mike): Added asset exemption
+       JUN-12-14: Added jQuery validation plugin - Davey
+       DEC-10-14(Devendra): Added Javascript method disableOwnership  for disabling ownership status for some assets for DBHZL-143
+       FEB-29-16 (Marvin): TQLQW - 104 Rebranding
+Sprint 4 - Time out moved to 5 mins pop up and note help text
+   =====================================================================
+ */ 
+-->
+<apex:page id="GETemplate" cache="false" standardController="Application__c" extensions="APP_JointAssetsExt" sidebar="false" showHeader="false" title="Assets" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0" action="{!commonAuthorizationRequired}">
+<body style="{!if($Site.name==$Label.Kiwibank_Site_Name,$Label.CSS_Label_Kiwibank,'')}">
+    <!-- Added by mlasala JUN-12-14 - JQUERY Validate Plugin 
+         Notes: This must be placed here after the page definition to avoid with existing scripts. -->
+  <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}" />
+  <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}" />
+  <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}" />
+  <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}" />
+  <apex:includeScript value="{!$Resource.jqueryValidateScript}" />
+<script>
+        var j$ = jQuery.noConflict();
+        function trimField(element){
+            element.value = element.value.replace(/,/g,"");
+        }
+        
+        function calculateTotalLoanAmount(elem){
+            if(isNaN(elem.value)){
+                elem.value = '';
+            }
+            UpdateAmount();
+        }
+    </script>
+  <apex:composition template="{!$Site.Template}">
+
+   <apex:define name="GEDDBody">
+    <apex:stylesheet value="{!URLFOR($Resource.mobileoveride, '/css/mobile-overide.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+    
+    <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+    <!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>-->
+    <!--Changed by TXU to reference internal static resource-->
+    <link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <c:App_WebAnalyticAttributes basecontroller="{!this}"/> <!--Afreen - 26-SEPT-2016 - US-519   -->
+    <header>
+     <div id="header" class="header">
+         <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+             <div class="row-fluid header-inner headerlogovr">                    
+                 <div class="mobilell">
+                     <div class="loginlogout span3 removelmargin helplogindesk">
+                         <apex:form >
+                             <apex:pageBlock >
+                                 <div class="span12 fleft">
+                                     <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                    <apex:commandButton value="{!$Label.CUI_header_save_application}" onclick="setNavigationFlag('false');headerButtons('register');" styleClass="btn btn-block btn-normalc buttonarrowimg GPrimary-button" reRender="false" rendered="{!NOT(isRegistered) && Not(isBrokerChannel)}"/>
+                                    <apex:commandButton value="{!$Label.CUI_header_logout}" onclick="setNavigationFlag('false');headerButtons('logout')" styleClass="btn btn-block btn-normalc buttonarrowimg GPrimary-button" reRender="false" rendered="{!isRegistered}"/>
+                                    </div>
+                             </apex:pageBlock>
+                         </apex:form>
+                     </div>
+                 </div>
+             </div>
+             </apex:panelGroup>
+            <!-- START - Added by MDAVID - 03/01/2016 TQLQW - 104 Rebranding-->
+            <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                <apex:panelGroup rendered="{!NOT(isRegistered) && Not(isBrokerChannel)}">
+                    <div class="row-fluid header-inner headerlogovr">                    
+                        <div class="mobilell">
+                            <div class="loginlogout span3 removelmargin helplogindesk">
+                                <apex:form >
+                                    <apex:pageBlock >
+                                        <div class="span12 fleft">
+                                            <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                            <button type="submit" onclick="setNavigationFlag('false');headerButtons('register');return false;" class="btn btn-block btn-normalc btn-large GPrimary-button greenSave" reRender="false">Save Application<!--<span class="arrowrighticon" style="margin-left:20px"></span>--></button>
+                                        </div>
+                                    </apex:pageBlock>
+                                </apex:form>
+                            </div>
+                        </div>
+                    </div>
+                    </apex:panelGroup>
+                    <apex:panelGroup rendered="{!(isRegistered)}">
+                    <div class="row-fluid header-inner headerlogovr"  style="padding: 0 0 0 0 !important;">                    
+                        <div class="mobilell">
+                            <div class="loginlogout span3 removelmargin helplogindesk">
+                                <apex:form >
+                                    <apex:pageBlock >
+                                        <div class="span12 fleft">
+                                            <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                            <button type="submit" onclick="setNavigationFlag('false');headerButtons('logout');return false;" class="btn btn-block btn-normalc btn-large GPrimary-button greenSave" reRender="false" style="float:right">Logout<span class="arrowrighticon" style="margin-left:20px"></span></button>
+                                        </div>
+                                    </apex:pageBlock>
+                                </apex:form>
+                            </div>
+                        </div>
+                    </div>
+                </apex:panelGroup>
+            </apex:panelGroup>
+            <!--C-->
+     </div>
+     <div class="divider10"></div>
+     
+     <!-- created a separate header title for mobile version -->
+        <div class="headertitle GHeader-title" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+            <h3 class="droid-normal dark main-page-header">Personal loan <span class="clearright"></span>application</h3>
+        </div>
+    </header>
+    <!--end of new header-->
+
+    <section>
+      <!-- Added onSubmit attribute for Better Start Added by Suneel -->
+      <apex:form id="loanForm" styleClass="validateLoanForm" onSubmit="return loanAmtBSAU();">
+      <!-- Checkmarx -->   
+      <!--<apex:inputField id="loanPurposeSize" value="{!loanPurposeSize}" />-->
+      <apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}" />
+       <!-- Better Start -->
+          <apex:actionFunction name="loanTermSelect" action="{!getLoanTermOnProduct}" reRender="loan_selected"/>
+         <apex:actionFunction name="productSelection" action="{!getProductOnLoanSelection}" rerender="product_selected"/>
+
+          
+          <!-- End -->
+      <apex:actionFunction name="validateLoan" action="{!validateLoanFields}" rerender="loanForm,loanValid"
+       status="pleasewait" oncomplete=" checkAssetFields('Save'); showOtherLoanPurpose();adjustStyleSheets();" />
+       
+        <!-- MLASALA 20-SEPT-16 TQLQW-483 Gen 2 App form -->
+        <!-- MLASALA 11-OCT-2016 Commented out and moved to APP_Main component to be resuable for all pages -->
+        <!--<apex:actionFunction name="validateLoanBack" action="{!validateLoanFields}" rerender="loanForm,loanValid" -->
+        <!--status="pleasewait" oncomplete=" checkAssetFields('Back'); showOtherLoanPurpose();"/>-->
+                
+        <!--Added by MDAVID - 03/02/2016 TQLQW - 104 Rebranding-->
+        <apex:actionFunction name="addAsset" action="{!addAsset}" rerender="assetPageBlock1" status="pleasewait" oncomplete="validateForm(); return false;" />
+        <apex:actionFunction name="UpdateAmount" action="{!calculateLoanAmountTotal}" reRender="Exp_total" oncomplete="showOtherLoanPurpose();" />
+        <apex:actionFunction name="addLoanPurpose" action="{!addLoanPurpose}" rerender="loanForm,loanPurposeSize,OtherPanelId" status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+        <apex:actionFunction name="removeLoanPurpose" action="{!removeLoanPurpose}" rerender="loanForm,loanPurposeSize" rendered="{!if(loanPurposeSize >=2, true, false)}" status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+        <div class="lp_area_mobile"><!--Added by MDAVID - 03/16/2016 TQLQW - 104 Rebranding - For Mobile-->
+                            <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_eligibility', 'maincontent lp_area lp_eligibility')}">
+                    <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'container-fluid headerbackground', 'row-fluid')}">
+                        <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_area lp_eligibility', 'row-fluid span12 loanfields')}">
+                        <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid', '')}">   
+                            <!-- Start of Content Here -->
+                            <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid span12', '')}">
+                                <div id="addfields" class="tablemainlist llfields {!if(OR($site.Name=='Latitude', $site.Name=='Gem'), 'width800', '')}">
+                                    <div class="headertitle" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                                <h3 class="droid-normal dark main-page-header">Personal loan <span class="clearright"></span>application</h3>
+                            </div>
+                            
+                            <!-- Start Loop-->
+                            <apex:repeat value="{!loanWrapList}" var="l" id="lw">
+                                <!-- <apex:pageBlockSection id="Loan_Purpose__c-1"> -->
+                                    <c:APP_Main country="{!brand.country__c}" l="{!l}" id="component-1"/>
+                                <!-- </apex:pageBlockSection> -->
+                            </apex:repeat>
+                            <div class="clearfix"></div>
+                            <div id="countIcons" class="span12 adjustmeicon">
+                                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                                            <div class="minusplusicon miconad GRemove-loan">
+                                                <apex:commandButton value=" " styleClass="minusfield" action="{!removeLoanPurpose}" rerender="loanForm,loanPurposeSize" rendered="{!if(loanPurposeSize >=2, true, false)}" status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+                                            </div>
+                                            <div class="minusplusicon adconad mv_addicon">
+                                                <apex:commandButton value="" styleClass="plusfield" action="{!addLoanPurpose}" rerender="loanForm,loanPurposeSize" rendered="{!loanPurposeSize <=9}" status="addStatus" oncomplete="showOtherLoanPurpose();"/>
+                                            </div>
+                                        </apex:panelGroup>
+                                        <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                                            <apex:panelGroup rendered="{!if(loanPurposeSize >=2, true, false)}">
+                                                <div class="minusplusicon miconad GRemove-loan">
+                                                    <span class="minusicon" onclick="removeLoanPurpose()"></span>
+                                                </div>
+                                            </apex:panelGroup>
+                                            <apex:panelGroup rendered="{!loanPurposeSize <=9}">
+                                                <div class="minusplusicon adconad">
+                                                    <span class="plusicon" onclick="addLoanPurpose()"></span>
+                                                </div>
+                                            </apex:panelGroup>
+                                        </apex:panelGroup>
+                                    </div>
+                            <div class="clearfix"></div>
+                        </div><!-- addfields -->
+                    </div>
+    
+                <div class="clearfix"></div>
+                 <!-- Product dropdown better start-->
+                       <div  class="span4" style="width: {!if($site.Name='Latitude','127px; font-size: 16px !important; color: #ffffff !important;','115px')};">
+                          <apex:outputLabel rendered="{!IF($CurrentPage.parameters.form == 'broker' && isBSOfferActive, true, false)}" styleClass="gem-subtitle" style="{!if($site.Name=='Latitude','color: #ffffff !important; font-family: Lexia Book !important; font-size: 16px !important;','')} margin-left:695px">Product</apex:outputLabel>
+                        </div>
+                       <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form == 'broker' && isBSOfferActive, true, false)}" style="width:222px;margin:auto;margin-left:785px" layout="block" id="product_selected">
+                          <apex:selectList styleClass="input-block-level isPicklistLoanTerm dropdownicon checkPreviousFields removebmargin" size="1" value="{!productSelected}" onChange="selectLoanTerm()"  id="Product_SubType_Selected">
+                            <apex:selectOptions value="{!productOptions}"/>
+                          </apex:selectList>
+                        <!--  <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}" value="You must select a loan term."/> -->
+                       </apex:outputPanel> 
+                       <!-- End --> 
+                       <!--- Better Start -->
+                       <apex:outputPanel rendered="{!IF($CurrentPage.parameters.subType== 'betterStart', true, false)}" >
+                       <div id="demo" style="background-color:#CC0033 !important;width:500px;margin:auto;color:#ffffff !important;font-family:initital;padding-left:28px">
+                       </div>
+                       </apex:outputPanel>
+                       <!--- End --->
+            </div>
+            </div>
+            </div>
+            <div class="container-fluid loanamountdiv">
+            <div class="maincontent">
+            <div class="row-fluid">
+                <div class="computation {!if(OR($site.Name=='Latitude', $site.Name=='Gem'), 'comp700', '')} overfieldFix2">
+                    <div class="span5 dbtotal">
+                        <span class="totalname">Total loan amount:</span>
+                        <span class="total">
+                            <apex:outputText value="${0, number, ###,###,###,##0.00}" id="Exp_total">
+                                <apex:param value="{!totAmount}"/>
+                            </apex:outputText>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanAmountNotValid}" value="<br/>Error: Your preferred loan amount must be at least ${!validLPAmount}."/><!--UPDATED by RCADAPAN @ 08-MAR-2016 to merge Valid Total Loan Amount per Region - TQLQW-29-->
+                        </span>
+                        
+                    </div>
+                    <div class="span6 overfield pull-right removelmargin input100pct">
+                                <div class="span4" style="{!if($site.Name=='Latitude','width: 127px','width: 120px')}">
+                                        <apex:outputLabel styleClass="gem-subtitle">{!$Label.Over}</apex:outputLabel>
+                                </div>
+                                <div class="span6" style="width: 127px">
+                                 <!-- Added the below OutPanel condition by Suneel BetterStart -->
+                                        <apex:outputPanel id="loan_selected"  layout="block">
+                                        <apex:selectList styleClass="input-block-level isPicklistNone dropdownicon" id="loanterm" size="1" value="{!loanTermSelected}" >
+                                            <apex:selectOptions value="{!loanTermOptions}"/>
+                                        </apex:selectList>
+                                        <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}" value="Error: You must select a loan term."/>
+                                </apex:outputPanel>
+                                </div>
+                            </div>
+                    <div class="clearfix"></div>
+                </div><!-- computation -->
+            </div>
+            </div><!-- end maincontent -->
+            </div><!-- end continer-fluid -->
+            </div>
+            </div>
+  <script type="text/javascript">
+ function showOtherLoanPurpose(){
+     var loanrepeat = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+     for(var i=0;i<loanrepeat.value;i++){
+         var purpose = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+         var other = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:OtherPanelId");
+
+         if(purpose.value == 'Other'){
+             other.style.display = "block";
+         }else{
+             other.style.display = "none";
+         }
+     }
+ }
+ showOtherLoanPurpose();
+  function selectLoanTerm(){
+                             loanTermSelect();
+                             }
+                              function selectProductLoan(){
+        productSelection();
+        }
+  </script>
+     </apex:form>
+    
+     <apex:outputPanel rendered="{!OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank')}">
+        <c:LFS_ProgressIndicator />
+    </apex:outputPanel>
+    
+     <div class="maincontent sidebar-left {!if(!OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'mobileCon', '')} GMob-container">
+      <div class="row-fluid">
+        
+        <apex:outputPanel rendered="{!$site.Name=='Aussie'}">
+            <div class="span4 earlyfull sidebar dashboardarea">
+        <!-- Sidebar -->
+                <apex:form >
+                    <c:GEDDSidebar />
+                </apex:form>
+            </div>
+        </apex:outputPanel>
+
+       <div class="{!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span7')} earlyfull page-income {!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'),'width800','')}">
+        <!-- Enter Content Here -->
+
+        <div class="divider10"></div>
+           
+             <!---  Sprint 4 - help text for time out session ---->
+                        <div class="clearfix"></div>
+                            <div>                                            
+                                    <h5 style="color: #75787b; margin-bottom:5px;margin-left: 5px;">
+                                        <apex:outputText rendered="{!Not(isBrokerChannel)}">Note your session will time out after 15 minutes of inactivity, we recommend you save your application</apex:outputText>    
+                                        <apex:outputText rendered="{!(isBrokerChannel)}">Note your session will timeout after 15 minutes of inactivity </apex:outputText>                                       
+                                    </h5>
+                            </div>                                                       
+                            <div class="clearfix" ></div>
+                            <div class="clearfix" style="height:20px"></div>  
+
+        <apex:form id="mainForm" styleClass="validateMainForm">
+         <apex:outputPanel rendered="{!brand.country__c=='NZ'}">
+
+          <h2 class="gem-heading">{!$label.bank_account_held_header}</h2>
+          <p class="stdText">
+           <apex:outputLabel value="{!$label.bank_account_held_info}" rendered="{!applicantList.size>1}" />
+          </p>
+          <p class="stdText">{!$label.bank_account_held_info1}</p>
+          <div class="span12 lfs_ast_input_sm">
+           <div class="span4 input100pct">
+            <label class="pix40 labeldark normaltext">Bank Accounts Held</label>
+            <apex:selectList styleClass="isPicklist" size="1" value="{!bankAccountHeld}" id="pickss">
+             <apex:selectOptions value="{!bankAccountHeldOptions}" />
+            </apex:selectList>
+           </div>
+          </div>
+         </apex:outputPanel>
+        
+        <div class="clearfix"></div>
+         
+
+         <!--<div class="divider10"></div>-->
+            <!-- Commenting this section Sprint 4 --->
+         <!--- <div id="warning" title="Session timeout warning." style=" display: none;">
+                              <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;">
+                              </span>Please save your Application before session times out.</p>
+                            </div>--->
+                                      
+            <!-- Time out changed for Broker and Customer in Sprint 4 --->
+                            <div  id="warning" title="Do you want to continue?" style="display: none; font-size:11px !important; overflow:hidden;" >    
+                                <p style="font-size:14px !important;line-height:12px;">
+                                    <span class="" style="float: left; margin: 0 0px 20px 0;font-size:11px !important;"></span>
+                                    <apex:outputText rendered="{!(isBrokerChannel)}">This application will time out in 10 minutes. 
+                                        <br/>
+                                        <br/>
+                                        Please click OK to continue. </apex:outputText>
+                                    <apex:outputText rendered="{!Not(isBrokerChannel)}" >
+                                        This application will time out in 10 minutes. Please click OK to continue. 
+                                        <br/> 
+                                        <br/> 
+                                        Note: If you wish to resume later please save your application. 
+                                    </apex:outputText>
+                                </p>
+                            </div>  
+          <!-- Checkmarx -->  
+         <!--<apex:inputField id="redirectTxt" value="{!redirectTo}" />-->
+         <apex:inputHidden id="redirectTxt" value="{!redirectTo}" />
+         <apex:inputHidden id="flag" />
+         <apex:inputHidden id="navFlag" />
+         <!-- Checkmarx --> 
+         <!--<apex:inputField id="destinationPage" value="{!destinationPage}" />-->
+         <!--<apex:inputField id="callingPage" value="{!callingPage}" />-->
+         <!--<apex:inputField id="selectedId" value="{!selectedRow}" />-->
+         <!--<apex:inputField id="blackBox" value="{!blackBox}" />-->
+         <!--<apex:inputField id="loanValid" value="{!loanValidationResults}" />-->
+         <apex:inputHidden id="destinationPage" value="{!destinationPage}" />
+         <apex:inputHidden id="callingPage" value="{!callingPage}" />
+         <apex:inputHidden id="selectedId" value="{!selectedRow}" />
+         <apex:inputHidden id="blackBox" value="{!blackBox}" />
+         <apex:inputHidden id="assetExempt" value="{!applicant.Asset_Exempt__c}" />
+         <apex:inputHidden id="loanValid" value="{!loanValidationResults}" />
+          <!-- BEGIN MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+         <apex:actionFunction name="validateApplication" action="{!validateApply}" rerender="errorId, blackBox"
+          oncomplete="setNavigationFlag(null);submitServiceCall();" />
+          <apex:actionFunction name="submitServiceCall" action="{!submitServiceCallCustomer}"/>
+          <!-- END MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+         <apex:actionFunction name="validateAsset" action="{!pageRedirect}" rerender="assetPageBlock,errorId"
+          onComplete="setNavigationFlag(null);" />
+         <apex:actionFunction name="getTotal" action="{!getTotalAsset}" rerender="false" />
+         <apex:actionFunction name="navigate" action="{!pageNavigation}" rerender="false" />
+         <apex:actionFunction name="removeAllAssets" action="{!removeAllAssets}"
+          rerender="assetPageBlock,bankRequiredBlock" status="pleasewait" />
+         <apex:actionFunction name="removeAsset" action="{!removethisAsset}" reRender="assetPageBlock"
+          status="pleasewait" />
+         <apex:actionFunction name="headerRegister" action="{!register}" />
+         <apex:actionFunction name="headerLogout" action="{!logout}" />
+         
+         
+         <!--<apex:pageBlock id="assetPageBlock">-->
+         <div class="mobileCon">
+             <h2 style="{!if (brand.country__c=='NZ','margin-top: 20px','')}" class="gem-heading"><apex:outputText rendered="{!OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank')}">Personal&nbsp;</apex:outputText>Assets</h2>
+            <apex:outputPanel rendered="{!OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank')}">
+                <div class="span12 labeldark removetmargin removetpadding lfsText input100pct">
+                    <p>Please remember to include your residence if you own the property</p>
+                </div>
+            </apex:outputPanel>
+             <div class="span12 {!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'labeldark', 'fright labelrightdark2')} removetpadding lfsCheckBox input100pct">
+              <label class="checkbox removetmargin input100pct" for="checkbox"> <input type="checkbox" id="Applicant__c___Asset_Exempt__c"
+               onclick="hideAssets();" styleClass="input-block-level" immediate="true" /> <apex:outputText rendered="{!AND(NOT(applicant.Asset_Exempt__c),applicantList.size>1)}">We</apex:outputText><apex:outputText rendered="{!AND(NOT(applicant.Asset_Exempt__c),applicantList.size==1)}">I</apex:outputText> don't have any assets
+              </label>
+             </div>
+             <br />
+        </div>
+        <apex:pageBlock id="assetPageBlock">
+            <div class="mobileCon">
+             <apex:pageMessages id="errorId" />
+                <div class="clearfix"></div>
+                
+              <apex:outputPanel rendered="{!AND(NOT(applicant.Asset_Exempt__c),applicantList.size>1)}">
+                  <div class="divider20"></div>
+                <p id="subtitleId" class="lfsText">We have these assets</p>
+              </apex:outputPanel>
+    
+              <apex:pageBlock id="assetPageBlock1" rendered="{!NOT(applicant.Asset_Exempt__c)}">
+               <!-- Added by vijay -->
+               <apex:variable var="cnt" value="{!0}" />
+               <apex:repeat value="{!assetAddList}" var="assetWrap" id="assetRepeatId">
+                <apex:variable var="cnt" value="{!cnt+1}" />
+                <c:APP_JointAssets assetWrap="{!assetWrap}" listSize="{!assetAddList.size}" assetCount="{!cnt}"
+                 id="component-1" />
+               </apex:repeat> 
+    
+               <div class="clearfix"></div>
+               <div class="fieldbottom"></div>
+               <div class="divider10"></div>
+                   <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                       <!--<apex:commandButton value="Add another asset" action="{!addAsset}" rerender="assetPageBlock1"
+                        rendered="{!if(assetListSize <=9, true, false)}" status="pleasewait"
+                        styleClass="btn btn-large btn-block btn-addc btn-addanother GAdd-income" oncomplete="validateForm(); return false;" />-->
+                        <!-- Matthew Gould 26/09/2016: Removed validateForm() from button as it validates previous fields if not filled out -->
+                        <apex:commandButton value="Add another asset" action="{!addAsset}" rerender="assetPageBlock1"
+                        rendered="{!if(assetListSize <=9, true, false)}" status="pleasewait" style="{!if($site.Name=='Kiwibank','padding-right: 0 !important;','')}"
+                        styleClass="btn btn-large btn-block btn-addc btn-addanother GAdd-income" oncomplete="return false;" />
+                   </apex:panelGroup>
+                       <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                   <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                        <!--REPLACED HTML BUTTON WITH APEX BUTTON by RUSSELL CADAPAN @ 22/04/2016 -->
+                       <!--<button type="button" rendered="{!if(assetListSize <=9, true, false)}" class="btn btn-large btn-block GAdd-income" onclick="addAsset();">Add another asset
+                       <span class="addanothericon" style="margin-left:20px"></span></button>-->
+                       
+                       <apex:commandButton value="Add another asset" action="{!addAsset}" rerender="assetPageBlock1"
+                        rendered="{!if(assetListSize <=9, true, false)}" status="pleasewait"
+                        styleClass="btn btn-large btn-block btn-addanother GAdd-income" oncomplete="return false;"></apex:commandButton>
+                   </apex:panelGroup>
+               <div class="divider10"></div>
+               <div class="clearfix"></div>
+    
+              </apex:pageBlock>
+    
+              <div class="divider10"></div>
+              <div class="clearfix"></div>
+    
+              <!-- Loading -->
+              <apex:actionStatus id="pleasewait" layout="block">
+               <apex:facet name="start">
+                <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" styleClass="fright" />
+               </apex:facet>
+              </apex:actionStatus>
+              <div class="divider10"></div>
+            </div>
+          <!--<div class="row-fluid marginlftzero">
+           <div class="span12">
+               <apex:commandButton value="Back" 
+                                        action="{!backPage}" onclick="setNavigationFlag('false'); lockoutSubmit(this); if(validateForm()){UpdateAmount(); validateLoan(); return false;}" status="saveStatus" styleClass="btn btn-block btn-large btn-reset-m btn-normalc fleft buttonarrowimgleft GPrimary-button" 
+                                        rerender="false" style="width: 150px !important;"/>
+            <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                <!--<apex:commandButton value="Next"
+                 onclick="setNavigationFlag('false'); lockoutSubmit(this); if(validateForm()){UpdateAmount(); validateLoan(); return false;}"
+                 status="pleasewait" styleClass="btn btn-block btn-large btn-reset-m btn-normalc fright buttonarrowimg GPrimary-button"
+                 rerender="false" />
+            </apex:panelGroup>
+            <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+            <!--<apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                <!--<button type="submit"-->
+                <!-- onclick="setNavigationFlag('false'); lockoutSubmit(this); if(validateForm()){UpdateAmount(); validateLoan(); return false;}"-->
+                <!-- status="pleasewait" class="btn btn-block btn-large btn-reset-m btn-normalc fright GPrimary-button"-->
+                <!-- rerender="false">Next<span class="arrowrighticon" style="margin: 0 0 0 20px"></span></button>-->
+                <!--<apex:commandButton style="width:150px !important" value="Next"
+                 onclick="setNavigationFlag('false'); lockoutSubmit(this); if(validateForm()){UpdateAmount(); validateLoan(); return false;}"
+                 status="pleasewait" styleClass="btn btn-block btn-large btn-reset-m btn-normalc fright buttonarrowimg GPrimary-button"
+                 rerender="false" />
+            </apex:panelGroup>
+           </div>
+          </div>-->
+          
+            <!-- Added by Matthew Gould 15/09/2016 Rebranding -->
+            <div class="row-fluid marginlftzero">
+               <div class="span12">
+                   <!-- MLASALA 11-OCT-2016 Updated previous button properties for all pages -->
+                   <!-- onclick="setNavigationFlag('false'); lockoutSubmit(this); if(validateForm()){UpdateAmount(); validateLoanBack(); return false;}"-->
+                   <apex:commandButton value="Previous" onclick="checkFields('.validateMainForm');"
+                        status="saveStatus" styleClass="btn btn-block btn-large btn-reset-m btn-normalc fleft buttonarrowimgleft GPrimary-button lfs-prev-btn" 
+                        rerender="false"/>
+                   <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                   <apex:panelGroup >
+                       <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                       <apex:commandButton onclick="setNavigationFlag('false'); lockoutSubmit(this);  if(validateForm()){UpdateAmount(); validateLoan();};" 
+                       value="Continue" status="saveStatus" 
+                       styleClass="btn btn-block btn-large btn-reset-m btn-normalc fright buttonarrowimg GPrimary-button lfs-next-btn" 
+                       rerender="false" > <span class="arrowrighticon" style="margin-left:20px"></span></apex:commandButton>
+                    </apex:panelGroup>
+                   </apex:panelGroup>
+                   <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                   <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                       <!--<button type="submit" onclick="setNavigationFlag('false'); lockoutSubmit(this);  if(validateForm()){UpdateAmount(); validateLoan(); return false};" -->
+                       <!--status="saveStatus" -->
+                       <!--class="btn btn-block btn-large btn-reset-m btn-normalc fright" -->
+                       <!-->Next-->
+                       <!--<span class="arrowrighticon" style="margin-left:20px"></span></button>-->
+                       <apex:commandButton onclick="setNavigationFlag('false'); lockoutSubmit(this);  if(validateForm()){UpdateAmount(); validateLoan();};" 
+                       value="Continue" status="saveStatus" style="{!if($site.Name!='Latitude', 'width: 150px !important;', '')}"
+                       styleClass="btn btn-block btn-large btn-reset-m btn-normalc fright buttonarrowimg GPrimary-button lfs-next-btn" 
+                       rerender="false"/>
+                   </apex:panelGroup>
+               </div>
+            </div>
+          <div class="divider10"></div>
+
+         </apex:pageBlock>
+
+        </apex:form>
+
+       </div>
+       <!-- span9 -->
+      </div>
+      <!-- row-fluid -->
+     </div>
+     <!-- maincontent -->
+    </section>
+    <!-- end of main content -->
+
+   </apex:define>
+
+  </apex:composition>
+
+  <script>    
+    var j$ = jQuery.noConflict();
+     // Created by: Adrian Recio
+     // Description: Function to disable/enable button onprocess events
+     function lockoutSubmit(button) {
+        var oldValue = button.value;
+
+        button.setAttribute('disabled', true);
+        //button.value = 'Next';
+
+        setTimeout(function(){
+            button.value = oldValue;
+            button.removeAttribute('disabled');
+        }, 5000)
+     }
+        
+function isNumberKey(evt, field) {
+       var charCode = (evt.which) ? evt.which : event.keyCode;
+       if (charCode != 46 && charCode > 31
+         && (charCode < 48 || charCode > 57))
+           return false;
+       if(charCode == 46) {
+           return false;
+       }
+       else{
+           return true;
+       }
+   }
+                       
+   function executeLoad(){
+       countDown();
+       assetExempt();
+       
+       //MLASALA 11-OCT-2016 Populate onload array
+        onLoadValues = populateOnLoadvalues('.validateMainForm');
+   }
+   var SECONDS = 60;
+   var timeout = "{!TimeOut}";
+   var warning = "{!Warning}";        
+   var timeoutGap = timeout - warning;
+   var originalTimeOut = timeout;
+
+   j$(document).ready(function () {
+       //Zero the idle timer on mouse movement or keypress.
+       j$('#warning').dialog(undefined);
+       j$('#warning').dialog().dialog('close');
+       
+       j$(this).mousemove(function (e) {
+           timeout = originalTimeOut;
+           //  j$('#warning').dialog('close');
+       });
+       j$(this).keypress(function (e) {
+           timeout = originalTimeOut;
+           //  j$('#warning').dialog('close');
+       });              
+   });
+
+   function countDown(){
+       if(timeout <= 0){
+            setNavigationFlag("false");
+            checkAssetFields('Timeout');
+       } else {
+           timeout--;
+           if(timeout == timeoutGap){
+               //alert('Please save your Application before session times out');
+               j$(function() {
+                   j$( "#warning" ).dialog({
+                     resizable: false,
+                     height:180,
+                     modal: true,
+                     buttons: {
+                       "OK": function() {
+                         j$( this ).dialog( "close" );
+                       }
+                     }
+                   });
+               });
+           }
+           setTimeout("countDown()", 1000);
+       }
+   }
+   
+   function isAlNumeric(evt, field) {
+       var charCode = (evt.which) ? evt.which : event.keyCode;
+       if (((charCode == 08 || charCode == 45 || charCode == 8 || charCode == 32 ||
+        (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57)))){
+           return true;
+       }
+       else{
+           return false;
+       }
+   }
+   
+   function checkAssetFields(action){
+       document.getElementById('GETemplate:GETemplate:mainForm:redirectTxt').value = action;
+       validateAsset();
+   }
+
+   function pageRedirect(pageref){
+       var callingtile = pageref.value;
+       document.getElementById('GETemplate:GETemplate:mainForm:destinationPage').value = callingtile;
+       document.getElementById('GETemplate:GETemplate:mainForm:callingPage').value = 'Asset';
+       document.getElementById('GETemplate:GETemplate:mainForm:flag').value = "false";
+       navigate();
+   }
+
+   var j$ = jQuery.noConflict();
+   function hideAssets(){
+       var assetExempt = document.getElementById('Applicant__c___Asset_Exempt__c');
+       
+       document.getElementById('GETemplate:GETemplate:mainForm:assetExempt').value = assetExempt.checked;
+       
+       if(assetExempt.checked == true){
+           j$("#GETemplate\\:GETemplate\\:mainForm\\:assetPageBlock\\:assetPageBlock1").hide();
+           j$("#subtitleId").hide();
+       } else {
+           j$("#GETemplate\\:GETemplate\\:mainForm\\:assetPageBlock\\:assetPageBlock1").show();
+           j$("#subtitleId").show();
+       }
+       
+       removeAllAssets();
+   }
+
+   function deleteRow(Id){
+       document.getElementById('GETemplate:GETemplate:mainForm:selectedId').value = Id;
+       removeAsset();
+   }
+
+   function assetExempt(){
+       var assetExempt = document.getElementById('GETemplate:GETemplate:mainForm:assetExempt').value
+       if(assetExempt == 'true'){
+           document.getElementById('Applicant__c___Asset_Exempt__c').checked = assetExempt;
+       }
+   }
+
+   /*  Description: Function used for the header buttons "Save Application" & "Logout"
+    *  Author: Jade Serrano
+    *  Date Created: 09-APR-2014
+    *  Input: None
+    *  Return:
+    */
+   function headerButtons(action){
+       if(action == 'register'){
+           //action function
+           headerRegister();
+       }else if(action == 'logout'){
+           //action function
+           headerLogout();
+       }
+   }
+
+   function adjustStyleSheets(){
+       var res = document.getElementById("GETemplate:GETemplate:mainForm:loanValid");
+       if(res.value == "false"){
+           document.getElementById("countIcons").className = "span12 adjustmeicon triggericon";
+       }
+   }
+
+   executeLoad();
+   window.onbeforeunload = function(e){
+       var flag = document.getElementById("GETemplate:GETemplate:mainForm:navFlag");
+       if(flag.value == false){
+        //   return "Application has not been saved. Do you wish to exit?";
+       }
+   }
+   function setNavigationFlag(val){
+       document.getElementById('GETemplate:GETemplate:mainForm:navFlag').value = val;
+   }
+   
+   //DEC-10-14(Devendra): Added Javascript method disableOwnership  for disabling ownership status for some assets for DBHZL-143
+   function disableOwnership(rowcount){
+    var assetCategory=
+    document.getElementById('GETemplate:GETemplate:mainForm:assetPageBlock:assetPageBlock1:assetRepeatId:'+rowcount+
+    ':component-1:Asset__c-mycomponent:Asset__c___Asset_Category__c').value;
+    if(assetCategory=='{!AssetDeposit}' || assetCategory == '{!AssetKiwiSaver}'){
+        document.getElementById('GETemplate:GETemplate:mainForm:assetPageBlock:assetPageBlock1:assetRepeatId:'+rowcount+
+     ':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').setAttribute("disabled", "disabled");
+    }else{
+        document.getElementById('GETemplate:GETemplate:mainForm:assetPageBlock:assetPageBlock1:assetRepeatId:'+rowcount+
+     ':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').removeAttribute("disabled");
+    }
+   }
+    
+    //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    //Change please select to select
+    function changePickValue(){
+        $('[id*=pickss] option[value=""]').text("Select");
+    }
+    changePickValue();
+    //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    
+    </script>
+    
+    <!-- @title     Design OverRide for APP_JointAssets VF Page -->
+    <!-- @author    gerome.teodosio@cloudsherpas.com            -->
+    <!--            gerome.h.teodosio@Accenture.com             -->
+    
+    <!-- Include StylePicker component to fix general brand style issues -->
+    <c:APP_GSD_StylePicker />
+    
+    <style>
+        @media screen and (max-width: 415px) {
+            .pbBody > .span12 {
+                display: block !important;
+            }
+        }
+    </style>
+    
+    <!-- Aussie brand styling specific for APP_JointAssets VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+       <style>
+       
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income:hover {
+                background-color: #512d6d !important;
+                border: 2px solid transparent !important;
+                color: white !important;
+            }
+            
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income:focus {
+                background-color: #5D8A25 !important;
+            }
+       
+            @media screen and (max-width: 415px) {
+                .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                    margin-top: -80px !important;
+                }
+                
+                .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.GPrimary-button {
+                    margin-top: 0 !important;
+                }
+                
+                .span5.headertitle {
+                    margin-left: 0 !important;
+                }
+                
+                .span4.m_ip5_por_column3_2 input.isAmount[style] {
+                    width: 100% !important;
+                }
+            }
+            
+            @media screen and (min-width: 415px) {
+                .maincontent .maincontent {
+                    margin-left: -15px !important;
+                }
+                
+                .span8 h2 {
+                    margin: 0;
+                    margin-bottom: 20px !important;
+                }
+                
+                .boxlink {
+                    margin: 2px !important;
+                }
+                
+                .tablemainlist > span > .span12 {
+                    margin-left: 20px !important;
+                    text-align: right;
+                }
+                    
+                div#countIcons {
+                    width: 930px;
+                    margin-left: 50px;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .span5.headertitle {
+                    width: 70% !important;
+                }
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .span5.headertitle {
+                    width: 75% !important;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .span5.headertitle {
+                    width: 75% !important;
+                }
+            }
+       </style>
+   </apex:outputPanel>
+   
+    <!-- Gem brand styling specific for APP_JointAssets VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/gem-icons.css')}" rel="stylesheet" />
+        <style>
+            span.addanothericon {
+                background-size: 20px;
+            }
+            
+            button.btn.btn-large.btn-block.removelmargin {
+                height: 40px;   
+            }
+            
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.GPrimary-button {
+                background-image:none;
+                padding-right: 30px !important;
+            }
+            span.fui-arrow-left {
+                    margin-top: 0px;
+                    margin-left: 10px;
+            }
+                    
+            @media screen and (min-width: 415px) {
+                button.btn.btn-large.btn-block.removelmargin {
+                    width: 100% !important;
+                }
+                
+                .sidebar-left {
+                    padding-top: 40px !important;
+                }
+                
+                #countIcons {
+                    width: 760px;
+                    margin-left: -20px;
+                }
+                
+                .page-income > form > span > h2 {
+                    margin-top: 0;
+                }
+                
+                .page-income > .divider10 {
+                    display: none;
+                }
+                
+                .btn.btn-large.btn-block.GAdd-income {
+                    width: 100% !important;
+                    background-color: transparent !important;
+                    color: black;
+                    border: 2px dashed #e1e1e1;
+                }
+                
+                .btn.btn-large.btn-block.GAdd-income:hover {
+                    background-color: #88cdd3 !important;
+                }
+            }
+            .minusplusicon.adconad.GAdd-02,
+            .minusplusicon.miconad.GMinus-02{
+               display: none;
+            }
+            @media screen and (min-width: 375px) {
+                .btn.btn-large.btn-block.GAdd-income {
+                    width: 100% !important;
+                    background-color: transparent !important;
+                    color: #000 !important;
+                    border: 2px dashed #e1e1e1 !important;
+                    background-position: 70%;
+                }      
+                .btn.btn-large.btn-block.GAdd-income:active {
+                    background-color: #88cdd3 !important;
+                    border: 2px solid #88cdd3 !important;
+                    
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .mv_label_twoline {
+                    padding-bottom: 52px;
+                }
+                .headertitle {
+                    margin-left: 50px;
+                }
+                .btn.btn-large.btn-block.GAdd-income {
+                    width: 100% !important;
+                    background-color: transparent !important;
+                    color: #000 !important;
+                    border: 2px dashed #e1e1e1 !important;
+                    background-position: 70%;
+                }      
+                .btn.btn-large.btn-block.GAdd-income:active {
+                    background-color: #88cdd3 !important;
+                    border: 2px solid #88cdd3 !important;
+                    
+                }
+            }
+            
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 70px;
+                }
+            }
+            
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 80px;
+                }
+            }
+        </style>     
+    </apex:outputPanel>
+   
+    <!-- Latitude brand styling specific for APP_JointAssets VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+        <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/lat-iconfix.css')}" rel="stylesheet" />
+        <style>
+            span.addanothericon {
+                background-size: 20px;
+            }
+            
+            .page-income > form > h2 {
+                margin-top: 0;
+            }
+            
+            @media screen and (max-width: 415px) {
+                .lp_eligibility {
+                    display: none !important;
+                }   
+            }
+          
+            @media screen and (min-width: 415px) {
+                 button.btn.btn-large.btn-block.removelmargin {
+                    width: 100% !important;
+                }   
+                
+                div#countIcons {
+                    width: 800px;
+                    margin-left: -80px;
+                    display:block !important;
+                }
+                
+                .minusplusicon.adconad.GAdd-02,
+                .minusplusicon.miconad.GMinus-02{
+                    display: none;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 70px;
+                }
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 85px;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 95px;
+                }
+            }
+        </style>     
+    </apex:outputPanel>
+   <script>
+     //Better Start
+        if("{!$CurrentPage.parameters.subType}" == "betterStart"){
+                                        enableLoanPurpose();
+                                        loanAmtBSAU();
+                                        }
+                        function enableLoanPurpose(){
+                            var loansize = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                            for(var i=0;i<1;i++){
+                              var firstLP = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c").disabled=true;
+    
+                            }
+                            for(var i=1;i<15;i++){
+                            //var option = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                           // option.value = 'Please Select';
+                            var lpSize = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c").disabled=false;
+                           
+                            }                        
+                        }
+                        
+                        
+                        function loanAmtBSAU(){
+                            if("{!$CurrentPage.parameters.subType}" == "betterStart"){
+                            if('{!brand.Country__c}' == 'AU'){ 
+                            var loansize = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                                    for(var i=0;i<1;i++){
+                                        var firstLP = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+                                        var lpValue = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                                        if(firstLP.value < 20000 || lpValue.value != 'Debt consolidation' ){
+                                        document.getElementById("demo").style.display = "block";
+                                        //document.getElementById("demo").innerHTML = "Better Start loans have a minimum loan amount of $20,000. If this amount meets your needs, please update the loan amount. Alternatively, please select one of our other loan types which you can view at: <a style= 'color:antiquewhite;text-decoration:underline;padding:0px;' href=https://www.latitudefinancial.com.au/loans/>https://www.latitudefinancial.com.au/loans/</a>";                
+                                        document.getElementById("demo").innerHTML = "A Better Start Personal Loan must be for Debt Consolidation for $20,000 or more";
+                                        return false;
+                                        } else if(firstLP.value >= 20000 && lpValue.value == 'Debt consolidation'){
+                                        document.getElementById("demo").style.display = "none";
+                                        }                       
+                                    }   
+                                 }                                 
+                                else{
+                                    var loansizeNZ = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                                    for(var i=0;i<1;i++){
+                                        var firstLPNZ = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+                                        var lpValueNZ = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                                        if(firstLPNZ.value < 20000 || lpValueNZ.value != 'Consolidation' ){
+                                        document.getElementById("demo").style.display = "block";
+                                        document.getElementById("demo").innerHTML = "Better Start loans have a minimum loan amount of $20,000. If this amount meets your needs, please update the loan amount. Alternatively, please select one of our other loan types which you can view at: <a style= 'color:antiquewhite;text-decoration:underline;padding:0px;' href=https://www.latitudefinancial.com.au/loans/>https://www.latitudefinancial.com.au/loans/</a>";                
+                                        return false;
+                                        } else if(firstLPNZ.value >= 20000 && lpValueNZ.value == 'Consolidation'){
+                                        document.getElementById("demo").style.display = "none";
+                                        }                       
+                                    }          
+                                }
+                                                      
+                            } 
+                       }            
+                        //End
+    </script>
+     <!-- Hotjar Tracking Code for www.latitudefinancial.com.au -->
+        <script>
+            (function(h,o,t,j,a,r){
+                h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+                h._hjSettings={hjid:826763,hjsv:6};
+                a=o.getElementsByTagName('head')[0];
+                r=o.createElement('script');r.async=1;
+                r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+                a.appendChild(r);
+            })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+        </script>
+    <!-- Latitude brand styling specific for APP_JointAssets VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/kiwibank-iconfix.css')}" rel="stylesheet" />
+        <style>
+            .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+                background: #88C83D !important;
+                color: white !important;
+            }
+            
+            .apexp .pbBody .btn-block.buttonarrowimg,
+            .apexp .pbBody .btn-block.buttonarrowimg:hover,
+            .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button,
+            .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button:hover {
+                text-align: left !important;
+                color: white !important;
+            }
+        
+            @media screen and (min-width: 415px) {
+                .maincontent.sidebar-left.mobileCon.GMob-container {
+                    margin-top: 20px;
+                }
+    
+                .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income {
+                    background-color: #fff !important;
+                    border: 2px dashed #e1e1e1;
+                    color: #555555;
+                    text-align: center !important;
+               }
+               
+               .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income:hover {
+                   background-color: #88C83D !important;
+                   color: white;
+                   border: 2px solid #88C83D;
+               }
+               
+               .boxlink {
+                   margin: 2px !important;
+               }
+               
+               .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                    background-color: #88c83d !important;
+                }
+                
+                .pllabel {
+                    width: 90px;
+                    text-align: right;
+                }
+                
+                .pllabel label {
+                    font-weight: normal;
+                }
+                    
+                .inpselfield select,
+                select {
+                    height: 40px !important;
+                    margin-top: 5px;
+                }
+                    
+                .page-income > form > span > h2 {
+                    margin-top: 0;
+                }
+                
+                body {
+                    font-family: Arial !important;
+                }
+                
+                .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                       margin-top: 0;
+                       text-align:left !important;
+                }
+            }
+
+            @media screen and (max-width: 415px) {
+                .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                      margin-top: -80px !important;
+                }
+                
+                .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.GPrimary-button {
+                    margin: 0 !important;
+                }
+                
+                li.active {
+                    background: #88C83D !important;
+                    border-radius: 3px 3px 0 0;
+                }
+                
+                li.active a {
+                    border: 0 !important;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+</body>
+</apex:page>

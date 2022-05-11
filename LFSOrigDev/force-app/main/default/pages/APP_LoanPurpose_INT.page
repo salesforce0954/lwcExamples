@@ -1,0 +1,725 @@
+<!--
+/*
+ * @Description: Loan Purpose page (Staff UI) (DEV)
+ * @Author: Mike Lasala
+ * @Date Created: 24.OCT.2013
+ * @History:
+   =====================================================================
+       10-24-13: Created - Mike
+       01-23-14: Refactored - Mike
+       11-25-14 DBHZL-54 Eligibility Copy & Acknowledgements -vijay
+       2015-03-30	DBHZL386 Retrieve Payoff Quote - Tony Xu
+   =====================================================================
+ */
+-->
+<apex:page standardController="Application__c" extensions="APP_LoanPurposeExt_INT,Off_OfferPresentationRemote"
+ showHeader="false" id="GETheme" docType="html-5.0">
+
+ <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}" />
+ <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/suiovr2.css')}" />
+
+ <apex:form id="mainForm">
+
+  <apex:inputHidden id="redirectTxt" value="{!redirectTo}" />
+  <apex:inputHidden id="selectedId" value="{!selectedRow}" />
+  <apex:inputHidden id="validationResult" value="{!loanValidationResults}" />
+  <apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}" />
+  <apex:actionFunction name="validateLoan" action="{!pageRedirect}" rerender="validationResult,loanPPageBlock"
+   onComplete="enableSaveButtons(this);  showOtherLoanPurpose();" />
+  <apex:actionFunction name="removeLoanPurpose" action="{!removethisLoan}" rerender="loanPPageBlock,loanPurposeSize"
+   onComplete="showOtherLoanPurpose();" />
+  <apex:actionFunction name="UpdateAmount" action="{!calculateLoanAmountTotal}" rerender="Exp_total" />
+  <!--<apex:actionFunction name="reRenderLPList" rerender="editPanel"/>-->
+
+  <apex:pageBlock id="loanPPageBlock" title="Loan Purpose">
+   <apex:pageMessages />
+   <div class="container suiovr">
+    <apex:variable value="{!-1}" var="rowNum" />
+    <apex:repeat value="{!loanWrapList}" var="loanWrapper" id="repeatId">
+     <!-- <apex:pageBlockSection id="Loan_Purpose__c-1"> -->
+     <apex:variable var="rowNum" value="{!rowNum + 1}" />
+     <c:APP_LoanPurpose_INT l="{!loanWrapper}" lpSlot="{!FLOOR(rowNum)}" country="{!region}" id="component-1"
+      productType="{!application.Type_of_Product__c}" />
+     <!-- </apex:pageBlockSection> -->
+    </apex:repeat>
+    <div class="clearfix"></div>
+    <div class="infield infieldovr">
+     <apex:outputLabel styleClass="width125"> {!$Label.Over} </apex:outputLabel>
+     <div class="requiredBlock2"></div>
+
+     <div class="fieldbox1 width130">
+      <apex:selectList id="loanterm" size="1" value="{!loanTermSelected}">
+       <apex:selectOptions value="{!loanTermOptions}" />
+      </apex:selectList>
+      <br class="clearfix" />
+      <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}"
+       value="Error: You must select a loan term." />
+     </div>
+    </div>
+
+    <div class="infield infieldovr">
+     <apex:outputLabel styleClass="width30"> {!$Label.With} </apex:outputLabel>
+     <div class="requiredBlock2"></div>
+
+     <div class="fieldbox1 width240">
+      <apex:selectList id="loanFreq" styleClass="width160" size="1" value="{!loanFrequencySelected}">
+       <apex:selectOptions value="{!loanFrequencyOptions}" />
+      </apex:selectList>
+      &nbsp;
+      <apex:outputLabel > repayments </apex:outputLabel>
+      <br class="clearfix" />
+      <apex:outputText styleClass="warningMessage" escape="false" rendered="{!paymentNotValid}"
+       value="Error: You must select a loan payment frequency." />
+     </div>
+    </div>
+    <div class="clearfix"></div>
+   </div>
+
+   <div class="clearfloat"></div>
+
+   <br />
+   <br />
+
+   <table>
+    <tr>
+     <td id="totalIncId2"><strong>Total loan amount:</strong></td>
+     <td><span><strong> <apex:outputText value="${0, number,###,###,##0.00}" id="Exp_total">
+         <apex:param value="{!totAmount}" />
+        </apex:outputText>
+      </strong></span></td>
+    </tr>
+
+    <tr>
+     <td><br class="clearfix" /> <apex:outputText styleClass="warningMessage" escape="false"
+       rendered="{!loanAmountNotValid}" value="Error: Your preferred loan amount must be at least $3000." /><!--UPDATED by RCADAPAN @ 08-MAR-2016 to merge Valid Total Loan Amount per Region - TQLQW-29--></td>
+    </tr>
+
+   </table>
+
+   <div align="center">
+    <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;" />
+    <br />
+    <apex:actionStatus id="status">
+     <apex:facet name="stop">
+      <apex:commandButton value="Add More" action="{!addLoanPurpose}" rendered="{!loanPurposeSize < $Setup.Application_Wizard_Settings__c.Max_Records_Loan_Purpose__c}"
+       rerender="loanPPageBlock,loanPurposeSize" status="status"
+       onclick="document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       onComplete="showOtherLoanPurpose();" disabled="{!IF(application.Status__c != 'New', true,false)}" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Adding..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+    <apex:actionStatus id="status4">
+     <apex:facet name="stop">
+      <apex:commandButton id="saveNext" value="Save & Next"
+       onclick="checkLoanFields(this,'Next');document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       rendered="{!IF(Mode == 'Edit', false, true)}" rerender="false" status="status4"
+       oncomplete="checkRefinanceComplete(); showOtherLoanPurpose();"
+       disabled="{!IF(application.Status__c != 'New', true,false)}" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Processing..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+    <apex:actionStatus id="status3">
+     <apex:facet name="stop">
+      <apex:commandButton id="saveClose" value="Save & Close"
+       onclick="checkLoanFields(this,'Save');
+       document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       rerender="false" status="status3" onComplete="showOtherLoanPurpose();"
+       disabled="{!IF(application.Status__c != 'New', true,false)}" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Saving..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+    <apex:actionStatus id="status2">
+     <apex:facet name="stop">
+      <apex:commandButton value="Back"
+       oncomplete="showOtherLoanPurpose();checkLoanFields(this,'Back');
+       document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       rendered="{!IF(Mode == 'Edit', false, true)}" rerender="false" status="status2" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Processing..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+    <apex:actionStatus id="status5">
+     <apex:facet name="stop">
+      <apex:commandButton value="Cancel"
+       onclick="showOtherLoanPurpose();checkLoanFields(this,'Cancel');
+       document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       id="closeBtn" rerender="false" status="status5" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Cancelling..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+    <apex:actionStatus id="status6">
+     <apex:facet name="stop">
+      <apex:commandButton id="nextPage" value="Next"
+       onclick="document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible'"
+       action="{!redirectNext}" rerender="false" status="status6"
+       rendered="{!IF(application.Status__c != 'New', true,false)}" />
+     </apex:facet>
+     <apex:facet name="start">
+      <apex:commandButton value="Proceeding..." disabled="true" />
+     </apex:facet>
+    </apex:actionStatus>
+   </div>
+
+  </apex:pageBlock>
+
+ </apex:form>
+
+ <apex:form id="disbursementForm">
+  <apex:inputHidden id="selectedId" value="{!selectedRow}" />
+  <apex:inputHidden id="payoffAmountRetrieved"
+   value="{!currentDisbursementWrapper.disbursement.Retrieved_Payout_Amount__c}" />
+  <apex:actionFunction name="editDisbursementMethod" action="{!editDisbursement}" reRender="mainPanel,disbursementPanel"
+   oncomplete="calculateNetPayOffAmount();" />
+  <apex:param assignto="{!selectedRow}" name="param" value="" />
+
+  <apex:actionFunction name="showDisbursementMethod" action="{!showDisbursement}" reRender="mainPanel,disbursementPanel"
+   oncomplete="calculateNetPayOffAmount();" />
+  <apex:actionFunction name="calculateNetPayOff" reRender="disbursementPanel" oncomplete="calculateNetPayOffAmount();" />
+  <apex:param assignto="{!selectedRow}" name="param" value="" />
+
+  <apex:outputPanel id="mainPanel">
+   <apex:outputPanel id="subPanel" styleClass="customPopup" layout="block" rendered="{!bDisplayDisbursementPopup}">
+    <apex:pageBlock title="Refinance">
+     <div class="mainwrapper suiovr suiovrmod">
+      <div class="opLoanpurpose">
+       <div class="loanfields">
+        <div id="addfields" class="tablemainlist llfields popupbox">
+
+         <apex:outputPanel >
+         <div class="span12" style="display: none;">
+           <div class="pllabel">
+            <label>Payee</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level" value="{!currentDisbursementWrapper.disbursement.Payee__c}"
+             id="Payee" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Account Number</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Bank_Acc_No__c}" id="AccountNumber" rendered="{!IF(brand.Country__c == 'AU', true, false)}"/>
+             <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Bank_Acc_No_NZ__c}" id="AccountNumberNZ" rendered="{!IF(brand.Country__c == 'NZ', true, false)}"/>
+           </div>
+          </div>
+
+          <div class="span12">
+           <div class="pllabel">
+            <label>Interest Rate</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Interest_Rate__c}" id="InterestRate" />
+           </div>
+          </div>
+         </apex:outputPanel>
+
+         <apex:outputPanel id="manualInfo">
+
+          
+
+          <div class="span12" style="display: none;">
+           <div class="pllabel">
+            <label>Disbursement Account Type</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level refinanceplist"
+             value="{!currentDisbursementWrapper.disbursement.Disbursement_Account_Type__c}"
+             id="DisbursementAccountType" />
+           </div>
+          </div>
+          <div class="span12" style="display: none;">
+           <div class="pllabel">
+            <label>Disbursement Outcome</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level refinanceplist"
+             value="{!currentDisbursementWrapper.disbursement.Disbursement_Outcome__c}" id="DisbursementOutcome" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Payout Effective Date</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Payout_Effective_Date__c}" id="PayoutEffectiveDate" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Principal Amount</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Principal_Amount__c}" id="PrincipalAmount"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Interest Due</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Interest_Due__c}" id="InterestDue"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Late Fees Due</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Late_Fees_Due__c}" id="LateFeesDue"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Penalty Interest Due</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Penalty_Interest_Due__c}" id="PenaltyInterestDue"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Fees or Charges Due</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Fees_or_Charges_Due__c}" id="FeesorChargesDue"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Charge Off Amount</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Charge_Off_Amount__c}" id="ChargeOffAmount"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Insurance Rebate</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Insurance_Rebate__c}" id="InsuranceRebate"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Early Termination Fee</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level"
+             value="{!currentDisbursementWrapper.disbursement.Early_Termination_Fee__c}" id="EarlyTerminationFee"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+          <div class="span12">
+           <div class="pllabel">
+            <label>Applicable Party</label>
+           </div>
+           <div class="inpselfield">
+            <apex:inputField styleClass="input-block-level refinanceplist"
+             value="{!currentDisbursementWrapper.disbursement.Applicable_Party__c}" id="ApplicableParty"
+             onchange="calculateNetPayOff();" />
+           </div>
+          </div>
+         </apex:outputPanel>
+
+         <div class="span12">
+          <div class="pllabel">
+           <label class="noborder" id="netPayOffLabel">Net Pay Off Amount</label>
+          </div>
+          <div>
+           <label class="noborder2" id="netPayOffDue"></label>
+          </div>
+         </div>
+        </div>
+        <div class="clearfix" style="clear: both'"></div>
+       </div>
+       <div class="clearfix" style="clear: both'"></div>
+      </div>
+      <div class="clearfix" style="clear: both'"></div>
+     </div>
+     <div class="span12">
+      <div class="span3"></div>
+      <div class="span3">
+       <apex:pageBlockButtons location="bottom">
+        <apex:commandButton id="retrievePayoffButton" action="{!retrievePayoff}" value="Retrieve Payoff Figure"
+         onClick="document.getElementById('GETheme:disbursementForm:j_id103:j_id124:loadingGif').style.visibility='visible'"
+         onComplete="startTimer()" />
+        <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+         style="visibility:hidden;" />
+        <apex:commandButton id="saveButton" action="{!saveDisbursement}" value="Save" reRender="disbursementForm" onclick="fillDefaultValues()"
+         OnComplete="setLoanAmount('{!currentDisbursementWrapper.counter}','{!currentDisbursementWrapper.netPayOffDue}'); 
+         showOtherLoanPurpose(); return false;" />
+                            &nbsp;&nbsp;
+                            <apex:commandButton id="cancelButton" action="{!cancelDisbursement}" value="Cancel"
+         reRender="disbursementForm"
+         OnComplete="setLoanAmount('{!currentDisbursementWrapper.counter}','{!currentDisbursementWrapper.netPayOffDue}'); 
+         showOtherLoanPurpose(); return false;" />
+       </apex:pageBlockButtons>
+      </div>
+     </div>
+    </apex:pageBlock>
+   </apex:outputPanel>
+
+   <apex:outputPanel id="disbursementPanel">
+    <script>  
+                    //BEGIN 24-AUG-2015 DYU - CODE SCAN FIXES
+                    var principalAmount = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Principal_Amount__c))}';
+                    var interestDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Interest_Due__c))}';
+                    var lateFeesDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Late_Fees_Due__c))}';
+                    var penaltyInterestDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Penalty_Interest_Due__c))}';
+                    var feesOrChargesDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Fees_or_Charges_Due__c))}';
+                    var chargeOffAmount = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Charge_Off_Amount__c))}';
+                    var insuranceRebate = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Insurance_Rebate__c))}';
+                    var earlyTerminationFee = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Early_Termination_Fee__c))}';
+                    //END 24-AUG-2015 DYU 
+                </script>
+    <!--<input type="hidden" name="sfDocId" value="{!JSENCODE(recordIdSaved)}" />-->
+   </apex:outputPanel>
+  </apex:outputPanel>
+ </apex:form>
+
+ <script type="text/javascript">
+
+        function checkDecimal(event){
+             var chCode = ('charCode' in event) ? event.charCode : event.keyCode;
+             if(chCode == '46'){
+                event.preventDefault();
+             }
+        }
+        
+        function isNumberKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 8) return true;
+            if(charCode == 46) return false;
+            return true;
+        }
+        
+        function isAlNumericWithHyphen(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 8 || charCode == 45 || charCode == 8 || charCode == 189 || charCode == 39 ||((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                return true;
+            return false;
+        }
+        
+        function calculateTotalLoanAmount(){
+            UpdateAmount();
+        }
+        
+        function deleteRow(Id){
+            document.getElementById('GETheme:mainForm:selectedId').value = Id;
+            removeLoanPurpose();
+        }
+        
+        function checkLoanFields(field, action){
+            field.disabled = true;
+            document.getElementById('GETheme:mainForm:redirectTxt').value = action;
+            
+            validateLoan();
+        }
+
+        function enableSaveButtons(callingitem){
+            var validation = document.getElementById('GETheme:mainForm:validationResult').value
+            if(validation = false){
+                this.disabled = true;
+            }else{
+                this.disabled = false;
+            }
+        }
+        
+        function showDisbursement(obj) {
+            var id = obj.name;
+            var arrayIds = id.split(":");
+            var rowcount = arrayIds[4];
+            document.getElementById('GETheme:mainForm:selectedId').value = rowcount;      
+            document.getElementById('GETheme:disbursementForm:selectedId').value = rowcount;        
+            if (obj.value == 'Refinance') {
+                showDisbursementMethod(rowcount);
+            }
+        }
+
+        function editDisbursement(rowcount, loanValue) {
+              document.getElementById('GETheme:mainForm:selectedId').value = rowcount;      
+            document.getElementById('GETheme:disbursementForm:selectedId').value = rowcount;   
+            editDisbursementMethod(rowcount);
+        }  
+
+        function countSelect(obj) {
+            var id = obj.name;
+            var arrayIds = id.split(":");
+            var rowcount = arrayIds[4];
+            document.getElementById('GETheme:mainForm:selectedId').value = rowcount;      
+            document.getElementById('GETheme:disbursementForm:selectedId').value = rowcount;        
+            if (obj.value == 'Refinance') {
+                var selectTags = document.getElementsByTagName('select');
+                var selectCount = 0;
+                for (var i=0, length = selectTags.length; i<length; i++) {
+                    if (selectTags[i].value == 'Refinance') {
+                        selectCount++;
+                    }
+                }
+                if (selectCount > 3) {
+                    alert('You are allowed a maximum of 3 Refinance Loan Purposes.');
+                    document.getElementById('GETheme:mainForm:loanPPageBlock:repeatId:' + rowcount +':component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c').value = 'Please Select';     
+                    return false;
+                }
+            }     
+            return true;       
+        }  
+
+        function checkRefinanceComplete() {
+            // Updated by: Adrian Recio
+            // Description: Fix for Checkmarx Reflected XSS (August Fix).
+            //              Added call the JSENCODE function referencing the merge field.
+            // Date: 19/08/2015
+            if ('{!JSENCODE(sErrorMessage)}' != '') {
+                alert('{!JSENCODE(sErrorMessage)}');
+            }
+        }
+        function showOtherLoanPurpose(){
+            var loanrepeat = document.getElementById("GETheme:mainForm:loanPurposeSize");
+            for(var i=0;i<loanrepeat.value;i++){
+                var purpose = document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                var other = document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+i+":component-1:Loan_Purpose__c-mycomponent:OtherPanelId");
+                if(purpose.value == 'Other'){
+                    other.style.display = "block";
+                }else{
+                    other.style.display = "none";
+                }
+            }
+        }
+        function executeLoad(){
+            showOtherLoanPurpose();
+        }
+
+        window.onload = executeLoad();
+        
+        var payoffAmount = 0
+        
+        function calculateNetPayOffAmount(){
+            var netPayOff = 0;
+
+            if(!payoffAmountRetrieved){
+                if(principalAmount != ''){
+                    netPayOff += parseFloat(principalAmount);
+                }
+                if(interestDue != ''){
+                    netPayOff += parseFloat(interestDue);
+                }
+                if(lateFeesDue != ''){
+                    netPayOff += parseFloat(lateFeesDue);
+                }
+                if(penaltyInterestDue != ''){
+                    netPayOff += parseFloat(penaltyInterestDue);
+                }
+                if(feesOrChargesDue != ''){
+                    netPayOff += parseFloat(feesOrChargesDue);
+                }
+                if(chargeOffAmount != ''){
+                    netPayOff += parseFloat(chargeOffAmount);
+                }
+                if(insuranceRebate != ''){
+                    netPayOff -= parseFloat(insuranceRebate);
+                }
+                if(earlyTerminationFee != ''){
+                    netPayOff += parseFloat(earlyTerminationFee);
+                }
+            }else{
+                netPayOff += parseFloat(payoffAmount);
+            }
+            document.getElementById('netPayOffDue').innerHTML = netPayOff.toFixed(2);
+        }
+        function setLoanAmount(counter,netPayOffDue){
+            document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+counter+
+            ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c").value = netPayOffDue;
+        }
+        
+        
+      //****************************NEW ADDEED TXU*************************************   
+      var count=65;
+      var counter;
+      var payoffAmountRetrieved = false; 
+      function startTimer(){
+      
+        if('{!brand.Country__c}' == 'NZ'){
+      
+            if(document.getElementById('GETheme:disbursementForm:j_id103:AccountNumberNZ').value == '' || document.getElementById('GETheme:disbursementForm:j_id103:AccountNumberNZ').value == null){
+                alert('Please provide the Account Number for Payoff Quote Retrieval');
+                document.getElementById('GETheme:disbursementForm:j_id103:j_id124:loadingGif').style.visibility='hidden';           
+            }else{
+                counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+            }
+         }else{
+            if(document.getElementById('GETheme:disbursementForm:j_id103:AccountNumber').value == '' || document.getElementById('GETheme:disbursementForm:j_id103:AccountNumber').value == null){
+                alert('Please provide the Account Number for Payoff Quote Retrieval');
+                document.getElementById('GETheme:disbursementForm:j_id103:j_id124:loadingGif').style.visibility='hidden';           
+            }else{
+                counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+            }
+         }
+      }
+      
+      function timer()
+      {
+        count=count-1;      
+        if(count <= 0){      
+          clearInterval(counter);
+          alert("Retrieve Payoff Amount Failed, Please manually enter the Disbursement Detail then Click Save ");
+          document.getElementById('GETheme:disbursementForm:j_id103:j_id124:loadingGif').style.visibility='hidden';
+          document.getElementById('GETheme:disbursementForm:j_id103:manualInfo').show;
+          document.getElementById('netPayOffLabel').style.visibility = 'visible';
+          document.getElementById('netPayOffDue').style.visibility = 'visible';    
+          //reset counter
+          counter = 65;     
+          //hidCom();         
+        } 
+        if(count %5 == 0){
+         checkAppResponseNonStreaming();
+        }
+      }
+      
+//Javascript polling workaround to replace streaming api
+ function checkAppResponseNonStreaming() {
+      var applicationIdToLook = '{!application.Id}';
+
+      Visualforce.remoting.Manager.invokeAction(
+          '{!$RemoteAction.Off_OfferPresentationRemote.checkForRetrievePayoffApplicationResponse}',
+          applicationIdToLook, 
+          function(result, event) {
+              if (event.status) {
+                 if(result !== null) {
+                    
+                    document.getElementById('GETheme:disbursementForm:j_id103:InterestRate').value = result.RPQ_Interest_Rate__c;                               
+                    document.getElementById('GETheme:disbursementForm:j_id103:InsuranceRebate').value = result.RPQ_Insurance_Rebate__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:PrincipalAmount').value = result.RPQ_Principal_Amount__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:InterestDue').value = result.RPQ_Interest_Due__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:LateFeesDue').value = result.RPQ_Late_Fees_Due__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:PenaltyInterestDue').value = result.RPQ_Penalty_Interest_Due__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:FeesorChargesDue').value = result.RPQ_Fees_or_Charges_Due__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:ChargeOffAmount').value = result.RPQ_Charge_Off_Amount__c;
+                    document.getElementById('GETheme:disbursementForm:j_id103:EarlyTerminationFee').value = result.RPQ_Early_Termination_Fee__c;
+
+                    //The Payee depends on brand
+                    if('{!brand.Country__c}' == 'AU'){
+                    	//BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                    	//BEGIN MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                        document.getElementById('GETheme:disbursementForm:j_id103:Payee').value = '{!JSENCODE($Setup.Application_Wizard_Settings__c.Global_Brand__c)}';
+                    }else{
+                        if('{!brand.Country__c}' == 'NZ'){
+                            document.getElementById('GETheme:disbursementForm:j_id103:Payee').value = '{!JSENCODE($Setup.Application_Wizard_Settings__c.Global_Brand__c)} PL';  
+                        }
+                        //END MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                        //END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                    }
+                    
+                    //Default disbursement account type to personal loan
+                    document.getElementById('GETheme:disbursementForm:j_id103:DisbursementAccountType').value = 'Personal Loan';
+                    
+                    //Default disbursement outcome to Close
+                    document.getElementById('GETheme:disbursementForm:j_id103:DisbursementOutcome').value = 'Close';
+                    
+                    //Default the date to today's date
+
+                    // Updated by: Adrian Recio
+                    // Description: Fix for Checkmarx Reflected XSS (August Fix).
+                    //              Added call the JSENCODE function referencing the merge field.
+                    // Date: 19/08/2015
+                    document.getElementById('GETheme:disbursementForm:j_id103:PayoutEffectiveDate').value = '{!JSENCODE(retrievalDate)}';                 
+                    payoffAmountRetrieved = true;
+                    payoffAmount = result.Retrieved_Payoff_Amount__c;
+                    
+                    calculateNetPayOffAmount();
+                    
+                    document.getElementById('GETheme:disbursementForm:j_id103:j_id124:retrievePayoffButton').style.visibility = "hidden";
+                    document.getElementById('GETheme:disbursementForm:j_id103:j_id124:loadingGif').style.visibility='hidden';
+                    clearInterval(counter);                                                 
+                 }
+              } 
+          }, 
+          {escape: true}
+      );
+  }
+  
+  function fillDefaultValues(){
+       //The Payee depends on brand
+        if('{!brand.Country__c}' == 'AU'){
+        	//BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+        	//BEGIN MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+            document.getElementById('GETheme:disbursementForm:j_id103:Payee').value = '{!JSENCODE($Setup.Application_Wizard_Settings__c.Global_Brand__c)}';
+        }else{
+            if('{!brand.Country__c}' == 'NZ'){
+                document.getElementById('GETheme:disbursementForm:j_id103:Payee').value = '{!JSENCODE($Setup.Application_Wizard_Settings__c.Global_Brand__c)} PL';  
+            }
+            //END MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+            //END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+        }
+        
+        //Default disbursement account type to personal loan
+        document.getElementById('GETheme:disbursementForm:j_id103:DisbursementAccountType').value = 'Personal Loan';
+        
+        //Default disbursement outcome to Close
+        document.getElementById('GETheme:disbursementForm:j_id103:DisbursementOutcome').value = 'Close';
+  }
+    
+  function openPrimaryTab() {
+      //Open a new primary tab with the salesforce.com home page in it
+      sforce.console.openPrimaryTab(null, '/{!application.Id}?tab=offerTab&submit=true', true, 
+          'New Application', openSuccess, 'salesforceTab');
+  }
+  
+  var openSuccess = function openSuccess(result) {
+      //Report whether opening the new tab was successful
+      if (result.success == true) {
+
+      } else {
+         
+      }
+  };
+
+  function closeTab() {
+      //First find the ID of the current tab to close it
+      sforce.console.getEnclosingTabId(closeSubtab);
+  }
+  
+  var closeSubtab = function closeSubtab(result) {
+      //Now that we have the tab ID, we can close it
+      var tabId = result.id;
+      sforce.console.closeTab(tabId);
+  }; 
+        
+        
+        
+    </script>
+
+</apex:page>

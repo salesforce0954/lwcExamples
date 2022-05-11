@@ -1,0 +1,1195 @@
+<apex:page controller="APP_GSD_Insurance_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+  <html>
+  <form id="insuranceForm">
+    <input id="bundleSelected" type="hidden" value="{!bundleSelected}"/>
+    <input id="fullCoverBundle" type="hidden"/>
+    <input id="basicCoverBundle" type="hidden"/>
+    <input id="noCoverBundle" type="hidden"/>
+    <!--<title>Insurance</title>-->
+    
+    <div id="insuranceMessage" class="container">
+      <div class="row" id="thumbsRow">
+        <div class="thumbsup_margin middle-content-margin"><apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}"><i class="icon_logo_latitude logo_lg_size pull-left img-responsive"></i></apex:outputPanel>
+        <span id="thumbsUp" class="icon_confirm_identity icon_middle_width_lg center-block img-responsive"/> </div>
+        <div class="secondary-margin text-center center-block">
+            <span id="" class="module1-label lat-blue">
+                <span id="insuranceHeader"></span>
+            </span> 
+            
+            <!-- MLASALA 17-OCT-16 Promo messages -->
+            <span id="introInsurance" class="intro-label lat-dark-grey"/>
+        </div>
+        <div class="center-block mid-content"> <span class="intro-label lat-dark-grey"> </span> </div>
+      </div>
+      <div class="container">
+        <div class="text-center" id="nextStatic">
+          <div> <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive icon_brand_down_arrow_width"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="gap-content"></div>
+    <div id="insuranceDiv">
+      <div class="center-block mid-content" style="width: 80%"> <span id="" class="module4-label lat-blue"><span id="insuranceSubHeader"></span></span> </div>
+      <br/>
+      <!--- MOBILE -->
+      <div class="hiddenDiv visible-xs center-block" style="width: 95%;"> 
+        
+        <!-- FULL COVER -->
+        <div class="accordion" >
+          <div class="accordion-heading"> <a class="accordion-toggle down up collapsed maincover" data-parent="#accordion" data-toggle="collapse" href="#insFullCoverContent" id="insFullCoverContentAccordionHeader" tabindex="-1" onClick="toggleUpDownArrow('fullCoverAccordId')"> <i id="insFullCoverAccordionLink" class="icon_size icon_lg pull-left {!if(OR($site.Name = 'Latitude', $site.Name = 'Kiwibank'), 'icon_edit', 'icon_edit_white')}"></i>
+            <div class="accordion-header-sm-text gap-text"> <span id="insFullCoverAccordionHeader" class="body-label"><span>The Lot</span></span> </div>
+            <div class="accordion-header-sm-texta"> <i id="fullCoverAccordionArrow" class="icon_size icon_lg pull-right icon_arrow_up gap-right-text" ></i> </div>
+            </a> </div>
+          <div class="accordion-body collapse" id="insFullCoverContent">
+            <div class="accordion-inner">
+              <div class="accordion">
+                <div class="accordion" id="insDocumentOption2">
+                  <div class="accordion-heading">
+                    <div class=""> <a id="insDocOption2AccordionHeader" class="accordion-toggle down up collapsed cover" data-parent="#accordion" data-toggle="collapse" href="#ins2DocOption2Accordion" tabindex="-1" onClick="toggleUpDownArrow('fullCoverOption2AccordId')"> <i id="insDocOption2AccordionEdit" class="icon_size icon_lg pull-left cover-types-unemployment"></i>
+                      <div class="accordion-header-sm-text"> <span id="accord1Lbla2" class="module5-label-mob "><span id="insFullProdIUIName"></span></span> </div>
+                      <div class="accordion-header-sm-texta"> <i id="fullCoverOption2AccordionArrow" class="icon_size icon_lg pull-right icon_blue_arrow_up gap-right-text" ></i> </div>
+                      </a> </div>
+                  </div>
+                  <div class="accordion-body collapse" id="ins2DocOption2Accordion">
+                    <div class="accordion-inner cover">
+                      <div class="body-label lat-dark-grey indent" id="insFullProdIUIDesc"></div>
+                      <div id="mobileFullIUISummary" class="hidden">
+                        <div style="height: 10px;"></div>
+                        <a class="lat-blue body-label indent" onClick="hideShowSummary(this, 'fullIUISummary'); return false;">We don't pay if...</a>
+                        <div style="height: 10px;"></div>
+                        <div id="fullIUISummary" class="hidden"> <span>
+                          <div class="body-label indent" id="fullIUISummaryDesc"></div>
+                          <a class="lat-blue body-label" onClick="$('#fullIUISummary').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="height: 10px;"></div>
+                <div class="accordion-divider"></div>
+                <div style="height: 10px;"></div>
+                <div class="accordion" id="insDocumentOption1">
+                  <div class="accordion-heading"> <a id="insDocOption1AccordionHeader" class="accordion-toggle down up collapsed cover" data-parent="#accordion" data-toggle="collapse" href="#ins2DocOption1Accordion" tabindex="-1" onClick="toggleUpDownArrow('fullCoverOption1AccordId')"> <i id="insDocOption1AccordionEdit" class="icon_size icon_lg pull-left cover-types-ambulance"></i>
+                    <div class="accordion-header-sm-text gap-text"> <span id="accord1Lbla1" class="module5-label-mob "><span id="insFullProdDisName"></span></span> </div>
+                    <div class="accordion-header-sm-texta"> <i id="fullCoverOption1AccordionArrow" class="icon_size icon_lg pull-right icon_blue_arrow_up gap-right-text" ></i> </div>
+                    </a> </div>
+                  <div class="accordion-body collapse" id="ins2DocOption1Accordion">
+                    <div class="accordion-inner cover">
+                      <div class="body-label lat-dark-grey indent" id="insFullProdDisDesc"></div>
+                      <div id="mobileFullDisSummary" class="hidden">
+                        <div style="height: 10px;"></div>
+                        <a class="lat-blue body-label indent" onClick="hideShowSummary(this, 'fullDisabilitySummary'); return false;">We don't pay if...</a>
+                        <div style="height: 10px;"></div>
+                        <div id="fullDisabilitySummary" class="hidden"> <span>
+                          <div class="body-label indent" id="fullDisabilitySummaryDesc"></div>
+                          <a class="lat-blue body-label" onClick="$('#fullDisabilitySummary').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="height: 10px;"></div>
+                <div class="accordion-divider"></div>
+                <div style="height: 10px;"></div>
+                <!-- Added By Suneel -- Removed Life Insurance row from Matrix -- 19/03/2018  -->
+                <div class="accordion" id="insDocumentOption3" style="display:{!if(OR($site.Name = 'Latitude'),'none','table-row')}">
+                  <div class="accordion-heading">
+                    <div class=""> <a id="insDocOption3AccordionHeader" class="accordion-toggle down up collapsed cover" data-parent="#accordion" data-toggle="collapse" href="#ins2DocOption3Accordion" tabindex="-1" onClick="toggleUpDownArrow('fullCoverOption3AccordId')"> <i id="insDocOption3AccordionEdit" class="icon_size icon_lg pull-left cover-types-heart"></i>
+                      <div class="accordion-header-sm-text gap-text"> <span id="accord1Lbla2" class="module5-label-mob "><span id="insFullProdLifeName"></span></span> </div>
+                      <div class="accordion-header-sm-texta"> <i id="fullCoverOption3AccordionArrow" class="icon_size icon_lg pull-right icon_blue_arrow_up gap-right-text" ></i> </div>
+                      </a> </div>
+                  </div>
+                  <div class="accordion-body collapse" id="ins2DocOption3Accordion">
+                    <div class="accordion-inner cover">
+                      <div class="body-label lat-dark-grey indent" id="insFullProdLifeDesc"></div>
+                      <div id="mobileFullLifeSummary" class="hidden">
+                        <div style="height: 10px;"></div>
+                        <a class="lat-blue body-label indent" onClick="hideShowSummary(this, 'fullLifeSummary'); return false;">We don't pay if...</a>
+                        <div style="height: 10px;"></div>
+                        <div id="fullLifeSummary" class="hidden"> <span>
+                          <div class="body-label indent" id="fullLifeSummaryDesc"></div>
+                          <a class="lat-blue body-label" onClick="$('#fullLifeSummary').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="height: 20px;"></div>
+                <div style="text-align: center;">
+                  <div id="auAmountsMobileFull" class="hidden">
+                    <div><span class="intro-label lat-blue">Monthly loan repayment</span></div>
+                    <div><span class="intro-label lat-blue">with The Lot</span></div>
+                    <div><span class="module2-label lat-blue" style="font-weight: bold" id="insMobileFullMMP"></span></div>
+                  </div>
+                  <div id="nzAmountsMobileFull" class="hidden">
+                    <span class="module2-label lat-blue" style="font-weight: bold"><span class="module4-label lat-blue" id="fullmobilePremium"></span></span>
+                    <span class="module2-label lat-blue" style="font-weight: bold"><span class="module4-label lat-blue">Total Premium</span></span>
+                    <div><span class="intro-label lat-blue">Total interest on this premium <span id="fullmobileInterest"></span></span></div>
+                  </div>
+                </div>
+                <div style="height: 30px;"></div>
+                <button class="GPrimary-button body-label lat-white noOutline gapBetweenBtn" onCLick="setBundleSelection('{!$Label.Full_Bundle_Name}');" style="width: 100%;" type="button"> <span style="line-height: 30px;font: 20px Calibri;" id="fullBundleButtonSpan">Add The Lot</span><i class="icon_plus_white icon_size pull-right loan-margin-left" id="fullBundleButtonSpanIcon"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="height: 10px;"></div>
+        
+        <!-- BASIC COVER -->
+        <div class="accordion">
+          <div class="accordion-heading"> <a class="accordion-toggle down up collapsed maincover" data-parent="#accordion" data-toggle="collapse" href="#insBasicoverContent" id="insBasicCoverContentAccordionHeader" tabindex="-1" onClick="toggleUpDownArrow('basicCoverAccordId')"> <i id="insBasicCoverAccordionLink" class="icon_size icon_lg pull-left {!if(OR($site.Name = 'Latitude', $site.Name = 'Kiwibank'), 'icon_edit', 'icon_edit_white')}"></i>
+            <div class="accordion-header-sm-text gap-text"> <span id="insBasicCoverAccordionHeader" class="body-label"><span>The Basics</span></span> </div>
+            <div class="accordion-header-sm-texta"> <i id="basicCoverAccordionArrow" class="icon_size icon_lg pull-right icon_arrow_up gap-right-text" ></i> </div>
+            </a>
+            <div class="accordion-body collapse" id="insBasicoverContent">
+              <div class="accordion-inner">
+                <!-- Added Style attribute for the below div tag Suneel NFLPI 21/03/2018 -->
+                <div class="accordion" id="insDocumentOption2" style="display:{!if(OR($site.Name = 'Latitude'),'none','table-row')}">
+                  <div class="accordion-heading">
+                    <div class=""> <a id="insDocOption2AccordionHeader" class="accordion-toggle down up collapsed cover" data-parent="#accordion" data-toggle="collapse" href="#ins1DocOption2Accordion" tabindex="-1" onClick="toggleUpDownArrow('basicCoverOption2AccordId')"> <i id="insDocOption2AccordionEdit" class="icon_size icon_lg pull-left cover-types-unemployment"></i>
+                      <div class="accordion-header-sm-text"> <span id="accord1Lbla2" class="module5-label-mob "><span id="insBasicProdIUIName"></span></span> </div>
+                      <div class="accordion-header-sm-texta"> <i id="basicCoverOption2AccordionArrow" class="icon_size icon_lg pull-right icon_blue_arrow_up gap-right-text" ></i> </div>
+                      </a> </div>
+                  </div>
+                  <div class="accordion-body collapse" id="ins1DocOption2Accordion">
+                    <div class="accordion-inner cover">
+                      <div class="body-label lat-dark-grey indent" id="insBasicProdIUIDesc"></div>
+                      <div id="mobileBasicIUISummary" class="hidden">
+                        <div style="height: 10px;"></div>
+                        <a class="lat-blue body-label indent" onClick="hideShowSummary(this, 'basicIUISummary'); return false;">We don't pay if...</a>
+                        <div style="height: 10px;"></div>
+                        <div id="basicIUISummary" class="hidden"> <span>
+                          <div class="body-label indent" id="basicIUISummaryDesc"></div>
+                          <a class="lat-blue body-label" onClick="$('#basicIUISummary').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!---- -->
+                <!-- Added Outpanel condition by Suneel 21/03/2018 NFLPI -->
+                <apex:outputPanel rendered="{!$Site.Name=='Gem' || $Site.Name=='Kiwibank'}">
+                 <div class="accordion-divider"></div> </apex:outputPanel>
+                <div style="height: 10px;"></div>
+                <div class="accordion" id="insDocumentOption1">
+                  <div class="accordion-heading">
+                    <div class=""> <a id="insDocOption1AccordionHeader" class="accordion-toggle down up collapsed cover" data-parent="#accordion" data-toggle="collapse" href="#ins1DocOption1Accordion" tabindex="-1" onClick="toggleUpDownArrow('basicCoverOption1AccordId')"> <i id="insDocOption1AccordionEdit" class="icon_size icon_lg pull-left cover-types-ambulance"></i>
+                      <div class="accordion-header-sm-text gap-text"> <span id="accord1Lbla1" class="module5-label-mob "><span id="insBasicProdDisName"></span></span> </div>
+                      <div class="accordion-header-sm-texta"> <i id="basicCoverOption1AccordionArrow" class="icon_size icon_lg pull-right icon_blue_arrow_up gap-right-text" ></i> </div>
+                      </a> </div>
+                  </div>
+                  <div class="accordion-body collapse" id="ins1DocOption1Accordion">
+                    <div class="accordion-inner cover">
+                      <div class="body-label lat-dark-grey indent" id="insBasicProdDisDesc"></div>
+                      <div id="mobileBasicDisSummary" class="hidden">
+                        <div style="height: 10px;"></div>
+                        <a class="lat-blue body-label indent" onClick="hideShowSummary(this, 'basicDisabilitySummary'); return false;">We don't pay if...</a>
+                        <div style="height: 10px;"></div>
+                        <div id="basicDisabilitySummary" class="hidden"> <span>
+                          <div class="body-label indent" id="basicDisSummaryDesc"></div>
+                          <a class="lat-blue body-label" onClick="$('#basicDisabilitySummary').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="height: 20px;"></div>
+                  <div style="text-align: center;">
+                    <div id="auAmountsMobileBasic" class="hidden">
+                      <div><span class="intro-label lat-blue">Monthly loan repayment</span></div>
+                      <div><span class="intro-label lat-blue">with The Basics</span></div>
+                      <div><span class="module2-label lat-blue" style="font-weight: bold" id="insMobileBasicMMP"></span></div>
+                    </div>
+                    <div id="nzAmountsMobileBasic" class="hidden">
+                      <span class="module2-label lat-blue" style="font-weight: bold"><span class="module4-label lat-blue" id="basicmobilePremium"></span></span>
+                      <span class="module2-label lat-blue" style="font-weight: bold"><span class="module4-label lat-blue">Total Premium</span></span>
+                      <div><span class="intro-label lat-blue">Total interest on this premium <span id="basicmobileInterest"></span></span></div>
+                    </div>
+                  </div>
+                  <div style="height: 30px;"></div>
+                  <button class="GPrimary-button body-label lat-white noOutline gapBetweenBtn" onClick="setBundleSelection('{!$Label.Basic_Bundle_Name}');" style="width: 100%;" type="button"> <span style="line-height: 30px;font: 20px Calibri;" id="basicBundleButtonSpan">Add The Basics</span><i class="icon_plus_white icon_size pull-right loan-margin-left" id="basicBundleButtonSpanIcon"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="height: 10px;"></div>
+        <!-- NO COVER -->
+        <div class="accordion">
+          <div class="accordion-heading"> <a class="accordion-toggle down up collapsed maincover" data-parent="#accordion" data-toggle="collapse" href="#insNoCoverContent" id="insNoCoverContentAccordionHeader" tabindex="-1" onClick="toggleUpDownArrow('noCoverAccordId')"> <i id="insNoCoverAccordionLink" class="icon_size icon_lg pull-left {!if(OR($site.Name = 'Latitude', $site.Name = 'Kiwibank'), 'icon_edit', 'icon_edit_white')}"></i>
+            <div class="accordion-header-sm-text gap-text"> <span id="insNoCoverAccordionHeader" class="body-label"><span>No Cover</span></span> </div>
+            <div class="accordion-header-sm-texta"> <i id="noCoverAccordionArrow" class="icon_size icon_lg icon_arrow_up pull-right gap-right-text" ></i> </div>
+            </a>
+            <div class="accordion-body collapse" id="insNoCoverContent">
+              <div class="accordion-inner">
+                <div class="accordion" id="insDocumentOption2">
+                  <div id="ins3DocOption1Accordion">
+                        <div class='body-label lat-dark-grey' id="noCoverDescription"></div>
+                  </div>
+                  <div style="height: 20px;"></div>
+                  <div style="text-align: center;">
+                    <div id="auAmountsMobileNoCover" class="hidden">
+                      <div><span class="intro-label lat-blue">Monthly loan repayment</span></div>
+                      <div><span class="intro-label lat-blue">with no insurance</span></div>
+                      <div><span class="module2-label lat-blue" style="font-weight: bold" id="insMobileNoCoverMMP"></span></div>
+                    </div>
+                  </div>
+                  <div style="height: 30px;"></div>
+                  <button class="GPrimary-button body-label lat-white noOutline gapBetweenBtn" onClick="setBundleSelection('No Cover');" style="width: 100%;" type="button"> <span style="line-height: 30px;font: 20px Calibri;" id="noCoverBundleButtonSpan">Choose No Cover</span><i class="icon_plus_white icon_size pull-right loan-margin-left" id="noCoverBundleButtonSpanIcon"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br/>
+      <!-- END MOBILE --> 
+      
+      <!--- DESKTOP -->
+      <div class="container hidden-xs">
+       <!-- <table class="styled-table styled-table--comparisons"> -->
+        <table class="styled-table styled-table--comparisons">
+          <tr>
+            <th class="no-background"></th>
+           <th>The Lot</th>
+            <th>The Basics</th>
+            <th>No Cover</th>
+          </tr>
+         <tr>
+            <td><div class="cover-types-icons cover-types-involuntary"> <strong><span id="insProdIUINameDesktop"></span></strong><br />
+                <span id="insIUIDesktop"></span>
+                <div id="desktopFullIUISummary" class="hidden">
+                  <div style="height: 10px;"></div>
+                  <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullIUISummaryDesktop'); return false;" style="{!IF($site.Name = $label.NZ_Site_Name,'','text-decoration: underline !important')}">We don't pay if...</a>
+                  <div id="fullIUISummaryDesktop" class="hidden"> <span>
+                    <div class="body-label" id="fullIUISummaryDescDesktop"></div>
+                    <a class="lat-blue body-label" onClick="$('#fullIUISummaryDesktop').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                </div>
+              </div>
+              <div class="cover-types-moreinfo"> <a class="tooltip js-tooltip"> <span class="icon_tooltip" id="tooltip"></span> </a>
+                <div class="tooltip__content js-tooltip__content">
+                <button class="btn-modal-close" role="button">
+                <span class="icon-close-modal"></span>
+                </button>
+                <br />
+                  <h6 class="text spacer-bottom-none font-base" id="tooltipIUI"></h6>
+                  <p><span id="iuitooltip"></span><br />
+                  <a style="text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank" class="tooltippds"></a></p>
+                </div>
+              </div></td>
+            <td><span class="icon_tick_gray" id="crossgray"></span></td>
+             <!-- Added By Suneel NFLPI 21/03/2018 -->
+             <td><apex:outputPanel rendered="{!$Site.Name=='Gem' || $Site.Name=='Kiwibank'}"><span class="icon_tick_gray" id="tick"></span></apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Latitude'}"><span class="icon_cross_gray" id="crossgray"></span></apex:outputPanel></td>
+            <td><span class="icon_cross_gray" id="tick"></span></td>
+          </tr> 
+          <tr>
+            <td><div class="cover-types-icons cover-types-disability"> <strong><span id="insProdDisNameDesktop"></span></strong><br />
+                <span id="insDisDesktop"></span>
+                <div id="desktopFullDisSummary" class="hidden">
+                  <div style="height: 10px;"></div>
+                  <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullDisSummaryDesktop'); return false;" style="{!IF($site.Name = $label.NZ_Site_Name,'','text-decoration: underline !important')}">We don't pay if...</a>
+                  <div id="fullDisSummaryDesktop" class="hidden"> <span>
+                    <div class="body-label" id="fullDisSummaryDescDesktop"></div>
+                    <a class="lat-blue body-label" onClick="$('#fullDisSummaryDesktop').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                </div>
+              </div>
+              <div class="cover-types-moreinfo"> <a class="tooltip js-tooltip"> <span class="icon_tooltip" id="tooltip"></span> </a>
+                <div class="tooltip__content js-tooltip__content">
+                    <button class="btn-modal-close" role="button">
+                    <span class="icon-close-modal"></span>
+                    </button>
+                    <br />
+                  <h6 class="text spacer-bottom-none font-base" id="tooltipDis"></h6>
+                  <p><span id="distooltip"></span><br />
+                    <a style="text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank" class="tooltippds"></a></p>
+                </div>
+              </div></td>
+            <td><span class="icon_tick_gray" id="crossgray"></span></td>
+            <td><span class="icon_tick_gray" id="tick"></span></td>
+            <td><span class="icon_cross_gray" id="tick"></span></td>
+          </tr>
+          <!-- Hiding Life Insurance row in the customer ui matrix Suneel NFLPI 21/03/2018 -->
+           <tr style="display:{!if(OR($site.Name = 'Latitude'),'none','table-row')}">
+           <td><div class="cover-types-icons cover-types-life"> <strong><span id="insProdLifeNameDesktop"></span></strong><br />
+                <span id="insLifeDesktop"></span>
+                <div id="desktopFullLifeSummary" class="hidden">
+                  <div style="height: 10px;"></div>
+                  <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullLifeSummaryDesktop'); return false;" style="{!IF($site.Name = $label.NZ_Site_Name,'','text-decoration: underline !important')}">We don't pay if...</a>
+                  <div id="fullLifeSummaryDesktop" class="hidden"> <span>
+                    <div class="body-label" id="fullLifeSummaryDescDesktop"></div>
+                    <a class="lat-blue body-label" onClick="$('#fullLifeSummaryDesktop').addClass('hidden'); return false;" style="float: right !important;">Close</a> </span> </div>
+                </div>
+              </div>
+              <div class="cover-types-moreinfo"> <a class="tooltip js-tooltip"> <span class="icon_tooltip" id="tooltip"></span> </a>
+                <div class="tooltip__content js-tooltip__content">
+                   <button class="btn-modal-close" role="button">
+                   <span class="icon-close-modal"></span>
+                   </button>
+                   <br />
+                  <h6 class="text spacer-bottom-none font-base" id="tooltipLife"></h6>
+                  <p><span id="lifetooltip"></span><br />
+                    <a style="text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank" class="tooltippds"></a></p>
+                </div>
+              </div></td>
+           <td><span class="icon_tick_gray" id="crossgray"></span></td>
+            <td><span class="icon_cross_gray" id="crossgray"></span></td>
+            <td><span class="icon_cross_gray" id="tick"></span></td> 
+          </tr>
+        
+          <tr> 
+            <td style="padding: 20px 20px;">
+            <div id="auMinimumrepayments" class="hidden"><h5>Minimum monthly loan<br />repayments</h5></div>
+            <div id="nzMinimumrepayments" class="hidden">
+                <span class="icon-info"></span>
+                <span class="text intro-label" style="font-size: 12px;font-weight:200;line-height: 24px;text-align:justify">{!$Label.APP_GSD_Insurance_Confirmation_Message_NZ}</span><br />
+                <h6 style="margin-bottom: 0rem;">Do you have any questions?</h6>
+                <span class="text" style="font-size: 12px;font-weight:200;line-height: 24px;">Just give us a call on <span id="callusnz1" style="font-size: 100%;"></span>.</span>
+            </div>
+            </td>
+            <td><div id="auAmountsDesktopFull" class="hidden"> Monthly with The Lot<br />
+                <span id="insMMPFullCoverDesktop"></span> </div>
+              <div id="nzAmountsDesktopFull" class="hidden"> 
+                <div class="nzAmountPrice"><span id="nzDesktopFullPremium" style="font-size:15px;font-weight:700"></span> <span style="font-size:15px;font-weight:700">Total premium</span></div>
+                <span style="font-size:14px;font-weight:200;">Total interest on this premium <span style="font-size: 12px !important;font-weight: 200;" id="nzDesktopFullInterest"></span></span> </div></td>
+            <td><div id="auAmountsDesktopBasic" class="hidden"> Monthly with The Basics<br />
+                <span id="insMMPBasicCoverDesktop"></span> </div>
+              <div id="nzAmountsDesktopBasic" class="hidden"> 
+                <div class="nzAmountPrice"><span id="nzDesktopBasicPremium" style="font-size:15px;font-weight:700"></span> <span style="font-size:15px;font-weight:700">Total premium</span></div>
+                <span style="font-size:14px;font-weight:200;">Total interest on this premium <span id="nzDesktopBasicInterest" style="font-size: 12px !important;font-weight: 200;"></span></span> </div></td>
+            <td><div id="auAmountsDesktopNoCover" class="hidden"> Monthly with No Cover<br />
+                <span id="insMMPNoCoverDesktop"></span> </div>
+                <div class='body-label lat-dark-grey hidden' style="font-weight: 600;" id="noCoverDesc"></div>
+              <div id="nzAmountsDesktopNoCover" class="hidden"> </div></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><button type="button" class="GPrimary-button body-label noOutline btnText" onClick="setBundleSelection('{!$Label.Full_Bundle_Name}');"><span class="btn-cover-types-proceed"><div>Add The</div> <div>Lot</div></span><i class="icon_plus_white icon_size pull-right GLeft-icon" id="fullBundleButtonSpanIconDesktop"></i></button></td>
+            <td><button type="button" class="GPrimary-button body-label noOutline btnText" onClick="setBundleSelection('{!$Label.Basic_Bundle_Name}');"><span class="btn-cover-types-proceed"><div>Add The</div> <div>Basics</div></span><i class="icon_plus_white icon_size pull-right GLeft-icon" id="basicBundleButtonSpanIconDesktop"></i></button></td>
+            <td><button type="button" class="GSecondary-button body-label lat-blue noOutline btnText" onClick="setBundleSelection('No Cover');"><span class="btn-cover-types-proceed">Proceed with No Cover</span><i class="icon_plus icon_size pull-right GLeft-icon" id="noCoverBundleButtonSpanIconDesktop"></i></button></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div id="insuranceOfferConfirm" class="hidden">
+      <div id="disclosureAU" class="hidden">
+        <div class="thumbsup_margin middle-content-margin" style="padding-top: 0px !important;">
+          <div class="hiddenDiv visible-xs center-block"> <span class="icon_approved_mono icon_middle_width_size center-block img-responsive icon_middle_width_lg" id="thumbsUp"></span>
+            <div class="module3-label lat-blue center-block" style="text-align: center">
+              <div>You've added Loan</div>
+              <div>Protection insurance.</div>
+            </div>
+            <div style="height:20px;"></div>
+            <!-- TERMS AND CONDITIONS -->
+            <div class="container" style="padding-left: 30px; padding-right: 30px; text-align: justify"> <span class="lat-dark-grey body-label" style="font-size: 12px !important; line-height: 15px !important;">{!$Label.APP_GSD_TnC_AU_Part1}
+              {!$Label.APP_GSD_TnC_AU_Part2} <a class="lat-blue body-label" style="font-size: 12px !important; line-height: 15px !important;text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank">{!$Label.APP_GSD_TnC_AU_Part3}</a> at <a class="lat-blue body-label" style="font-size: 12px !important; line-height: 15px !important;text-decoration: underline !important" href="https://www.latitudefinancial.com.au/insurance" target="_blank">www.latitudefinancial.com.au/insurance</a>
+              {!$Label.APP_GSD_TnC_AU_Part4}</span> </div>
+          </div>
+          <div class="container hidden-xs"> 
+            <!-- TERMS AND CONDITIONS -->
+            <div class="insurance-container"> <span class="lat-dark-grey body-label" style="font-size: 12px !important; line-height: 15px !important;">{!$Label.APP_GSD_TnC_AU_Part1}<br />
+              {!$Label.APP_GSD_TnC_AU_Part2} <a class="lat-blue body-label" style="font-size: 12px !important; line-height: 15px !important;text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank">{!$Label.APP_GSD_TnC_AU_Part3}</a> at <a class="lat-blue body-label" style="font-size: 12px !important; line-height: 15px !important;text-decoration: underline !important" href="https://www.latitudefinancial.com.au/insurance" target="_blank">www.latitudefinancial.com.au/insurance</a>
+              {!$Label.APP_GSD_TnC_AU_Part4}</span> </div>
+          </div>
+        </div>
+      </div>
+      <div id="disclosureNZ" class="hidden">
+        <div class="thumbsup_margin middle-content-margin" style="padding-top: 0px !important;">
+          <div class="hiddenDiv visible-xs center-block"> <span class="icon_approved_mono icon_middle_width_size center-block img-responsive icon_middle_width_lg" id="thumbsUp"></span>
+            <div class="module3-label lat-blue center-block" style="text-align: center">
+              <div>You've added</div> 
+              <div>Repayment Protection Insurance.</div>
+            </div>
+            <div style="height:20px;"></div>
+            <div style="background-color: #f7f7f7;">
+            <br/>
+            <span class="icon-info"></span>
+            <div class="text-center" style="margin-left: 20px; margin-right: 20px">
+            <span class="text-center small-text" style="color: #75787b">{!$Label.APP_GSD_Insurance_Confirmation_Message_NZ}</span></div>
+            <br/>
+            </div>
+            <br />
+            <div class="text-center">
+                <h6 style="margin-bottom: 0rem;">Do you have any questions?</h6>
+                <span class="body-label" style="color: #75787b">Just give us a call on</span>
+                <div class="lat-blue body-label" id="callusnz2"></div>
+                <span class="body-label" style="color: #75787b">That's what we're here for!</span>
+            </div>
+          </div>
+          <div class="container hidden-xs"> 
+            <!-- TERMS AND CONDITIONS -->
+            <div class="container"> <span class="lat-dark-grey body-label"> See the <a class="lat-blue body-label" style="text-decoration: underline !important;" href="{!insuranceTermsAndCondition}" target="_blank">Policy</a> {!$Label.APP_GSD_TnC_NZ_Part2}</span> </div>
+            <div class="container hidden" id="kiwiExtraTnCd"> <span class="lat-dark-grey body-label"> {!$Label.APP_GSD_TnC_NZ_Kiwi_Part2}</span> </div>
+          </div>
+          <div class="gap-content"></div>
+          <div class="container center-block text-center">
+            <button id="btn-nzdisclosure" type="button" style="text-align: center" data-tooltip-title="" class="GPrimary-button body-label noOutline btnText js-modal link-button reviewBtn">Please review the cover exclusions.</button>
+            <!-- TERMS AND CONDITIONS -->
+            <div class="hiddenDiv visible-xs" style="text-align: left">
+                <br/>
+                <div class="container"> <span class="lat-dark-grey body-label"> See the <a class="lat-blue body-label" style="text-decoration: underline !important" href="{!insuranceTermsAndCondition}" target="_blank">Policy</a> {!$Label.APP_GSD_TnC_NZ_Part2}</span> </div>
+                <div class="container hidden" id="kiwiExtraTnCm"> <span class="lat-dark-grey body-label"> {!$Label.APP_GSD_TnC_NZ_Kiwi_Part2}</span> </div>
+            </div>
+              <div class="modal-proceed modal__content js-modal__content">
+                <button class="btn-modal-close" role="button">
+                    <span class="icon-close-modal"></span>
+                </button>
+                <div class="center-block">
+                  <div class="secondary-margin text-center center-block" style="margin-bottom: 0px;"> <span id="" class="module3-label lat-blue"><br/><div class="exclusion-header">Like all insurance policies there are some conditions, limits and exclusions.</div> </span></div>
+                  <div class="center-block mid-content"> <span class="body-label lat-dark-grey"><span id="insuranceSubheading">Some of the key ones are:</span></span> </div> 
+                  <br/>
+                  <div style="padding: 10px;">
+                      <div><i class="icon_size icon_lg pull-left exclusions-cover-types-involuntary"></i><span  class="module5-label lat-blue"><span id="insFullProdIUIDisclosure"></span></span> </div>
+                      <div id="disclosureIUI" class="indent"> </div>
+                  </div>
+                  <div class="accordion-divider"></div>
+                  <div style="padding: 10px;">
+                      <div><i class="icon_size icon_lg pull-left exclusions-cover-types-ambulance"></i><span class="module5-label lat-blue"><span id="insFullProdDisDisclosure"></span></span> </div>
+                      <div id="disclosureDIS" class="indent"> </div>
+                  </div>
+                  <div id="lifecoverdisclosurenz-divider" class="accordion-divider"></div>
+                  <div id="lifecoverdisclosurenz" class="hidden">
+                      <div style="padding: 10px;">
+                        <div><i class="icon_size icon_lg pull-left exclusions-cover-types-heart"></i><span class="module5-label lat-blue"><span id="insFullProdLifeDisclosure"></span></span> </div>
+                        <div id="disclosureLife" class="indent"> </div>
+                      </div>
+                  </div>
+                  <div class="accordion-divider"></div>
+                  <div>
+                    <div class="module3-label lat-blue text-center" style="margin-top: 30px"> {!$Label.APP_GSD_Disclosure_Header_NZ} </div>
+                    <div class="body-label lat-dark-grey text-center gap-full-details"> {!$Label.APP_GSD_Disclosure_SubHeader_NZ} <a style="text-decoration: underline !important;" class="policy-booklet" href="{!insuranceTermsAndCondition}" target="_blank">Policy Booklet.</a></div>
+                     <!-- BEGIN -- Added by Suneel -- RBNZ - Salesforce Ins text - 09/08/2017 -->
+                    <div align="left" class="body-label lat-dark-grey"><apex:outputText value="{!$Label.APP_GSD_Disclosure_SubHeader_One_NZ}" escape="false" /></div><br/>
+                    <div align="left" class="body-label lat-dark-grey"><apex:outputText value="{!$Label.APP_GSD_Disclosure_SubHeader_Two_NZ}" escape="false" /></div><br/>
+                    <div align="left" class="body-label lat-dark-grey"><apex:outputText value="{!$Label.APP_GSD_Disclosure_SubHeader_Three_NZ}" escape="false" /></div>
+                    <!-- END -->
+                  </div>
+                </div>
+                <div class="btn-proceed-container">
+              <button class="GPrimary-button lat-white noOutline btn-acknowledge">Acknowledge<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+              </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gap-content"></div>
+    <c:APP_GSD_Confirmation />
+  </form>
+  </html>
+  <script>
+ 
+        var hasSelected = false;
+        var isBasicSelected = false;
+        var isFullSelected = false;
+
+        var isNoCoverSelected = false;
+        
+        /*  Description: method to set button selection per bundle
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function setBundleSelection(bundleName){
+        
+            $("#doneDesktopBtn").attr("disabled",true);
+            $("#doneMobileBtn").attr("disabled",true);
+            $("#insuranceOfferConfirm").addClass("hidden");
+            $("#lifecoverdisclosurenz").addClass("hidden");
+            $("#lifecoverdisclosurenz-divider").addClass("hidden");
+            
+            if(bundleName === "{!$Label.Basic_Bundle_Name}"){
+                if(!isBasicSelected){
+                    isBasicSelected = true;
+                    isFullSelected = false;
+                    isNoCoverSelected = false
+                    
+                    // adjust button labels
+                    $("#basicBundleButtonSpan").html("Added The Basics");
+                    $("#noCoverBundleButtonSpan").html("Choose No Cover");
+                    $("#fullBundleButtonSpan").html("Add The Lot");
+                    
+                    // select basic button
+                    $("#basicBundleButtonSpanIcon").removeClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIcon").addClass("icon_approved");
+                    $("#basicBundleButtonSpanIconDesktop").removeClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIconDesktop").addClass("icon_approved");
+                    
+                    // unselect full and no cover button
+                    $("#fullBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#fullBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#noCoverBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIconDesktop").addClass("icon_plus");
+                    $("#noCoverBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    
+                    $("#insuranceOfferConfirm").removeClass("hidden");
+                    
+                    setSelectedBundle(bundleName);
+                }
+                else{
+                    isBasicSelected = false;
+                    $("#basicBundleButtonSpan").html("Add The Basics");
+                    $("#basicBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#basicBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    setSelectedBundle(null);
+                }
+            }
+            else if(bundleName === "{!$Label.Full_Bundle_Name}"){
+                if(!isFullSelected){
+                    isFullSelected = true;
+                    isBasicSelected = false;
+                    isNoCoverSelected = false
+                    
+                    // adjust button labels
+                    $("#fullBundleButtonSpan").html("Added The Lot");
+                    $("#basicBundleButtonSpan").html("Add The Basics");
+                    $("#noCoverBundleButtonSpan").html("Choose No Cover");
+                    
+
+                    // select full button
+                    $("#fullBundleButtonSpanIcon").removeClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIcon").addClass("icon_approved");
+                    $("#fullBundleButtonSpanIconDesktop").removeClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIconDesktop").addClass("icon_approved");
+                    
+                    // unselect basic and no cover button
+                    $("#basicBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#basicBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#noCoverBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIconDesktop").addClass("icon_plus");
+                    $("#noCoverBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    
+                    $("#insuranceOfferConfirm").removeClass("hidden");
+                    $("#lifecoverdisclosurenz").removeClass("hidden");
+                    $("#lifecoverdisclosurenz-divider").removeClass("hidden");
+                    setSelectedBundle(bundleName);
+                }
+                else{
+                    isFullSelected = false;
+                    $("#fullBundleButtonSpan").html("Add The Lot");
+                    $("#fullBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#fullBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    $("#lifecoverdisclosurenz").addClass("hidden");
+                    $("#lifecoverdisclosurenz-divider").addClass("hidden");
+                    setSelectedBundle(null);
+                }
+            }
+            else{
+                if(!isNoCoverSelected){
+                    isNoCoverSelected = true;
+                    isBasicSelected = false;
+                    isFullSelected = false
+                    
+                    // adjust button labels
+                    $("#noCoverBundleButtonSpan").html("Chosen No Cover");
+
+                    $("#fullBundleButtonSpan").html("Add The Lot");
+                    $("#basicBundleButtonSpan").html("Add The Basics");
+                    
+                    // select no cover button
+                    $("#noCoverBundleButtonSpanIcon").removeClass("icon_plus_white");
+                    $("#noCoverBundleButtonSpanIcon").addClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIconDesktop").removeClass("icon_plus");
+                    $("#noCoverBundleButtonSpanIconDesktop").addClass("icon_approved");
+                    
+                    // unselect basic and full cover button
+                    $("#basicBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#basicBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#basicBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    $("#fullBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#fullBundleButtonSpanIconDesktop").addClass("icon_plus_white");
+                    $("#fullBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    setSelectedBundle(bundleName);
+                }
+                else{
+                    isNoCoverSelected = false;
+                    $("#noCoverBundleButtonSpan").html("Choose No Cover");
+                    $("#noCoverBundleButtonSpanIcon").addClass("icon_plus_white");
+                    $("#noCoverBundleButtonSpanIcon").removeClass("icon_approved");
+                    $("#noCoverBundleButtonSpanIconDesktop").addClass("icon_plus");
+                    $("#noCoverBundleButtonSpanIconDesktop").removeClass("icon_approved");
+                    setSelectedBundle(null);
+                }
+            }
+            
+            setCustomerSelection();
+        }
+        
+        /*  Description: method to set bundle selected to an input hidden
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function setSelectedBundle(val){
+            document.getElementById("bundleSelected").value = val;
+        }
+        
+        /*  Description: method to get and set bundle button selection
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function setCustomerSelection(){
+            if(isBasicSelected || isFullSelected){
+                if("{!$Site.Name}" == "Latitude"){
+                    hasSelected = true;
+                    $("#doneDesktopBtn").attr("disabled",false);
+                    $("#doneMobileBtn").attr("disabled",false);
+                }
+            }
+            else if(isNoCoverSelected){
+                hasSelected = true;
+                $("#doneDesktopBtn").attr("disabled",false);
+                $("#doneMobileBtn").attr("disabled",false);
+            }
+            else{
+                hasSelected = false;
+                $("#doneDesktopBtn").attr("disabled",true);
+                $("#doneMobileBtn").attr("disabled",true);
+            }
+            
+        }
+        
+        /*  Description: method to get and set bundle and products
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function getInsuranceBundles(appId){
+            flushAppends();
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_Insurance_Ext.retrieveBundles}',
+            appId,
+            $('#sliderAmount').slider('value'), 
+            populateTerm($('#sliderTerm').slider('value')), 
+            function(result, event){
+                if(event.status){
+                    if(result.length != 0){
+                        $("#insuranceDiv").removeClass("hidden");
+                        for(var i=0; i< result.length; i++){
+                            if(result[i].insuranceBundleName == "{!$Label.Basic_Bundle_Name}"){
+                                
+                                // enable basic cover tab link
+                                $("#basicCoverLink").removeClass("hidden");
+                                $("#basicCoverBundle").val(JSON.stringify(result[i]));
+                                // set accordion headers and subheaders for basic cover insurance products
+                                for(var i2 = 0 ; i2 < result[i].insuranceProductWrapplerList.length ; i2++){
+                                   console.log("desc: " + result[i].insuranceProductWrapplerList[i2].insuranceProductDescription);
+                                    if(result[i].insuranceProductWrapplerList[i2].insuranceProductName == "Disability Insurance"){
+                                        $("#insBasicProdDisName").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insBasicProdDisDesc").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#basicDisSummaryDesc").append("{!$Label.APP_GSD_Insurance_Dis_Summary}");
+                                    }
+                                    
+                                    
+                                     if(result[i].insuranceProductWrapplerList[i2].insuranceProductName == "Involuntary Unemployment Insurance"){
+                                        $("#insBasicProdIUIName").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insBasicProdIUIDesc").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#basicIUISummaryDesc").append("{!$Label.APP_GSD_Insurance_IUI_Summary}");
+                                    } 
+                                }
+                                $("#insMobileBasicMMP").html("$"+result[i].insuranceRepayments.toFixed(2));
+                                $("#insMMPBasicCoverDesktop").html("$"+result[i].insuranceRepayments.toFixed(2));
+                                $("#basicmobilePremium").html("$"+result[i].insurancePremium.toFixed(2));
+                                $("#basicmobileInterest").html("$"+result[i].insuranceInterestPremium.toFixed(2));
+                                $("#nzDesktopBasicPremium").html("$"+result[i].insurancePremium.toFixed(2));
+                                $("#nzDesktopBasicInterest").html("$"+result[i].insuranceInterestPremium.toFixed(2));
+                            } 
+                            if(result[i].insuranceBundleName == "{!$Label.Full_Bundle_Name}"){
+                                
+                                // enable basic cover tab link
+                                $("#fullCoverLink").removeClass("hidden");
+                                $("#fullCoverBundle").val(JSON.stringify(result[i]));
+                                
+                                // set accordion headers and subheaders for basic cover insurance products
+                                for(var i2 = 0 ; i2 < result[i].insuranceProductWrapplerList.length ; i2++){
+                                    if(result[i].insuranceProductWrapplerList[i2].insuranceProductName == "Disability Insurance"){
+                                        $("#insFullProdDisName").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insFullProdDisDesc").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#insProdDisNameDesktop").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insDisDesktop").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#fullDisabilitySummaryDesc").append("{!$Label.APP_GSD_Insurance_Dis_Summary}");
+                                        $("#fullDisSummaryDescDesktop").append("{!$Label.APP_GSD_Insurance_Dis_Summary}");
+                                        $("#insFullProdDisDisclosure").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);tooltipIUI
+                                        $("#tooltipDis").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                    }
+                                    
+                                    if(result[i].insuranceProductWrapplerList[i2].insuranceProductName == "Involuntary Unemployment Insurance"){
+                                        $("#insFullProdIUIName").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insFullProdIUIDesc").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#insProdIUINameDesktop").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insIUIDesktop").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#fullIUISummaryDesc").append("{!$Label.APP_GSD_Insurance_IUI_Summary}");
+                                        $("#fullIUISummaryDescDesktop").append("{!$Label.APP_GSD_Insurance_IUI_Summary}");
+                                        $("#insFullProdIUIDisclosure").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#tooltipIUI").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                    }
+                                    if(result[i].insuranceProductWrapplerList[i2].insuranceProductName == "Life Insurance"){
+                                        $("#insFullProdLifeName").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insFullProdLifeDesc").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#insProdLifeNameDesktop").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#insLifeDesktop").append(unescapeHtml(result[i].insuranceProductWrapplerList[i2].insuranceProductDescription));
+                                        $("#fullLifeSummaryDesc").append("{!$Label.APP_GSD_Insurance_Life_Summary}");
+                                        $("#fullLifeSummaryDescDesktop").append("{!$Label.APP_GSD_Insurance_Life_Summary}");
+                                        $("#insFullProdLifeDisclosure").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                        $("#tooltipLife").html(result[i].insuranceProductWrapplerList[i2].insuranceProductDisplayName);
+                                    }
+                                }
+                                $("#insMobileFullMMP").html("$"+result[i].insuranceRepayments.toFixed(2));
+                                $("#insMMPFullCoverDesktop").html("$"+result[i].insuranceRepayments.toFixed(2));
+                                $("#fullmobilePremium").html("$"+result[i].insurancePremium.toFixed(2));
+                                $("#fullmobileInterest").html("$"+result[i].insuranceInterestPremium.toFixed(2));
+                                $("#nzDesktopFullPremium").html("$"+result[i].insurancePremium.toFixed(2));
+                                $("#nzDesktopFullInterest").html("$"+result[i].insuranceInterestPremium.toFixed(2));
+                            }
+                            
+                            if(result[i].insuranceBundleName == "No Cover"){
+                                $("#noCoverBundle").val(JSON.stringify(result[i]));
+                                $("#insMobileNoCoverMMP").html("$"+result[i].insuranceRepayments.toFixed(2));
+                                $("#insMMPNoCoverDesktop").html("$"+result[i].insuranceRepayments.toFixed(2));
+                            }
+                            
+                        }
+                    }
+                    
+                    $('.loading').hide();
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+        
+        /*  Description: method to get and set bundle and products
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function sendInsurancePageForConfirmation(){
+            window.scroll(0,0);
+            
+            var selectedBundleName = document.getElementById("bundleSelected").value;
+
+            var selectedBundle;
+            
+            if(selectedBundleName == "{!$Label.Basic_Bundle_Name}"){
+                
+                selectedBundle = JSON.parse(document.getElementById("basicCoverBundle").value);  
+                $("#basicCoverConfirm").removeClass("hidden");
+                $("#fullCoverConfirm").addClass("hidden");
+                $("#noCoverConfirm").addClass("hidden");
+                $("#basicCoverConfirmMobile").removeClass("hidden");
+                $("#fullCoverConfirmMobile").addClass("hidden");
+                $("#noCoverConfirmMobile").addClass("hidden");
+            }
+            else if(selectedBundleName == "{!$Label.Full_Bundle_Name}"){
+                selectedBundle = JSON.parse(document.getElementById("fullCoverBundle").value);                                         
+                $("#fullCoverConfirm").removeClass("hidden");
+                $("#basicCoverConfirm").addClass("hidden");
+                $("#noCoverConfirm").addClass("hidden");
+                $("#fullCoverConfirmMobile").removeClass("hidden");
+                $("#basicCoverConfirmMobile").addClass("hidden");
+                $("#noCoverConfirmMobile").addClass("hidden");
+            }
+            else{                
+                selectedBundle = JSON.parse(document.getElementById("noCoverBundle").value);               
+                $("#noCoverConfirm").removeClass("hidden");
+                $("#basicCoverConfirm").addClass("hidden");
+                $("#fullCoverConfirm").addClass("hidden");
+                $("#noCoverConfirmMobile").removeClass("hidden");
+                $("#basicCoverConfirmMobile").addClass("hidden");
+                $("#fullCoverConfirmMobile").addClass("hidden");
+            }
+            
+            console.log('!@#selectedBundle: ' + JSON.stringify(selectedBundle));
+            
+            var loanAmount = $('#sliderAmount').slider('value') + selectedBundle.insurancePremium + establishmentFee;
+            var loanTerm = populateTerm($('#sliderTerm').slider('value'));
+            
+            var includeInsuranceString = " (includes establishment fee";
+          
+            if(selectedBundleName != "" && selectedBundleName != "No Cover"){
+                includeInsuranceString += " and insurance)";
+            } else {
+                includeInsuranceString += ")";
+            }
+            
+            //BEGIN MLASALA 05-JUL-16 DEFECT 1048 FIX
+            setElement('.upsellLoanAmount', '$'+addCommas($('#sliderAmount').slider('value').toFixed(2)));
+            setElement('.upsellLoanAmountWithFees', '$'+addCommas(loanAmount.toFixed(2)) + includeInsuranceString);
+            setElement('.upsellInterestRate', parseFloat($('.dynamic_InterestRate').text()).toFixed(2)+'%');
+            setElement('.upsellMMP', '$'+addCommas(parseFloat(selectedBundle.insuranceRepayments).toFixed(2)));
+            setElement('.upsellLoanTerm', loanTerm);
+            //END MLASALA 05-JUL-16 DEFECT 1048 FIX
+            
+            $(".btn-proceed").click(function() {
+                Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_Insurance_Ext.createAndSaveInsurance}',
+                applicationId, 
+                selectedBundle,
+                $('#sliderAmount').slider('value'), 
+                loanTerm, 
+                $('#newLoanPurpose').val(),
+                $('#loanPurposeValue').val(), 
+                $('#otherLoanPurpose').val(),
+                function(result, event){
+                    if(event.status){
+                        console.log("!@#IS SAVING SUCCESSFUL?: " + JSON.stringify(result));
+                        if(result.isSuccessful){
+                            if(result.displayMessage){
+                                alert(result.resultMessage);
+                            }
+                            
+                            $("#qtip-3").hide();
+                            $("body").removeClass("scroll-locked");
+                            
+                            redirect('APP_GSD_Response'); return false;
+                        }
+                        else{
+                            alert(result.resultMessage + " Please contact us.");
+                            $(".btn-proceed").attr("disabled",false);
+                        }
+                    } else if(event.type === 'exception'){
+                        console.log('exception: '+event.message+', '+event.where);
+                    } else {
+                        console.log(event.message);
+                    }
+                },
+                {escape: true}
+                );
+            });
+            $(".btn-proceed-close").click(function() {
+                $(".qtip").hide();
+                $("body").removeClass("scroll-locked");
+            });
+        }
+        
+        $(".btn-acknowledge").click(function() {
+            $(".qtip").hide();
+            $("body").removeClass("scroll-locked");
+            $("#doneDesktopBtn").attr("disabled",false);
+            $("#doneMobileBtn").attr("disabled",false);
+        });
+
+        $(".btn-modal-close").click(function() {
+            $(".qtip").hide();
+            $("body").removeClass("scroll-locked");
+        });
+    
+        function enableDone(element){
+            if(element.checked){
+                $("#doneMobileBtn").attr("disabled",false);
+                $("#doneDesktopBtn").attr("disabled",false);
+            }
+            else{
+                $("#doneMobileBtn").attr("disabled",true);
+                $("#doneDesktopBtn").attr("disabled",true);
+            }
+        }
+        /*  Description: method to unescapre html tags
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function unescapeHtml(safe) {
+            return $('<div />').html(safe).text();
+        }
+        
+        /*  Description: Method to display section based on eligibility
+         *  Author: Mike Lasala
+         *  Date Created: 17-JUN-2016
+         *  Input: None
+         */
+        function displaySection(start){
+            Visualforce.remoting.Manager.invokeAction(className+'.retrieveApplicationUpsell',
+                applicationId,
+                function(result, event){
+               
+                    if(event.status){
+                         
+                        if(start == 'insurance'){
+                            
+                            //Add opacity to existing loader
+                            $('.loading').css('opacity', '1');
+                            
+                            //Display loader
+                            $('.loading').show();
+                
+                            //Hide insurance and show upsell
+                            if(result.Online_Self_serve_Insurance_Eligibility__c){
+                                
+                                $('.icon_logo').removeClass('icon_logo').addClass('icon_logo_upsell');
+                                $('#insuranceForm').addClass('hidden');
+                                $('#loanPurposeForm').removeClass('hidden');
+                                
+                                $('.loading').hide();
+                                
+                            } else {
+                                
+                                //Redirect to response page
+                                redirect('APP_GSD_Response');
+                            }
+                            
+                        } else {
+                            
+                            //On load condition, validates which section to show based on eligibility
+                            if(result.Online_Self_serve_Upsell_Eligibility__c){
+                                
+                                $('#insuranceForm').addClass('hidden'); 
+                                
+                                if('{!$Site.Name}' == 'Kiwibank'){
+                                    $('#profile').removeClass('lat-blue').addClass('kiwi-green');
+                                    $('.icon_logo').removeClass('icon_logo').addClass('icon_logo_upsell');
+                                }
+                                
+                            } else {
+                                
+                                $('#loanPurposeForm').addClass('hidden');
+                                $('#sliderAmount').slider('value', $('#sliderAmount').slider('option', 'min'));
+                                
+                                setCustomerSelection();
+                                getInsuranceBundles(applicationId);
+                            }
+                        }
+                        
+                        //Hide back to loan status link
+                        $('#aBack').css('display', 'none');
+                        $('#aBackIcon').css('display', 'none');
+                        $('#backDesktopBtn').css('visibility', 'hidden');
+                        $('#backMobileBtn').css('display', 'none');
+                        $('#changeupselld').css('display', 'none');
+                        $('#changeupsellm').css('display', 'none');
+                        
+                        //MLASALA 17-OCT-16 Promo messages
+                        if(result.Promo_Online_Message__c != null){
+                            $('#introInsurance').html('<br/><br/>'+result.Promo_Online_Message__c);
+                        }
+                        
+                    } else if(event.type === 'exception'){
+                        console.log('getApplicationData exception: '+event.message+', '+event.where);
+                    } else {
+                        console.log('getApplicationData: '+event.messge);
+                    }
+                },
+                {escape: false}
+            );
+        }
+        
+        /*  Description: Method to toggle up down arrow icons
+         *  Author: Marvin David    
+         *  Date Created: 20-JUN-2016
+         *  Input: Accordion Id
+         */
+        function toggleUpDownArrow(accordionId) {
+            var brandSite = "{!$Site.Name}";
+            if (accordionId == 'fullCoverAccordId') {
+                $("#fullCoverAccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+                if(brandSite == 'Gem'){
+                    $("#insFullCoverAccordionLink").toggleClass('icon_edit icon_edit_white');
+                }
+            } else if (accordionId == 'basicCoverAccordId'){
+                $("#basicCoverAccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+                if(brandSite == 'Gem'){
+                    $("#insBasicCoverAccordionLink").toggleClass('icon_edit icon_edit_white');
+                }
+            } else if (accordionId == 'noCoverAccordId'){
+                $("#noCoverAccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+                if(brandSite == 'Gem'){
+                    $("#insNoCoverAccordionLink").toggleClass('icon_edit icon_edit_white');
+                }
+            } else if (accordionId == 'fullCoverOption1AccordId'){
+                $("#fullCoverOption1AccordionArrow").toggleClass('icon_blue_arrow_up icon_blue_arrow_down');
+            } else if (accordionId == 'fullCoverOption2AccordId'){
+                $("#fullCoverOption2AccordionArrow").toggleClass('icon_blue_arrow_up icon_blue_arrow_down');
+            } else if (accordionId == 'fullCoverOption3AccordId'){
+                $("#fullCoverOption3AccordionArrow").toggleClass('icon_blue_arrow_up icon_blue_arrow_down');
+            } else if (accordionId == 'basicCoverOption1AccordId'){
+                $("#basicCoverOption1AccordionArrow").toggleClass('icon_blue_arrow_up icon_blue_arrow_down');
+            } else if (accordionId == 'basicCoverOption2AccordId'){
+                $("#basicCoverOption2AccordionArrow").toggleClass('icon_blue_arrow_up icon_blue_arrow_down');
+            }
+        }
+        
+        function hideShowSummary(originElement, targetElement){
+            $("#"+originElement).toggleClass("lat-blue lat-dark-grey");
+            //$("#"+originElement).toggleClass("blueUnderline noUnderline");
+            if($("#"+targetElement).hasClass("hidden")){
+                $("#"+targetElement).removeClass("hidden");
+            }
+        }
+        
+        /*  Description: Method to open all accordions on page load
+         *  Author: Marvin David
+         *  Date Created: 23-JUN-2016
+         */
+        function openAllAccordions(){
+
+            //For Full Cover
+            $("#insFullCoverContentAccordionHeader").removeClass("collapsed");
+            $("#insFullCoverContent").addClass("in");
+            $("#insDocOption1AccordionHeader").removeClass("collapsed");
+            $("#ins2DocOption1Accordion").addClass("in");
+            $("#insDocOption2AccordionHeader").removeClass("collapsed");
+            $("#ins2DocOption2Accordion").addClass("in");
+            $("#insDocOption3AccordionHeader").removeClass("collapsed");
+            $("#ins2DocOption3Accordion").addClass("in");
+            
+            //For Basic Cover
+            $("#insBasicCoverContentAccordionHeader").removeClass("collapsed");
+
+            $("#insBasicoverContent").addClass("in");
+            $("#insDocOption1AccordionHeader").removeClass("collapsed");
+            $("#ins1DocOption1Accordion").addClass("in");
+            $("#insDocOption2AccordionHeader").removeClass("collapsed");
+            $("#ins1DocOption2Accordion").addClass("in");
+            
+            //For No Cover
+            $("#insNoCoverContentAccordionHeader").removeClass("collapsed");
+            $("#insNoCoverContent").addClass("in");
+        }
+       
+        function setPanelVisibility(){
+       
+            var brandSite = "{!$Site.Name}";
+            if(brandSite == 'Latitude' || brandSite == 'Aussie'){
+                
+                $("#mobileFullIUISummary").removeClass("hidden");
+                $("#mobileFullDisSummary").removeClass("hidden");
+                $("#mobileFullLifeSummary").removeClass("hidden");
+                $("#mobileBasicIUISummary").removeClass("hidden");
+                $("#mobileBasicDisSummary").removeClass("hidden");
+                $("#desktopFullLifeSummary").removeClass("hidden");
+                $("#desktopFullIUISummary").removeClass("hidden");
+                $("#desktopFullDisSummary").removeClass("hidden");
+                $("#disclosureAU").removeClass("hidden");
+                $("#auAmountsMobileBasic").removeClass("hidden");
+                $("#auAmountsMobileFull").removeClass("hidden");
+                $("#auAmountsMobileNoCover").removeClass("hidden");
+                $("#auAmountsDesktopNoCover").removeClass("hidden");
+                $("#auAmountsDesktopBasic").removeClass("hidden");
+                $("#auAmountsDesktopFull").removeClass("hidden");
+                $("#auMinimumrepayments").removeClass("hidden");
+                $("#insuranceHeader").html("{!$Label.APP_GSD_Insurance_Header}");
+                $("#insuranceSubHeader").html("{!$Label.APP_GSD_Insurance_SubHeader}");
+                $("#noCoverDescription").html("{!$Label.APP_GSD_Insurance_NoCoverDesc_AU}");
+                $("#insBasicListD").html("{!$Label.APP_GSD_Insurance_Confirmation_Basic_AU}");
+                $("#insFullListD").html("{!$Label.APP_GSD_Insurance_Confirmation_Full_AU}");
+                $("#insBasicListM").html("{!$Label.APP_GSD_Insurance_Confirmation_Basic_AU}");
+                $("#insFullListM").html("{!$Label.APP_GSD_Insurance_Confirmation_Full_AU}");                
+                $("#insCallUsAUDivD").removeClass("hidden");
+                $("#insCallUsAUDivM").removeClass("hidden");
+                $("#insConSubMsgMob").html("{!$Label.APP_GSD_Insurance_Confirmation_SubMessage_AU}");
+                $("#insConfirmationSubMessageDesk").html("{!$Label.APP_GSD_Insurance_Confirmation_SubMessage_AU}");
+                $("#insCallUsAUD").html("{!$Label.APP_GSD_Insurance_CallUs_AU}");
+                $("#insCallUsAUM").html("{!$Label.APP_GSD_Insurance_CallUs_AU}");
+                $("#lifetooltip").html("{!$Label.APP_GSD_Insurance_Life_Tooltip}");
+                $("#iuitooltip").html("{!$Label.APP_GSD_Insurance_IUI_Tooltip}");
+                $("#distooltip").html("{!$Label.APP_GSD_Insurance_Dis_Tooltip}");
+                $(".tooltippds").html("{!$Label.APP_GSD_Insurance_PDS}");
+            }
+            else{
+                $("#nzAmountsMobileFull").removeClass("hidden");
+                $("#nzAmountsMobileBasic").removeClass("hidden");
+                $("#disclosureNZ").removeClass("hidden");
+                $("#nzAmountsDesktopNoCover").removeClass("hidden");
+                $("#nzAmountsDesktopBasic").removeClass("hidden");
+                $("#nzAmountsDesktopFull").removeClass("hidden");
+                $("#nzMinimumrepayments").removeClass("hidden");
+                $("#disclosureDIS").append("{!$Label.APP_GSD_Insurance_Dis_Summary_NZ}");
+                $("#disclosureIUI").append("{!$Label.APP_GSD_Insurance_IUI_Summary_NZ}");
+                $("#disclosureLife").append("{!$Label.APP_GSD_Insurance_Life_Summary_NZ}");
+                $("#insuranceHeader").html("{!$Label.APP_GSD_Insurance_Header_NZ}");
+                $("#insuranceSubHeader").html("{!$Label.APP_GSD_Insurance_SubHeader_NZ}");
+                $("#noCoverDescription").html("{!$Label.APP_GSD_Insurance_NoCoverDesc_NZ}");
+                $("#noCoverDesc").removeClass("hidden");
+                $("#noCoverDesc").html("{!$Label.APP_GSD_Insurance_NoCoverDesc_NZ}");
+                $("#insBasicListD").html("{!$Label.APP_GSD_Insurance_Confirmation_Basic_NZ}");
+                $("#insFullListD").html("{!$Label.APP_GSD_Insurance_Confirmation_Full_NZ}");
+                $("#insBasicListM").html("{!$Label.APP_GSD_Insurance_Confirmation_Basic_NZ}");
+                $("#insFullListM").html("{!$Label.APP_GSD_Insurance_Confirmation_Full_NZ}");
+                $("#insNZConMsgD").append("{!$Label.APP_GSD_Insurance_Confirmation_Message_NZ}");
+                $("#insNZConMsgM").append("{!$Label.APP_GSD_Insurance_Confirmation_Message_NZ}");
+                $("#insNZConMsgD").removeClass("hidden");
+                $("#insNZConMsgM").removeClass("hidden");
+                $("#insConSubMsgMob").html("{!$Label.APP_GSD_Insurance_Confirmation_SubMessage_NZ}");
+                $("#insConfirmationSubMessageDesk").html("{!$Label.APP_GSD_Insurance_Confirmation_SubMessage_NZ}");             
+                $("#insCallUsNZDivD").removeClass("hidden");
+                $("#insCallUsNZDivM").removeClass("hidden");
+                $("#nzconnummob").html("{!$Label.APP_GSD_Insurance_Contact_Gem}");
+                $("#nzconnumdes").html("{!$Label.APP_GSD_Insurance_Contact_Gem}");
+                $("#callusnz1").html("{!$Label.APP_GSD_Insurance_Contact_Gem}");
+                $("#callusnz2").html("{!$Label.APP_GSD_Insurance_Contact_Gem}");
+                $("#lifetooltip").html("{!$Label.APP_GSD_Insurance_Life_Tooltip_NZ}");
+                $("#iuitooltip").html("{!$Label.APP_GSD_Insurance_IUI_Tooltip_NZ}");
+                $("#distooltip").html("{!$Label.APP_GSD_Insurance_Dis_Tooltip_NZ}");
+                $(".tooltippds").html("Learn more about the benefit, limits and exclusions in our policy booklet.");
+                if(brandSite == 'Kiwibank'){
+                    $("#kiwiExtraTnCd").removeClass("hidden");
+                    $("#kiwiExtraTnCm").removeClass("hidden");
+                    $("#nzconnummob").html("{!$Label.APP_GSD_Insurance_Contact_Kiwi}");
+                    $("#nzconnumdes").html("{!$Label.APP_GSD_Insurance_Contact_Kiwi}");
+                    $("#callusnz1").html("{!$Label.APP_GSD_Insurance_Contact_Kiwi}");
+                    $("#callusnz2").html("{!$Label.APP_GSD_Insurance_Contact_Kiwi}");
+                }
+            }
+        }
+        function flushAppends(){
+            $("#insFullProdDisDesc").empty();
+            $("#insDisDesktop").empty();
+            $("#fullDisabilitySummaryDesc").empty();
+            $("#fullDisSummaryDescDesktop").empty();
+            $("#insFullProdIUIDesc").empty();
+            $("#insIUIDesktop").empty();
+            $("#fullIUISummaryDesc").empty();
+            $("#fullIUISummaryDescDesktop").empty();
+            $("#insFullProdLifeDesc").empty();
+            $("#insLifeDesktop").empty();
+            $("#fullLifeSummaryDesc").empty();
+            $("#fullLifeSummaryDescDesktop").empty();
+            $("#insBasicProdDisDesc").empty();
+            $("#basicIUISummaryDesc").empty();
+            $("#basicDisSummaryDesc").empty();
+            $("#insBasicProdIUIDesc").empty();tooltipLife
+            $("#tooltipLife").empty();
+            $("#tooltipIUI").empty();
+            $("#tooltipDis").empty();
+        }
+        /*  Description: method to execute onload functions
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        $( document ).ready(function() {
+          
+            flushAppends();
+            displaySection();
+            openAllAccordions();
+            setPanelVisibility();
+            
+            //$("#aBack").addClass("hidden");
+            //$("#aBackIcon").addClass("hidden");
+            
+        });
+    </script>
+   
+  <!-- Latitude brand styling specific for APP_GSD_Insurance VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude' || $Site.Name=='Kiwibank'}">
+        <script type="text/javascript" src="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/js/jquery.qtip.js')}"></script> 
+        <script type="text/javascript" src="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/js/svg4everybody.min.js')}"></script> 
+        <script type="text/javascript" src="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/js/global.js')}"></script> 
+        <!--<script type="text/javascript" src="{!URLFOR($Resource.gem_web_template, '/gem_web_template/js/global.js')}"></script>  -->
+        <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/styles-au.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_insurance.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+   
+  <!-- Gem brand styling specific for APP_GSD_Insurance VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <script type="text/javascript" src="{!URLFOR($Resource.gem_web_template, '/gem_web_template/js/jquery.qtip.js')}"></script>  
+        <script type="text/javascript" src="{!URLFOR($Resource.gem_web_template, '/gem_web_template/js/svg4everybody.min.js')}"></script>  
+        <script type="text/javascript" src="{!URLFOR($Resource.gem_web_template, '/gem_web_template/js/global.js')}"></script>  
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/styles-nz.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_insurance.css')}" rel="stylesheet" media="screen" id="stylelink" />
+  </apex:outputPanel>
+</apex:page>

@@ -1,0 +1,119 @@
+<!--
+Author: Michael Lasala Cloud Sherpas
+Created Date: 2/18/2013
+Description: Activity Page on GEPlayPage2
+-->
+<apex:page showHeader="false" controller="ActivityPageController">
+    <style>
+    .ct{
+        text-align:center;
+    }
+    .pbBody{
+        height:500px;
+    }
+    .pbSubheader{
+        background-color: #3948B8!important;
+    }
+    
+     .bPageBlock{
+        border-top: 2px solid #808080;
+        }
+    
+    </style>
+    
+    <style type="text/css"> 
+        .test
+        {       
+            width:500px !important; 
+            word-wrap:break-word !important;
+            white-space: pre-wrap !important; /* css-3 */
+            white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+            white-space: -pre-wrap !important; /* Opera 4-6 */
+            white-space: -o-pre-wrap !important; /* Opera 7 */
+            word-wrap: break-word !important; /* Internet Explorer 5.5+ */
+        }
+    </style>
+                            
+    <apex:form id="frmBlkId">
+         <apex:actionFunction action="{!setupActivityDetails}" name="setupActivityDetails"/>
+        <apex:pageBlock title="Activity History" Id="mainBlkId">
+            <apex:pageBlockSection columns="1"> 
+                <apex:pageBlockTable value="{!actWrap}" var="t" columns="5" width="100%" styleClass="ct">
+                
+                    <apex:column headerValue="Action Date" headerClass="ct">
+                        <apex:outputText value="{0,date,dd'/'MM'/'yyyy '-' hh:mm a}">
+                            <apex:param value="{!t.dte}"/> 
+                        </apex:outputText>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Call Outcome" headerClass="ct">
+                        <apex:outputText value="{!t.Outcome}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Assigned To" headerClass="ct">
+                        <apex:outputText value="{!t.assTo}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Related To" headerClass="ct">
+                        <apex:outputText value="{!t.relTo}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Click for More" headerClass="ct">
+                        <apex:commandButton value="Info" action="{!setupActivityDetails}" rerender="mainBlkId">
+                            <apex:param name="taskId" value="{!t.actId}" assignTo="{!taskIdStr}"/>
+                        </apex:commandButton>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                 <apex:outputPanel rendered="{!showActivityDetail}" id="actDetailId" layout="block">
+                    <apex:pageBlockSection title="Activity Information" columns="2" collapsible="true">
+                            <apex:pageBlockSectionitem >
+                                <apex:outputLabel value="Action Date"/>
+                                <apex:outputText value="{0,date,dd'/'MM'/'yyyy '-' hh:mm a}">
+                                    <apex:param value="{!actionDate}"/> 
+                                </apex:outputText>
+                            </apex:pageBlockSectionitem>
+                            
+                            <apex:pageBlockSectionitem >
+                                <apex:outputLabel value="Created Date"/>
+                                <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                    <apex:param value="{!createdDate}"/> 
+                                </apex:outputText>
+                            </apex:pageBlockSectionitem>
+                                                    
+                            <apex:pageBlockSectionitem >
+                                <apex:outputLabel value="Call Outcome"/>
+                                <apex:outputText value="{!aoHolder}"/>
+                            </apex:pageBlockSectionitem>
+                            
+                            <apex:pageBlockSectionitem >
+                                <apex:outputLabel value="Assigned To"/>
+                                <apex:outputText value="{!taskVar.Owner.Name}"/>
+                            </apex:pageBlockSectionitem>
+    
+                            <apex:pageBlockSectionitem >
+                                <apex:outputLabel value="Related To"/>
+                                <apex:outputText value="{!taskVar.What.Name}"/>
+                            </apex:pageBlockSectionitem>
+
+                  </apex:pageBlockSection>
+                  
+                  <apex:pageBlockSection columns="1">
+                      <apex:pageBlockSectionitem >
+                          <apex:outputLabel value="Notes"/>
+                          <apex:outputText >
+                          <div class="test" >
+                                    {!taskVar.Description}
+                          </div>  
+                          </apex:outputText>
+                      </apex:pageBlockSectionitem>
+                  </apex:pageBlockSection>
+               </apex:outputPanel>                     
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+                                
+ 
+</apex:page>

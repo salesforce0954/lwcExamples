@@ -1,0 +1,190 @@
+<apex:page sidebar="false" showHeader="false" id="page1" controller="EnterNumbersController" docType="html">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<style>
+    .invalid_phone{
+        margin-left: 5px;
+    }
+    body{
+        background-color: #F8F8F8;
+    }
+    .cFooter{
+        margin-left: 10px;
+    }
+</style>
+<script>
+   
+    function validateForm(){
+        var valid = true;
+        if({!isAccount}){
+            valid = validate_field($('[id$=Account___Phone]')) && valid ;
+            valid = validate_field($('[id$=Account___Fax]')) && valid;
+        }
+        if({!isContact}){
+            valid = validate_field($('[id$=Contact___Phone]')) && valid;
+            valid = validate_field($('[id$=Contact___Fax]')) && valid;
+            valid = validate_field($('[id$=Contact___Mobile]')) && valid;
+            valid = validate_field($('[id$=Contact___OtherPhone]')) && valid;
+            valid = validate_field($('[id$=Contact___AssistantPhone]')) && valid;
+        }
+        return valid;
+    }
+    
+    function validate_field(input){
+        var children = $(input).parent().children();
+        for(var i=0;i < children.length; ++i){
+            if($(children[i]).hasClass("invalid_phone")){
+                $(children[i]).remove();
+            }
+        }
+        var phone = $(input ).val();
+        if(!validatePhone($(input).val())){
+            $(input).parent().append('<span class="invalid_phone">Invalid format</span>')
+            return false;
+        }        
+        return true;
+    }
+    
+    
+    $(document).ready(function(){                      
+        $('[id$=Account___Phone]').blur(function(event){
+            validate_field(this);
+        });
+        $('[id$=Account___Fax]').blur(function(event){
+            validate_field(this);
+        });        
+        $('[id$=Contact___Phone]').blur(function(event){
+            validate_field(this);
+        });
+
+        $('[id$=Contact___Fax]').blur(function(event){
+            validate_field(this);
+        });
+        $('[id$=Contact___Mobile]').blur(function(event){
+            validate_field(this);
+        });
+        $('[id$=Contact___OtherPhone]').blur(function(event){
+            validate_field(this);
+        }); 
+        $('[id$=Contact___AssistantPhone]').blur(function(event){
+            validate_field(this);
+        });
+           
+        /*$(window).bind('beforeunload', function() {
+            if (!window.opener && !window.opener.closed) {
+                window.opener.location.reload();
+            }
+        }); */
+        
+        $(window).blur(function() {
+            window.top.close();
+        });     
+        
+        //window.innerHeight = window.innerHeight - 140;   
+    })  
+
+    
+    function validatePhone(phone){
+        
+        if(!phone || (!{!IsValidationApplicable})){
+            return true;
+        }
+        
+        var userCountry = "{!$user.country}";
+        var clear = phone.replace(/-/g, '').replace(/ /g,'').replace(/\(/g,'').replace(/\)/g,'');       
+        var pattern1 = /^61[0-8]\d{8}$/g;
+        var pattern2 = /^\+61[0-8]\d{8}$/g;
+        var pattern3 = /^0[0-8]\d{8}$/g;
+        var pattern4 = /^1300[0-9]{6}$/g;
+        var pattern5 = /^1800[0-9]{6}$/g;                    
+        var pattern6 = /^\+[0-9]{1,13}$/g;
+        if({!isAccount}){
+            var country = "{!JSENCODE(Account.BillingCountry)}"; //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+            if(country.toUpperCase() ==='AUSTRALIA' || (country ==='' && userCountry.toUpperCase === 'AUSTRALIA')){
+              
+                return clear === '' || clear.match(pattern1)
+                            || clear.match(pattern2)
+                            || clear.match(pattern3)
+                            || clear.match(pattern4)
+                            || clear.match(pattern5)
+            }
+            if(country.toUpperCase() != 'AUSTRALIA'){
+               
+                return clear === '' || clear.match(pattern6)
+            }
+            return true;           
+        }
+        if({!isContact}){
+            var conCountry = "{!JSENCODE(Contact.MailingCountry)}"; //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+            if(conCountry.toUpperCase() ==='AUSTRALIA'|| (conCountry  ==='' && userCountry.toUpperCase() === 'AUSTRALIA')){
+                return clear === '' || clear.match(pattern1)
+                            || clear.match(pattern2)
+                            || clear.match(pattern3)
+                            || clear.match(pattern4)
+                            || clear.match(pattern5)
+            }
+            if(conCountry.toUpperCase() != 'AUSTRALIA'){
+                return clear === '' || clear.match(pattern6)
+            }
+             return true;
+        }
+        return true;
+       
+   }
+      
+    if({!close_flag}){
+        
+        window.top.close();
+        window.opener.location.reload();
+    }    
+
+</script>
+<apex:form id="form1">
+    <apex:pageBlock id="Account-1"  rendered="{!isAccount}">            
+         <apex:pageBlockSection title="{!name}" id="section-accountValidation" columns="1">
+             <apex:inputField value="{!Account.Phone}" id="Account___Phone"/>
+             <apex:inputField value="{!Account.Fax}" id="Account___Fax"/> 
+         </apex:pageBlockSection>
+         <apex:pageBlockButtons location="bottom">
+             <apex:commandButton value="Save" action="{!save}" onclick="return validateForm();"/>
+             <apex:commandButton value="Cancel" onclick="window.top.close();"/>
+         </apex:pageBlockButtons>
+     </apex:pageBlock>
+          <apex:outputPanel layout="none" rendered="{!isAccount}">
+         <apex:inputHidden value="{!Account.PRS_RECORD_ID__c}" id="Account___PRS_RECORD_ID__c"/>
+         <apex:inputHidden value="{!Account.id}" id="Account___id"/>   
+     </apex:outputPanel> 
+ </apex:form>
+ <apex:form >
+     <apex:pageBlock id="Contact-1" rendered="{!isContact}">               
+          <apex:pageBlockSection id="section-contactValidation" title="{!name}" columns="1">
+             <apex:inputField value="{!Contact.Phone}" id="Contact___Phone"/>
+             <apex:inputField value="{!Contact.Fax}" id="Contact___Fax"/>
+             <apex:inputField value="{!Contact.MobilePhone}" id="Contact___Mobile"/>
+             <apex:inputField value="{!Contact.OtherPhone}" id="Contact___OtherPhone"/> 
+             <apex:inputField value="{!Contact.AssistantPhone}" id="Contact___AssistantPhone"/>              
+         </apex:pageBlockSection>
+         <apex:pageBlockButtons location="bottom">
+             <apex:commandButton value="Save" action="{!save}" onclick="return validateForm();"/>
+             <apex:commandButton value="Cancel" onclick="window.top.close();"/>
+         </apex:pageBlockButtons>
+     </apex:pageBlock>
+     <apex:outputPanel layout="none" rendered="{!isContact}">
+         <apex:inputHidden value="{!Contact.PRS_RECORD_ID__c}" id="Contact___PRS_RECORD_ID__c"/>
+         <apex:inputHidden value="{!Contact.id}" id="Contact___id"/>
+     </apex:outputPanel>
+ </apex:form>
+<apex:outputPanel layout="block" styleclass="cFooter" rendered="{!isValidationApplicable}">
+    <label>Following are the valid formats for Australian Account and Contact</label>
+    <ul>
+        <li>0x xxxx xxxx</li>
+        <li>61x xxxx xxxx</li>
+        <li>+61x xxxx xxxx</li>
+        <li>1300 xxx xxx</li>
+        <li>1800 xxx xxx</li>
+       
+    </ul>
+    <label>For international Account and Contact - any valid phone number starting with +</label><n/>
+   
+    
+</apex:outputPanel> 
+</apex:page>

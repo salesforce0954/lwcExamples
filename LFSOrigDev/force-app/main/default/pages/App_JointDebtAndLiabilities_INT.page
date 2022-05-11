@@ -1,0 +1,290 @@
+<!--
+/**
+* @Description: Joint Application Debts page (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 20.NOV.2013
+* @History:
+  =====================================================================
+      11-20-13: Created - Mike
+      12-02-13: Applied single set of fields - Mike
+      01-15-14: Refactored to cater single and joint application
+      01-30-14: Refactored to cater component
+      04-09-15: Updated - Include client side validations - DYU
+      04-20-15: Updated Defect 830 - Update client side validation when clicking Add more action
+      04-28-15: Updated Defect 884 - Add new function setFinancialInstitutionValidation to auto assign class validation to financial institution when dept type is populated - DY
+
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_JointDebtAndLiabilitiesExt_INT" showHeader="false" id="GETheme">
+    
+    
+
+    <!-- Scripts -->
+    <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+        <!-- Added by Fahad Akhtar NOV-14-2014 - JQUERY JQuery  -->
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/jointdebt.css')}"/>
+
+    <script>
+    
+        function deleteRow(Id){
+            document.getElementById('GETheme:theForm:selectedId').value = Id;
+            removeDebt();
+        }
+        
+        function checkDebtFields(action){
+            document.getElementById('GETheme:theForm:redirectTxt').value = action;
+            document.getElementById('GETheme:theForm:flag').value = false;
+            validateDebt();
+        }
+        
+        function setMortgage(){
+            var category = document.getElementById('GETheme:theForm:Liability__c-1:debtRepeat:0:component-1:Liability__c-mycomponent:Liability__c___Debt_Category__c').value;
+            if(category == "Mortgage"){
+                document.getElementById('GETheme:theForm:Liability__c-1:debtRepeat:0:component-1:Liability__c-mycomponent:Liability__c___Mortgage_Calculation_Rate__c').value = 0.7;
+            }
+        }
+        
+        function isCharacterKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 08 || charCode <= 32 || charCode == 46 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) || charCode ==  45 || charCode ==  39)){
+                return true;
+            }
+        return false;
+        }
+        
+        function isNumberKeyWithCharLimit(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
+            return true;
+        }
+        
+        function isCharacterKeyHyphenOnly(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 08 || charCode <= 32 || charCode == 46 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) || charCode ==  45)){
+                return true;
+            }
+            return false;
+        }
+        
+        function isAlNumericWithHyphen(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (( charCode == 08 || charCode == 45 || charCode == 189 || charCode == 39 || charCode == 32 ||((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                return true;
+             
+            return false;
+        }
+        
+        function isAlNumericWithHyphenOnly(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 08 || charCode == 45 || charCode == 189 || charCode == 32 ||((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                return true;
+             
+            return false;
+        }
+
+        //Added by DYU 04-09-15 - Function after client side validations has been triggered
+        function checkApp(val){
+            if(val == 'Save'){
+                if(validateFormSales()){
+                    checkDebtFields(val);
+                }else{
+                    document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='hidden';    
+                }
+            }
+
+            if(val == 'Add'){          
+                if(validateFormSales()){
+                    addMoreDebt();                    
+                   var debtList='{!debtListSize}';
+                }else{
+                    document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='hidden';
+                }
+            }
+            
+            //enable save button
+            if(val == 'Save')
+                document.getElementById('GETheme:theForm:Liability__c-1:saveBtn').disabled = false;            
+        }
+
+        //Added by DYU 04-28-2015 Defect 884 - Debts not required.  Auto-assign validation
+        //class to Financial Institution only when there is a debt type selected
+        function setFinancialInstitutionValidation(){
+            var debtType = document.getElementById('GETheme:theForm:Liability__c-1:debtRepeat:0:component-1:Liability__c-mycomponent:Liability__c___Debt_Category__c').value;
+            if( debtType != ''){
+                document.getElementById("GETheme:theForm:Liability__c-1:debtRepeat:0:component-1:Liability__c-mycomponent:Liability__c___Financier_Name__c").className = 'isRequired isPersonalName';
+            }
+        }
+        
+         var debtLumpSumYes1 =  "GETheme:theForm:Liability__c-1:lumpSumYes1";
+        var debtLumpSumNo1  =  "GETheme:theForm:Liability__c-1:lumpSumNo1";
+       var lumSumConfirm;
+       
+       function applicantConfirmation(elem){
+                lumSumConfirm = document.getElementById("GETheme:theForm:lumpSumValue");
+                
+                
+                
+                  if(elem.id == debtLumpSumYes1){
+                        lumSumConfirm.value = elem.innerHTML.trim();
+                        document.getElementById("GETheme:theForm:Liability__c-1:confirmLumSumpFlag").value = lumSumConfirm.value;
+                        
+                    }
+                if(elem.id == debtLumpSumNo1){
+                       lumSumConfirm.value = elem.innerHTML.trim();
+                       document.getElementById("GETheme:theForm:Liability__c-1:confirmLumSumpFlag").value = lumSumConfirm.value;
+                   }
+                
+                   
+                 checkRequiredfields();
+                }
+                
+                var selectedStyle;
+                var unSelectedStyle;
+                
+                   
+                   selectedStyle = "color: #fff !important; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;";
+                   unSelectedStyle = "color: #4465ad; background:#fff; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;";
+                 
+                  function checkRequiredfields(){
+                  lumSumConfirm = document.getElementById("GETheme:theForm:lumpSumValue");
+                                                    
+                    if(lumSumConfirm.value.trim() == "YES"){
+                        document.getElementById(debtLumpSumYes1).setAttribute("style",selectedStyle);
+                        document.getElementById(debtLumpSumNo1).setAttribute("style",unSelectedStyle);
+                    }else if(lumSumConfirm.value.trim() == "NO"){
+                        document.getElementById(debtLumpSumNo1).setAttribute("style",selectedStyle);
+                        document.getElementById(debtLumpSumYes1).setAttribute("style",unSelectedStyle);
+                    }
+                    
+                   
+            }
+                           
+                           
+                           window.onload = function() {
+                              checkRequiredfields();
+                              
+                            };
+                           
+
+    </script>
+    
+    <apex:form id="theForm" styleClass="validateLoanForm">
+        
+        <apex:inputHidden id="flag"/>
+        <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+        <apex:inputHidden id="selectedId" value="{!selectedRow}"/>
+        <apex:inputHidden id="lumpSumValue" value="{!confirmLumpSum}"/>
+        
+        <div id="dialog-confirm" title="Session timeout warning." style=" display: none;">
+          <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Please save your Application before session times out.</p>
+        </div>
+        
+        <apex:actionFunction name="validateDebt" action="{!pageRedirect}" rerender="Liability__c-1"/>
+        <apex:actionFunction name="removeDebt" action="{!removethisDebt}" rerender="Liability__c-1"/>
+        <apex:actionFunction name="debtCateg" action="{!getTotalDebt}" reRender="totalDebtId, extraFieldsOutputPanel" />
+        <apex:actionFunction name="extraFields" action="{!getTotalDebt}" reRender="output2,totalDebtId"/>
+        <apex:actionFunction name="getTotalDebtMethod" action="{!getTotalDebt}" reRender="totalDebtId" />
+        <apex:actionFunction name="checkFinancialInstitution" reRender="financialInst" oncomplete="setFinancialInstitutionValidation(); return false;"/>  
+        <apex:actionFunction name="addMoreDebt" action="{!addDebt}" reRender="Liability__c-1" /> 
+        <apex:pageBlock title="Debts" id="Liability__c-1">
+            <!-- Added by DYU 04-09-15 - JQUERY Validate Plugin -->
+        <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+         <script>var jquery1 = jQuery.noConflict( true ); var res = true;</script>
+        <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+        <apex:includeScript value="{!$Resource.jqueryValidateScript}"/>
+            <div class="debtsLayout grayborderbtomDL">
+                <div>
+                    <!-- <strong>Tell us about your Debts?</strong> -->
+                    
+                    <strong> Debt Consolidation Acknowledgement? </strong>
+                    <img src="/s.gif" alt="Help" class="helpOrb" title="{!$ObjectType.Applicant__c.fields.Debt_Consolidation_Acknowledgement__c.InlineHelpText}"/>
+                    <apex:inputField id="idd" value="{!applicant.Debt_Consolidation_Acknowledgement__c}"/>
+                </div>
+                <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+                <br/>
+                <div>  
+                    <strong>Liability Flag </strong>
+                    <img src="/s.gif" alt="Help" class="helpOrb" title="{!$ObjectType.Applicant__c.fields.Liability_flag__c.InlineHelpText}"/>
+                    <apex:inputField id="liabilityFlag" value="{!applicant.Liability_flag__c}"/>
+                </div>
+                <br/>
+                </apex:outputPanel>
+                <apex:repeat value="{!debtAddList}" var="debtWrap" id="debtRepeat">
+                    
+                    <c:APP_JointDebtAndLiabilities_INT debtWrap="{!debtWrap}" brandRegion="{!brand.Country__c}" id="component-1"/>
+                    
+                </apex:repeat>
+                 <!--    Description: Total debt value is hidden FRD-CCR02 PL&ML Credit Assessment
+                  Author: Suneel Desiraju
+                  Date Created: 01-04-2019 -->                 
+                   
+                <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+                <div class="totalincome" id="output2">
+                    <apex:outputPanel rendered="{!totalDebt!=null}" id="totalDebtId">
+                        <strong>Monthly Repayments:</strong>
+                        <apex:outputText value="${0, number,###,###,###.##}">
+                            <apex:param value="{!totalDebt}"/>
+                        </apex:outputText>
+                   </apex:outputPanel> 
+                   <!-- Responsible Lending -->
+                   <hr/>
+                   <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+                    <div id="lumpSumPay">
+                                        <label style="font-size:19px">Do any of your loans require a lump sum payment either during or at the end of the loan?</label>                                            
+                                          <apex:outputLabel value="YES" styleClass="gem-mobile-button slds-button slds-button--neutral" id="lumpSumYes1" onclick="applicantConfirmation(this);" style="{!if(AND(brand.Country__c=='NZ',confirmLumSumpFlag=='YES'),'color: #fff !important; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"/>
+                                          <apex:outputLabel value="NO" styleClass=" gem-mobile-button slds-button slds-button--neutral" id="lumpSumNo1" onclick="applicantConfirmation(this);" style="{!if(AND(brand.Country__c=='NZ',confirmLumSumpFlag=='NO'),'color: #fff !important; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"/>
+                                          <apex:inputText style="visibility:hidden;height:0;width:0" id="confirmLumSumpFlag" styleClass="" value="{!confirmLumSumpFlag}"/>
+                                          <div id="debtErr" style="display:none;"/>
+                                        </div>
+                   </apex:outputPanel>  
+                </div>
+                </apex:outputPanel> 
+                <div align="center">
+                    <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+                    <br/>
+                    <apex:actionStatus id="status5">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Add More" rendered="{!debtListSize < $Setup.Application_Wizard_Settings__c.Max_Records__c}" status="status5" onclick="document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='visible';" oncomplete="checkApp('Add');return false;"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Adding..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>                    
+                    <apex:actionStatus id="status">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Save & Close" rerender="false" id="saveBtn" onclick="document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='visible'; this.disabled='true'" onComplete="checkApp('Save'); return false;" status="status"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Saving..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>
+                    <apex:actionStatus id="status4">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Back" id="backBtn1" onComplete="checkDebtFields('Back');" reRender="status4" status="status4" onclick="document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>                   
+                    <apex:actionStatus id="status3">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Cancel" id="closeBtn" reRender="status3" status="status3" onclick="document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='visible'" oncomplete="checkDebtFields('Cancel');"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Cancelling..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </div>
+            </div>
+    
+    
+          
+                   
+        </apex:pageBlock>
+    
+    </apex:form>
+</apex:page>

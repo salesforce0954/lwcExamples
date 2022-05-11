@@ -1,0 +1,49 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0" controller="APP_VerifyIdentityExt">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="GEDDBody">
+            
+            <div class="maincontent pagenotfound">
+                <div class="row-fluid">
+                    <div class="divider30"></div>
+                    <apex:outputPanel >
+                        <h2>Verify your identity with a credit reporting body</h2>
+                        <br/>
+                        <apex:outputText value="{!consentText}" escape="false" />
+                    </apex:outputPanel>
+                    
+                    <!-- Commented for Defect #2585 Start
+                    <apex:outputPanel rendered="{!applicant.Id != null}">
+                        <br/>
+                        ______________________________
+                        <br/>
+                        <apex:outputText value="{!applicant.First_Name__c} {!applicant.Last_Name__c}"/><apex:outputText value=" {!today}"/>
+                    </apex:outputPanel>
+                     Defect #2585 End -->
+                     
+                    <div class="divider30"></div>
+                    <style>
+                        .row-fluid h2 {
+                            font-weight: normal !important;
+                            line-height: 45px;
+                        }
+                         @media (max-width: 580px) {
+                            .maincontent {
+                                width: 95%;
+                                padding-left: 0px !important;
+                                margin-left: 10px !important;
+                            }
+                            .header-inner {
+                                padding: 20px 0px 0 0 !important;
+                            }
+                            .footer-bottom-inner {
+                                padding-left: 0px !important;
+                            }
+                        }
+                    </style>
+                </div>
+            </div>
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

@@ -1,0 +1,14 @@
+<apex:page standardcontroller="Disbursement__c" extensions="APP_Disbursement_List" >
+<apex:form >
+<apex:pageBlock >
+<apex:pageBlockSection >
+    <apex:outputField value="{!disb.BillerCode__c}" />
+    <apex:outputField value="{!disb.BillerShortName__c}" />
+    <apex:outputField value="{!disb.BillerLongName__c}" />
+    <apex:outputField value="{!disb.BillerMinThresholdValue__c}" />
+    <apex:outputField value="{!disb.BillerMaxThresholdValue__c}" />
+    <apex:outputField value="{!disb.BillerCheckDigitRule__c}" />
+</apex:pageBlockSection>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

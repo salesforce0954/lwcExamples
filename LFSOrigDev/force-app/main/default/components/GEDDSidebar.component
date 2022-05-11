@@ -1,0 +1,148 @@
+<apex:component controller="APP_GEDDSidebarExt" id="sidebarId" allowDML="true">
+    
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="responseCode" assignTo="{!responseCodeControlType}" description="Reponse Code Control custom settings value" type="String"/>
+
+    <!-- PRE-SUBMIT PANEL -->
+    <apex:outputPanel rendered="{!responseCodeControlType == null}">
+    
+        <apex:pageBlock id="sidebarPBId"> 
+            
+            <!-- ELIGIBILITY TILE -->
+            <div class="boxlink">
+                <apex:commandButton value="Loan Details" action="{!goToEligibility}" onClick="setNavigationFlag('false');" styleClass="status_complete"/>
+            </div>
+
+            <!-- PERSONAL DETAILS TILE   -->
+            <div class="boxlink fright">
+                <apex:commandButton value="Personal Details" action="{!goToPersonal}" onClick="setNavigationFlag('false');" styleClass="{!personalDetailsButtonClass}"/>
+            </div>  
+
+            <!-- INCOME TILE -->
+            <div class="boxlink">
+                <apex:commandButton value="Employment and Income" action="{!goToIncome}" onClick="setNavigationFlag('false');" styleClass="{!incomeButtonClass}"/>
+            </div>
+
+            <!-- EXPENSE TILE    -->
+            <div class="boxlink fright">
+                <apex:commandButton value="Expenses" action="{!goToExpense}" onClick="setNavigationFlag('false');" styleClass="{!expenseButtonClass}"/>
+            </div>
+
+            <!-- ASSET TILE -->
+            <div class="boxlink">
+                <apex:commandButton value="Assets" action="{!goToAsset}" onClick="setNavigationFlag('false');" styleClass="{!assetButtonClass}"/>
+            </div>
+
+            <!-- DEBT TILE -->
+            <div class="boxlink fright">
+                <apex:commandButton value="Debts" action="{!goToDebt}" onClick="setNavigationFlag('false');" styleClass="{!debtButtonClass}"/>
+            </div>        
+            
+            <div class="clearfix"/>
+            <div class="divider5"/>
+
+            <!-- APPLY BUTTON (ACTIVE) -->
+            <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Gem'), false, true)}">
+            <apex:commandButton rendered="{!appStatus}" status="saveStatus" onclick="setNavigationFlag('false');setBlackBox();window.scroll(0,0);" styleClass="btn btn-large btn-block btn-activec buttonarrowimg removelmargin" value="Get Quote" rerender="false"/>
+
+            <apex:commandButton rendered="{!!appStatus}" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);validateApplication();" styleClass="btn btn-large btn-block buttonarrowimg removelmargin" value="Get Quote" rerender="errorId"/>
+            </apex:panelGroup>
+            <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+            <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', true, false)}">
+                <apex:outputPanel rendered="{!appStatus}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);setBlackBox();" class="btn btn-large btn-block btn-activec removelmargin">Submit<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!!appStatus}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);validateApplication();" class="btn btn-large btn-block removelmargin">Submit<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+            </apex:panelGroup>
+             <apex:panelGroup rendered="{!if($Site.Name = 'Gem', true, false)}">
+                <apex:outputPanel rendered="{!If(AND(appStatus = true , isSoftQuoteApp = true), true, false)}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);setBlackBox();" class="btn btn-large btn-block btn-activec removelmargin">Submit<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!If(AND(appStatus = true , isSoftQuoteApp = false), true, false)}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);setBlackBox();" class="btn btn-large btn-block btn-activec removelmargin">Get Quote<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!If(AND(appStatus = false , isSoftQuoteApp = true), true, false)}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);validateApplication();" class="btn btn-large btn-block removelmargin">Submit<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!If(AND(appStatus = false , isSoftQuoteApp = false), true, false)}">
+                    <button type="button" status="saveStatus" onclick="setNavigationFlag('false');window.scroll(0,0);validateApplication();" class="btn btn-large btn-block removelmargin">Get Quote<span class="arrowrighticon" style="margin: 0; margin-left:20px; left: initial;"></span></button>
+                </apex:outputPanel>
+            </apex:panelGroup>
+            <div class="clearfix"/>
+            <div class="divider10"/>
+
+            <!-- NUMBER OF AREAS LEFT SECTION -->
+            <apex:outputPanel rendered="{!areasLeft > 0}">
+                <p>
+                    You can apply after you've completed the
+                    
+                    <span class="txt-blue">
+                        {!areasLeft}
+                    </span> 
+
+                    <apex:outputText value="{!IF(areasLeft > 1, ' remaining sections', ' remaining section')}"/> 
+                </p>
+                <br/>
+            </apex:outputPanel>
+
+            <div class="clearfix"></div>
+                
+        </apex:pageBlock>
+
+        <!-- iOVATION INCLUDE SCRIPT FOR FINGERPRINT -->
+       <!--  <apex:includeScript value="https://ci-mpsnare.iovation.com/snare.js"/> -->
+       <apex:includeScript value="https://mpsnare.iesnare.com/snare.js" />
+
+        <script language="JavaScript">
+            function setBlackBox(){     //method for populating blackbox and other variables needed
+                // basic configuration
+                var io_install_stm = false;     // do not install Active X
+                var io_exclude_stm = 12;        // do not run Active X
+                var io_install_flash = false;   // do not install Flash
+                var io_enable_rip = true;       // enable detection of Real IP
+                var bb_data = ioGetBlackbox();  // get blackbox data
+
+                document.getElementById('GETemplate:GETemplate:mainForm:blackBox').value = bb_data.blackbox;    //seT blackbox data to inputhidden
+                validateApplication();      //actionfunction method on related pages
+            }
+        </script>
+
+    </apex:outputPanel>
+    
+    <!-- POST-SUBMIT PANEL -->
+    <apex:outputPanel rendered="{!OR(responseCodeControlType == 'Contract', responseCodeControlType == 'Conditionally Approved', responseCodeControlType == 'Referred')}">
+
+        <!-- REFERRED W/ REQUESTED DOCUMENTS/CONDITIONALLY APPROVED SECTION -->
+        <apex:outputPanel rendered="{!AND(OR(responseCodeControlType == 'Conditionally Approved', responseCodeControlType == 'Referred'), OR(activeTile == 'Upload', activeTile == ''))}">
+            <!-- FILE UPLOAD TILE-->
+            <div class="boxlink dbnone fright">
+                <apex:commandButton value="Upload documents" action="{!goToUpload}"/>
+            </div>
+        </apex:outputPanel>
+        
+        <!-- CONDITIONALLY APPROVED: PCO SECTION -->
+        <!-- <apex:outputPanel rendered="{!AND(responseCodeControlType == 'Contract', acceptanceChannel != '', OR(activeTile == 'Contract', activeTile == ''),$Setup.Profile_Country__c.AU__c)}"> -->
+        <apex:outputPanel rendered="{!AND(responseCodeControlType == 'Contract', acceptanceChannel != '', OR(activeTile == 'Contract', activeTile == ''))}">
+            <!-- ACCEPT CONTRACT TILE--> 
+            <div class="boxlink dbnone fright"  >
+                <apex:commandButton value="{!IF(acceptanceChannel == 'Online Acceptance', 'Accept loan contract', 'Upload documents')}" action="{!goToContract}"/>
+            </div>
+        </apex:outputPanel>
+ 
+        <!-- Update: Adrian Recio -->
+        <!-- Change: Updated button text from Download to Download Cover Sheet -->
+        <!-- Story: PMIHM - 1729 -->
+        <!-- Date: 12/8/2015 -->
+        <!-- DOWNLOAD TILE-->
+        <div class="boxlink dbnone fleft"  >
+            <apex:commandButton value="Download Fax Cover Sheet"  action="{!goToDownload}" />
+        </div>
+       <!--  <div class="boxlink dbnone fleft"  >
+            <apex:commandButton value="Download documents" rendered="{!IF(AND($Setup.Profile_Country__c.NZ__c,true),true,false)}" action="{!goToDownload}" style="{!IF(AND($Setup.Profile_Country__c.NZ__c,BrandString == 'GE Money NZ'),'background-color:#3F48CC; color:white;','background-color:#77BA22; color:white;')}"/>
+        </div> -->
+        
+    </apex:outputPanel>
+
+</apex:component>

@@ -1,0 +1,66 @@
+<apex:page standardcontroller="Rate_Card__c" extensions="PR_RateCardExt"  showHeader="false" sidebar="false">
+
+<apex:includeScript value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/js/jquery-1.9.1.js')}" />
+
+ <script> 
+    //update some styles of difficult to configure Salesforce components
+   $(document).ready(function(){
+       $(".percentageClass").attr('size', '5').blur();
+   });
+</script>
+    <apex:pageMessages />
+    <apex:form id="mainForm" rendered="{!selectedRateCard!=null}">
+    	 <apex:actionStatus id="updateStatus">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px" 
+                ImageUrl="{!$Resource.LoadingDialog}" Message="Updating..." 
+                messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:actionStatus id="deleteStatus">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" 
+                width="120px" ImageUrl="{!$Resource.LoadingDialog}" Message="Deleting..." 
+                messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>
+            </apex:facet>
+        </apex:actionStatus>
+         <table class="list">
+            <thead class="rich-table-thead">
+                <tr class="headerRow ">
+                    <th class="headerRow " colspan="1" scope="col">Principal Minimum</th>
+                    <th class="headerRow " colspan="1" scope="col">Principal Maximum</th>
+                    <apex:repeat value="{!creditScores}" var="creditScore">
+                        <th class="headerRow " colspan="1" scope="col">{!creditScore}</th>
+                    </apex:repeat>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat value="{!rateCard}" var="rateCardRow">
+                    <tr>
+                        <td><apex:inputText value="{!rateCardRow.pMin}"/></td>
+                        <td><apex:inputText value="{!rateCardRow.pMax}"/></td>
+                        <apex:repeat value="{!rateCardRow.orderedRates}" var="rate">
+                            <td><apex:inputField styleClass="percentageClass" value="{!rate.Rate__c}"/></td>
+                        </apex:repeat>
+                        <td>
+                            
+                             <apex:commandLink value="Del" action="{!deleteRow}" reRender="mainForm" status="deleteStatus">
+                                <apex:param name="rowNum" value="{!rateCardRow.rowNum}"/>
+                            </apex:commandLink>
+                        </td>
+                    </tr>
+                </apex:repeat>
+                <tr>
+                    <td colspan="8">
+                        <apex:commandLink value="Add New Row" action="{!addNewRow}" reRender="mainForm" 
+                        status="updateStatus"/> &nbsp;&nbsp;
+                        <apex:commandLink value="Save" action="{!saveAllRow}" rerender="mainForm" 
+                        status="updateStatus"></apex:commandLink>
+                    </td>                   
+                </tr>
+            </tbody>
+        </table>
+                
+    </apex:form>
+
+</apex:page>

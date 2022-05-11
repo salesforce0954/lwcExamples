@@ -1,0 +1,143 @@
+<apex:component >
+    <!------------------------------------------------>
+    <!-- @author  gerome.teodosio@cloudsherpas.com  -->
+    <!-- @desc    Overwrites some styles to fit the -->
+    <!--             mobile version for Kiwi        -->
+    <!------------------------------------------------>
+    <style>
+    
+            .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                text-align: center !important;
+                border-radius: 3px !important;
+                background-color: #afafaf;
+            }
+            
+            .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button:hover,
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income {
+                background-color: #88c83d !important;
+            }
+            
+            
+            
+        @media screen and (min-width: 415px) {
+            .container-fluid.loanamountdiv {
+                padding: 0 !important;
+            }
+            
+        }
+        
+        @media screen and (max-width: 415px) {
+            .pllabel, .pllabel2 {
+                width: 80px !important;
+            }
+            
+            .container-fluid.loanamountdiv {
+                padding: 0;
+            }
+            
+            .maincontent {
+                width: 100% !important;
+            }
+            
+            
+            
+            
+            
+            .maincontent .maincontent {
+                width: 90% !important;
+                margin: 0 auto;
+            }
+            
+            .container-fluid.loanamountdiv {
+                padding: 0;
+                margin: 0 auto;
+                background: #f6f6f6;
+            }
+            
+            .computation {
+                padding: 0 !important;
+            }
+            
+            .minusplusicon.adconad.mv_addicon {
+                position: relative;
+                margin: 0 !important;
+            }
+            
+            .span12.adjustmeicon {
+                width: 100%;
+                margin: 0;
+            }
+            
+            .minusplusicon.miconad {
+                margin-left: 20px;
+                margin-top: -70px;
+            }
+            
+            .span5.dbtotal {
+                margin: 0 !important;
+            }
+            
+            .total span {
+                position: absolute;
+                right: 25px;
+            }
+            
+            .maincontent.mobileCon.GGetting-started {
+                width: 90% !important;
+                margin: 0 auto;
+            }
+            
+            .span5.headertitle {
+                width: 98% !important;
+            }
+            
+            h3.droid-normal.center.dark {
+                width: 70%;
+                margin: 0 auto;
+            }
+            
+            .row-fluid.header-inner {
+                padding: 35px 0px !important;
+            }
+            
+            .btn.btn-block.btn-normalc.buttonarrowimg.GPrimary-button {
+                margin-top: -100px;
+                text-align: center !important;
+                font-size: 12px;
+            }
+            
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.btnNext.GNext-but-fix.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.GPrimary-button {
+                font-size: 16px;
+            }
+            
+            .span8.earlyfull.page-income,
+            .span8.earlyfull.page-expenses{
+                width: 90%;
+                margin: 0 auto;
+            }
+            
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income {
+                
+                background-image: none;
+            }
+            
+            .span5.headertitle {
+                position: absolute;
+                top: 10px;
+            }
+            
+            .lp_area_mobile {
+                display: none;
+            }
+            
+            .row-fluid.header-inner.headerlogovr {
+                padding: 0 !important;
+            }
+            
+            .maincontent.submitwaitview {
+    width: 90% !important;
+}
+        }
+    </style>
+</apex:component>

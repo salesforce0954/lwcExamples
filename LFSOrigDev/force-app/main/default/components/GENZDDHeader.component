@@ -1,0 +1,50 @@
+<!--04-20-15: Updated Defect 977 - Change FAQ's to FAQs - DY-->
+<apex:component id="GEDDheader">
+    
+    <!-- start of header -->
+    <header>
+        <!-- Matthew Gould: 28/09/2016 Commented out top header as per rebrand -->
+        <div id="topheader" class="topheader">
+            <div class="row-fluid topheader-inner">
+                <div class="span8 topheader-left">
+                    <ul>
+                        <li>
+                            <span>
+                                    <a href="https://www.gemfinance.co.nz/contact-us/" target="_blank">Contact Us</a>       <!-- MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                            </span>
+                        </li>
+                        <!-- Commneted as part of the ODDS-13022-->
+                        <!--<li>
+                            <span>
+                                <a href="http://www.gemoney.co.nz/faqs/loans.html" target="_blank">FAQs</a>     <!-- MLASALA: 24-MAR-16 TQLQW-127 Re-brand
+                            </span>
+                        </li>-->
+                    </ul>
+                </div>
+            </div><!-- topheader-inner -->
+        </div><!-- topheader -->
+        <div id="header" class="header headbborder">
+            <!-- Matthew Gould 26/09/2016: Removed class 'width580' from below div for redesign -->
+            <div class="row-fluid header-inner">
+                <div id="header-logo" class="span3">
+                    <!--Commented out by MDAVID - 03/01/2016 TQLQW - 104 Rebranding-->
+                    <apex:outputLink value="https://www.gemfinance.co.nz" styleClass="logodsk"><span class="themelogo"></span></apex:outputLink>       <!-- MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+<!--                    <apex:outputLink value="https://www.gemfinance.co.nz" styleClass="logodsk"/>-->
+                    <apex:outputLink id="backLink" styleClass="falmob" value="{!URLFOR($Page.APP_Main)}?id={!$CurrentPage.parameters.id}">
+                    <span class="fui-arrow-left" rerender="false"></span>
+                    </apex:outputLink>
+                </div><!-- span3 -->
+                
+                <!-- Updated by MDAVID -4-27-2016 -->
+                <apex:panelGroup rendered="{!if(($CurrentPage.Name = 'app_register'), true, false)}">
+                    <div class="span5 headertitle registerheadertitle">
+                    <h3 class="droid-normal center dark" style="color: #4465ad; padding-top: 20px">Personal<span class="clearright"></span> Loan Application</h3>
+                    </div>
+                </apex:panelGroup>
+
+            </div><!-- header-inner -->
+        </div><!-- row-fluid -->
+        <div class="divider1 mv_hidetotally"></div>
+    </header>
+    <!-- end of header -->
+</apex:component>

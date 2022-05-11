@@ -1,0 +1,10 @@
+<template>
+    <div>
+            <template if:true={isUploadDocuments}>
+                <p class="slds-text-link" onclick={handleUploadDocNav}>{status} <span><lightning-helptext class="custom-tooltip" content={statusDescription}></lightning-helptext></span></p>
+            </template>
+            <template if:false={isUploadDocuments}>
+                <p>{status} <span><lightning-helptext class="custom-tooltip" content={statusDescription}></lightning-helptext></span></p>
+            </template>
+    </div>
+</template>

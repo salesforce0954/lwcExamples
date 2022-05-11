@@ -1,0 +1,252 @@
+<apex:page standardController="Application__c"
+    extensions="APP_Main_PostSubmitExt" showHeader="false" sidebar="false"
+    standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false">
+    <style>
+.table td, .table th {
+    border: none;
+}
+
+table {
+    border: 2px solid #a1a1a1;
+}
+
+.textBlue {
+    color: {!if(brand.Brand_Display_Name__c == 'Kiwibank', '#77BA22;', '#3A73BA;')}
+}
+
+;
+}
+.textGreen {
+    color: #2AA948;
+}
+
+.textAlmostBlue {
+    color: #86a0c4 !important;
+    font-family: Arial, Verdana, sans-serif;
+    font-weight: bolder;
+}
+
+.textNavyBlue {
+    color: #6D5BCD;
+    font-size: 14pt;
+}
+
+.textOrange {
+    color: #FF875E;
+}
+
+.pPadding {
+    padding: 3px;
+}
+
+.btnText {
+    white-space: normal;
+    color: #FFF;
+}
+</style>
+
+    <apex:outputpanel rendered="{!OR(NOT($Setup.Profile_Country__c.NZ__c),NOT(hadDocuments),
+        AND(responseCodeControlType == 'Referred',requestedDocumentsList.size == 0,$Setup.Profile_Country__c.NZ__c))}">
+        <section>
+            <div class="divider10"></div>
+            <div class="span12 txtalignc removelmargin">
+
+                <!-- Update: Adrian Recio -->
+                <!-- Change: Updated messaging -->
+                <!-- Date: 12/8/2015 -->
+                <!--
+                <h2 style="line-height: 100%">Thank you - your application is
+                    being assessed.</h2>
+                -->
+
+                <h2 style="line-height: 100%">Your application has been received and you're almost there.</h2>
+
+                <div class="divider30 clearfix"></div>
+
+                <p>
+
+                <!-- Update: Adrian Recio -->
+                <!-- Change: Updated messaging -->
+                <!-- Story: PMIHM - 1729 -->
+                <!-- Date: 12/8/2015 -->
+                <!--
+                    <apex:outputPanel rendered="{!brand.Brand_Display_Name__c!='Kiwibank'}">
+                        Before we go any further we need to confirm a few things over the phone. One of our
+                         {!if(brand.Brand_Display_Name__c == 'GE Money NZ', 'GE Money', brand.Brand_Display_Name__c)} consultants will contact you as soon as possible. 
+                         <br/>If you want to, you can call us on {!brand.Contact_Number__c} and quote reference number:
+                          {!application.UID__c}.
+                </apex:outputPanel>
+                -->
+
+                <apex:outputPanel rendered="{!brand.Brand_Display_Name__c!='Kiwibank'}">
+                        Before we go any further we need to confirm a few things over the phone. One of our
+                         {!if(brand.Brand_Display_Name__c == 'GE Money NZ', 'GE Money', brand.Brand_Display_Name__c)} consultants will contact you as soon as possible.If you want to, you can call us on {!brand.Contact_Number__c} and quote reference number:<b>{!application.UID__c}</b>.
+
+                         <apex:outputPanel rendered="{!hadDocuments}">
+                             <br/>
+                             <br/>
+
+                             When required, please use the <b>Upload Documents</b> tool to provide any documents needed to complete your loan application.
+                         </apex:outputPanel>
+                </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank'}">
+                To finalise your application one of the Kiwibank team will contact you within 24 hours* 
+                to confirm a few details over the phone. 
+                    <br/>You can call us on 0800 54 94 54 at any stage to check on the status of your 
+                    application. Quote reference number {!Application__c.UID__c}
+                </apex:outputPanel>
+                </p>
+                <!-- <apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ'}">
+                    <p><br/>Please go through the below links</p>
+                </apex:outputPanel> -->
+                <!--<apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='GE Money NZ' && Application__c.Channel__c=='Online'}">
+                    <apex:outputLink value="{!GETnCurl}" target="_blank">GE Terms and Conditions</apex:outputLink>
+                    <br />
+                </apex:outputPanel>-->
+                <!--<apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank' && Application__c.Channel__c=='Online'}">
+                    <apex:outputLink value="{!KiwiTnCurl}" target="_blank"
+                        style="color:#77BA22">Kiwibank Terms and Conditions</apex:outputLink>
+                    <br />
+                </apex:outputPanel>-->
+                <apex:outputPanel rendered="{!Application__c.Loan_Insurance_Consent__c && Application__c.Channel__c=='Online' 
+                    && (brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ')}">
+                    <apex:outputLink value="{!repaymentURL}" target="_blank"
+                        style="{!if(brand.Brand_Display_Name__c=='Kiwibank','color:#77BA22','color: #3A73BA;')}">
+                        Repayment Insurance protection</apex:outputLink>
+                    <br />
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!Application__c.Channel__c=='Online' &&
+                     (brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ')}">
+                    <apex:outputLink value="{!Disclouserurl}" target="_blank"
+                        style="{!if(brand.Brand_Display_Name__c=='Kiwibank','color:#77BA22','color: #3A73BA;')}">
+                        Financial Advisers Act Disclosure Statement</apex:outputLink>
+                </apex:outputPanel>
+            </div>
+        </section>
+    </apex:outputpanel>
+    <apex:outputpanel rendered="{!AND(responseCodeControlType == 'Referred',requestedDocumentsList.size > 0,
+        $Setup.Profile_Country__c.NZ__c,hadDocuments)}">
+        <section>
+            <div class="divider10"></div>
+            <div class="txtalignc">
+
+                <apex:outputpanel rendered="{!IF($Site.name=='Kiwibank',true,false)}">
+                    <h3>Congratulations - your application has been conditionally
+                        approved!</h3>
+                </apex:outputpanel>
+                <apex:outputpanel rendered="{!IF($Site.name=='GE_Money_NZ',true,false)}">
+                    <h2>Congratulations - your application has been conditionally
+                        approved!</h2>
+                </apex:outputpanel>
+                <div class="divider20 clearfix"></div>
+                <div class="row">
+                <div class="span2 "></div>
+                <div class="span10 txtalignl">
+                    You have been conditionally approved for a loan of <strong
+                        class="textNavyBlue"> <apex:outputText value="{0, number, $###,###,###,##0.00}">
+                            <apex:param value="{!Application__c.Total_Loan_Amount__c}" />
+                        </apex:outputText>
+                    </strong> over a term of <strong class="textNavyBlue">{!Application__c.Loan_Term__c}</strong>
+                </div></div>
+                <div class="divider20 clearfix"></div>
+                <div class="row">
+                    <div class="span2 "></div>
+                    <div class="span10 txtalignl">
+                        <p class="pPadding">Your loan has been conditionally approved
+                            subject to completing any requirements set out below and your
+                            acceptance of the Personal Loan Contract.</p>
+                        <p class="pPadding">If the requirements are met, you will
+                            receive a Personal Loan Contract setting out the terms and
+                            conditions of your loan for your acceptance and approval.</p>
+                        <p class="pPadding">
+                            If you are happy with the loan offer and wish to proceed then please
+                            click on the <strong class="textGreen">Upload Documents</strong> button to
+                            see the documents required to complete your application.
+                        </p>
+                        <p class="pPadding">
+                            If you need assistance or have any queries please call us on 0800
+                            422 898, quote reference <span class="textOrange">{!Application__c.UID__c}</span>
+                        </p>
+                    </div>
+                    <!-- <div class="span1 "></div> -->
+                </div>
+                <div class="divider20 clearfix"></div>
+                <div class="row ">
+                    <div class="span3 "></div>
+                    <div class="span6 txtalignl">
+                        <div>
+                            <h4 class="textAlmostBlue">Current Offer Details</h4>
+                        </div>
+                        <table class="table">
+                            <tr>
+                                <td class="textBlue">Loan Amount</td>
+                                <td><apex:outputText value="{0, number, $###,###,###,##0.00}">
+                                        <apex:param value="{!Application__c.Total_Loan_Amount__c}" />
+                                    </apex:outputText></td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Loan Term</td>
+                                <td>{!Application__c.Loan_Term__c}</td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Establishment Fee</td>
+                                <td><apex:outputText value="{0, number, $###,###,###,##0.00}">
+                                        <apex:param value="{!Application__c.Offered_Establishment_Fee__c}" />
+                                    </apex:outputText></td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Interest Rate</td>
+                                <td>{!Application__c.Offered_Interest_Rate__c}%</td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Monthly Repayment</td>
+                                <td><apex:outputText value="{0, number, $###,###,###,##0.00}">
+                                        <apex:param value="{!Application__c.EMI_with_Service_Fee__c}" />
+                                    </apex:outputText></td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Total Interest</td>
+                                <td><apex:outputText value="{0, number, $###,###,###,##0.00}">
+                                        <apex:param value="{!Application__c.Total_Loan_Interest_Amount_Payable__c}" />
+                                    </apex:outputText></td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Insurance Taken</td>
+                                <td><apex:outputpanel rendered="{!hasLifeInsurance && NOT(hasDisabilityInsurance)}">Life Cover </apex:outputpanel>
+                                    <apex:outputpanel rendered="{!NOT(hasLifeInsurance) && hasDisabilityInsurance}">
+                                    Repayment Cover </apex:outputpanel>
+                                    <apex:outputpanel rendered="{!hasLifeInsurance && hasDisabilityInsurance}">
+                                        Life and Repayment Cover </apex:outputpanel>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="textBlue">Insurance Premium</td>
+                                <td><apex:outputpanel rendered="{!hasLifeInsurance||hasDisabilityInsurance}">
+                                        <apex:outputText value="{0, number, $###,###,###,##0.00}">
+                                            <apex:param value="{!Application__c.Total_Insurance_Premium__c}" />
+                                        </apex:outputText>
+                                    </apex:outputpanel></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="span3 "></div>
+                </div>
+                <div class="divider20 clearfix"></div>
+                <div class="row ">
+                    <div class="span8 "></div>
+                    <div class="span2 "></div>
+                    <div class="span2 ">
+                        <apex:form >
+                            <apex:commandbutton action="{!goToUpload}"
+                                value="Upload Documents"
+                                Styleclass="btn btn-large btn-normalc btn-reset-m btnText" />
+                        </apex:form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </apex:outputpanel>
+
+</apex:page>

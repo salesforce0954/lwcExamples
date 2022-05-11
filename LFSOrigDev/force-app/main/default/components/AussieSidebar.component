@@ -1,0 +1,37 @@
+<apex:component >
+<p>Please complete all of the areas below to apply.</p><br />
+<apex:pageBlock >
+<div class="boxlink dbcomplete">
+    <input type="submit" value="Eligibility" onClick="pageRedirect(this)"/>
+</div>
+
+<div class="boxlink dbinprogress">
+    <input type="submit" value="Income" onClick="pageRedirect(this)" />
+</div>
+
+<div class="boxlink dbincomplete">
+    <input type="submit" value="Assets" onClick="pageRedirect(this)" />
+</div>
+
+<div class="boxlink dbnone">
+    <input type="submit" value="Expenses" onClick="pageRedirect(this)" />
+</div>
+
+<div class="boxlink dbnone">
+    <input type="submit" value="Debts / Liabilities" onClick="pageRedirect(this)"/>
+</div>
+
+<div class="boxlink dbnone">
+    <input type="submit" value="About Me" onClick="pageRedirect(this)" />
+</div>
+
+<div class="clearfix"></div>
+<div class="divider10"></div>
+<p>You have <span class="txt-blue">5</span> areas left to complete!</p><br />
+<div class="span11 removelmargin">
+<button class="btn btn-large btn-block buttonarrowimg removelmargin" type="submit">Apply</button>
+</div>
+<div class="clearfix"></div>
+<div class="divider30"></div>
+</apex:pageBlock>
+</apex:component>

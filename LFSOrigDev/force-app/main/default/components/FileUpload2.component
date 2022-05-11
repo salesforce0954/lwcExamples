@@ -1,0 +1,165 @@
+<!-- 
+ * @Description: Visualforce page that performs file upload to ge server using iframe file transfer
+ * @Author: Fel Saliba/Adrian Recio
+ * @Date Created: 13/2/2014
+ * @History:
+ -->
+<apex:component allowDML="true" access="global" controller="WS_FileUpload" id="fileUploadId">
+    <style>
+        .doctypefield select, select {width:auto !important;}
+        .requiredBlock3 {border-left: 3px solid #c00;}
+        .apexp .bPageBlock .detailList  {width:50%;}
+    </style>
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    <!-- Parent Application Id Attribuate -->
+    <apex:attribute name="application" type="String" required="true" access="global" assignTo="{!applicationId}" description="application Id"/>
+
+    <apex:form enctype="multipart/form-data" id="frmId" >
+        <!-- Insert Related Document to and perform upload of attachment to GE Webservice  -->
+        <apex:actionFunction name="insertRelatedDocument" action="{!insertRelatedDocument}" id="insertRelatedDocument" rerender="scriptPanel" oncomplete="sendForm();">
+            <apex:param assignto="{!title}" name="title" value=""/>
+        </apex:actionFunction>     
+        
+        <!-- Rerenders type picklist based on selected value in category picklist  -->
+        <apex:actionFunction name="refreshType" rerender="typePanelId,scriptPanel"/>
+        <apex:actionFunction name="checkType" rerender="scriptPanel"/>
+        
+        <!-- Displays status of uploaded document to the ge server -->
+        <apex:pageMessages id="message"/>
+            <apex:outputPanel id="iframePanel">
+                <apex:iframe src="" scrolling="false" id="myframe" frameborder="0" height="50px"/>
+            </apex:outputPanel>
+
+        <!-- Main Page fields and buttons -->
+        <apex:pageBlock title="Upload File:" id="pgBlock">
+<table>
+            <tr>
+                <td><apex:outputLabel value="{!$Label.File_Upload_Document_Category}"></apex:outputLabel></td>
+                <td>    
+                    <apex:outputPanel >                   
+                        <div class="requiredInput">
+                            <div class="requiredBlock2"></div>
+                                <apex:inputField id="frmDocumentCategory" value="{!relatedDocument.Document_Category__c}" onchange="refreshType();" styleClass=""/>
+                            </div>
+                    </apex:outputPanel>
+                </td>
+            </tr>
+            <tr>
+                <td><apex:outputLabel value="{!$Label.File_Upload_Document_Type}"></apex:outputLabel></td>
+                <td>                    
+                    <apex:outputPanel id="typePanelId" styleClass="doctypefield">                   
+                        <div class="requiredInput">
+                            <div class="requiredBlock2"></div>
+                            <apex:inputField id="frmDocumentType" value="{!relatedDocument.Type__c}" onchange="checkType();" styleClass=""/>
+                        </div>
+                    </apex:outputPanel>
+                </td>
+            </tr>           
+            <tr>
+                <td><apex:outputLabel value="{!$Label.File_Upload_Applicant}"></apex:outputLabel></td>
+                <td>                    
+                    <apex:selectList id="frmDocumentApplicant" size="1" value="{!relatedDocument.Applicant__c}" styleClass="" > 
+                        <apex:selectOptions value="{!ApplicantOptions}"/>
+                    </apex:selectList>
+                 </td>
+            </tr>           
+
+        </table>
+        <apex:pageBlockButtons location="top">  
+            <apex:commandButton styleClass="midbutton" value="Close" action="{!goBack}"/> 
+        </apex:pageBlockButtons>        
+        </apex:pageBlock>
+    </apex:form>
+
+
+        <!-- created a hidden form to submit a file when user click on Save Attachement, this form gets render after a related document record is inserted. -->          
+        <form id="myform" action="{!uploadEndPoint}" method="post" target="myframe" enctype="multipart/form-data">
+            
+            <apex:outputPanel id="scriptPanel">
+                <script>
+                    var category = '{!JSENCODE(relatedDocument.Document_Category__c)}';
+                    var type = '{!JSENCODE(relatedDocument.Type__c)}';
+                </script>  
+                <input type="hidden" name="firstName" value="{!applicantFirstName}" />
+                <input type="hidden" name="lastName" value="{!applicantLastName}" />
+                <input type="hidden" name="appNum" value="{!JSENCODE(applicationUniqueID)}" />
+                <input type="hidden" name="timestamp" value="{!JSENCODE(getDateStamp)}" />
+                <input type="hidden" name="product" value="{!JSENCODE(productId)}" />
+                <input type="hidden" name="sfDocId" value="{!JSENCODE(recordIdSaved)}" />
+            </apex:outputPanel>
+            <table>
+            <tr>
+                <td></td>
+                <!-- Spacing for browse button to get aligned with the apex form --> 
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="file" id ="myfile" name="fileName" />
+                </td>
+            </tr>
+            </table>
+        </form> 
+
+            <apex:form >         
+                <table>
+                    <tr>
+                        <td> <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/></td>
+                        <!-- Spacing to get the Attachment button aligned with Browse and other form -->
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <apex:actionStatus id="status">
+                            <apex:facet name="stop">
+                            <apex:commandButton onClick="getFileName();" value="Save Attachments" id="theButton" rerender="status,loadingGif,scriptPanel" status="status"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Saving..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </td>
+            </tr> 
+        </table>
+                 
+    </apex:form>            
+
+        <script>    
+            // Get the file name from the path
+            function getFileName(){
+                var upload =  document.getElementById('myfile').value;                
+                if(upload == '' || upload == null){
+                    alert('Please choose file to upload');
+                }else if( category == '' ||  category == null){
+                    alert('Document Category is required');
+                }else if(type == '' ||  type == null){
+                    alert('Type is required');
+                    
+                }else{
+                     var fullPath = document.getElementById("myfile").value;
+                     if (fullPath) {
+                         var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+                         var filename = fullPath.substring(startIndex);
+                         if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+                             filename = filename.substring(1);
+                         }
+                     }
+                     insertRelatedDocument(filename);
+                 }
+             }
+            
+            // Make loader visible
+            function showLoader(){
+                document.getElementById('showLoading').style.display = "block";
+                
+            }
+            
+            // Makes loader hidden
+            function hideLoader(){
+                document.getElementById('showLoading').style.display = "none";
+            }
+            
+            // Send form to the endpoint.
+            function sendForm() {
+                document.getElementById('myform').submit();
+            }
+        </script>       
+    
+</apex:component>

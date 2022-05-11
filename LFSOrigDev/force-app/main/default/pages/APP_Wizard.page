@@ -1,0 +1,2892 @@
+<apex:page showHeader="false" sidebar="false" controller="APP_Wizard_Ext">
+
+    <!-------------------- INCLUDED RESOURCES START --------------------->
+    
+    <apex:includeScript value="{!$Resource.jqueryMin214}" />
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.SLDS090, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+   
+    <!-- JQuery Validate Plugin -->
+    <apex:includeScript value="/soap/ajax/34.0/connection.js" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}" loadOnReady="true"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}" loadOnReady="true"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}" loadOnReady="true"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScriptWizard}" loadOnReady="true"/>   
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    <!-------------------- INCLUDED RESOURCES END ----------------------->
+
+    
+    <!-------------------- START OF SEARCH AND MATCH -------------------->
+    <apex:include pageName="APP_Wizard_SearchAndMatch"/> 
+    <!-------------------- END OF SEARCH AND MATCH ---------------------->
+    
+    <script>
+    /*-------------------- SHARED FUNCTIONS START ----------------------*/
+        sforce.connection.sessionId = "{!$Api.Session_ID}";
+        
+        //GLOBAL VARIABLES
+        var country = '{!JSENCODE($CurrentPage.parameters.country)}';
+
+        var RECORDTYPES = {};
+        //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+        var IPAddress = '{!JSENCODE(IPAddress)}';
+        var DEBUGLOG = ''; //this is the variable we use to store debug values and update back to application at the end of transaction
+        
+        //Custom Settings
+        //BEGIN MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        var maxRecord = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Max_Records__c))}';
+        var maxRecordLoanPurpose = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Max_Records_Loan_Purpose__c))}';
+        var maxRecordRefinance = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Max_Refinance__c))}';
+        var submitTimer = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Submission_Wait_Time__c))}';
+        
+        //Variables used for calculation
+        var debtMonthlyRepayment = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Minimum_Debt_Monthly_Repayment__c))}';
+        var repaymentPercent = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Repayment_Percentage__c))}';
+        var repaymentPercentKiwi = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Repayment_Percentage_Kiwibank__c))}';
+        var repaymentPercentRentalIncome = '{!JSENCODE(TEXT($Setup.Application_Wizard_Settings__c.Repayment_Percentage_Rental_Income__c))}';
+        //END MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        
+        var weekInterval = 52;
+        var fortnightInterval = 26;
+        var monthInterval = 12;
+        
+        var collateralRecordType = 'Motor Vehicle';
+        if(country == 'NZ'){
+            collateralRecordType = collateralRecordType+' NZ';
+        }
+        
+        if(country == 'NZ'){
+                var personalHireRecordType = 'NZ PersonalHirePurchase';
+                var NZCarLoan = 'NZ CarLoan';
+                var NZCreditStoreCharge = 'NZ CreditStoreCharge';
+                var NZOverdraft = 'NZ Overdraft';
+        }
+        
+        var callCount = 0;
+        var totalLoanAmount = 0;
+        var totalLoanRefinanceAmount = 0;
+        var totalGEDebtAmount = 0;
+        var totalOtherDebtAmount = 0;
+    
+        /*
+         * Author : Afreen Khan
+         * Created : June 14, 2016
+         * Description : to remove the External App Field Options 
+         *
+         */
+        function remove3rdPartyAppFieldOptions(){
+            $("#app_Mirror__c").find('option[value="SocietyOne"]').remove();
+            $("#app_Channel__c").find('option[value="3rd Party Application"]').remove();
+        }
+            
+            
+        
+        /*
+         * Author: Tony Xu
+         * Date Created: 2015-10-08
+         * Description: Load picklist values Sync
+         *            IF you need specific recordtype pass the Record Type Name
+         *            IF the object has record type but you want the default just pass 'Master' as recordTypeName
+         *            IF the object doesn't have any record type setup, just pass '' as recordTypeName
+         */
+        function returnPicklistValues(object, fieldNames, recordTypeName){
+            try{
+                var result = sforce.connection.describeLayout(object);
+                callCount++;
+            }catch(error){
+                console.log(error);
+                debugLog('Return Picklist Values Error',error);
+            }
+            var recordTypes = result.recordTypeMappings;
+            console.log(recordTypes);
+            if(recordTypeName !== ''){
+                var recordType = 0;
+                while(recordType < recordTypes.length) {
+                    console.log(recordTypes[recordType].name);
+                    if(recordTypes[recordType].name == recordTypeName){ 
+                        var picklists = recordTypes[recordType].picklistsForRecordType;
+                        var picklist = 0;
+                        while(picklist < picklists.length){
+                            console.log(picklists[picklist]);
+                            if(picklists[picklist].picklistName in fieldNames){
+                                var picklistval = 0;
+                                while(picklistval < picklists[picklist].picklistValues.length){  
+                                    $("select#"+fieldNames[picklists[picklist].picklistName]).append( $("<option>")
+                                        .val(picklists[picklist].picklistValues[picklistval].value)
+                                        .html(picklists[picklist].picklistValues[picklistval].value)
+                                    );
+                                    picklistval++;
+                                }
+                            }
+                            picklist++;
+                        }
+                    }
+                    recordType++;
+                }
+            }else{      
+                var picklists = recordTypes.picklistsForRecordType;
+                var picklist = 0;
+                console.log('DEBUG:'+picklists);
+                while(picklist < picklists.length){
+                    if(picklists[picklist].picklistName in fieldNames){
+                        var picklistval = 0;
+                        while(picklistval < picklists[picklist].picklistValues.length){                 
+                            $("select#"+fieldNames[picklists[picklist].picklistName]).append( $("<option>")
+                                .val(picklists[picklist].picklistValues[picklistval].value)
+                                .html(picklists[picklist].picklistValues[picklistval].value)
+                            );
+                            picklistval++;
+                        }
+                    }
+                    picklist++;
+                }           
+            }
+        }
+    
+        /*
+         * Author: Tony Xu
+         * Date Created: 2015-10-08
+         * Description: Load picklist values Async
+         *            IF you need specific recordtype pass the Record Type Name
+         *            IF the object has record type but you want the default just pass 'Master' as recordTypeName
+         *            IF the object doesn't have any record type setup, just pass '' as recordTypeName
+         */
+        function returnPicklistValuesAsync(object, fieldNames, recordTypeName){
+            console.log("Async Called");
+            var result = sforce.connection.describeLayout(object, "", {
+                onSuccess:function(result){
+                    callCount++;
+                    var recordTypes = result.recordTypeMappings;
+                    if(recordTypeName !== ''){
+                        var recordType = 0;
+                        while(recordType < recordTypes.length) {                           
+                            if(recordTypes[recordType].name == recordTypeName){ 
+                                var picklists = recordTypes[recordType].picklistsForRecordType;
+                                var picklist = 0;
+                                while(picklist < picklists.length){
+                                    if(picklists[picklist].picklistName in fieldNames){
+                                        var picklistval = 0;
+                                        while(picklistval < picklists[picklist].picklistValues.length){                         
+                                            $("select#"+fieldNames[picklists[picklist].picklistName]).append( $("<option>")
+                                                                                                             .val(picklists[picklist].picklistValues[picklistval].value)
+                                                                                                             .html(picklists[picklist].picklistValues[picklistval].value)
+                                                                                                            );
+                                            picklistval++;
+                                        }
+                                    }
+                                    picklist++;
+                                }
+                            }
+                            recordType++;
+                        }
+                        
+                        if(object == 'Applicant__c'){
+                            //Soft Quote Changes
+                            prepopulateValuesFromQuote();
+                            salesAndLeadsPrefill('Applicant__c'); // Afreen - US 481 , added parameter to categorize the logic within method
+                        }
+                        if(object == 'Income__c'){                        
+                            //Soft Quote Changes                            
+                            var isSoftQuote = '{!isSoftQuoteApplication}';
+                           if(isSoftQuote === 'true'){
+                            prefillIncomeValuesFromQuote();                            
+                            }
+                        }
+                    }else{      
+                        var picklists = recordTypes.picklistsForRecordType;
+                        var picklist = 0;
+                        while(picklist < picklists.length){
+                            if(picklists[picklist].picklistName in fieldNames){
+                                var picklistval = 0;
+                                while(picklistval < picklists[picklist].picklistValues.length){                 
+                                    $("select#"+fieldNames[picklists[picklist].picklistName]).append( $("<option>")
+                                                                                                     .val(picklists[picklist].picklistValues[picklistval].value)
+                                                                                                     .html(picklists[picklist].picklistValues[picklistval].value)
+                                                                                                    );
+                                    picklistval++;
+                                }
+                            }
+                            picklist++;
+                        }           
+                    }
+                },                
+                onFailure:function(error){
+                    console.log(error);
+                    debugLog('Return Picklist Values Async Error',error);
+                }
+            });            
+        }
+    
+    function prepopulateValuesFromQuote(){
+        var quoteObj = '{!currentQuote.Id}';
+        var driversLicense = '{!currentQuote.Driver_s_Licence_Number__c}';
+        console.log('QUOTE OBJ IN NEW: ',quoteObj);
+        console.log('Drivers license: ',driversLicense);
+        if(quoteObj != ''){
+            
+            
+            $('#app1_title__c').val('{!currentQuote.Title__c}');
+             
+            if({!currentQuote.Gender__c == 'Male'}){
+                    $('#app1_male_gender').trigger('onclick');
+                    $('#select#app1_gender__c').val("Male");
+                }
+            if({!currentQuote.Gender__c == 'Female'}){
+                    $('#app1_female_gender').trigger('onclick');
+                     $('#select#app1_gender__c').val("Female");
+            }
+            
+            //Broker details prepoulation
+            if({!currentQuote.Broker_ID__c != ''} && {!currentQuote.Channel__c == 'Broker'}){
+                selectValues('#app_Channel__c', 'Broker');
+                $('#app_Channel__c').trigger('onchange');   
+                $('#Broker').val('{!currentQuote.Broker_ID__c}');
+                $('#disb_Amount__c').val('{!currentQuote.Brokerage_Fee__c}');
+            }else if({!currentQuote.Channel__c == 'online'}){
+                selectValues('#app_Channel__c', 'Online');
+                $('#app_Channel__c').trigger('onchange');   
+            }else if({!currentQuote.Channel__c == 'sales'}){
+                selectValues('#app_Channel__c', 'Sales');
+                $('#app_Channel__c').trigger('onchange');   
+            }
+            //NZ quotes prepopulating NZ driver license, Expiry date, Version
+                if({!currentQuote.region__c =='NZ'} && driversLicense !=''){
+                    $('#app1_customer_id_type__c').val('NZ Driver Licence');
+                    $('#app1_customer_id_type__c').trigger('onchange');
+                    $('#app1_id_number__c').val('{!currentQuote.Driver_s_Licence_Number__c}');
+                    $('#app1_version__c').val('{!currentQuote.Driver_s_License_Version__c}');
+                    $('#app1_expiry_dd').val('{!sqExpDate}');
+                    $('#app1_expiry_months').val('{!sqExpMonth}');
+                    $('#app1_exp_dy').val('{!sqExpYear}');
+                } 
+                if({!currentQuote.region__c =='NZ'}){
+                    selectValues('#app_Type_of_Product__c', 'Personal Loan');
+                    $('#app_Type_of_Product__c').trigger('onchange'); 
+               }
+                    
+          }
+        }
+            function prefillIncomeValuesFromQuote(){
+                   
+            $('#app1_div_search_clv').append( $('#app1SearchBtn'));
+            $('#app1SearchBtn').removeClass('slds-hide');  
+            
+            $('#app1_Income_Source__c1').val('{!currentQuote.Income_Source__c}');
+            $('#app1_Income_Source__c1').trigger('onchange'); 
+            if({!currentQuote.Occupation__c !=''}){
+                $('#app1_Occupation__c1').val("{!currentQuote.Occupation__c}");
+            }            
+            $('#app1_Res_Status__c').val('{!currentQuote.Residential_Status__c}');
+            $('#app1_Res_Status__c').trigger('onchange'); 
+        }
+        /*
+         * Author: Tony Xu
+         * Date Created: 2015-10-08
+         * Description: This is to initialize a picklist with "Please Select" and Empty space value
+         */
+        function initPicklist(picklistName){
+            $(picklistName).append( $('<option>')
+                                .val(' ')
+                                .html('Please Select')
+            );
+        }
+        
+        /*
+         * Author: Davey Yu
+         * Date Created: 2015-10-08
+         * Description: This is to initialize a picklist with "Please Select" and Empty String value
+         */
+        function initPicklistEmpty(picklistName){
+            $(picklistName).append( $('<option>')
+                                .val('')
+                                .html('Please Select')
+            );
+        }
+    
+        /*  Retrieved values from custom settings to display as picklist values
+         *  Author: Davey Yu
+         *  Date Created: OCT-06-2015
+         *  param: object - Custom Setting API Name
+         *  param: optionName - Picklist ids that needs to be populated
+         *  param: country - User region based on Country field
+         */
+        function returnPicklistValuesCustomSetting(object, optionNames, country){
+            console.log("Async Called Custom Settings: ",object);
+            var query = '';
+            if(country != '') //specific for street type custom setting
+                query = "SELECT Name, Value_Abbreviated__c, Value_Abbreviated_NZ__c, Region__c from "+object+' WHERE Region__c = \''+country+'\' OR Region__c = \'Both\' ORDER BY Name ASC';
+            else
+                query = 'SELECT Name from '+object+' ORDER BY NAME ASC'; 
+            var result = sforce.connection.query(query, {
+                onSuccess : function(result) {
+                    callCount++;
+                    var records1 = result.getArray('records');
+                    //populate options
+                    for(var i = 0; i < optionNames.length; i++){
+                        var picklistId  = document.getElementById(optionNames[i]);  
+                        for(var j=0;j<records1.length;j++){ 
+                            if(country != ''){ //street type settings
+                                if(country == 'AU')
+                                    $("select#"+optionNames[i]).append( $("<option>").val(records1[j].Value_Abbreviated__c).html(records1[j].Name));
+                                else 
+                                    $("select#"+optionNames[i]).append( $("<option>").val(records1[j].Value_Abbreviated_NZ__c).html(records1[j].Name));
+                            }else{
+                                $("select#"+optionNames[i]).append( $("<option>").val(records1[j].Name).html(records1[j].Name));
+                            }
+                        } 
+                    }
+                    if('{!isSoftQuoteApplication}'){
+                        var streetTypeValue = '{!currentQuote.Residential_Street_Type__c}';
+                        if(streetTypeValue !=null && streetTypeValue != ''){
+                            $('select#app1_street_type_res__c').val('{!currentQuote.Residential_Street_type_abbreviated_code__c}'); 
+                        }
+                        var preStreetTypeValue = '{!currentQuote.Previous_Street_Type__c}';
+                        if(preStreetTypeValue != null && preStreetTypeValue != ''){
+                             $('select#app1_street_type_pre__c').val('{!currentQuote.Previous_ResStreet_type_abbreviated_code__c}');
+                        }
+                        if(object =='State_Setting__c' &&  optionNames[0]== 'app1_state_res__c'){
+                            var stateTypeValue = '{!currentQuote.Residential_State__c}';
+                            if(stateTypeValue !=null && stateTypeValue !=''){
+                                $('select#app1_state_res__c').val('{!currentQuote.Residential_State__c}');
+                                $('select#app1_state_res__c').removeAttr('disabled'); 
+                            }   
+                            var prestateTypeValue = '{!currentQuote.Previous_State__c}';
+                            if(prestateTypeValue !=null && prestateTypeValue !=''){
+                                $('select#app1_state_pre__c').val('{!currentQuote.Previous_State__c}');
+                                $('select#app1_state_pre__c').removeAttr('disabled');   
+                            }
+                            salesAndLeadsPrefill('Personal_And_App_Details');
+                        }
+                    }else{
+                        if(object =='State_Setting__c' &&  optionNames[0]== 'app1_state_res__c'){
+                            salesAndLeadsPrefill('Personal_And_App_Details');
+                        }
+                    }
+                    
+                },
+                onFailure : function(error) {
+                  log("An error has occurred " + error);
+                  debugLog('Return Picklist Values Custom Settings Error',error);
+                }
+            });
+        }
+        
+        /*  Description: Add new section of record
+         *  Author: Mike Lasala
+         *  Date Created: 08-OCT-2015
+         *  Input: Class name of record section, 
+                   Div id of record section, 
+                   Array of section ids which show hide fields, 
+                   Add button id, 
+                   Applicant
+         */
+        function addRecord(className, 
+                           divId, 
+                           sectionId, 
+                           buttonId, 
+                           applicant){
+            
+            //Length of records
+            var recordLength = $('.'+className).length;
+            
+            //The numeric id of the new hidden input field being added
+            
+            var counter  = recordLength + 1;
+            
+            //Display remove button when records are > 1
+            $('.'+className).find('#app'+applicant+'_removeButton1').addClass('slds-visible').removeClass('slds-hidden');
+
+            //Clonelement and append counter value on section (div) id
+            var newElem = $('#'+divId+''+recordLength).clone().insertAfter('#'+divId+''+recordLength).attr('id', divId+''+counter);
+
+            //Add counter to elements needed for show hide
+            if(className == 'loanSection'){
+            
+                var elemId = newElem.find('.showHideLabel').attr('id');
+                newElem.find('.showHideLabel').attr('id', constructInputIds(elemId, counter));
+            
+            } else if(className == 'debtSection'){
+            
+                newElem.find('.totalAmount').attr('id', constructInputIds('totalDebtAmount1', counter));
+                newElem.find('.payout').attr('for', constructInputIds('app1_Acknowledge_Payout__c1', counter));
+                
+            } else if(className == 'app1_incomeSection' || 
+                      className == 'app2_incomeSection'){
+                
+                var elemId = newElem.find('.totalAmount').attr('id');
+                newElem.find('.totalAmount').attr('id', constructInputIds(elemId, counter));
+            }
+            
+            newElem.find('.totalAmount').html(null);
+            
+            //Set input id for new element
+            setInputIds(newElem, counter);
+            
+            //Clear values
+            newElem.find('.slds-input').val(null);
+            
+            //Hide dynamic sections on add      
+            for(var i=0; i<sectionId.length; i++){
+                
+                if(sectionId[i] != 'app1_Ownership_Status__c'+counter){
+                
+                    //The rest, hide
+                    newElem.find('#'+sectionId[i]).hide();
+                    
+                    if(className == 'loanSection'){
+                        newElem.find('#'+sectionId[i]+counter).hide();
+                    }
+                    
+                } else {
+                
+                    //Enable asset ownerhip field for asset
+                    newElem.find('#'+sectionId[i]+counter).prop('disabled', false);
+                }
+            }
+            
+            if(counter == ((className == 'loanSection') ? maxRecordLoanPurpose : maxRecord)){
+            
+                //Hide add button when max number of records is reached (count based on custom settings)
+                $('#'+buttonId).hide();
+                
+                if(className == 'debtSection'){
+                    $('#maxDebtValidationMessage').show();
+                }
+            }
+
+         }
+        
+        /*  Description: Remove section of record
+         *  Author: Mike Lasala
+         *  Date Created: 09-OCT-2015
+         *  Input: Element Id (to identify which row), 
+                   Class name of record section, 
+                   Div id of record section
+                   Add button id, 
+                   Applicant
+         */
+        function removeRecord(elementId, 
+                              className, 
+                              divId,    
+                              buttonId, 
+                              applicant){
+            
+            //Get record counter
+            var counter = getCounter(elementId);           
+         
+            //Remove selected section
+            $('#'+divId+''+counter).remove();
+            
+            //Length of records
+            var recordLength = $('.'+className).length;
+            
+            var counter = 1;
+            
+            //Iterate over each section
+            $('.'+className).each(function(){
+                
+                //Append counter on section (div) id
+                $(this).attr('id', divId+''+counter);
+                
+                //Add counter to elements needed for show hide
+                if(className == 'loanSection'){
+                    var elemId = $(this).find('.showHideLabel').attr('id');
+                    $(this).find('.showHideLabel').attr('id', constructInputIds(elemId, counter));
+                } else if(className == 'debtSection'){
+                    $(this).find('.totalAmount').attr('id', constructInputIds('totalDebtAmount1', counter));
+                    $(this).find('.payout').attr('for', constructInputIds('app1_Acknowledge_Payout__c1', counter));
+                }
+                
+                //Set input id for new element
+                setInputIds($(this), counter);
+
+                counter++;
+            });
+            
+            if(recordLength == 1){
+                
+                //Hide remove button when records are = 1
+                $('.'+className+':first').find('.slds-button').addClass('slds-hidden').removeClass('slds-visible');
+            }
+            
+            if(recordLength < ((className == 'loanSection') ? maxRecordLoanPurpose : maxRecord)){
+            
+                //Show add button when max records > current count (count based on custom settings)
+                $('#'+buttonId).show();
+                
+                if(className == 'debtSection'){
+                    $('#maxDebtValidationMessage').hide();
+                }
+            }
+        }
+        
+        /*  Description: Get row count based on element id prefix
+         *  Author: Mike Lasala
+         *  Date Created: 14-OCT-2015
+         *  Input: Element Id
+         */
+        function getCounter(elementId){
+            var counter = elementId.match(/(\d+)/g);
+            
+            if(counter.length>1){
+                counter = counter[counter.length-1];
+            }
+            
+            return counter;
+        }
+        
+        /*  Description: Set default picklist values for an entire element
+         *  Author: Mike Lasala
+         *  Date Created: 16-OCT-2015
+         *  Input: Element Id
+         */
+        function setDefaulPicklistValue(elementId){
+            
+            $(':input', $(elementId)).each(function() {
+                
+                var tag = this.tagName.toLowerCase();
+                    
+                //Iterate over each select tag in the element
+                if (tag == 'select'){
+                    
+                    if(this.id != 'app1_asset_Applicable_Party__c' && 
+                       this.id != 'app1_debt_Applicable_Party__c' && 
+                       this.id != 'app1_Years_With_Employer__c1' &&
+                       this.id != 'app1_Months_With_Employer__c1' &&
+                       this.id != 'app2_Years_With_Employer__c1' &&
+                       this.id != 'app2_Months_With_Employer__c1' &&
+                       this.id != 'app1_Time_at_previous_employer_years__c' && 
+                       this.id != 'app1_Time_at_previous_employer_months__c' && 
+                       this.id != 'app2_Time_at_previous_employer_years__c' && 
+                       this.id != 'app2_Time_at_previous_employer_months__c' &&
+                       this.id != 'app1_years_at_addr__c' &&
+                       this.id != 'app1_months_at_addr__c' &&
+                       this.id != 'app2_years_at_addr__c' &&
+                       this.id != 'app2_months_at_addr__c' &&
+                       this.id != 'app1_years_at_prev_addr__c' &&
+                       this.id != 'app1_months_at_prev_addr__c' &&
+                       this.id != 'app2_years_at_prev_addr__c' &&
+                       this.id != 'app2_months_at_prev_addr__c' &&
+                       this.id != 'app1_Rent_Board_Pay_Int__c' &&
+                       this.id != 'app2_Rent_Board_Pay_Int__c' &&
+                       this.id != 'app1_issue_dd' &&
+                       this.id != 'app1_issue_months' &&
+                       this.id != 'app1_dob_dd' &&
+                       this.id != 'app1_dob_months' &&
+                       this.id != 'app1_expiry_dd' &&
+                       this.id != 'app1_expiry_months' &&
+                       this.id != 'app1_sec_expiry_dd' &&
+                       this.id != 'app1_sec_expiry_months' &&
+                       this.id != 'app2_issue_dd' &&
+                       this.id != 'app2_issue_months' &&
+                       this.id != 'app2_dob_dd' &&
+                       this.id != 'app2_dob_months' &&
+                       this.id != 'app2_expiry_dd' &&
+                       this.id != 'app2_expiry_months' &&
+                       this.id != 'app2_sec_expiry_dd' &&
+                       this.id != 'app2_sec_expiry_months' &&
+                       this.id != 'app1_street_type_pos__c' &&
+                       this.id != 'app2_street_type_pos__c' &&
+                       this.id != 'app1_country_pos__c' &&
+                       this.id != 'app2_country_pos__c' &&
+                       this.id != 'app1_Government_Benefit_Type__c1' &&
+                       this.id != 'app2_Government_Benefit_Type__c1'){
+                    
+                        initPicklist('#'+this.id);
+                    }
+                }
+            });
+        }
+        
+        /*  Description: Calculate amount by interval
+         *  Author: Mike Lasala
+         *  Date Created: 15-OCT-2015
+         *  Input: Mulitplicand,
+                   Interval (week/fortnight/month)
+         */
+        function calculateInterval(mulitplicand, interval){
+            console.log('calculateInterval mulitplicand: '+mulitplicand+', interval: '+interval);
+            var amount = 0;
+            
+            if((mulitplicand.toString().indexOf('e') > -1) == false){
+                
+                if(interval == 'Week'){
+                        
+                    amount = (mulitplicand * weekInterval) / monthInterval;
+                    
+                } else if(interval == 'Fortnight'){
+                    
+                    amount = (mulitplicand * fortnightInterval) / monthInterval;
+                    
+                } else if(interval == 'Month'){
+                    
+                    amount = mulitplicand;
+                    
+                } else if(interval == 'Quarter'){
+                    
+                    amount = mulitplicand / 3;
+                    
+                }else if(interval == 'Year'){
+                    
+                    amount = mulitplicand / monthInterval;
+                }
+            }
+            
+            return amount;
+        }
+        
+        /*  Description: Set element ids on add and remove
+         *  Author: Mike Lasala
+         *  Date Created: 21-OCT-2015
+         *  Input: Element, 
+                   Record counter
+         */
+        function setInputIds(element, counter){
+            
+            //Iterate over each input tag in the element
+            $(':input', element).each(function() {
+            
+                //Construct elemet id
+                $(this).attr('id', constructInputIds(this.id, counter));
+                $(this).attr('name', constructInputIds(this.id, counter));
+                $(this).removeClass('error').next('label.error').remove();
+            });
+        }
+        
+        /*  Description: Manipulate element ids on add and remove
+         *  Author: Mike Lasala
+         *  Date Created: 21-OCT-2015
+         *  Input: Element, 
+                   Record counter
+         */
+        function constructInputIds(elementId, counter){
+        
+            //Extract previous counter on end and add new counter
+            var substrLength = elementId.length-getCounter(elementId).length;
+            var finalId = elementId.substr(0, substrLength)+''+counter;
+            return finalId;
+        }
+        
+        /*  Description: Copy fields from applicant 1 to applicant 2
+         *  Author: Davey Yu & Mike Lasala
+         *  Date Created: OCT-20-2015
+         *  Input Parameters: source -  element id of the source field/s (app1)
+         *  Input Parameters: target -  element id of the target field/s (app2)
+         */
+        function copyApplicantOne(source, target){
+            //Identify if parameter is an array
+            if(!$.isArray(source) && !$.isArray(target)){
+                var sourceValue = $('#'+source).val();
+                
+                // Added by Adrian Recio to 
+                // flush search before copy
+                if(target=='app2_last_name__c'||
+                   target=='app2_home__c'||
+                   target=='app2_work__c'){
+                    if(sourceValue!=$('#'+target).val()){
+                        resetSearch2(); 
+                    }
+                }
+                
+                //If not, set value to target
+                $('#'+target).val(sourceValue);
+
+                //Remove error messages in applicant 2
+                $('#'+ target +'').removeClass('error').addClass('has-success');
+                $("label.error[for='"+ target +"']").remove();
+            } else {
+                //Iterate over array
+                for(var i=0; i<source.length; i++){
+                    var sourceValue = $('#'+source[i]).val();
+                    
+                    // Added by Adrian Recio to 
+                    // flush search before copy
+                    if(target=='app2_last_name__c'||
+                       target=='app2_home__c'||
+                       target=='app2_work__c'){
+                        if(sourceValue!=$('#'+target[i]+'').val()){
+                            resetSearch2(); 
+                        }
+                    }
+                    
+                    //Set values
+                    $('#'+target[i]+'').val(sourceValue);
+
+                    //Remove error messages in applicant 2
+                    $('#'+ target[i] +'').removeClass('error').addClass('has-success');
+                    $("label.error[for='"+ target[i] +"']").remove();
+                }
+            }
+            // Added by Adrian Recio to 
+            // revalidate search button enable after copy
+            if(target=='app2_last_name__c'||
+               target=='app2_home__c'||
+               target=='app2_work__c'){
+                appSearchBtnValidate(2); 
+            }
+                
+        }
+        /*  Description: Update tooltip for single/multiple ids
+         *  Author: Davey Yu & Mike Lasala
+         *  Date Created: 22-OCT-2015
+         *  Input Parameters: Source value/s
+                              Target element
+         */
+        function copyTooltip(sourceElem, targetId){
+            var tooltipValue = '';
+            //Identify if parameter is an array
+            if(!$.isArray(sourceElem)){
+                tooltipValue = $(sourceElem).val();
+            } else {
+                //Iterate over array
+                for(var i=0; i<sourceElem.length; i++){
+                    //Put in values
+                    tooltipValue += $('#'+sourceElem[i]).val();
+                    if(i == 0){
+                        tooltipValue += ' each ';
+                    }
+                }
+            }
+            //Update value of target element
+            $('#'+targetId).attr('title', tooltipValue);
+        }
+        
+        //tooltip ready
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip(); 
+            
+             
+             
+             
+        });
+        
+        /*  Description: Get value of parameter (text, picklist, checkbox, etc.)
+         *  Author: Mike Lasala
+         *  Date Created: 28-OCT-2015
+         *  Input Parameters: Element id
+         */
+        function getValue(elementId){
+            var value;
+            
+            var inputType = $('#'+elementId).attr('type');
+            
+            if (inputType == 'checkbox'){     //checkboxes
+                
+                value = Boolean($('#'+elementId).prop('checked'));
+                
+            } else {
+                
+                value = $('#'+elementId).val();     //the rest
+            }
+            
+            if(value == null){
+                value = '';
+            }
+            return value;
+        }
+        
+        //tooltip ready
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    
+    
+        /*  Description: Get RecordType details for use in Submit
+         *  Author: Tony Xu
+         *  Date Created: 2015-10-29
+         */
+    
+        function getRecordTypes(){
+            sforce.connection.query("SELECT id, SObjectType, DeveloperName FROM RecordType WHERE SObjectType IN ('Application__c', "+
+                                                                                                                 "'Applicant__c', "+
+                                                                                                                 "'Asset__c', "+
+                                                                                                                 "'Income__c', "+
+                                                                                                                 "'Liability__c', "+ 
+                                                                                                                 "'Disbursement__c', "+ 
+                                                                                                                 "'ONR__c', "+
+                                                                                                                 "'Debug_Log__c')",{
+                
+                onSuccess: function(result){
+                    callCount++;
+                    var i =0;
+                    while(i < result.records.length){
+                        RECORDTYPES[result.records[i].SobjectType+'.'+result.records[i].DeveloperName] = result.records[i].Id;
+                        i++;
+                    }
+                    //console.log('*******reocrdtypes:'+JSON.stringify(RECORDTYPES));
+                },
+
+                onFailure: function(error){
+                    console.log(error);
+                    debugLog('Get Record Types Error',error);
+                }
+            });
+        }
+        
+        /*  Description: Get total amount of a section
+         *  Author: Mike Lasala
+         *  Date Created: 01-NOV-2015
+         *  Input Parameters: Class name
+                              Amount field id
+         */
+        function getTotalAmount(className, amountId){
+            var total = 0;
+            
+            //Length of records
+            var recordLength = $('.'+className).length;
+                        
+            //Iterate over records and summate amount
+            for(var i=1; i<=recordLength; i++){
+
+                if(className == 'loanSection' || 
+                   className == 'assetSection'){
+
+                    total += Number(($('#'+amountId+''+i).val()).replace(/,/g, ''));
+                    
+                } else {
+                    
+                    var amount = $('#'+amountId+''+i).text();
+
+                    if(className == 'expenseApplicant1' ||
+                       className == 'expenseApplicant2' ||
+                       className == 'debtSection'){
+                        
+                        //Remove $
+                        amount = amount.substring(1);
+                    }
+
+                    total += Number(amount.replace(/,/g, ''));
+                }
+            }
+
+            return total;
+        }
+
+        /*  Description: Format date values to string
+         *  Author: Mike Lasala
+         *  Date Created: 02-NOV-2015
+         *  Input Parameters: Day
+                              Month
+                              Year
+                              Format
+         */
+        function formatDateToString(date, month, year, format){
+            var dateString = '';
+            
+            if(date != '' && 
+               month != '' && 
+               year != ''){
+
+                if(format == 'WS'){
+                    dateString = year+'-'+month+'-'+date;
+                } else if(format == 'DocGen'){
+                    dateString = date+'/'+month+'/'+year;
+                } else {
+                    dateString = date+'-'+month+'-'+year;
+                }
+            }
+
+            return dateString;
+        }
+
+        /*  Description: Calculate age
+         *  Author: Mike Lasala
+         *  Date Created: 02-NOV-2015
+         *  Input Parameters: Date string
+         */
+        function calculateAge(dateString){
+            var age = 0;
+            
+            if(dateString != ''){
+            
+                var day = dateString.split("/")[0];
+                var month = dateString.split("/")[1];
+                var year = dateString.split("/")[2];
+                var birthDate = new Date(year, month-1, day);
+
+                var today = new Date();
+                var age = today.getFullYear() - birthDate.getFullYear();
+                var m = today.getMonth() - birthDate.getMonth();            
+                
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+            }
+
+            return age;
+        }
+
+        /*  Description: Format amount with commas
+         *  Author: Mike Lasala
+         *  Date Created: 02-NOV-2015
+         *  Input Parameters: Amount value
+         */
+        function addCommas(amount){
+
+            x = amount.split('.');
+            x1 = x[0];
+            
+            if(x1.length <= 7 && 
+               (x1.toString().indexOf('e') > -1) == false){
+                   
+                x2 = x.length > 1 ? '.' + x[1] : '';
+                var rgx = /(\d+)(\d{3})/;
+                while (rgx.test(x1)) {
+                    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+                }
+                return x1+x2;
+            } else {
+                return '0.00';
+            }
+        }
+        
+        /*  Description: Method to get parameter value based on parameter name
+         *  Author: Mike Lasala
+         *  Date Created: 09-NOV-2015
+         *  Input: Parameter
+         */
+        function getParameter(param){
+            var url = window.location.search.substring(1);
+            var parameters = url.split('&');
+            
+            for (var i=0; i<parameters.length; i++){
+                var parameterName = parameters[i].split('=');
+                
+                if (parameterName[0] == param){
+                    return parameterName[1].replace(/\+/g,' ');
+                }
+            }
+        }
+        
+        /*  Description: Validate total loan purpose amount
+         *  Author: Mike Lasala
+         *  Date Created: 14-OCT-2015
+         *  Input: None
+         */
+        function validateTotalLoanAmount(){
+            $("#betterStartValidationMessage").hide();
+            //Length of records
+            var recordLength = $('.loanSection').length;
+            
+            
+            totalLoanAmount = 0;
+            debtConsolidationAmount =0;
+            
+            //Iterate over records and summate loan amount
+            for(var i=1; i<=recordLength; i++){
+                totalLoanAmount += Number($('#loan_Amount__c'+i).val()) > 0 ? Number($('#loan_Amount__c'+i).val()) : 0;
+            }
+            
+            //Start
+            let hasDebtConsolidation = false;
+            for(var j=1; j<=recordLength; j++){                
+                debtConsolidationAmount = Number($('#loan_Amount__c'+j).val());
+                loanPurposeValue = $('#loan_Value__c'+j).val();
+                if($('#app_SubType__c').val() == 'Better Start PL' && loanPurposeValue =='Debt consolidation') {
+                    hasDebtConsolidation = true;
+                }
+
+                var betterStartAmount = 20000;
+               if(debtConsolidationAmount > 0 && $('#app_SubType__c').val() == 'Better Start PL' && totalLoanAmount < betterStartAmount){
+                         $("#betterStartValidationMessage").show();
+                  }else{
+                         $("#betterStartValidationMessage").hide();
+                        }
+              if((debtConsolidationAmount > 0 &&  $('#app_SubType__c').val() == 'Better Start PL' && debtConsolidationAmount < 10000) && (loanPurposeValue =='Debt consolidation' || loanPurposeValue =='Consolidation') ){
+                   $("#BS_DC_ValidationMessage").show();
+                   $("#addLoan").prop("disabled",true);
+                   
+              }else{
+                  $("#BS_DC_ValidationMessage").hide();
+                  $("#addLoan").prop("disabled",false);
+              }
+            
+              
+            }
+           
+            //End
+            
+            //Add total loan amount from search and match refinance
+            totalLoanAmount += totalLoanRefinanceAmount;
+            
+            //Display total amount
+            $('#totalLoanAmount').text('$'+addCommas(totalLoanAmount.toFixed(2)));
+            
+            //ADDED RCADAPAN @ 08-MAR-2016 TQLQW-29 reduce to $2000 total loan amount for NZ Applications.
+            console.log("!@#country: " + country);
+            var validTotalAmount = 3000;
+            if(country == "NZ"){
+                validTotalAmount = 2000;
+            }
+            $("#totalLoanValidationMessage").text("Your preferred loan amount must be at least $" + validTotalAmount);
+           
+            //Show validation message if total loan amount is less than the valid total loan amount
+          if(Number($('#loan_Amount__c1').val()) > 0 && 
+               totalLoanAmount < validTotalAmount && $('#app_SubType__c').val() == 'Standard PL'){
+                $('#totalLoanValidationMessage').show();
+            } else {
+                $('#totalLoanValidationMessage').hide();
+            } 
+            
+            // Below line Added by Suneel Better Start
+            
+            console.log('Better Start Amount'+betterStartAmount);
+            console.log('SubType value'+$('#app_SubType__c').val());
+           $("#betterStartValidationMessage").text("Your preferred loan amount must be at least $" + betterStartAmount);
+           $("#BS_DC_ValidationMessage").text("Minimum amount required for Better Start - Debt consolidation is $10,000");   
+
+            //check if it's better start and has debt consolidation
+            if($('#app_SubType__c').val() == 'Better Start PL' && !hasDebtConsolidation) {
+                $("#betterStartValidationMessage").show();
+                $("#betterStartValidationMessage").text("A Better Start Personal Loan must be for Debt Consolidation for $20,000 or more. If your client requires a standard Debt Consolidation loan, please update the Product Type to 'Standard PL");
+            }           
+        }
+        
+        /*  Description: Calculate total debt amount from ge debts (search and match)
+         *  Author: Mike Lasala
+         *  Date Created: 17-NOV-2015
+         *  Input: None
+         */
+        function calculateGEDebts(){
+            
+            //Get scope prepared from search and match
+            var scope = angular.element($("#mainSM")).scope();
+            
+            totalGEDebtAmount = 0;
+            
+            if(scope.debtsList.length>0 || 
+               scope.debtsList2.length>0){
+                
+                //Combine debts for applicant 1 and 2
+                var geDebts = scope.debtsList.concat(scope.debtsList2);
+                console.log('scope.debtsList: '+scope.debtsList.length+', scope.debtsList2: '+scope.debtsList2.length+', geDebts.length: '+geDebts.length);
+                
+                //Iterate over each debt
+                for(var i=0; i<geDebts.length; i++){
+                    
+                    var debtAmount = 0;
+                    
+                    //Proceed with computation if debt consolidation = false
+                    if(!geDebts[i].DebtConsolidate && 
+                       !geDebts[i].RefinanceDebt && 
+                       !geDebts[i].duplicateDebt){
+                        
+                        if(geDebts[i].Debt_Category__c == 'Credit card'){
+                            
+                            //Set multiplicand for calculation based on amounts
+                            var multiplicand = ((Number(geDebts[i].Card_Overdraft_Bal_Amt__c) < Number(geDebts[i].Credit_Limit_Amt__c)) ? Number(geDebts[i].Credit_Limit_Amt__c) : Number(geDebts[i].Card_Overdraft_Bal_Amt__c));
+                            
+                            //Set Credit_Limit_Amt__c as multiplicand if reduce credit = true
+                            if(geDebts[i].ReduceCredit){
+                                multiplicand = Number(geDebts[i].ReduceLimit);
+                                console.log('ReduceCredit: '+geDebts[i].ReduceCredit+' ReduceLimit: '+geDebts[i].ReduceLimit);
+                            }
+                            
+                            //Calculate total amount    //Get repayment percentage
+                            debtAmount = multiplicand * getPercentage(geDebts[i].Type_of_Credit_Card__c);
+                            
+                            //Set minimum monthly repayment if total amount is less (NZ)
+                            debtAmount = getAmountNZ(debtAmount);
+                        }
+                        
+                        else if(geDebts[i].Debt_Category__c == 'Personal loan' || 
+                                geDebts[i].Debt_Category__c == 'Car loan'){
+                            alert(1);
+                            debtAmount = calculateInterval(geDebts[i].Car_Personal_Repay_Amt__c, geDebts[i].Car_Personal_Repay_Int__c);
+
+                        }
+                    }
+                    console.log(geDebts[i].Debt_Category__c+' = '+debtAmount+' consolidate: '+geDebts[i].DebtConsolidate);
+                    console.log('------------------------------');
+                    
+                    //Summate total amount
+                    totalGEDebtAmount += Number(debtAmount);
+                }
+                console.log('totalGEDebtAmount: '+totalGEDebtAmount);
+            }
+            
+            //Display total amount
+            $('#overalltotalDebtAmount').text('$'+addCommas((Number(totalGEDebtAmount)+Number(totalOtherDebtAmount)).toFixed(2)));
+        }
+        
+        /*  Description: Add new section for refinance loan purpoe
+         *  Author: Mike Lasala
+         *  Date Created: 21-NOV-2015
+         *  Input: None
+         */
+        function addRefinance(){
+            
+            //Iterate over existing list and remove all
+            for(var i=0; i<$('.refinanceSection').length; i++){
+                
+                //Retain first div to be used for cloning (first div is hidden)
+                $('.refinanceSection').not(':first').remove();
+            }
+            
+            //Get scope prepared from search and match
+            var scope = angular.element($("#mainSM")).scope();
+            console.log('scope.refLoanMap: '+JSON.stringify(scope.refLoanMap));
+            
+            //Reset total loan refinance amount
+            totalLoanRefinanceAmount = 0;
+            
+            //Iterate over each record
+            for(key in scope.refLoanMap){
+                
+                //Clone element and assign value to amount
+                var newElem = $('#refinanceSection').clone().insertAfter('#refinanceSection').show();
+                newElem.find('#loan_Amount__c').val(scope.refLoanMap[key].Loan_Amount__c);
+                
+                //Summate total refinance amount
+                totalLoanRefinanceAmount += Number(scope.refLoanMap[key].Loan_Amount__c);
+            }
+            
+            //Length of records - 1 to avoid hidden div for cloning
+            var recordLength = $('.refinanceSection').length - 1;
+            
+            //Show validation message if refinance count is more than 3
+            if(recordLength > maxRecordRefinance){
+                $('#maxRefinanceValidationMessage').show();
+            } else {
+                $('#maxRefinanceValidationMessage').hide();
+            }
+            
+            //Add line break if total loan amount is present
+            if(($('#totalLoanValidationMessage').css('display')).indexOf('inline') > -1){
+                $('#extraSpace').show();
+            } else {
+                $('#extraSpace').hide();
+            }
+            
+            //Validate total amount with refinance
+            validateTotalLoanAmount();
+        }
+        
+        /*  Description: Reusable checker for undefined values
+         *  Author: Mike Lasala
+         *  Date Created: 24-NOV-2015
+         *  Input: Value
+         */
+        function undefinedChecker(value){
+            
+            if(getParameter(value) !== undefined){
+                return getParameter(value);
+            } else {
+                return false;
+            }
+        }
+        /*  Description: Writes into Debug Log
+         *  Author: Tony Xu
+         *  Date Created: 14-DEC-2015
+         *  Input: title, log
+         */
+        function debugLog(title, log){
+            DEBUGLOG += '=============='+title+'==============\r\n\r\n';
+            DEBUGLOG += log+'\r\n\r\n';      
+        }
+    </script>
+    <!-------------------- SHARED FUNCTIONS END ------------------------->
+    
+    <!--------------------- KEY EVENT FUNCTIONS START ----------------- -->
+    <script>    
+        /*  Description: Input validation for Numbers
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 46) {
+                return false
+            }
+            else{
+                return true;
+            }
+        }
+        
+        /*  Description: Input validation for letters
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isAlphabeticKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode <= 32 || charCode == 189 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)))
+            return true;
+            return false;
+        }
+        
+        /*  Description: Input validation for numbers and letters
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isAlphaNumericKey(evt){
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            var isAlpha = isAlphabeticKey(evt);
+            var isNumeric = isNumberKey(evt);
+            var flag = false;
+            if(isAlpha == true || isNumeric == true || charCode == 45 || charCode == 38 || charCode == 39){
+                flag = true;
+            }
+            return flag;
+        }
+
+        /*  Description: New Zealand Street Name validation includes letters, numbers, apostrophes, ampersand and hyphens
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isAlphaNumericKeyStreetNZ(evt){
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            var isAlpha = isAlphabeticKey(evt);
+            var isNumeric = isNumberKey(evt);
+            var flag = false;
+            if(isAlpha == true || isNumeric == true || charCode == 45 || charCode == 38 || charCode == 39){
+                flag = true;
+            }
+            return flag;
+        }
+        
+        /*  Description: New Zealand Street validation
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isStreetNZ(evt, country){
+            if(country == 'AU'){
+                return isAlphaNumericKey(evt);
+            } else if(country == 'NZ'){
+                return isAlphaNumericKeyStreetNZ(evt);
+            }
+        }
+
+        /*  Description: New Zealand City validation includes letters, numbers, apostrophes, ampersand and hyphens
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isAlphaNumericKeyCityNZ(evt){
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            var isAlpha = isAlphabeticKey(evt);
+            var isNumeric = isNumberKey(evt);
+            var flag = false;
+            if(isAlpha == true || charCode == 45){
+                flag = true;
+            }
+            return flag;
+        }
+        
+        /*  Description: New Zealand City validation includes letters, numbers, apostrophes, ampersand and hyphens
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isCityNZ(evt, country){
+            if(country == 'AU'){
+                return isAlphaNumericKey(evt);
+            } else if(country == 'NZ'){
+                return isAlphaNumericKeyCityNZ(evt);
+            }
+        }
+        
+        /*  Description: New Zealand City validation includes letters, numbers, apostrophes, ampersand and hyphens
+         *  Author: Marvin David
+         *  Date Created: OCT-09-2015
+         *  Input Parameters: none
+         */
+        function isAlphaNumericNZ(evt){
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            var isAlpha = isAlphabeticKey(evt);
+            var isNumeric = isNumberKey(evt);
+            var flag = false;
+
+            if((isAlpha == true || isNumeric == true) && (charCode != 32 || charCode != 8)){
+
+                flag = true;
+            }
+            return flag;
+        }
+        
+        function isNumberKeyWithCharLimit(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
+            return true;
+        }
+    </script>
+    <!--------------------- KEY EVENT FUNCTIONS END ------------------ -->
+    
+    <script>
+    /*-------------------- INIT START ----------------------------------*/
+        /*  Description: Toggle sections and static text from different components based on application type
+         *  Author: Mike Lasala
+         *  Date Created: 06-OCT-2015
+         *  Input: None
+         */
+        function showHideSingleJointFields(applicationType){
+                    
+            if(applicationType == 'Joint'){
+        
+                //Initilize the APPLICANT2 Components
+                //Change section width to take the full screen
+                $('.wizardSectionJoint').each(function(){
+                    this.style.setProperty('width','100%');
+                });
+                
+                //Consent 2
+                $('.eligibilityApplicant2').each(function(){
+                    this.style.setProperty('display', 'block', 'important');
+                });
+                
+                //1.Personal Details
+                $('.applicantDetails2').each(function(){
+                    this.style.setProperty('display', 'block', 'important');
+                });
+                //2. Incomes
+                $('.incomeApplicant2').each(function(){
+                    this.style.setProperty('display', 'block', 'important');
+                });
+                $('.incomeApplicant1').each(function(){
+                    this.style.setProperty('padding-right', '5%');
+                });
+                //3. Expenses
+                $('.expenseApplicant2').each(function(){
+                    this.style.setProperty('display', 'block', 'important');
+                });
+                $('.expenseApplicant1').each(function(){
+                    this.style.setProperty('padding-right', '5%');
+                });
+                //Hide single sections
+                if(country == 'AU'){
+                 $('#payAllSection').hide();
+                 }
+                
+                //Show joint sections
+                for(var i=0; i<$('.assetSection').length; i++){
+                    $('#assetDiv'+(i+1)).find('#assetOwnerSection').show();
+                }
+                
+                for(var i=0; i<$('.debtSection').length; i++){
+                    $('#debtDiv'+(i+1)).find('#debtOwnerSection').show();
+                }
+                
+                if(typeof selectedBrand !== 'undefined' && selectedBrand == 'Kiwibank'){
+                    $('#kiwibankAccessNumber2Section').show();
+                }
+                
+                //Update static text messages
+                $('#bankAccountsText').text('Our joint bank accounts and cards:');
+                $('#assetsText').text('Our joint assets are:');
+                
+            } else {
+                //Hide APPLICANT 2 Components
+                //Change section width to align with navigation bar
+                $('.wizardSectionJoint').each(function(){
+                    this.style.setProperty('width','90%');
+                });
+                
+                //Consent 2
+                $('.eligibilityApplicant2').each(function(){
+                    this.style.setProperty('display', 'none', 'important');
+                });
+
+                //1.Personal Details
+                $('.applicantDetails2').each(function(){
+                    this.style.setProperty('display', 'none', 'important');
+                });
+                //2. Incomes
+                $('.incomeApplicant2').each(function(){
+                    this.style.setProperty('display', 'none', 'important');
+                });
+                $('.incomeApplicant1').each(function(){
+                    this.style.setProperty('padding-right', '30%');
+                });
+                //3. Expenses
+                $('.expenseApplicant2').each(function(){
+                    this.style.setProperty('display', 'none', 'important');
+                });
+                $('.expenseApplicant1').each(function(){
+                    this.style.setProperty('padding-right', '30%');
+                });                
+                //Show single sections
+                $('#payAllSection').show();
+                
+                //Hide joint sections
+                for(var i=0; i<$('.assetSection').length; i++){
+                    $('#assetDiv'+(i+1)).find('#assetOwnerSection').hide();
+                }
+                
+                for(var i=0; i<$('.debtSection').length; i++){
+                    $('#debtDiv'+(i+1)).find('#debtOwnerSection').hide();
+                }
+                
+                //Update static text messages
+                $('#bankAccountsText').text('My bank accounts and cards:');
+                $('#assetsText').text('My assets are:');
+            }
+            
+            showHideJointKiwibankAccess();
+        }
+        
+        /*  Description: Toggle sections and static text from different components based on application type
+         *  Author: Mike Lasala
+         *  Date Created: 06-OCT-2015
+         *  Input: None
+         */
+        function showHideJointKiwibankAccess(){
+            
+            $('#kiwibankAccessNumber2Section').hide();
+            
+            if($('#app_Application_Type__c').val() == 'Joint' && 
+               $('#app_Brand_Lookup__c :selected').text() == 'Kiwibank'){
+                
+                $('#kiwibankAccessNumber2Section').show();
+            }
+        }
+        
+       /*  Description: PMIHM-2107 - Sales and Leads Prefill
+         *  Author: Mike Lasala
+         *  Date Created: 09-NOV-2015
+         *  Input: None
+         */
+        function salesAndLeadsPrefill(applicationSection){
+            if(undefinedChecker('searchFromSalesAndLeads') != false ){
+                if(applicationSection == 'Applicant__c'){
+                    $('#app1_title__c').val(undefinedChecker('title'));
+                    $('#app1_first_name__c').val(undefinedChecker('firstname'));
+                    $('#app1_middle_name__c').val(undefinedChecker('middlename'));
+                    $('#app1_last_name__c').val(undefinedChecker('lastname'));
+                    $('#app1_dob_dd').val(undefinedChecker('bDay'));
+                    $('#app1_dob_months').val(undefinedChecker('bMonth'));
+                    $('#app1_dy').val(undefinedChecker('bYear'));
+                    $('#app1_mobile__c').val(undefinedChecker('mobilephone'));
+                    $('#app1_home__c').val(undefinedChecker('homephone'));
+                }
+                //Afreen - 481 - Pre-populating PicStarter fields
+                if( undefinedChecker('leadSource') == 'PicStarter' || undefinedChecker('leadSource') == 'Veda Quote'){
+                    if(applicationSection == 'Personal_And_App_Details'){
+                        console.log('In the interior method');
+                        selectValues('#app_Brand_Lookup__c', 'Latitude');
+                        $('#app_Brand_Lookup__c').trigger('onchange'); 
+                        $('#app_Channel__c').val('Sales');
+                        $('#app_Channel__c').trigger('onchange'); 
+                        
+                        if(undefinedChecker('leadSource') == 'PicStarter'){
+                            $('#app_Mirror__c').val('PicStarter');
+                            $('#app_Business_Source__c').val('PicStarter Outbound Lead');
+                        }
+                        else if(undefinedChecker('leadSource') == 'Veda Quote'){
+                            $('#app_Mirror__c').val('Veda Quote');
+                            $('#app1_email_address__c').val("{!$CurrentPage.parameters.email}");
+                            $('#app_Business_Source__c').val('Quote Outbound Lead');
+                        }
+                        
+                        $('#loan_Amount__c1').val(undefinedChecker('loanAmt'));
+                        selectValues('#app1_country_res__c', 'Australia');
+                        $('#app1_country_res__c').trigger('onchange');
+            selectValues('#app1_state_res__c', undefinedChecker('state'));
+
+                        $('#3rdPartyAppNum').val(undefinedChecker('uniqueIdExternalParty'));
+                        selectValues('#loan_Value__c1', undefinedChecker('loanPurpose') );
+                    } 
+                    if(applicationSection == 'Loan_Purpose_and_App_Details'){
+                        
+                        selectValues('#app_Loan_Term__c', undefinedChecker('loanTerm') );
+                    }
+                    // gender pre-fill from Play to SalesUI app form - ADDED by RCADAPAN for TQLQW-489
+                    if(applicationSection == 'Applicant__c'){
+                        if(undefinedChecker("gender") == "Male"){
+                            $('#app1_male_gender').trigger('onclick');
+
+                        }
+                        else if(undefinedChecker("gender") == "Female"){
+                            $('#app1_female_gender').trigger('onclick');
+                            $('#select#app1_gender__c').val("Female");
+                        }
+                    }
+                }
+                
+                var address = '';
+                
+                // Added by RCADAPAN for TQLQW-489 use the external address field for Veda Leads
+                if(undefinedChecker('leadSource') == 'Veda Quote'){
+                    address = "{!$CurrentPage.parameters.xAddress}";
+                }
+                else{
+                    if('{!JSENCODE($CurrentPage.parameters.country)}' == 'AU'){
+                        
+                        address = undefinedChecker('street')+' '+undefinedChecker('state')+' '+undefinedChecker('postcode');
+                        
+                    } else if('{!JSENCODE($CurrentPage.parameters.country)}' == 'NZ'){
+                        
+                        address = undefinedChecker('street')+' '+undefinedChecker('city')+' '+undefinedChecker('state')+' '+undefinedChecker('postcode');
+                    }
+                }
+                
+                $('#app1_res_full_add').val(address);
+            }
+        }
+    
+        function selectValues(parameter, parameterValue){
+                $(parameter+' option').each(function(){
+                    //alert($(this).text());
+                    if( $(this).text() == parameterValue){
+                        //alert('Found+1');
+                       $(this).attr('selected', true);
+                    }
+                });
+            }
+
+        
+        /* 
+         *  Author: Tony Xu
+         *  Date Created: 2015-10-08
+         *  Description: Initialize required data and the wizard
+         */
+        function init(){
+            
+            <!-- SET SAVING STATE -->
+            tabUnsavedJS();
+            
+            <!-- WIZARD USED VARIABLES -->
+            getRecordTypes();
+            <!-- APPLICATION DETAILS -->
+            initPicklist('#app_Channel__c');
+            initPicklist('#app_Mirror__c');
+            initPicklist('#app_Business_Source__c');
+           <!-- Added by Suneel Better Start -->
+           initPicklist('#app_SubType__c');
+           initPicklist('#loan_Value__c');
+
+           <!-- End -->
+            
+            returnPicklistValues('Application__c', {'Channel__c': 'app_Channel__c', 
+                                                    'Product_SubType__c': 'app_SubType__c',
+                                                    'Mirror__c':'app_Mirror__c', 
+                                                    'Business_Source__c':'app_Business_Source__c', 
+                                                    'Application_Type__c': 'app_Application_Type__c', 
+                                                    'Payment_Frequency__c': 'app_Payment_Frequency__c', 
+                                                    'Bank_Accounts_Held__c': 'app_Bank_Accounts_Held__c'}, COUNTRY);
+            
+             
+            //remove3rdPartyAppFieldOptions(); //June 14, 2016 - Afreen - Remove the 3rd Party App options from fields
+            updateApplicationTypeHTML();
+            ApplicationTypePickVal();
+            <!-- Added by Arshad for Better Start -->
+            ApplicationSubTypePickVal();            
+            BrandPickVal(); 
+            quotedRiskGradePickVal();  // Afreen- to populate the picklist of quoted risk grade
+            
+            <!-- ELIGIBILITY -->
+            showHideSingleJointFields('');    
+            
+                      
+            
+            <!-- LOAN PURPOSE -->
+            //Merged with Application Details
+                
+            <!-- PERSONAL DETAILS -->
+            //Picklist value for personal details page 
+            returnPicklistValuesAsync('Applicant__c', {'Title__c': 'app1_title__c', 
+                                                       'Gender__c': 'app1_gender__c', 
+                                                       'Rel_Status__c': 'app1_rel_status__c', 
+                                                       'Customer_ID_Type__c':'app1_customer_id_type__c', 
+                                                       'Pref_Contact_Method__c':'app1_pref_contact_method__c', 
+                                                       'Issuing_Country__c':'app1_issuing_Country__c', 
+                                                       'Service_Delivery_Type__c':'app1_service_delivery_type__c', 
+                                                       'Identification__c': 'app1_identification__c', 
+                                                       'Sec_ID_Issue_Country__c': 'app1_sec_id_issue_country__c', 
+                                                       'Res_Status__c': 'app1_Res_Status__c', 
+                                                       'Primary_Employment_Status__c': 'app1_Primary_Employment_Status__c', 
+                                                       'Previous_Employment_Status__c': 'app1_Previous_Employment_Status__c'}, COUNTRY);
+
+             //Return applicant picklist fields for applicant 2
+             returnPicklistValuesAsync('Applicant__c', {'Title__c': 'app2_title__c',
+                                                        'Gender__c': 'app2_gender__c', 
+                                                       'Rel_Status__c': 'app2_rel_status__c',  
+                                                       'Customer_ID_Type__c':'app2_customer_id_type__c', 
+                                                       'Pref_Contact_Method__c':'app2_pref_contact_method__c',
+                                                       'Issuing_Country__c':'app2_issuing_Country__c',  
+                                                       'Service_Delivery_Type__c':'app2_service_delivery_type__c', 
+                                                       'Identification__c': 'app2_identification__c', 
+                                                       'Sec_ID_Issue_Country__c': 'app2_sec_id_issue_country__c', 
+                                                       'Res_Status__c': 'app1_Res_Status__c', 
+                                                       'Primary_Employment_Status__c': 'app2_Primary_Employment_Status__c', 
+                                                       'Previous_Employment_Status__c': 'app2_Previous_Employment_Status__c', 
+                                                       'Res_Status__c': 'app2_Res_Status__c'}, COUNTRY);
+            
+            //Retrieved picklist values from custom settings 
+            //create an array for the list of picklist elements to populate
+           
+            var app1_stateOptions = ["app1_state_res__c", "app1_state_pre__c", "app1_state_pos__c", ];
+            returnPicklistValuesCustomSetting('State_Setting__c', app1_stateOptions , '');
+            
+            var app1_streetTypeOptions = ["app1_street_type_res__c", "app1_street_type_pre__c", "app1_street_type_pos__c"];
+            returnPicklistValuesCustomSetting('Street_Type_Setting__c', app1_streetTypeOptions , COUNTRY);
+
+            var app2_stateOptions = ["app2_state_res__c", "app2_state_pre__c", "app2_state_pos__c", ];
+            returnPicklistValuesCustomSetting('State_Setting__c', app2_stateOptions , '');
+            
+            var app2_streetTypeOptions = ["app2_street_type_res__c", "app2_street_type_pre__c", "app2_street_type_pos__c"];
+            returnPicklistValuesCustomSetting('Street_Type_Setting__c', app2_streetTypeOptions , COUNTRY);
+                
+            <!-- INCOME -->
+            returnPicklistValuesAsync('Income__c', {'Occupation__c': 'app1_Occupation__c1', 
+                                                    'Income_Source__c': 'app1_Income_Source__c1', 
+                                                    'Income_Interval__c': 'app1_Income_Interval__c1', 
+                                                    'Industry__c': 'app1_Industry__c1', 
+                                                    'Government_Benefit_Type__c': 'app1_Government_Benefit_Type__c1'}, COUNTRY);
+            //Return picklist fields for applicant 2
+            returnPicklistValuesAsync('Income__c', {'Occupation__c': 'app2_Occupation__c1', 
+                                                    'Income_Source__c': 'app2_Income_Source__c1', 
+                                                    'Income_Interval__c': 'app2_Income_Interval__c1', 
+                                                    'Industry__c': 'app2_Industry__c1', 
+                                                    'Government_Benefit_Type__c': 'app2_Government_Benefit_Type__c1'}, COUNTRY);
+            <!-- EXPENSE -->
+            //returnPicklistValuesAsync('Expense__c', {'Living_Exp_Int__c': 'app1_Living_Exp_Int__c'}, '');
+            //Return picklist fields for applicant 2            
+            //returnPicklistValuesAsync('Expense__c', {'Living_Exp_Int__c': 'app2_Living_Exp_Int__c'}, '');
+                        
+            <!-- Picklist for Mortgage rent board -->
+            returnPicklistValuesAsync('Expense__c', {'Mortgage_Rent_Board_Interval__c': 'app1_Mortgage_Rent_Board_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Mortgage_Rent_Board_Interval__c': 'app2_Mortgage_Rent_Board_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Secondary Mortgage rent board -->
+            returnPicklistValuesAsync('Expense__c', {'Secondary_Mortgage_Rent_Interval__c': 'app1_Secondary_Mortgage_Rent_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Secondary_Mortgage_Rent_Interval__c': 'app2_Secondary_Mortgage_Rent_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Property rates -->
+            returnPicklistValuesAsync('Expense__c', {'Property_rates_Interval__c': 'app1_Property_rates_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Property_rates_Interval__c': 'app2_Property_rates_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Other Property Rates-->
+            returnPicklistValuesAsync('Expense__c', {'Other_Property_Expenses_Interval__c': 'app1_Other_Property_Expenses_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Other_Property_Expenses_Interval__c': 'app2_Other_Property_Expenses_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Any Additional Expenses -->
+            returnPicklistValuesAsync('Expense__c', {'Any_Additional_expenses_Interval__c': 'app1_Any_Additional_expenses_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Any_Additional_expenses_Interval__c': 'app2_Any_Additional_expenses_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Food grocery entertainment -->
+            returnPicklistValuesAsync('Expense__c', {'Food_Groc_Interval__c': 'app1_Food_Groc_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Food_Groc_Interval__c': 'app2_Food_Groc_Interval__c'}, '');
+            <!-- End -->
+            
+            <!-- Picklist for Insurance expenses -->
+            returnPicklistValuesAsync('Expense__c', {'Insurance_Expense_Interval__c': 'app1_Insurance_Expense_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Insurance_Expense_Interval__c': 'app2_Insurance_Expense_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Utilities expense -->
+            returnPicklistValuesAsync('Expense__c', {'Utilities_Expense_Interval__c': 'app1_Utilities_Expense_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Utilities_Expense_Interval__c': 'app2_Utilities_Expense_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Education expense -->
+            returnPicklistValuesAsync('Expense__c', {'Transport_Expense_Interval__c': 'app1_Transport_Expense_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Transport_Expense_Interval__c': 'app2_Transport_Expense_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Education expense -->
+            returnPicklistValuesAsync('Expense__c', {'Education_and_child_Expense_Interval__c': 'app1_Education_and_child_Expense_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Education_and_child_Expense_Interval__c': 'app2_Education_and_child_Expense_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- Picklist for Personal expense -->
+            returnPicklistValuesAsync('Expense__c', {'Personal_Other_Expense_Interval__c': 'app1_Personal_Other_Expense_Interval__c'}, '');
+            //Return picklist fields for applicant 2            
+            returnPicklistValuesAsync('Expense__c', {'Personal_Other_Expense_Interval__c': 'app2_Personal_Other_Expense_Interval__c'}, '');
+            <!-- End -->
+
+            <!-- DEBT -->
+            returnPicklistValuesAsync('Liability__c', {'Debt_Category__c': 'app1_Debt_Category__c1',                                                       
+                                                       'Applicable_Party__c': 'app1_debt_Applicable_Party__c1', 
+                                                       'Mortgage_Repayment_Interval__c': 'app1_Mortgage_Repayment_Interval__c1', 
+                                                       'Car_Personal_Repay_Int__c': 'app1_Car_Personal_Repay_Int__c1', 
+                                                       'Type_of_Credit_Card__c': 'app1_Type_of_Credit_Card__c1', 
+                                                       'Consolidate_Debt_Reduce_Limit__c': 'app1_Consolidate_Debt_Reduce_Limit__c1', 
+                                                       'Other_Repay_Int__c': 'app1_Other_Repay_Int__c1'}, COUNTRY);
+          
+              
+       
+           
+           
+            <!-- ASSET -->
+            returnPicklistValuesAsync('Asset__c', {'Asset_Category__c': 'app1_Asset_Category__c1', 
+                                                   'Ownership_Status__c': 'app1_Ownership_Status__c1',
+                                                   'Applicable_Party__c': 'app1_asset_Applicable_Party__c1'}, COUNTRY);
+                                                   
+            returnPicklistValuesAsync('Collateral__c', {'Collateral_Make__c': 'app1_Vehicle_Make__c1'}, collateralRecordType);
+            
+            returnPicklistValuesAsync('Liability__c', {'Financier_List__c': 'app1_Financier_List_PerHir__c1'}, personalHireRecordType);
+            
+            returnPicklistValuesAsync('Liability__c', {'Financier_List__c': 'app1_Financier_List_Car__c1'}, NZCarLoan);
+            
+            returnPicklistValuesAsync('Liability__c', {'Financier_List__c': 'app1_Financier_List_CreditChargeStore__c1'}, NZCreditStoreCharge);
+            
+           returnPicklistValuesAsync('Liability__c', {'Financier_List__c': 'app1_Financier_List_Overdraft__c1'}, NZOverdraft);
+
+
+            
+            
+            
+            <!--NAVIGATION PANEL -->
+            $('#NavigateToLoanDetails').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#ApplicationDetailsSection').offset().top
+                    },1000);
+            });
+            $('#NavigateToPersonalDetails').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#JointPersonalDetailsSection').offset().top
+                    },1000);
+            });
+            $('#NavigateToIncome').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#JointPersonalIncomeSection').offset().top
+                    },1000);
+            });
+            $('#NavigateToExpenses').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#ExpenseSection').offset().top
+                    },1000);
+            });
+            $('#NavigateToDebts').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#DebtsSection').offset().top
+                    },1000);
+            });
+            $('#NavigateToAssets').on('click', function(event){
+                $('html,body').animate({
+                    scrollTop: $('#AssetSection').offset().top
+                    },1000);
+            });
+            
+          //Added the Softquote 2020  
+          console.log({!isSoftQuoteApplication}+'...!@####@@!!!!..'+$('#app1_drivers_lic_flg__c').val('{!currentQuote.Drivers_Lic_Flag__c}')+'.....!@#'+{!currentQuote.Drivers_Lic_Flag__c});
+          if({!isSoftQuoteApplication}){
+                if('{!currentQuote.Sub_Type__c}' !== 'Better Start') {
+                    $('#app_SubType__c').val('Standard PL');
+                } else {
+                    $('#app_SubType__c').val('Better Start PL');
+                }                      
+                $('#app1_first_name__c').val('{!currentQuote.First_name__c}');
+                $('#app1_first_name__c').trigger('onchange');
+                $('#app1_dob_months').val('{!sqMonth}');
+                $('#app1_dob_dd').val('{!sqDate}');
+                $('#app1_dy').val('{!sqYear}');
+                $('#app1_middle_name__c').val('{!currentQuote.Middle_Name__c}');
+                $('#app1_last_name__c').val('{!currentQuote.Last_Name__c}');
+                $('#app1_mobile__c').val('{!currentQuote.Mobile_Number__c}');
+                $('#app1_email_address__c').val('{!currentQuote.Email_ID__c}');
+                $('#app1_drivers_lic_no__c').val('{!currentQuote.Driver_s_Licence_Number__c}');
+                //$('#app1_drivers_lic_flg__c').val('{!currentQuote.Drivers_Lic_Flag__c}');
+                $('#app1_residential_property_name__c').val('{!currentQuote.Property_Name__c}');
+                $('#app1_unit_no_res__c').val('{!currentQuote.Residential_Unit_Number__c}');
+                $('#app1_street_no_res__c').val('{!currentQuote.Residential_Street_Number__c}');
+                $('#app1_street_res__c').val('{!currentQuote.Residential_Street_Name__c}');
+                $('#app1_country_res__c').val('{!currentQuote.Residential_Country__c}');
+                //To enable the State Picklist, call the onchange handler on Country
+                 $('#app1_country_res__c').trigger('onchange');
+                $('#app1_city_res__c').val('{!currentQuote.Residential_City__c}');
+                $('#app1_res_suburb_res__c').val('{!currentQuote.Residential_Suburb__c}');
+                $('#app1_postcode_res__c').val('{!currentQuote.Residential_Postcode__c}');
+                if({!currentQuote.Drivers_Lic_Flag__c}){
+                    $('#app1_drivers_lic_flg__c').prop('checked', '{!currentQuote.Drivers_Lic_Flag__c}');
+                    var app_driverlicno = $('#app1_drivers_lic_no__c');
+                    app_driverlicno.val('');
+                    app_driverlicno.attr('disabled','disabled');
+                    app_driverlicno.removeClass('error').next('label.error').remove();
+                }
+                
+                if({!preAddressEnable}){
+                    $('#app1_years_at_addr__c').val('{!currentQuote.Years_at_Residential_Address__c}');
+                    $('#app1_months_at_addr__c').val('{!currentQuote.Months_at_Residential_Address__c}');
+                     $('#app1_years_at_addr__c').trigger('onchange');
+                     $('#app1_months_at_addr__c').trigger('onchange');
+                }else{
+                     $('#app1_years_at_addr__c').val('{!currentQuote.Years_at_Residential_Address__c}');
+                    $('#app1_months_at_addr__c').val('{!currentQuote.Months_at_Residential_Address__c}');
+                   
+                }
+                               
+                
+                //Previous address details
+                $('#app1_previous_property_name__c').val('{!currentQuote.Previous_Property_Name__c}');
+                 $('#app1_unit_no_pre__c').val('{!currentQuote.Previous_Unit_Number__c}');
+                $('#app1_street_no_pre__c').val('{!currentQuote.Previous_Street_Number__c}');
+                $('#app1_street_pre__c').val('{!currentQuote.Previous_Street_Name__c}');
+                $('#app1_country_pre__c').val('{!currentQuote.Previous_Country__c}');
+                //To enable the State Picklist, call the onchange handler on Country
+                 $('#app1_country_pre__c').trigger('onchange');
+                $('#app1_city_pre__c').val('{!currentQuote.Previous_City__c}');
+                $('#app1_suburb_pre__c').val('{!currentQuote.Previous_Suburb__c}');
+                $('#app1_postcode_pre__c').val('{!currentQuote.Previous_Postcode__c}');
+                $('#app1_Years_With_Employer__c1').val('{!currentQuote.Years_at_Current_Employment__c}');
+                $('#app1_Months_With_Employer__c1').val('{!currentQuote.Months_at_Current_Employment__c}');
+                
+                $('#loan_Amount__c1').val('{!currentQuote.Loan_Amount__c}');
+                
+                if({!currentQuote.Loan_Purpose__c =='Other'}){
+                  $('#loan_Value__c1').val('{!currentQuote.Loan_Purpose__c}');
+                   $('#loan_Value__c1').trigger('onchange'); 
+                   $('#loan_Other_Loan_Purpose__c1').val('{!currentQuote.Other_Loan_Purpose__c}');
+                }else{
+                    $('#loan_Value__c1').val('{!currentQuote.Loan_Purpose__c}');
+
+                }
+                if({!currentQuote.Product__c =='Latitude Personal Loan'}){
+                    selectValues('#app_Brand_Lookup__c', 'Latitude');
+                    $('#app_Brand_Lookup__c').trigger('onchange'); 
+                }
+                if({!currentQuote.Product__c =='GEM Personal Loan'}){                    
+                    selectValues('#app_Brand_Lookup__c', 'GEM');
+
+                      $('#app_Brand_Lookup__c').trigger('onchange');
+                      
+                }
+               
+                if({!currentQuote.Product__c =='Kiwi Personal Loan'}){
+                    selectValues('#app_Brand_Lookup__c', 'Kiwibank');
+                    $('#app_Brand_Lookup__c').trigger('onchange'); 
+                }
+              
+                //$('#app_SubType__c').trigger('onchange');
+                $('#app_Loan_Term__c').val('{!currentQuote.Loan_Term__c}');
+
+               $('#app1_drivers_lic_flg__c').prop('checked');
+               $('#app1_drivers_lic_flg__c').trigger('onclick');  
+               $('#app1_years_at_addr__c').trigger('onchange');
+               $('#app1_months_at_addr__c').trigger('onchange');    
+                  
+
+            }  
+        }
+        
+        $(function(){
+            $('.req').each(function(){
+                $(this).html($(this).text() + '<span> *</span>');
+            });
+        });
+        
+    </script>
+    <!-------------------- INIT END ------------------------------------->
+    
+    
+    <!-------------------- iOvation ------------------------------------->
+    <script language="JavaScript">
+        function setBlackBox(){
+            // basic configuration
+            var io_install_stm = false;     //do not install Active X
+            var io_exclude_stm = 12;        //do not run Active X
+            var io_install_flash = false;   //do not install Flash
+            var io_enable_rip = true;       //enable detection of Real IP
+
+            iOvationData = ioGetBlackbox();
+        }
+        
+    </script> 
+    
+    <script language="JavaScript" src="https://mpsnare.iesnare.com/snare.js"/>
+    <!-------------------- iOvation ------------------------------------->
+    
+    
+    <!-------------------- SUBMIT CONTROLLER START ---------------------->
+    <script>
+        var iOvationData;
+        var brandiOvationMap = new Object();
+        var isSubmit = false;
+        var loanPurposeDisbursementMap = new Object();
+        var applicantAccountMap = new Object();
+        
+        //Record containers
+        var app = new sforce.SObject('Application__c');
+        var productItem = new sforce.SObject('Product_Item__c');
+        var onrs = [];
+        var applicant = [];
+        var amls = [];
+        var applicantCLVs = [];
+        var CLVHistory = [];
+        var applicantAccountCustomer = [];
+        var loanPurposes = [];
+        var disbursements = [];
+        var incomes = [];
+        var expenses = [];
+        var liabilities = [];
+        var assets = [];
+        var debuglogs = [];
+        
+        /*  Description: Create disbursement records for Broker and Refinance
+         *  Author: Mike Lasala
+         *  Date Created: 29-OCT-2015
+         *  Input: None
+         */
+        function mapDisbursements(){
+            
+            //Get describe of Disbursement__c for Broker Fee and Refinance record creation
+           if(app.Channel__c == 'Broker'){
+
+                var brokerDisbursement = new sforce.SObject('Disbursement__c');
+                
+                brokerDisbursement.Amount__c =      getValue('disb_Amount__c');
+                brokerDisbursement.Payee__c =       getValue('disb_Payee__c');
+                brokerDisbursement.RecordTypeId =   RECORDTYPES['Disbursement__c.Broker_Fee'];
+                brokerDisbursement.Application__c = app.Id;
+                
+                disbursements.push(brokerDisbursement);
+            
+            }
+            
+            //Get scope prepared from search and match
+            var scope = angular.element($("#mainSM")).scope();
+            console.log('scope.disburseMap: '+JSON.stringify(scope.disburseMap));
+            var counter = $('.loanSection').length;
+                
+            //Iterate over each record
+            for(key in scope.disburseMap){
+                
+                //Create object
+                var refinanceDisbursement = new sforce.SObject('Disbursement__c');
+                
+                //Mapping the fields
+                refinanceDisbursement.RecordTypeId =                 RECORDTYPES['Disbursement__c.Re_Finance'];
+                refinanceDisbursement.Application__c =               app.Id;
+                refinanceDisbursement.Interest_Rate__c =             scope.disburseMap[key].Interest_Rate__c;
+                refinanceDisbursement.Disbursement_Account_Type__c = scope.disburseMap[key].Disbursement_Account_Type__c;
+                refinanceDisbursement.Disbursement_Outcome__c =      scope.disburseMap[key].Disbursement_Outcome__c;
+                refinanceDisbursement.Principal_Amount__c =          scope.disburseMap[key].Principal_Amount__c;
+                refinanceDisbursement.Interest_Due__c =              scope.disburseMap[key].Interest_Due__c;
+                refinanceDisbursement.Late_Fees_Due__c =             scope.disburseMap[key].Late_Fees_Due__c;
+                refinanceDisbursement.Penalty_Interest_Due__c =      scope.disburseMap[key].Penalty_Interest_Due__c;
+                refinanceDisbursement.Fees_or_Charges_Due__c =       scope.disburseMap[key].Fees_or_Charges_Due__c;
+                refinanceDisbursement.Charge_Off_Amount__c =         scope.disburseMap[key].Charge_Off_Amount__c;
+                refinanceDisbursement.Insurance_Rebate__c =          scope.disburseMap[key].Insurance_Rebate__c;
+                refinanceDisbursement.Early_Termination_Fee__c =     scope.disburseMap[key].Early_Termination_Fee__c;
+                refinanceDisbursement.Applicable_Party__c =          scope.disburseMap[key].Applicable_Party__c;
+                refinanceDisbursement.Amount__c =                    scope.disburseMap[key].netPayOff;
+                refinanceDisbursement.Payee__c =                     scope.disburseMap[key].Payee__c;
+                refinanceDisbursement.Payout_Effective_Date__c =     scope.disburseMap[key].Payout_Effective_Date__c;
+                refinanceDisbursement.Loan_Purpose__c =              loanPurposeDisbursementMap[counter];
+                
+                if(refinanceDisbursement.Applicable_Party__c == 'Applicant 1' && 
+                   scope.appAccCust.Applicant__c != null){
+                    
+                    refinanceDisbursement.Bank_Acc_No__c = scope.appAccCust.Account_Number__c;
+                
+                    if('{!JSENCODE($CurrentPage.parameters.country)}' == 'NZ'){
+                        refinanceDisbursement.Bank_Acc_No_NZ__c = scope.appAccCust.Account_Number__c;
+                    }
+                    
+                } else if(refinanceDisbursement.Applicable_Party__c == 'Applicant 2' && 
+                          scope.appAccCust2.Applicant__c != null){
+                    
+                    refinanceDisbursement.Bank_Acc_No__c = scope.appAccCust2.Account_Number__c;
+                
+                    if('{!JSENCODE($CurrentPage.parameters.country)}' == 'NZ'){
+                        refinanceDisbursement.Bank_Acc_No_NZ__c = scope.appAccCust2.Account_Number__c;
+                    }   
+                }
+                
+                disbursements.push(refinanceDisbursement);
+                counter++;
+            }
+            console.log('disbursements: '+disbursements);
+            debugLog('Disbursements Data',disbursements);
+        }
+        
+        /*  Description: Iterate over each Applicant CLV and map Applicant CLV and CLV search history record
+         *  Author: Mike Lasala
+         *  Date Created: 09-NOV-2015
+         *  History: 2015-12-10 TXU - Fix issue when Applicant 1 doesn't have CLV and Applicant 2's CLV wasn't linked
+         */
+        function buildApplicantCLVs(){
+            
+            //Get scope prepared from search and match
+            var applicantMap = pullSearchAndMatchInfo();
+            console.log('scope.searchResults.length: '+applicantMap.get('Applicant_1').get('Applicant_CLV__c').length+', '+applicantMap.get('Applicant_2').get('Applicant_CLV__c').length);
+            //Applicant CLVs for applicant 1
+            if(applicantMap.get('Applicant_1').get('Applicant_CLV__c').length>0){
+            
+                //Iterate over each record
+                for(var i=0; i<applicantMap.get('Applicant_1').get('Applicant_CLV__c').length; i++){
+                    
+                    //Build Applicant CLV and CLV search history
+                    mapCLV(applicantMap.get('Applicant_1').get('Applicant_CLV__c')[i], applicant[0].Id);
+                }
+                if(applicantMap.get('Applicant_1').get('Applicant_Account_Customer__c').Applicant__c != null){
+                    //Build Applicant Account Customer record    
+                    mapApplicantAccount(applicantMap.get('Applicant_1').get('Applicant_Account_Customer__c'), applicant[0].Id);
+                    console.log('applicantAccountCustomer: '+applicantAccountCustomer);
+                }
+            }
+            if (applicantMap.get('Applicant_2').get('Applicant_CLV__c').length>0 && app.Application_Type__c == 'Joint'){
+                
+                //Applicant CLVs for applicant 2
+                for(var i=0; i<applicantMap.get('Applicant_2').get('Applicant_CLV__c').length; i++){            
+                    
+                        
+                        //Build Applicant CLV and CLV search history
+                    mapCLV(applicantMap.get('Applicant_2').get('Applicant_CLV__c')[i], applicant[1].Id);
+                    }
+                if(applicantMap.get('Applicant_2').get('Applicant_Account_Customer__c').Applicant__c != null){          
+                    //Build Applicant Account Customer record
+                    mapApplicantAccount(applicantMap.get('Applicant_2').get('Applicant_Account_Customer__c'), applicant[1].Id);
+                }
+            }
+                console.log('applicantCLVs: '+applicantCLVs);
+                console.log('CLVHistory: '+CLVHistory);
+                
+            debugLog('Applicant CLV Data',applicantCLVs);
+            debugLog('CLV History Data', CLVHistory);
+            debugLog('Applicant Account Data', applicantAccountCustomer);
+                    
+                        
+        }
+        
+        /*  Description: Build applicant CLV records for update to link applicant
+                         Create CLV search history
+         *  Author: Mike Lasala
+         *  Date Created: 11-NOV-2015
+         *  Input: Applicant CLV record
+                   Applicant Id
+         */
+        function mapCLV(record, applicantId){
+            
+            if(typeof record !== 'undefined'){
+            //Create Applicant CLV record for update
+            var applicantCLV = new sforce.SObject('Applicant_CLV__c');
+                    
+            //Assign mapping
+            applicantCLV.Id = record.Id;
+            applicantCLV.Applicant__c = applicantId;
+            applicantCLV.User_Match_Flag__c = record.User_Match_Flag__c;
+
+                if(record.ApplicantType == 'Applicant 1'){
+                    applicantCLV.Applicant_Bucket__c = '1';
+                } else {
+                    applicantCLV.Applicant_Bucket__c = '2';
+                }
+
+            
+            //Push into array which will be used for updating records
+            applicantCLVs.push(applicantCLV);
+            
+            //Create CLV history record
+            var clv = new sforce.SObject('Debug_Log__c');
+            
+            //Assign mapping
+            clv.Application__c =   app.Id;
+            clv.Applicant_CLV__c = record.Id;
+            clv.New_Value__c =     record.User_Match_Flag__c;
+            clv.Previous_Value__c ='Salesforce';
+                clv.RecordTypeId =      RECORDTYPES['Debug_Log__c.CLV'];
+            
+            //Push into array which will be used for creating records
+            CLVHistory.push(clv);
+            }
+        }
+        
+        /*  Description: Build applicant account customer records for create
+         *  Author: Mike Lasala
+         *  Date Created: 18-NOV-2015
+         *  Input: Applicant account customer record
+                   Applicant Id
+         */
+        function mapApplicantAccount(record, applicantId){
+            
+            //Instantiate new custom object/s
+            var applicantAccount = new sforce.SObject('Applicant_Account_Customer__c');
+            
+            //Map fields
+            applicantAccount.Applicant__c =       applicantId;
+            applicantAccount.Account_Number__c =  record.Account_Number__c;
+            applicantAccount.Customer_Number__c = record.Customer_Number__c;
+            applicantAccount.solicitFlag__c =     record.solicitFlag__c;
+            
+            //Push into array which will be used for creating records
+            applicantAccountCustomer.push(applicantAccount);
+            applicantAccountMap[applicantId] = record;
+        }
+        
+         /*  Description: Add ignore class to skip validation when doing partial save
+         *  Author: Davey YU
+         *  Date Created: 17-NOV-2015
+         *  Input: None
+         */
+        function addIgnoreClass(){
+        
+            for(var i = 1; i <= 2; i++){
+                //Expense
+                var resExpense = false;
+                if($('#app'+i+'_Res_Status__c').val() != ' '){
+                    resExpense =  true;
+                }
+
+                if(!resExpense){
+                    $(':input', $('#Applicant'+i+'ExpenseSection')).each(function() {
+                        $(this).addClass('ignore'); 
+                        $(this).removeClass('error');  
+                    });
+                }else{
+                    $(':input', $('#Applicant'+i+'ExpenseSection')).each(function() {
+                        $(this).removeClass('ignore');  
+                    });
+                }
+                
+                //Income
+                var resIncome = false;
+                if($('#app'+i+'_Primary_Employment_Status__c').val() != ' '){
+                    resIncome =  true;
+                }
+
+                if(!resIncome){
+                    $(':input', $('#Applicant'+i+'IncomeSection')).each(function() {
+                        $(this).addClass('ignore'); 
+                        $(this).removeClass('error'); 
+                    });
+                }else{
+                     $(':input', $('#Applicant'+i+'IncomeSection')).each(function() {
+                        $(this).removeClass('ignore');  
+                    });
+                }
+            }
+
+           //Debts and Liabilities
+            var resDebt = false;
+            if($('#app1_Debt_Category__c1').val() != ' '){
+                resDebt =  true;
+            }
+
+            if(!resDebt){
+                $(':input', $('#debtWrapper')).each(function() {
+                    $(this).addClass('ignore'); 
+                    $(this).removeClass('error'); 
+                });
+            }else{
+                 $(':input', $('#debtWrapper')).each(function() {
+                    $(this).removeClass('ignore');  
+                });
+            }
+            //Asset
+            var resAsset = false;
+            if($('#app1_Asset_Category__c1').val() != ' '){
+                resAsset =  true;
+            }
+            if(!resAsset){
+                $(':input', $('#assetWrapper')).each(function() {
+                    $(this).addClass('ignore'); 
+                    $(this).removeClass('error'); 
+                });
+            }else{
+                 $(':input', $('#assetWrapper')).each(function() {
+                    $(this).removeClass('ignore'); 
+                });
+            }
+
+            resDebt = false;
+            resAsset = false;
+        }
+
+        /*  Description: Remove ignore class when submitting to apply validation
+         *  Author: Davey YU
+         *  Date Created: 17-NOV-2015
+         *  Input: None
+         */
+        function removeIgnoreClass(){
+            
+            $(':input', $('#expenseWrapper')).each(function() {
+                $(this).removeClass('ignore'); 
+
+            });
+
+            $(':input', $('#incomeWrapper')).each(function() {
+                $(this).removeClass('ignore'); 
+            });
+
+            $(':input', $('#debtWrapper')).each(function() {
+                $(this).removeClass('ignore'); 
+            });
+
+            $(':input', $('#assetWrapper')).each(function() {
+                $(this).removeClass('ignore'); 
+            });
+        
+        }
+
+         /*  Description: Remove ignore class a type is selected 
+         *  Author: Davey YU
+         *  Date Created: 17-NOV-2015
+         *  Input: elementId - Id of the element that has values
+         *  Input: elementType - Type of the element select or input
+         *  Input: sectionId - Section or div id that needs to be ignored or not
+         */
+        function removeIgnoreIfValueSelected(elementId, elementType, sectionId){
+            if(elementType == 'select'){
+                if($(elementId).val() != ' '){
+                    $(':input', $(sectionId)).each(function() {
+                        $(this).removeClass('ignore');  
+                    });
+                }
+            }else{
+                if($(elementId).val() != ''){
+                    $(':input', $(sectionId)).each(function() {
+                        $(this).removeClass('ignore');  
+                    });
+                }
+            }
+        }
+        function validateExpenseAmount(){        
+            var totalExpenseAmount;
+            if(country == 'AU'){
+            totalExpenseAmount = Number($('#app1_Rent_Board_Pay_Amt__c').val()) > 0 ? Number($('#app1_Rent_Board_Pay_Amt__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Food_Groc_Entert__c').val()) > 0 ? Number($('#app1_Food_Groc_Entert__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Insurance_Expense__c').val()) > 0 ? Number($('#app1_Insurance_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Utilities_Expense__c').val()) > 0 ? Number($('#app1_Utilities_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Transport_Expense__c').val()) > 0 ? Number($('#app1_Transport_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Education_and_child_Expense__c').val()) > 0 ? Number($('#app1_Education_and_child_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Personal_Other_Expense__c').val()) > 0 ? Number($('#app1_Personal_Other_Expense__c').val()) : 0;
+            }
+            
+            if(country == 'NZ'){
+            
+            totalExpenseAmount = Number($('#app1_Mortgage_Rent_Board__c').val()) > 0 ? Number($('#app1_Mortgage_Rent_Board__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Secondary_Mortgage_Rent__c').val()) > 0 ? Number($('#app1_Secondary_Mortgage_Rent__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Property_rates__c').val()) > 0 ? Number($('#app1_Property_rates__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Other_Property_Expenses__c').val()) > 0 ? Number($('#app1_Other_Property_Expenses__c').val()) : 0;
+            
+            totalExpenseAmount += Number($('#app1_Food_Groc_Entert__c').val()) > 0 ? Number($('#app1_Food_Groc_Entert__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Insurance_Expense__c').val()) > 0 ? Number($('#app1_Insurance_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Utilities_Expense__c').val()) > 0 ? Number($('#app1_Utilities_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Transport_Expense__c').val()) > 0 ? Number($('#app1_Transport_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Education_and_child_Expense__c').val()) > 0 ? Number($('#app1_Education_and_child_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Personal_Other_Expense__c').val()) > 0 ? Number($('#app1_Personal_Other_Expense__c').val()) : 0;
+            totalExpenseAmount += Number($('#app1_Any_Additional_expenses__c').val()) > 0 ? Number($('#app1_Any_Additional_expenses__c').val()) : 0;
+
+            }
+            
+           if(totalExpenseAmount <= 0){
+              if(country == 'AU'){
+                document.getElementById('totalExpenseErr').style.display='block';
+                document.getElementById('totalExpenseErr').innerHTML = 'Total living expenses must be greater than $0';  
+              }else if(country == 'NZ'){
+                document.getElementById('totalExpenseErr').style.display='block';
+                document.getElementById('totalExpenseErr').innerHTML = 'Total residential and living expenses must be greater than $0';
+              }         
+                 return false;
+            }else{
+                  document.getElementById('totalExpenseErr').style.display='none';
+            }
+            
+            return true;
+            }
+            
+             function validateSoftStopExpense(){
+            var totalExpenseAmount;
+           
+            if(country == 'NZ' || country == 'AU'){
+
+           var rentBoardExp  = document.getElementById('app1_Rent_Board_Pay_Amt__c');
+           var rentBoardInt  = document.getElementById('app1_Rent_Board_Pay_Int__c');
+           var rentBoardTotal = calculateInterval(rentBoardExp.value,rentBoardInt.value);
+
+           var mortgageExp  = document.getElementById('app1_Mortgage_Rent_Board__c');
+           var mortgageInt  = document.getElementById('app1_Mortgage_Rent_Board_Interval__c');
+           var mortgageExpFreq = calculateInterval(mortgageExp.value,mortgageInt.value);
+           
+           var secmortgageExp  = document.getElementById('app1_Secondary_Mortgage_Rent__c');
+           var secmortgageInt  = document.getElementById('app1_Secondary_Mortgage_Rent_Interval__c');
+           var secmortgageTotal = calculateInterval(secmortgageExp.value,secmortgageInt.value);
+
+           var propExp  = document.getElementById('app1_Property_rates__c');
+           var propInt  = document.getElementById('app1_Property_rates_Interval__c');
+           var propTotal = calculateInterval(propExp.value,propInt.value);
+
+           var otherPropExp  = document.getElementById('app1_Other_Property_Expenses__c');
+           var otherPropInt  = document.getElementById('app1_Other_Property_Expenses_Interval__c');
+           var otherPropTotal = calculateInterval(otherPropExp.value,otherPropInt.value);
+           
+           
+           console.log(' mortgageExpFreq '+mortgageExpFreq);
+           
+           var foodGroc  = document.getElementById('app1_Food_Groc_Entert__c');
+           var foodGrocInt = document.getElementById('app1_Food_Groc_Interval__c');
+           var foodTotal = calculateInterval(foodGroc.value,foodGrocInt.value);
+           
+           var insuExp = document.getElementById('app1_Insurance_Expense__c');
+           var insuInt = document.getElementById('app1_Insurance_Expense_Interval__c');
+           var insuTotal = calculateInterval(insuExp.value,insuInt.value);
+           
+           var utilityExp = document.getElementById('app1_Utilities_Expense__c');
+           var utilityInt = document.getElementById('app1_Utilities_Expense_Interval__c');
+           var utilityTotal = calculateInterval(utilityExp.value,utilityInt.value);
+           
+           var transportExp = document.getElementById('app1_Transport_Expense__c');
+           var transportInt = document.getElementById('app1_Transport_Expense_Interval__c');
+           var transportTotal = calculateInterval(transportExp.value,transportInt.value);
+
+           var educationExp = document.getElementById('app1_Education_and_child_Expense__c');
+           var educationInt = document.getElementById('app1_Education_and_child_Expense_Interval__c');
+           var educationTotal = calculateInterval(educationExp.value,educationInt.value);
+
+           var personalExp = document.getElementById('app1_Personal_Other_Expense__c');
+           var personalInt = document.getElementById('app1_Personal_Other_Expense_Interval__c');
+           var personalTotal = calculateInterval(personalExp.value,personalInt.value);
+           
+           var additionalExp = document.getElementById('app1_Any_Additional_expenses__c');
+           var additionalInt = document.getElementById('app1_Any_Additional_expenses_Interval__c');
+           var additionalTotal = calculateInterval(additionalExp.value,additionalInt.value);
+
+        
+
+           
+           var mortgageWarn = document.getElementById('mortgageWarn');
+           var foodGrocWarnMsg = document.getElementById('FoodGroc');
+             var InsuranceWarn = document.getElementById('InsuranceWarn');
+             var UtilitiesWarn = document.getElementById('UtilitiesWarn');
+             var TransportWarn = document.getElementById('TransportWarn');
+             var EducationWarn = document.getElementById('EducationWarn');
+             var PersonalWarn = document.getElementById('PersonalWarn');
+             
+        
+            
+           
+          
+            
+           if(mortgageExp.value == "0" && country == 'NZ'){        
+         mortgageWarn.style.display="block";
+          mortgageWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Primary mortgage, rent or board</h4>";
+       
+         }else{
+         mortgageWarn.style.display="none";
+         
+         }     
+         
+         
+           if(foodGroc.value == "0" && country == 'NZ'){
+         foodGrocWarnMsg.style.display="block";
+          foodGrocWarnMsg.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Food,groceries and entertainment</h4>";           
+         }else{
+         foodGrocWarnMsg.style.display="none";                   
+         }
+           
+           
+          if(utilityExp.value == "0" && country == 'NZ'){
+          UtilitiesWarn.style.display="block";
+          UtilitiesWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for General insurance</h4>";
+        
+         }else{
+         UtilitiesWarn.style.display="none";
+          
+         }
+           if(transportExp.value == "0" && country == 'NZ'){
+         TransportWarn.style.display="block";
+          TransportWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Transport and auto</h4>";
+       
+         }else{
+         TransportWarn.style.display="none";
+       
+         }
+          
+          if(personalExp.value == "0" && country == 'NZ'){
+         PersonalWarn.style.display="block";
+          PersonalWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Personal, fitness and medical</h4>";
+       
+         }else{
+         PersonalWarn.style.display="none";
+        
+         }
+         
+                          if( mortgageExpFreq > 15000 && country == 'NZ'){                                
+                                 document.getElementById('mortgageWarnAmt').style.display='block';
+                                 document.getElementById('mortgageWarnAmt').innerHTML="<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;text-align:center;padding-left:.5em;'>Monthly Primary mortgage, rent or board more than $15000</h4>";                               
+                                }else{
+                                document.getElementById('mortgageWarnAmt').style.display='none';                                
+                                }
+         
+         var totalExpenses = (mortgageExpFreq*1/1) + (secmortgageTotal*1/1) + (propTotal*1/1) + (otherPropTotal*1/1) + (foodTotal*1/1) + (insuTotal*1/1) + (utilityTotal*1/1) + (transportTotal*1/1) + (educationTotal*1/1) + (personalTotal*1/1) + (additionalTotal*1/1);
+         var totalExpensesAU = (rentBoardTotal*1/1) + (foodTotal*1/1) + (insuTotal*1/1) + (utilityTotal*1/1) + (transportTotal*1/1) + (educationTotal*1/1) + (personalTotal*1/1);
+       
+       
+       if(country == 'NZ'){
+          totalExpenses= Number(totalExpenses).toFixed(2);
+        $('#app1_totalExpenseAmount1').text('$'+addCommas(totalExpenses));
+        }else if(country == 'AU'){
+          totalExpensesAU= Number(totalExpensesAU).toFixed(2);
+        $('#app1_totalExpenseAmount1').text('$'+addCommas(totalExpensesAU));
+        }
+         
+         if(totalExpenses > 30000 && country == 'NZ'){
+                            document.getElementById('totalExpenseWarn').style.display='block';
+                             document.getElementById('totalExpenseWarn').innerHTML="<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;text-align:center;padding-left:.5em;'>Total monthly residential and living expenses more than $30,000</h4>";                     
+                             
+                          }else if(totalExpenses < 30000 && country == 'NZ'){
+                               document.getElementById('totalExpenseWarn').style.display='none';                              
+                          }
+          
+            if(totalExpensesAU > 30000 && country == 'AU'){
+                             document.getElementById('summaryOfWarningMsgs').style.display='block';
+                             document.getElementById('confirmationHeader').style.display = 'block';  
+                             document.getElementById('confirmationReview').style.display = 'block';
+                             document.getElementById('confirmationFooter').style.display = 'block';
+                            document.getElementById('totalExpenseWarnAU').style.display='block';
+                             document.getElementById('totalExpenseWarnAU').innerHTML="<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;text-align:center;padding-left:.5em;'>Total monthly residential and living expenses more than $30,000</h4>";                     
+                             
+                          }else if(totalExpensesAU < 30000 && country == 'AU'){
+                               document.getElementById('summaryOfWarningMsgs').style.display='none';
+                               document.getElementById('confirmationHeader').style.display = 'none';  
+                               document.getElementById('confirmationReview').style.display = 'none';
+                               document.getElementById('confirmationFooter').style.display = 'none';
+                               document.getElementById('totalExpenseWarnAU').style.display='none';
+                               
+                               
+                          }
+       
+       
+         if((foodGroc.value == "0" || utilityExp.value == "0" || transportExp.value == "0" || personalExp.value == "0" || mortgageExp.value == "0" || mortgageExpFreq > 15000 || totalExpenses > 30000) && country == 'NZ'){
+           document.getElementById('summaryOfWarningMsgs').style.display='block';
+           document.getElementById('confirmationHeader').style.display = 'block';  
+           document.getElementById('confirmationReview').style.display = 'block';
+           document.getElementById('confirmationFooter').style.display = 'block';                 
+         }else if((foodTotal != "0" || utilityTotal != "0" || transportTotal != "0" || personalTotal != "0" || mortgageExpFreq != "0") && country == 'NZ'){
+           document.getElementById('summaryOfWarningMsgs').style.display='none';
+            document.getElementById('confirmationHeader').style.display = 'none';  
+            document.getElementById('confirmationReview').style.display = 'none'; 
+            document.getElementById('confirmationFooter').style.display = 'none'; 
+
+             }
+       
+
+            }
+            
+            
+            }
+            
+            
+            
+            function validateIncome(){
+            var applicantType = $('select#app_Application_Type__c').val();
+               console.log('Applicant Type : ' + applicantType);
+               
+                 if($('select#app_Application_Type__c').val() == 'Single'){
+                   console.log('Entered Single Condition');
+                   var incomeChangesValue1 = document.getElementById('incomeChangesValue1');
+                   if(incomeChangesValue1.value == '' || incomeChangesValue1.value == null){
+                       console.log('Step 1 one App Error');
+                       document.getElementById('incomeErr1').style.display='block';
+                       document.getElementById('incomeErr1').innerHTML='Please select an option';  
+                       return false;
+                   }else if(incomeChangesValue1.value != ''){
+                        console.log('No Errors Happy to Proceed');
+                      document.getElementById('incomeErr1').style.display='none';
+                   }
+                   return true;
+               }
+                  if($('select#app_Application_Type__c').val() == 'Joint'){
+                    console.log('Entered Joint Condition');
+                   var incomeChangesValue1 = document.getElementById('incomeChangesValue1');
+                   var incomeChangesValue2 = document.getElementById('incomeChangesValue2');
+                   
+                  if((incomeChangesValue1.value == '' || incomeChangesValue1.value == null) && (incomeChangesValue2.value == '' || incomeChangesValue2.value == null)){
+                        console.log('Step 1 Two App Errors');
+                       document.getElementById('incomeErr1').style.display='block';
+                       document.getElementById('incomeErr1').innerHTML='Please select an option';                                                
+                       document.getElementById('incomeErr2').style.display='block';
+                       document.getElementById('incomeErr2').innerHTML='Please select an option';
+                    return false;                                    
+                  }else if((incomeChangesValue1.value != '' || incomeChangesValue1.value != null) && (incomeChangesValue2.value == '' || incomeChangesValue2.value == null)){
+                         console.log('Step 2 Entered Partial Error for Applicant 2');
+                       document.getElementById('incomeErr2').style.display='block';
+                       document.getElementById('incomeErr2').innerHTML='Please select an option'; 
+                    return false;                                   
+                  }else if((incomeChangesValue1.value == '' || incomeChangesValue1.value == null) && (incomeChangesValue2.value != '' || incomeChangesValue2.value != null)){
+                            console.log('Step 3 Entered Partial Error for Applicant 1');
+                       document.getElementById('incomeErr1').style.display='block';
+                       document.getElementById('incomeErr1').innerHTML='Please select an option';
+                    return false;
+                  }else{
+                        console.log('No Errors Happy to Proceed');
+                      document.getElementById('incomeErr1').style.display='none';
+                      document.getElementById('incomeErr2').style.display='none';
+                   }
+               return true;
+            }        
+       }
+              
+              function validateDebt(){
+              var lumSumConfirm = document.getElementById('lumSumConfirm');
+              if((lumSumConfirm.value == '' || lumSumConfirm.value == null) && $('#app1_Debt_Category__c1').val() != ' '){
+                document.getElementById('lumpSumErr').style.display='block';
+                   document.getElementById('lumpSumErr').innerHTML='Please select an option';               
+                   return false;
+                  }else{
+                  document.getElementById('lumpSumErr').style.display='none';
+                  return true;
+                  }
+                  }
+          
+          
+        /*  Description: Validate total loan purpose amount and max refinance records before save/submit
+         *  Author: Mike Lasala
+         *  Date Created: 23-NOV-2015
+         *  Input: None
+         */
+        function validateLoanPurpose(){
+            
+            //Check whether error message/s are displayed
+            if(($('#totalLoanValidationMessage').css('display')).indexOf('inline') > -1 || 
+              ($('#maxRefinanceValidationMessage').css('display')).indexOf('inline') > -1 ||
+              ($('#betterStartValidationMessage').css('display')).indexOf('inline') > -1 ||
+              ($('#BS_DC_ValidationMessage').css('display')).indexOf('inline') > -1              
+              ){
+                
+                return false;
+            } else {
+                return true;
+            }
+        }
+    </script>
+    <!-------------------- SUBMIT CONTROLLER END ------------------------>
+    
+    
+    <script>
+        window.onload = init;
+           
+        function tabUnsavedJS(){
+            sforce.console.setTabUnsavedChanges(true, displayResult);
+        }
+    
+        function tabSavedJS(){
+            sforce.console.setTabUnsavedChanges(false, displayResult);
+        }
+    
+        function displayResult(result){}
+    
+         /*  Description: Validate and save application
+         *  Author: Davey YU
+         *  Date Created: 17-NOV-2015
+         *  Input: None
+         */
+        function saveApp(){
+            //Change modal window message to save app
+            $('#myModalLabel1').html('Saving Application');
+            addIgnoreClass();
+            tabSavedJS();
+            var gender = checkGenderSubmit();
+            var postal = checkPostalAddressSubmit();
+            //BEGIN --- Validation Added for Consent LPI -- Added By Suneel -- 08/06/2018
+            var consent = checkConsentSubmit();
+            // BEGIN --- Validation Added for POI Automation --- Added by Suneel -- 21/01/2021 
+            var poiConsent = checkPoiConsentSubmit();       
+           //Start commented by Arshad for betterstart testing
+            if(country == 'AU'){
+                   if($('#app_SubType__c').val() == 'Standard PL'){
+                     if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                           
+                        if(validateSearchAndMatch()){
+                           mapApplication();
+                        }
+                    }
+                   }else if($('#app_SubType__c').val() == 'Better Start PL'){
+                     if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                           
+                        if(validateSearchAndMatch()){
+                           mapApplication();
+                        }
+                    }
+                   }  else {
+                     if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                        if(validateSearchAndMatch()){
+                           mapApplication();
+                        }
+                    }
+                   }          
+            }
+            else if(country == 'NZ'){
+            if(validateSUI() && gender && postal && validateLoanPurpose() && validateExpenseAmount()){
+                   
+                if(validateSearchAndMatch()){
+                   mapApplication();
+                }
+            }
+            }
+            // End --- Validation for Consent LPI 
+        }
+
+        /*  Description: Validate and submit application
+         *  Author: Davey YU
+         *  Date Created: 17-NOV-2015
+         *  Input: None
+         */
+       function submitApp(){
+            //Change modal window message to submit app
+            $('#myModalLabel1').html('Submitting Application');
+            console.log('......');
+            removeIgnoreClass();
+            var gender = checkGenderSubmit();
+            var postal = checkPostalAddressSubmit();
+             //BEGIN --- Validation Added for Consent LPI -- Added By Suneel -- 08/06/2018
+            var consent = checkConsentSubmit();
+            // BEGIN --- Validation Added for POI Automation --- Added by Suneel-- 21/01/2021 
+            var poiConsent = checkPoiConsentSubmit();
+            if(country == 'AU'){
+            console.log('...@@@@@@@...');
+             if($('#app_SubType__c').val() == 'Standard PL'){
+                console.log(validateSUI()+'validateSUI()...@@@@@@@...'+gender+'...gender.....'+validateLoanPurpose()+'...validateLoanPurpose()...'+consent);
+              if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                tabSavedJS();
+                isSubmit = true;
+                if(validateSearchAndMatch()){
+                   startTimer();
+                   mapApplication(); 
+                }
+            }
+            }else if($('#app_SubType__c').val() == 'Better Start PL'){
+              if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                tabSavedJS();
+                isSubmit = true;
+                if(validateSearchAndMatch()){
+                   startTimer();
+                   mapApplication(); 
+                }
+            }           
+            }else{
+              if(validateSUI() && gender && postal && validateLoanPurpose() && poiConsent && validateExpenseAmount()){
+                tabSavedJS();
+                isSubmit = true;
+                if(validateSearchAndMatch()){
+                   startTimer();
+                   mapApplication(); 
+                }
+            }
+            }
+            } else if(country == 'NZ'){
+             if(validateSUI() && gender && postal && validateLoanPurpose() && validateExpenseAmount() && validateIncome() && validateDebt()){
+                   
+                tabSavedJS();
+                isSubmit = true;
+                if(validateSearchAndMatch()){
+                   startTimer();
+                   mapApplication(); 
+                }
+            }
+            }
+            // End --- Validation for Consent LPI 
+        }
+    
+        /*  Description: Timer for application submission, if application response not receivd within limited
+                          time, will redirect to staff UI
+         *  Author: Tony Xu
+         *  Date Created: 21-NOV-2015
+         *  Input: None
+         */
+        
+        var submitCounter;
+        
+        function startTimer(){
+            submitCounter = setInterval(timer, 1000);           
+        }
+    
+        function timer(){
+            submitTimer = submitTimer - 1;
+            console.log(submitTimer);
+            if(submitTimer <= 0){
+                closeTab();
+                sforce.console.openPrimaryTab(null, '/'+app.Id, true, 'New Application', openSuccess, 'salesforceTab');
+            }
+        }
+
+         /*  Description: Clear validation messages by section
+         *  Author: Davey Yu
+         *  Date Created: NOV-20-2015
+         *  Input Parameters: Section or Div Id
+         */
+        function clearValidationMessagesBySection(sectionId){
+            $(':input', $(sectionId)).each(function() {
+                $(this).removeClass('error').next('label.error').remove();
+            });
+        }
+
+        /*  Description: Clear validation messages by single element
+         *  Author: Davey Yu
+         *  Date Created: NOV-20-2015
+         *  Input Parameters: Section or Div Id
+         */
+        function clearValidationMessagesByElem(elemId){
+            $(elemId).removeClass('error').next('label.error').remove();
+        }
+
+        
+    </script>
+    
+    
+    <!-------------------- CSS START ------------------------------------>
+    <style>
+       .error {
+            border: 2px solid #f00 !important;
+        }
+        label.error{
+            color:red !important;
+            border: 0px !important;
+        }
+        .wizardSectionSingleWithoutBoarder{
+            width:90%;
+            margin-top: 2.5%;
+        }        
+        .wizardSectionSingleWithBorder{
+            border-style: solid;
+            border-width: 1px; 
+            width: 90%; 
+            margin-top: 2.5%;
+        }
+        .wizardSectionJoint{
+            width: 90%; 
+            margin-top: 2.5%
+        }
+        .wizardNavigation{
+            width: 150px; 
+            position: fixed; 
+            top: 15%; 
+            left: 90%; 
+            text-align:center; 
+            z-index: 1001
+        }
+        .req span {
+            color: red;
+        }
+        ::-moz-selection { 
+            background: #66CCFF !important;
+            text-shadow: none;
+        }
+        
+        ::selection {
+            background: #66CCFF !important;
+            text-shadow: none;
+        }
+        [class*="faux"]{
+            border-color: #848484 !important;
+        }
+         .slds-box {
+            padding: 7px;
+        }
+        .slds-text-heading {
+            font-weight: 900;
+            font-size: 32px;
+            line-height: 1.25;
+            color: #0070d2;
+        }
+        .sectionBorder{
+            border-style: solid;
+            border-width: 1px; 
+            border-radius: 10px;
+             border-color: #0070d2;
+            
+        }
+        .sectionHeading{
+            background-color: transparent !important;
+            border-left: 0px !important;
+            border-right: 0px !important;
+            border-top: 0px !important;
+            border-color: #0070d2 !important;
+        }
+        .sectionHeadingJoint{
+            font-weight: 900 !important;
+            font-size: 32px !important;
+            line-height: 1.25 !important;
+            color: white !important;
+        }
+        #NavigationNumberText{
+            position:absolute;
+            z-index:100;   
+            color:white;
+            font-size:16px;
+            text-align:center;
+            width: 61px;
+            line-height: 53px;
+        }
+        #NavigationImageDiv{
+            position:absolute;
+            height:63px;
+        }
+    </style>
+    <!-------------------- CSS END -------------------------------------->
+
+    <!-------------------- WIZARD COMPONENTS START ---------------------->
+    <div class="slds" style="margin-left: 5%">
+        
+        <form class="validateAppWizardForm">
+        
+            <!-- APPLICATION DETAILS -->
+            <div id="ApplicationDetailsSection" class="wizardSectionSingleWithoutBoarder">
+              <c:APP_Wizard_ApplicationDetails_INT />  
+            </div>
+
+            <!-- ELIGIBIPITY SECTION -->
+            <div id="EligibilitySection" class="wizardSectionSingleWithoutBoarder">
+                <c:APP_Wizard_Eligibility_INT />
+            </div>
+            
+            <!-- LOAN PURPOSE SECTION -->
+            <div id="LoanPurposeSection" class="wizardSectionSingleWithoutBoarder">
+                <c:APP_Wizard_LoanPurpose_INT />
+            </div>
+            
+            <!-- JOINT PERSONAL DETAILS SECTION -->
+            <div id="JointPersonalDetailsSection" class="wizardSectionJoint">
+                <c:APP_Wizard_JointPersonalDetail_INT />
+            </div>
+            
+            <!-- JOINT PERSONAL INCOME SECTION -->
+            <div id="JointPersonalIncomeSection" class="wizardSectionJoint">
+                <c:APP_Wizard_JointIncome_INT />
+            </div>
+            
+            <!-- EXPENSE SECTION -->
+            <div id="ExpenseSection" class="wizardSectionJoint">
+                <c:APP_Wizard_JointExpenses_INT />
+            </div>
+            <!-- ASSET SECTION -->
+            <div id="AssetSection" class="wizardSectionSingleWithoutBoarder">
+                <c:APP_Wizard_Assets_INT />
+            </div>
+            
+            <!-- DEBTS SECTION -->
+            <div id="DebtsSection" class="wizardSectionSingleWithoutBoarder">
+                <c:APP_Wizard_DebtAndLiabilities_INT />
+            
+            </div>
+            
+            <!-- NAVIGATION PANEL -->
+            <div class="wizardNavigation">
+                <c:APP_Wizard_Navigation />
+            </div>
+        
+            <!-- SUBMIT -->
+            <div class="wizardSectionSingleWithoutBoarder">
+                <c:APP_Wizard_Submit />
+            </div>
+            
+        </form>
+        
+    </div>
+    <!-------------------- WIZARD COMPONENTS END ------------------------>
+    
+</apex:page>

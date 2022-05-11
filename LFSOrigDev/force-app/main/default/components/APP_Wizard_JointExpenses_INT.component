@@ -1,0 +1,1317 @@
+<!--
+    * @Description: Contains expense details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+    ===================================================================== 
+-->
+<apex:component >
+    
+    <style type="text/css">
+        .expenseApplicant1{
+            border-width: 1px; 
+        }
+        .expenseApplicant2{
+            border-width: 1px;
+            width: 90%; 
+            margin-left: 3%;
+            opacity: 0.6;
+        }
+        .expenseHeaderColor{
+            background-color: #298698;
+        }
+        
+        .interval {
+            width: 50% !important;
+        }
+        
+        @media screen and (min-width: 1024px) {
+            .exp-alignment {            
+              margin-left: 137px;
+            }
+            
+            .exp-alignmentAmt {            
+              margin-left: 58px;
+            }
+            
+            .exp-alignmentTotal {            
+              margin-left: 94px;
+            }
+        }        
+    </style>
+    
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            
+        <div id="expenseWrapper" class="slds-grid" >
+            <section id='Applicant1ExpenseSection' class='slds-col slds-size--1-of-2 sectionBorder'>
+                <div class="slds-m-bottom--medium slds-box slds-text-align--center expenseHeaderColor">
+                    <div id='NavigationImageDiv'>
+                        <img src="{!$Resource.navCircle}"/>
+                    </div>
+                    <div id='NavigationNumberText'>
+                       4
+                    </div>
+                    <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Expenses</div>
+                </div>
+                
+            <!--   <div class="slds-text-heading slds-m-vertical--small slds-form-element__label" style="font-size:23px">Accommodation Expenses</div> 
+                    <div class="divider10"></div> -->
+            
+                
+                <div class="expenseApplicant1">  
+                                 
+                <!-- RESIDENTIAL STATUS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- RESIDENTIAL STATUS LABEL -->
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                        <label class="slds-form-element__label req req" for="app1_Res_Status__c">Residential status</label>
+                    </section>
+                    
+                    <!-- RESIDENTIAL STATUS PICKLIST -->
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control" >
+                            <select class="slds-select isPicklistSpace" id="app1_Res_Status__c" name="app1_Res_Status__c" onchange="copyResStatus();showHideExpense(this.value, 1);calculateTotalExpenseAmount();copyTooltip(this, 'app2_Res_Status_tooltip');removeIgnoreIfValueSelected('#app1_Res_Status__c', 'select', '#Applicant1ExpenseSection');clearValidationMessagesBySection('#Applicant1ExpenseSection');return false;"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+                
+                <!-- RENT SECTION -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'none', 'block')}" >
+                <div id="rentSection" class="slds-grid slds-wrap slds-m-vertical--xx-small" >
+                    
+                    <!-- RENT AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Rent_Board_Pay_Amt__c">My rent/board payments are</label>
+                    </section>
+                    
+                    <!-- RENT AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Rent_Board_Pay_Amt__c" name="app1_Rent_Board_Pay_Amt__c" class="slds-input isRequired isAmount isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateExpenseAmount();validateSoftStopExpense();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Rent_Board_Pay_Amt__c', 'app1_Rent_Board_Pay_Int__c'], 'app2_Rent_Board_Pay_Int_tooltip');"/>
+                        </div>                                                                                                                       <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!-- RENT INTERVAL LABEL -->
+                    <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Rent_Board_Pay_Int__c">Each</label>
+                    </section>
+                    
+                    <!-- RENT INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select interval isRequired" id="app1_Rent_Board_Pay_Int__c" name="app1_Rent_Board_Pay_Int__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Rent_Board_Pay_Amt__c', 'app1_Rent_Board_Pay_Int__c'], 'app2_Rent_Board_Pay_Int_tooltip');"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                </div>
+                
+                <!-- AGENT / LANDLORD SECTION -->
+                <div id="agentSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- AGENT / LANDLORD LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'AU', 'req', '')}" for="app1_Agent_Landlord_Name__c">Agent / Landlord name</label>
+                    </section>
+                    
+                    <!-- AGENT / LANDLORD FIELD -->
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Agent_Landlord_Name__c" name="app1_Agent_Landlord_Name__c" class="slds-input {!IF($CurrentPage.parameters.country == 'AU', 'isRequired', '')}" type="text" maxlength="29" onkeypress="return isAlphabeticKey(event)" onchange="copyTooltip(this, 'app2_Agent_Landlord_Name_tooltip');"/> <!-- isMaxLength29 -->
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+                               
+                
+                <!-- PAY ALL EXPENSE SECTION -->
+                <div id="payAllSection" class=" slds-grid slds-wrap{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, ' slds-m-vertical--xx-small' , 'slds-m-top--xx-small slds-m-bottom--large')}">
+                    
+                    <!-- PAY ALL EXPENSE LABEL -->
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                        <span class="slds-form-element__label req" for="app1_I_Pay_All_Exp__c">Do you pay all the expenses for your household?</span>
+                    </section>
+                    
+                    <!-- PAY ALL EXPENSE CHECKBOX -->
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <!-- <label class="slds-checkbox" for="app1_I_Pay_All_Exp__c">
+                                    <input name="checkbox" type="checkbox" id="app1_I_Pay_All_Exp__c" />
+                                    <span class="slds-checkbox--faux"></span>
+                                </label> -->
+                            <select class="slds-select isPicklistSpace" id="app1_I_Pay_All_Exp__c" name="app1_I_Pay_All_Exp__c"/> <!-- isPicklistSpace -->
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+
+                <!-- Revolving Credit Section -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                <div id="revolvingSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- AGENT / LANDLORD LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'NZ', 'req', '')}" for="app1_Revolving_Credit__c">If you have revolving credit facility as part of a mortgage or home loan, please enter the limit of that facility. Enter $0 if not applicable.</label>
+                    </section>
+                    
+                    <!-- AGENT / LANDLORD FIELD -->
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Revolving_Credit__c" name="app1_Revolving_Credit__c" class="slds-input {!IF($CurrentPage.parameters.country == 'NZ', 'isRequired', '')}" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" maxlength="29"  onchange="copyTooltip(this, 'app2_Revolving_Credit_tooltip');"/> <!-- isMaxLength29 -->
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+                </div>
+                
+                
+                <!-- End -->
+
+                <!-- MORTGAGE EXPENSE SECTION -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                                                                  
+                        <!-- 1: MORTGAGE EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Mortgage_Rent_Board__c">Primary mortgage, rent or board</label>
+                        </section>
+                        
+                        <!-- MORTGAGE EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Mortgage_Rent_Board__c" name="app1_Mortgage_Rent_Board__c" class="slds-input isMortgageExpense isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Mortgage_Rent_Board__c', 'app1_Mortgage_Rent_Board_Interval__c'], 'app2_Mortgage_Rent_Board_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Mortgage_Rent_Board__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- MORTGAGE EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Mortgage_Rent_Board_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- MORTGAGE EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistMortgageExpenses" id="app1_Mortgage_Rent_Board_Interval__c" name="app1_Mortgage_Rent_Board_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Mortgage_Rent_Board__c', 'app1_Mortgage_Rent_Board_Interval__c'], 'app2_Mortgage_Rent_Board_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Mortgage_Rent_Board_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                     
+                       </div>                                        
+                </div>   
+                   
+                <!-- SECONDARY MORTGAGE EXPENSE SECTION -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                                                                  
+                        <!-- 1: SECONDARY MORTGAGE EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Secondary_Mortgage_Rent__c">Secondary mortgage, rent or board</label>
+                        </section>
+                        
+                        <!-- SECONDARY MORTGAGE EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Secondary_Mortgage_Rent__c" name="app1_Secondary_Mortgage_Rent__c" class="slds-input isSecondaryMortgageExpense isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Secondary_Mortgage_Rent__c', 'app1_Secondary_Mortgage_Rent_Interval__c'], 'app2_Secondary_Mortgage_Rent_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Secondary_Mortgage_Rent__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- SECONDARY MORTGAGE EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Secondary_Mortgage_Rent_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- SECONDARY MORTGAGE EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistSecondMortgageExpenses" id="app1_Secondary_Mortgage_Rent_Interval__c" name="app1_Secondary_Mortgage_Rent_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Secondary_Mortgage_Rent__c', 'app1_Secondary_Mortgage_Rent_Interval__c'], 'app2_Secondary_Mortgage_Rent_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Secondary_Mortgage_Rent_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                     
+                       </div>                                        
+                </div>   
+                   
+                <!-- PROPERTY EXPENSE SECTION -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                                                                  
+                        <!-- 1: PROPERTY EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Property_rates__c">Property rates</label>
+                        </section>
+                        
+                        <!-- PROPERTY EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Property_rates__c" name="app1_Property_rates__c" class="slds-input isPropertyExpense isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Property_rates__c', 'app1_Property_rates_Interval__c'], 'app2_Property_rates_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Property_rates__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- PROPERTY EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Property_rates_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- PROPERTY EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistPropertyExpenses" id="app1_Property_rates_Interval__c" name="app1_Property_rates_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Property_rates__c', 'app1_Property_rates_Interval__c'], 'app2_Property_rates_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Property_rates_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                     
+                       </div>                                        
+                </div>   
+                   
+                <!-- OTHER PROPERTY EXPENSE SECTION -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                                                                  
+                        <!-- 1: OTHER PROPERTY EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Other_Property_Expenses__c">Utilities &amp; Other property expenses</label>
+                        </section>
+                        
+                        <!-- OTHER PROPERTY EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Other_Property_Expenses__c" name="app1_Other_Property_Expenses__c" class="slds-input isOtherPropertyExpense isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Other_Property_Expenses__c', 'app1_Other_Property_Expenses_Interval__c'], 'app2_Other_Property_Expenses_Interval__c_tooltip');removeIgnoreIfValueSelected('#app1_Other_Property_Expenses__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- OTHER PROPERTY EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Other_Property_Expenses_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- OTHER PROPERTY EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistOtherPropertyExpenses" id="app1_Other_Property_Expenses_Interval__c" name="app1_Other_Property_Expenses_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Other_Property_Expenses__c', 'app1_Other_Property_Expenses_Interval__c'], 'app2_Other_Property_Expenses_Interval__c_tooltip');removeIgnoreIfValueSelected('#app1_Other_Property_Expenses_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                     
+                       </div>                                          
+                                                          
+                </div>   
+                                
+                <br/>                                 
+                                    
+                    <!-- LIVING EXPENSE SECTION -->
+                    <!-- <div style="display:{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'inline' , 'none')}"> -->
+                        <div style="display:none;">
+                        <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                            
+                            <!-- LIVING EXPENSE LABEL -->
+                            <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                                <label class="slds-form-element__label req" for="app1_Living_Exp__c">Share of living expenses</label>
+                            </section>
+                            
+                            <!-- LIVING EXPENSE AMOUNT FIELD -->
+                            <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <input id="app1_Living_Exp__c" name="app1_Living_Exp__c" class="slds-input" onkeypress="return isNumberKeySearch(this,event);" type="text" />
+                                </div>
+                            </section>
+                            
+                            <!-- LIVING EXPENSE INTERVAL LABEL -->
+                            <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                                <label class="slds-form-element__label req" for="app1_Living_Exp_Int__c">Each</label>
+                            </section>
+                            
+                            <!-- LIVING EXPENSE INTERVAL PICKLIST -->
+                            <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <select class="slds-select interval isPicklistSpace" id="app1_Living_Exp_Int__c" name="app1_Living_Exp_Int__c" onchange="copyTooltip(['app1_Living_Exp__c', 'app1_Living_Exp_Int__c'], 'app2_Living_Exp_Int_tooltip');removeIgnoreIfValueSelected('#app1_Living_Exp_Int__c', 'select', '#Applicant1ExpenseSection');"/>
+                                </div>
+                            </section>
+                                        
+                        </div>                                        
+                    </div>
+                
+                <div class="slds-text-heading slds-m-vertical--small slds-form-element__label" style="font-size:23px">Living Expenses</div> 
+                <div class="divider10"></div>
+                                                                                                              
+                <!-- FOOD GROCERIES EXPENSE SECTION -->
+                <div style="display:{!IF($ObjectType.Expense__c.fields.Food_Groc_Entert__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                                                                  
+                        <!-- 1: FOOD GROCERIES EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Food_Groc_Entert__c">Food, groceries and entertainment</label>
+                        </section>
+                        
+                        <!-- FOOD GROCERIES EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Food_Groc_Entert__c" name="app1_Food_Groc_Entert__c" class="slds-input isAmountFood isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57"  type="text" onkeyup="validateExpenseAmount();validateSoftStopExpense();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Food_Groc_Entert__c', 'app1_Food_Groc_Interval__c'], 'app2_Food_Groc_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Food_Groc_Entert__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- FOOD GROCERIES EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Food_Groc_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- FOOD GROCERIES EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistPersonalExpenses" id="app1_Food_Groc_Interval__c" name="app1_Food_Groc_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Food_Groc_Entert__c', 'app1_Food_Groc_Interval__c'], 'app2_Food_Groc_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Food_Groc_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                     
+                       </div>                                        
+                </div>   
+                  
+                <!-- INSURANCE EXPENSE SECTION -->
+                <div style="display:{!IF($ObjectType.Expense__c.fields.Insurance_Expense__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                            <!--  2: INSURANCE EXPENSE LABEL -->
+                            <section style="display:{!IF($CurrentPage.parameters.country == 'AU', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                                <label class="slds-form-element__label req" for="app1_Insurance_Expense__c">Insurance</label>
+                            </section>
+
+                            <!--  2: INSURANCE EXPENSE LABEL -->
+                            <section style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                                <label class="slds-form-element__label req" for="app1_Insurance_Expense__c">Health and life insurance</label>
+                            </section>
+                        
+                        <!-- INSURANCE EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Insurance_Expense__c" name="app1_Insurance_Expense__c" class="slds-input isAmountInsurance isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Insurance_Expense__c', 'app1_Insurance_Expense_Interval__c'], 'app2_Insurance_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Insurance_Expense__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- INSURANCE EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Insurance_Expense_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- INSURANCE EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistInsuranceExpenses" id="app1_Insurance_Expense_Interval__c" name="app1_Insurance_Expense_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Insurance_Expense__c', 'app1_Insurance_Expense_Interval__c'], 'app2_Insurance_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Insurance_Expense_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                      </div>                                        
+                </div>   
+
+                <!-- UTILITIES EXPENSE SECTION -->
+                 <div style="display:{!IF($ObjectType.Expense__c.fields.Utilities_Expense__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                        <!--  3: UTILITIES EXPENSE LABEL -->
+                        <section style="display:{!IF($CurrentPage.parameters.country == 'AU', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Utilities_Expense__c">Utilities</label>
+                        </section>
+                        
+                         <section style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Utilities_Expense__c">General insurance</label>
+                        </section>
+                        
+                        <!-- UTILITIES EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Utilities_Expense__c" name="app1_Utilities_Expense__c" class="slds-input isAmountUtilities isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateExpenseAmount();validateSoftStopExpense();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Utilities_Expense__c', 'app1_Utilities_Expense_Interval__c'], 'app2_Utilities_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Utilities_Expense__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- UTILITIES EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Utilities_Expense_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- UTILITIES EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistUtilitiesExpenses" id="app1_Utilities_Expense_Interval__c" name="app1_Utilities_Expense_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Utilities_Expense__c', 'app1_Utilities_Expense_Interval__c'], 'app2_Utilities_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Utilities_Expense_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+    
+                      </div>                                        
+                </div>   
+                   
+                <!-- TRANSPORT EXPENSE SECTION -->
+                 <div style="display:{!IF($ObjectType.Expense__c.fields.Transport_Expense__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                        <!--  4: TRANSPORT UILITIES EXPENSE LABEL -->
+                        <section style="display:{!IF($CurrentPage.parameters.country == 'AU', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Transport_Expense__c">Transport</label>
+                        </section>
+                        
+                        <section style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Transport_Expense__c">Transport and auto</label>
+                        </section>                        
+                        
+                        <!-- TRANSPORT EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Transport_Expense__c" name="app1_Transport_Expense__c" class="slds-input isAmountTransport isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateExpenseAmount();validateSoftStopExpense();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Transport_Expense__c', 'app1_Transport_Expense_Interval__c'], 'app2_Transport_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Transport_Expense__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- TRANSPORT EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Transport_Expense_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- TRANSPORT EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistTransportExpenses" id="app1_Transport_Expense_Interval__c" name="app1_Transport_Expense_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Transport_Expense__c', 'app1_Transport_Expense_Interval__c'], 'app2_Transport_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Transport_Expense_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+
+                      </div>                                        
+                </div>  
+                 
+                 <!-- EDUCATION AND CHILDCARE EXPENSE SECTION -->    
+                 <div style="display:{!IF($ObjectType.Expense__c.fields.Education_and_child_Expense__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                        <!--  5: EDUCATION AND CHILDCARE EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Education_and_child_Expense__c">Education and childcare</label>
+                        </section>
+                        
+                        <!-- EDUCATION AND CHILDCARE EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Education_and_child_Expense__c" name="app1_Education_and_child_Expense__c" class="slds-input isAmountEducation isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Education_and_child_Expense__c', 'app1_Education_and_child_Expense_Interval__c'], 'app2_Education_and_child_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Education_and_child_Expense__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EDUCATION AND CHILDCARE EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Education_and_child_Expense_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- EDUCATION AND CHILDCARE EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistEducationExpenses" id="app1_Education_and_child_Expense_Interval__c" name="app1_Education_and_child_Expense_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Education_and_child_Expense__c', 'app1_Education_and_child_Expense_Interval__c'], 'app2_Education_and_child_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Education_and_child_Expense_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                    
+                    </div>                                                          
+                </div>  
+                
+                 <!-- PERSONAL OR OTHER EXPENSE SECTION -->
+                 <div style="display:{!IF($ObjectType.Expense__c.fields.Personal_Other_Expense__c.Updateable, 'inline' , 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                        <!--  6: PERSONAL OR OTHER EXPENSE LABEL -->
+                        <section style="display:{!IF($CurrentPage.parameters.country == 'AU', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Personal_Other_Expense__c">Personal / Other</label>
+                        </section>
+                        
+                        <section style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}" class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Personal_Other_Expense__c">Personal, fitness and medical</label>
+                        </section>
+                        
+                        <!-- PERSONAL OR OTHER EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Personal_Other_Expense__c" name="app1_Personal_Other_Expense__c" class="slds-input isAmountPersonal isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateExpenseAmount();validateSoftStopExpense();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Personal_Other_Expense__c', 'app1_Personal_Other_Expense_Interval__c'], 'app2_Personal_Other_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Personal_Other_Expense__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- PERSONAL OR OTHER EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Personal_Other_Expense_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- PERSONAL OR OTHER EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistPersonalExpenses" id="app1_Personal_Other_Expense_Interval__c" name="app1_Personal_Other_Expense_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Personal_Other_Expense__c', 'app1_Personal_Other_Expense_Interval__c'], 'app2_Personal_Other_Expense_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Personal_Other_Expense_Interval__c', 'select', '#Applicant1ExpenseSection');" />
+                            </div>
+                        </section>
+
+                     </div>
+                                        
+                </div>
+                
+                 <!-- ANY ADDITIONAL EXPENSE SECTION -->
+                 <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small">
+                    
+                        <!--  6: ANY ADDITIONAL EXPENSE LABEL -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Any_Additional_expenses__c">Any additional expenses</label>
+                        </section>
+                        
+                        <!-- ANY ADDITIONAL EXPENSE AMOUNT FIELD -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Any_Additional_expenses__c" name="app1_Any_Additional_expenses__c" class="slds-input isAmountPersonal isNumberAmount isDecimalAmount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" type="text" onkeyup="validateSoftStopExpense();validateExpenseAmount();" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Any_Additional_expenses__c', 'app1_Any_Additional_expenses_Interval__c'], 'app2_Any_Additional_expenses_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Any_Additional_expenses__c', 'input', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+                        
+                        <!-- ANY ADDITIONAL EXPENSE INTERVAL LABEL -->
+                        <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Any_Additional_expenses_Interval__c">Each</label>
+                        </section>
+                        
+                        <!-- ANY ADDITIONAL EXPENSE INTERVAL PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select interval isPicklistPersonalExpenses" id="app1_Any_Additional_expenses_Interval__c" name="app1_Any_Additional_expenses_Interval__c" onchange="validateSoftStopExpense();validateExpenseAmount();copyTooltip(['app1_Any_Additional_expenses__c', 'app1_Any_Additional_expenses_Interval__c'], 'app2_Any_Additional_expenses_Interval_tooltip');removeIgnoreIfValueSelected('#app1_Any_Additional_expenses_Interval__c', 'select', '#Applicant1ExpenseSection');"/>
+                            </div>
+                        </section>
+
+                     </div>
+                                        
+                </div>
+                
+                <!-- TOTAL EXPENSE AMOUNT SECTION -->
+                <div class="slds-grid slds-wrap slds-m-top--x-small slds-m-bottom--large">
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--right"/>
+
+                    <!-- TOTAL EXPENSE AMOUNT -->
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <label class="slds-form-element__label slds-m-right--xx-small">Total Monthly Expenses:</label>
+                        <span class="slds-form-element__static totalAmount " id="app1_totalExpenseAmount1" name="app1_totalExpenseAmount1"></span>
+                    </section>
+                                       
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                     <label  id="totalExpenseErr" style="color:red;text-align:center;"/>
+
+                </div>  
+                <!-- Soft Stop -->
+                  
+                  <div id="summaryOfWarningMsgs" style="{!if($CurrentPage.parameters.country == 'NZ','background-color:#6cb5c4',if($CurrentPage.parameters.country == 'AU','background-color:#6cb5c4',''))};display:none;" > 
+                 
+                 <br/>         
+             <div id="confirmationHeader" style="display:none;font-weight:bold;font-size:15pt;text-align:center;color:white;"><b>Are all your details correct ?</b></div>
+               <br/>
+               <div id="confirmationReview" style="display:none;font-size:15pt;text-align:center;color:white;padding-left:.5em;">Please review the following details before you continue:</div>
+               
+               <div id="mortgageWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="FoodGroc" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="InsuranceWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="UtilitiesWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="TransportWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="EducationWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               <div id="PersonalWarn" class="exp-alignment" style="display:none;color:white;font-size:18px;"/>
+               
+               <div id="mortgageWarnAmt" class="exp-alignmentAmt" style="display:none;color:white;font-size:18px;"/>
+               <div id="totalExpenseWarn" class="exp-alignmentTotal" style="display:none;color:white;font-size:18px;"/>
+               <div id="totalExpenseWarnAU" class="exp-alignmentTotal" style="display:none;color:white;font-size:18px;"/>
+                <div id="confirmationFooter" style="display:none;font-size:15pt;text-align:center;color:white;padding-left:.5em;">By proceeding you are confirming these details are correct.</div>
+              <br/>
+              </div>
+              
+              
+                <!-- End -->                                                        
+            </div>
+            
+            </section>
+            
+            <!-- COMMENTING BELOW CODE TO REMOVE EXPENSE SECTION FOR APPLICANT 2 AS PART OF RESPONSIBLE LENDING PL -->
+        <!--    <section id='Applicant2ExpenseSection' class='slds-col slds-size--1-of-2 slds-hide expenseApplicant2 sectionBorder'>
+                <div class="slds-m-bottom--medium slds-box slds-text-align--center expenseHeaderColor">
+                    <div id='NavigationImageDiv'>
+                        <img src="{!$Resource.navCircle}"/>
+                    </div>
+                    <div id='NavigationNumberText'>
+                       4
+                    </div>
+                    <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Expenses</div>
+                </div>
+                <div style="padding-right: 5%;"> -->
+        <!-- <div class="expenseApplicant2"> -->
+                <!-- RESIDENTIAL STATUS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small"  style="display:none;">
+                    
+                    <!-- RESIDENTIAL STATUS LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Res_Status__c">Residential status</label>
+                    </section>
+                    
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        
+                        <div class="slds-form--inline">
+                        
+                            <!-- RESIDENTIAL STATUS PICKLIST -->
+                            <div class="slds-form-element__control">
+                                <select class="slds-select isPicklistSpace" id="app2_Res_Status__c" name="app2_Res_Status__c" onchange="showHideExpense(this.value, 2);calculateTotalExpenseAmount();removeIgnoreIfValueSelected('#app2_Res_Status__c', 'select', '#Applicant2ExpenseSection');clearValidationMessagesBySection('#Applicant2ExpenseSection');return false;"/>
+                            </div> 
+                            
+                            <!-- RESIDENTIAL STATUS TOOLTIP -->
+                            <div class="slds-form-element__control">
+                                <span class="slds-icon__container">
+                                    <svg data-toggle="tooltip" title="" id="app2_Res_Status_tooltip" name="app2_Res_Status_tooltip" class="slds-icon slds-icon--small slds-icon-text-default" onclick="copyApplicantOne('app1_Res_Status__c','app2_Res_Status__c');showHideExpense($('#app2_Res_Status__c').val(), 2);">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS090,
+                                            'assets/icons/utility-sprite/svg/symbols.svg#copy')}" id="a" class="a"></use>
+                                    </svg>
+                                </span>
+                            </div>
+                            
+                        </div>
+                        
+                    </section> 
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+                
+                <!-- RENT SECTION -->
+               <!-- <div id="rentSection" class="slds-grid slds-wrap slds-m-top--xx-small"> -->
+                    
+                    <!-- RENT AMOUNT LABEL -->
+                   <!-- <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Rent_Board_Pay_Amt__c">My rent/board payments are</label>
+                    </section> -->
+                    
+                    <!-- RENT AMOUNT FIELD -->
+                  <!--  <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app2_Rent_Board_Pay_Amt__c" name="app2_Rent_Board_Pay_Amt__c" class="slds-input isRequired isAmount isNumberAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalExpenseAmount();"/> -->
+                     <!--   </div> -->                                                                                                                      <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                   <!-- </section> --> 
+                    
+                    <!-- RENT INTERVAL LABEL -->
+                <!--    <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Rent_Board_Pay_Int__c">Each</label>
+                    </section>
+                    
+                    <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                        <div class="slds-form--inline"> -->
+                            <!-- RENT INTERVAL PICKLIST -->
+                        <!--    <div class="slds-form-element__control">
+                                <select class="slds-select isPicklist" id="app2_Rent_Board_Pay_Int__c" name="app2_Rent_Board_Pay_Int__c" onchange="calculateTotalExpenseAmount();"/>
+                            </div> -->
+                            
+                            <!-- RENT INTERVAL TOOLTIP -->
+                         <!--   <div class="slds-form-element__control">
+                                <span class="slds-icon__container">
+                                    <svg data-toggle="tooltip" title="" id="app2_Rent_Board_Pay_Int_tooltip" name="app2_Rent_Board_Pay_Int_tooltip" class="slds-icon slds-icon--small slds-icon-text-default" onclick="copyApplicantOne(['app1_Rent_Board_Pay_Amt__c', 'app1_Rent_Board_Pay_Int__c'], ['app2_Rent_Board_Pay_Amt__c', 'app2_Rent_Board_Pay_Int__c']);calculateTotalExpenseAmount();">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS090,
+                                            'assets/icons/utility-sprite/svg/symbols.svg#copy')}" id="a" class="a"></use>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+                    
+                </div> -->
+                
+                <!-- AGENT / LANDLORD SECTION -->
+             <!--   <div id="agentSection" class="slds-grid slds-wrap slds-m-vertical--xx-small"> -->
+                    
+                    <!-- AGENT / LANDLORD LABEL -->
+                 <!--   <section class="slds-col slds-size--2-of-6 slds-text-align--right ">
+                        <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'AU', 'req', '')}" for="app2_Agent_Landlord_Name__c">Agent / Landlord name</label>
+                    </section>
+                    
+                    <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                    <div class="slds-form--inline"> -->
+                            
+                            <!-- AGENT / LANDLORD FIELD -->
+                          <!--  <div class="slds-form-element__control">
+                                <input id="app2_Agent_Landlord_Name__c" name="app2_Agent_Landlord_Name__c" class="slds-input {!IF($CurrentPage.parameters.country == 'AU', 'isRequired', '')}" type="text" maxlength="29" onkeypress="return isAlphabeticKey(event)"/> --> <!-- isMaxLength29 -->
+                           <!-- </div> -->
+                            
+                            <!-- AGENT / LANDLORD TOOLTIP -->
+                           <!-- <div class="slds-form-element__control">
+                                <span class="slds-icon__container">
+                                    <svg data-toggle="tooltip" title="" id="app2_Agent_Landlord_Name_tooltip" name="app2_Agent_Landlord_Name_tooltip" class="slds-icon slds-icon--small slds-icon-text-default" onclick="copyApplicantOne('app1_Agent_Landlord_Name__c','app2_Agent_Landlord_Name__c');">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS090,
+                                            'assets/icons/utility-sprite/svg/symbols.svg#copy')}" id="a" class="a"></use>
+                                    </svg>
+                                </span>
+                            </div>
+                            
+                        </div>
+                    </section> -->
+
+                    <!-- EMPTY SECTION -->
+               <!--     <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                    
+                </div> -->
+                
+                <!-- LIVING EXPENSE SECTION -->
+               <!-- <div style="display:{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'inline' , 'none')}"> -->
+                    
+                  <!--  <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--xx-small"> -->
+                        
+                        <!-- LIVING EXPENSE LABEL -->
+                      <!--  <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Living_Exp__c">Share of living expenses</label>
+                        </section> -->
+                        
+                        <!-- LIVING EXPENSE AMOUNT FIELD -->
+                       <!-- <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app2_Living_Exp__c" name="app2_Living_Exp__c" class="slds-input isRequired isAmount isNumberAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalExpenseAmount();removeIgnoreIfValueSelected('#app2_Living_Exp__c', 'select', '#Applicant2ExpenseSection');"/>
+                            </div>
+                        </section> -->
+                        
+                        <!-- LIVING EXPENSE INTERVAL LABEL -->
+                       <!-- <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Living_Exp_Int__c">Each</label>
+                        </section>
+                        
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form--inline">  -->
+                                <!-- LIVING EXPENSE INTERVAL PICKLIST -->
+                               <!-- <div class="slds-form-element__control">
+                                    <select class="slds-select isPicklistSpace" id="app2_Living_Exp_Int__c" name="app2_Living_Exp_Int__c" onchange="calculateTotalExpenseAmount();removeIgnoreIfValueSelected('#app2_Living_Exp_Int__c', 'select', '#Applicant2ExpenseSection');"/>
+                                </div> -->
+                                
+                                <!-- LIVING EXPENSE INTERVAL TOOLTIP -->
+                              <!--  <div class="slds-form-element__control">
+                                    <span class="slds-icon__container">
+                                        <svg data-toggle="tooltip" title="" id="app2_Living_Exp_Int_tooltip" name="app2_Living_Exp_Int_tooltip" class="slds-icon slds-icon--small slds-icon-text-default" onclick="copyApplicantOne(['app1_Living_Exp__c', 'app1_Living_Exp_Int__c'], ['app2_Living_Exp__c', 'app2_Living_Exp_Int__c']);calculateTotalExpenseAmount();">
+                                            <use xlink:href="{!URLFOR($Resource.SLDS090,
+                                                'assets/icons/utility-sprite/svg/symbols.svg#copy')}" id="a" class="a"></use>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </section> -->
+                        
+                        <!-- FOOD GROCERIES EXPENSE LABEL -->
+                       <!-- <section class="slds-col slds-size--2-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Food_Groc_Entert__c">Share of living expenses</label>
+                        </section> -->
+                        
+                        <!-- FOOD GROCERIES EXPENSE AMOUNT FIELD -->
+                      <!--  <section class="slds-col slds-size--1-of-6  slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app2_Food_Groc_Entert__c" name="app2_Food_Groc_Entert__c" class="slds-input isRequired isAmount isNumberAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalExpenseAmount();removeIgnoreIfValueSelected('#app2_Food_Groc_Entert__c', 'select', '#Applicant2ExpenseSection');"/>
+                            </div>
+                        </section> -->
+                        
+                        <!-- FOOD GROCERIES EXPENSE INTERVAL LABEL -->
+                      <!--  <section class="slds-col slds-size--1-of-6  slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Food_Groc_Interval__c">Each</label>
+                        </section>
+                        
+                        <section class="slds-col slds-size--2-of-6  slds-text-align--left">
+                            <div class="slds-form--inline"> -->
+                                <!-- LIVING EXPENSE INTERVAL PICKLIST -->
+                              <!--  <div class="slds-form-element__control">
+                                    <select class="slds-select isPicklistSpace" id="app2_Food_Groc_Interval__c" name="app2_Food_Groc_Interval__c" onchange="calculateTotalExpenseAmount();removeIgnoreIfValueSelected('#app2_Food_Groc_Interval__c', 'select', '#Applicant2ExpenseSection');"/>
+                                </div> -->
+                                
+                                <!-- FOOD GROCERIES EXPENSE INTERVAL TOOLTIP -->
+                               <!-- <div class="slds-form-element__control">
+                                    <span class="slds-icon__container">
+                                        <svg data-toggle="tooltip" title="" id="app2_Food_Groc_Interval__c_tooltip" name="app2_Food_Groc_Interval__c_tooltip" class="slds-icon slds-icon--small slds-icon-text-default" onclick="copyApplicantOne(['app1_Food_Groc_Entert__c', 'app1_Food_Groc_Interval__c'], ['app2_Food_Groc_Entert__c', 'app2_Food_Groc_Interval__c']);calculateTotalExpenseAmount();">
+                                            <use xlink:href="{!URLFOR($Resource.SLDS090,
+                                                'assets/icons/utility-sprite/svg/symbols.svg#copy')}" id="a" class="a"></use>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </section> 
+
+
+                    </div>
+                    
+                </div> -->
+
+                <!-- TOTAL EXPENSE AMOUNT SECTION -->
+             <!--   <div class="slds-grid slds-wrap slds-m-top--x-small slds-m-bottom--large"> -->
+                    
+                    <!-- EMPTY SECTION -->
+                  <!--  <section class="slds-col slds-size--2-of-6  slds-text-align--right"/> -->
+
+                    <!-- TOTAL EXPENSE AMOUNT -->
+                  <!--  <section class="slds-col slds-size--3-of-6 slds-text-align--left">
+                        <label class="slds-form-element__label slds-m-right--xx-small">Total Monthly Expenses:</label>
+                        <span class="slds-form-element__static totalAmount" id="app2_totalExpenseAmount1" name="app2_totalExpenseAmount1"></span>
+                    </section> -->
+
+                    <!-- EMPTY SECTION -->
+                  <!--  <section class="slds-col slds-size--1-of-6 slds-text-align--left"/> 
+
+                </div>
+            </div>
+            </section> -->
+            
+        </div>
+    
+        <script>
+            var countryComp = '{!JSENCODE($CurrentPage.parameters.country)}';
+            
+            /*  Description: Toggle sections based on residential status
+             *  Author: Mike Lasala
+             *  Date Created: 07-OCT-2015
+             *  Input: Residential Status, 
+                       Applicant
+             */
+            function showHideExpense(residentialStatus, applicant){
+                
+                //Identify expense element (applicant 1 or 2)
+                var expense = $('#Applicant'+applicant+'ExpenseSection');
+                
+                //Clear fields
+                $('#app'+applicant+'_I_Pay_All_Exp__c').val(' ');
+                $('#app'+applicant+'_Living_Exp__c').val('');
+                $('#app'+applicant+'_Living_Exp_Int__c').val(' ');
+                $('#app'+applicant+'_Rent_Board_Pay_Amt__c').val('');
+                $('#app'+applicant+'_Rent_Board_Pay_Int__c').val('');
+                $('#app'+applicant+'_Agent_Landlord_Name__c').val('');
+                    
+                if(residentialStatus == 'Renting' || 
+                   residentialStatus == 'Boarding with Parents' || 
+                   residentialStatus == 'Boarding Other'){
+                    
+                    //Clear rent fields
+                    $('#app'+applicant+'_Rent_Board_Pay_Amt__c').val('');
+                    $('#app'+applicant+'_Rent_Board_Pay_Int__c').val('');
+                    $('#app'+applicant+'_Agent_Landlord_Name__c').val('');
+                    
+                    if(countryComp == 'AU'){
+                    //Show rent section
+                    expense.find('#rentSection').show();
+                    }
+                    
+                    if(residentialStatus == 'Renting'){
+                    
+                        //Show agent/landlord section
+                        // if(country == 'AU')
+                            expense.find('#agentSection').show();
+                    } else {
+                    
+                        //Hide agent/landlord section
+                        // if(country == 'AU')
+                            expense.find('#agentSection').hide();
+                    }
+                    
+                } else {
+                
+                    //Hide rent section
+                    expense.find('#rentSection').hide();
+                    
+                    //Hide agent/landlord section
+                    expense.find('#agentSection').hide();
+                }
+                
+                calculateTotalExpenseAmount();
+            }
+                       
+            
+            /*  Description: Calculate total expense amount
+             *  Author: Mike Lasala
+             *  Date Created: 19-OCT-2015
+             *  Input: None
+             */
+            function calculateTotalExpenseAmount(){
+                
+                var totalExpenseAmount;
+                var applicants = 1;
+                
+                //Identify if application is joint by checking if expense 2 section is displayed
+                
+              /* Commenting the expense section for Applicant 2
+               *  if($('.expenseApplicant2').css('display') == 'block'){
+               *     applicants = 2;
+               * }
+               */
+                
+                //Iterate over each applicant's expense record
+                for(var i=1; i<=applicants; i++){
+                    
+                    totalExpenseAmount = 0;
+                    
+                    //Identify residential status
+                    var residentialStatus = $('#app'+i+'_Res_Status__c').val();
+                        
+                    if(residentialStatus != ' '){
+                    
+                        if(countryComp == 'AU'){
+                           
+                            if(Number($('#app'+i+'_Living_Exp__c').val()) >= 0){
+                                
+                                //Calculate living expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Living_Exp__c').val()), $('#app'+i+'_Living_Exp_Int__c').val());
+                                console.log('Living Expense Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Food_Groc_Entert__c').val()) >= 0){
+                                
+                                //Calculate food groceries entertainment expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Food_Groc_Entert__c').val()), $('#app'+i+'_Food_Groc_Interval__c').val());
+                                console.log('Food Groc Expense Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Insurance_Expense__c').val()) >= 0){
+                                
+                                //Calculate insurance expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Insurance_Expense__c').val()), $('#app'+i+'_Insurance_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Utilities_Expense__c').val()) >= 0){
+                                
+                                //Calculate utilities expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Utilities_Expense__c').val()), $('#app'+i+'_Utilities_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Transport_Expense__c').val()) >= 0){
+                                
+                                //Calculate utilities expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Transport_Expense__c').val()), $('#app'+i+'_Transport_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Education_and_child_Expense__c').val()) >= 0){
+                                
+                                //Calculate utilities expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Education_and_child_Expense__c').val()), $('#app'+i+'_Education_and_child_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Personal_Other_Expense__c').val()) >= 0){
+                                
+                                //Calculate utilities expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Personal_Other_Expense__c').val()), $('#app'+i+'_Personal_Other_Expense_Interval__c').val());
+                            }
+
+                        } else if(countryComp == 'NZ'){
+                           
+                            if(Number($('#app'+i+'_Mortgage_Rent_Board__c').val()) >= 0){
+                                
+                                //Calculate Mortgage expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Mortgage_Rent_Board__c').val()), $('#app'+i+'_Mortgage_Rent_Board_Interval__c').val());
+                                console.log('Mortgate rent,board Amount $$ '+totalExpenseAmount);
+                                
+                            }
+
+                            if(Number($('#app'+i+'_Secondary_Mortgage_Rent__c').val()) >= 0){
+                                
+                                //Calculate Secondary Mortgage expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Secondary_Mortgage_Rent__c').val()), $('#app'+i+'_Secondary_Mortgage_Rent_Interval__c').val());
+                                console.log(' Secondary Mortgate rent,board Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Property_rates__c').val()) >= 0){
+                                
+                                //Calculate Mortgage expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Property_rates__c').val()), $('#app'+i+'_Property_rates_Interval__c').val());
+                                console.log('Property Rates Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Other_Property_Expenses__c').val()) >= 0){
+                                
+                                //Calculate Mortgage expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Other_Property_Expenses__c').val()), $('#app'+i+'_Other_Property_Expenses_Interval__c').val());
+                                console.log('Other Property Rates Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Food_Groc_Entert__c').val()) >= 0){
+                                
+                                //Calculate food groceries entertainment expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Food_Groc_Entert__c').val()), $('#app'+i+'_Food_Groc_Interval__c').val());
+                                console.log('Food Groc Expense Amount $$ '+totalExpenseAmount);
+                            }
+
+                            if(Number($('#app'+i+'_Insurance_Expense__c').val()) >= 0){
+                                
+                                //Calculate insurance expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Insurance_Expense__c').val()), $('#app'+i+'_Insurance_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Utilities_Expense__c').val()) >= 0){
+                                
+                                //Calculate utilities expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Utilities_Expense__c').val()), $('#app'+i+'_Utilities_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Transport_Expense__c').val()) >= 0){
+                                
+                                //Calculate Transport expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Transport_Expense__c').val()), $('#app'+i+'_Transport_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Education_and_child_Expense__c').val()) >= 0){
+                                
+                                //Calculate Education expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Education_and_child_Expense__c').val()), $('#app'+i+'_Education_and_child_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Personal_Other_Expense__c').val()) >= 0){
+                                
+                                //Calculate Personal expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Personal_Other_Expense__c').val()), $('#app'+i+'_Personal_Other_Expense_Interval__c').val());
+                            }
+
+                            if(Number($('#app'+i+'_Any_Additional_expenses__c').val()) >= 0){
+                                
+                                //Calculate Any Additional expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Any_Additional_expenses__c').val()), $('#app'+i+'_Any_Additional_expenses_Interval__c').val());
+                            }
+                        
+                        }
+                        
+                        if(residentialStatus == 'Renting' || 
+                           residentialStatus == 'Boarding with Parents' || 
+                           residentialStatus == 'Boarding Other'){
+                            
+                            if(Number($('#app'+i+'_Rent_Board_Pay_Amt__c').val()) >= 0){
+                            
+                                //Calculate rent expense amount
+                                totalExpenseAmount += calculateInterval(Number($('#app'+i+'_Rent_Board_Pay_Amt__c').val()), $('#app'+i+'_Rent_Board_Pay_Int__c').val());
+                            }
+                        }
+                    }
+                    
+                    totalExpenseAmount = Number(totalExpenseAmount).toFixed(2);  
+
+                    $('#app'+i+'_totalExpenseAmount1').text('$'+addCommas(totalExpenseAmount));
+                    
+                }
+            }
+            
+            /*  Description: Initialize picklist values
+             *  Author: Mike Lasala
+             *  Date Created: 12-OCT-2015
+             *  Input: HTML element, Counter, Year or Month
+             */
+            function init(){
+                
+                //Set default picklist values
+                setDefaulPicklistValue('#expenseWrapper');
+                
+                //Initialize picklist values for pay all select
+                $("#app1_I_Pay_All_Exp__c").append( $("<option>").val(true).html('Yes, I pay all the expenses'));
+                $("#app1_I_Pay_All_Exp__c").append( $("<option>").val(false).html('No, others contribute to the expenses'));
+
+                    
+               
+               
+               
+                //Add picklist options for payment interval
+               /* for(var i = 1; i <= 2; i++){ */
+                for(var i = 1; i < 2; i++){      
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('').html('Please Select'));          
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('Week').html('Week'));
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('Fortnight').html('Fortnight'));
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('Month').html('Month'));
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('Quarter').html('Quarter'));
+                    $("#app"+i+"_Rent_Board_Pay_Int__c").append( $("<option>").val('Year').html('Year'));
+                } 
+
+                if(countryComp == 'NZ'){
+                    var expense1 = $('#Applicant1ExpenseSection');
+                    expense1.find('#agentSection').hide();
+                    var expense2 = $('#Applicant2ExpenseSection');
+                    expense2.find('#agentSection').hide();
+                }
+
+            }
+        
+            init();
+            
+            //Hide dynamic sections on load
+            showHideExpense('', 1);
+          //  showHideExpense('', 2);
+            
+            /*********************Toggle Panel************************************/
+            $("#Applicant1ExpenseSection").click(function(){
+                $("#expenseWrapper").animate({"left":"0px"}, "slow");
+                $("#Applicant2ExpenseSection").css("opacity",0.4);
+                $("#Applicant1ExpenseSection").css("opacity",1.0);
+            });
+            
+         /*
+          *  $("#Applicant2ExpenseSection").click(function(){
+          *      $("#expenseWrapper").animate({"left":"-30%"}, "slow");
+          *      $("#Applicant1ExpenseSection").css("opacity",0.4);
+          *      $("#Applicant2ExpenseSection").css("opacity",1.0);
+          *  });
+          */
+        
+        
+            /****************************SUBMIT**********************************/
+            
+            /*  Description: Create Liability records
+            *  Author: Tony Xu
+            *  Date Created: 2015-10-28
+            *  Input: None
+            */
+            function mapExpense(){
+                
+                var resStatus1;
+                var resStatus;
+                //Iterate over applicant/s
+               // for(var i=1; i<=applicant.length; i++){
+                for(var i=1; i<2; i++){                    
+                    if(getValue('app'+i+'_Res_Status__c') != ' '){
+                    
+                        //Create Object
+                        var expense = new sforce.SObject('Expense__c');
+                        
+                        //Mapping the fields
+                        resStatus = getValue('app'+i+'_Res_Status__c');
+                        
+                        if({!$ObjectType.Expense__c.fields.Living_Exp__c.Updateable} && 
+                            getValue('app'+i+'_Living_Exp_Int__c') != ' '){
+                                
+                            expense.Living_Exp__c = getValue('app'+i+'_Living_Exp__c');
+                            expense.Living_Exp_Int__c = getValue('app'+i+'_Living_Exp_Int__c');
+                        }
+                                              
+                      if(country == 'NZ'){
+                        if({!$ObjectType.Expense__c.fields.Secondary_Mortgage_Rent__c.Updateable} && 
+                            (getValue('app'+i+'_Secondary_Mortgage_Rent_Interval__c') != ' ' || getValue('app'+i+'_Secondary_Mortgage_Rent__c') == 0)){
+                                
+                            expense.Secondary_Mortgage_Rent__c = getValue('app'+i+'_Secondary_Mortgage_Rent__c');
+                            expense.Secondary_Mortgage_Rent_Interval__c= getValue('app'+i+'_Secondary_Mortgage_Rent_Interval__c');
+                        }
+
+                        if({!$ObjectType.Expense__c.fields.Property_rates__c .Updateable} && 
+                            (getValue('app'+i+'_Property_rates_Interval__c') != ' ' || getValue('app'+i+'_Property_rates__c') == 0)){
+                                
+                            expense.Property_rates__c = getValue('app'+i+'_Property_rates__c');
+                            expense.Property_rates_Interval__c= getValue('app'+i+'_Property_rates_Interval__c');
+                        }
+
+                        if({!$ObjectType.Expense__c.fields.Other_Property_Expenses__c .Updateable} && 
+                            (getValue('app'+i+'_Other_Property_Expenses_Interval__c') != ' ' || getValue('app'+i+'_Other_Property_Expenses__c') == 0)){
+                                
+                            expense.Other_Property_Expenses__c = getValue('app'+i+'_Other_Property_Expenses__c');
+                            expense.Other_Property_Expenses_Interval__c = getValue('app'+i+'_Other_Property_Expenses_Interval__c');
+                        }
+                        
+                        if({!$ObjectType.Expense__c.fields.Any_Additional_expenses__c.Updateable} && 
+                            (getValue('app'+i+'_Any_Additional_expenses_Interval__c') != ' ' || getValue('app'+i+'_Any_Additional_expenses__c') == 0)){
+                                
+                            expense.Any_Additional_expenses__c = getValue('app'+i+'_Any_Additional_expenses__c');
+                            expense.Any_Additional_expenses_Interval__c = getValue('app'+i+'_Any_Additional_expenses_Interval__c');
+                        }
+                        
+                     }
+                        if({!$ObjectType.Expense__c.fields.Food_Groc_Entert__c .Updateable} && 
+                            (getValue('app'+i+'_Food_Groc_Interval__c') != ' ' || getValue('app'+i+'_Food_Groc_Entert__c') == 0)){
+                                
+                            expense.Food_Groc_Entert__c = getValue('app'+i+'_Food_Groc_Entert__c');
+                            expense.Food_Groc_Interval__c = getValue('app'+i+'_Food_Groc_Interval__c');
+                        }
+                        
+                        // Insurance
+                        if({!$ObjectType.Expense__c.fields.Insurance_Expense__c.Updateable} && 
+                            (getValue('app'+i+'_Insurance_Expense_Interval__c') != ' ' || getValue('app'+i+'_Insurance_Expense__c') == 0)){
+                                
+                            expense.Insurance_Expense__c = getValue('app'+i+'_Insurance_Expense__c');
+                            expense.Insurance_Expense_Interval__c = getValue('app'+i+'_Insurance_Expense_Interval__c');
+                        }
+
+                        // Utilities
+                        if({!$ObjectType.Expense__c.fields.Utilities_Expense__c.Updateable} && 
+                            (getValue('app'+i+'_Utilities_Expense_Interval__c') != ' ' || getValue('app'+i+'_Utilities_Expense__c') == 0)){
+                                
+                            expense.Utilities_Expense__c = getValue('app'+i+'_Utilities_Expense__c');
+                            expense.Utilities_Expense_Interval__c = getValue('app'+i+'_Utilities_Expense_Interval__c');
+                        }
+
+                        // Transport
+                        if({!$ObjectType.Expense__c.fields.Transport_Expense__c.Updateable} && 
+                            (getValue('app'+i+'_Transport_Expense_Interval__c') != ' ' || getValue('app'+i+'_Transport_Expense__c') == 0)){
+                                
+                            expense.Transport_Expense__c = getValue('app'+i+'_Transport_Expense__c');
+                            expense.Transport_Expense_Interval__c = getValue('app'+i+'_Transport_Expense_Interval__c');
+                        }
+
+                        // Education
+                        if({!$ObjectType.Expense__c.fields.Education_and_child_Expense__c.Updateable} && 
+                            (getValue('app'+i+'_Education_and_child_Expense_Interval__c') != ' ' || getValue('app'+i+'_Education_and_child_Expense__c') == 0)){
+                                
+                            expense.Education_and_child_Expense__c = getValue('app'+i+'_Education_and_child_Expense__c');
+                            expense.Education_and_child_Expense_Interval__c = getValue('app'+i+'_Education_and_child_Expense_Interval__c');
+                        }
+
+                        // Personal
+                        if({!$ObjectType.Expense__c.fields.Personal_Other_Expense__c.Updateable} && 
+                            (getValue('app'+i+'_Personal_Other_Expense_Interval__c') != ' ' || getValue('app'+i+'_Personal_Other_Expense__c') == 0)){
+                                
+                            expense.Personal_Other_Expense__c = getValue('app'+i+'_Personal_Other_Expense__c');
+                            expense.Personal_Other_Expense_Interval__c = getValue('app'+i+'_Personal_Other_Expense_Interval__c');
+                        }
+
+                        expense.Total_Exp__c = (($('#app'+i+'_totalExpenseAmount1').text()).substring(1)).replace(/,/g, '');
+                        expense.Applicant__c = applicant[i-1].Id;
+                        console.log('Size of Applicant' + applicant.length);                                                 
+                        
+                        if(applicant.length == 1){
+                               
+                            expense.I_Pay_All_Exp__c = getValue('app'+i+'_I_Pay_All_Exp__c') == ' ' ? false : getValue('app'+i+'_I_Pay_All_Exp__c');
+                        }else if(applicant.length == 2 && country == 'NZ'){
+                            expense.I_Pay_All_Exp__c = getValue('app'+i+'_I_Pay_All_Exp__c') == ' ' ? false : getValue('app'+i+'_I_Pay_All_Exp__c');                        
+                        }
+
+                        if((resStatus == 'Renting' || 
+                           resStatus == 'Boarding with Parents' || 
+                           resStatus == 'Boarding Other')  && country == 'AU'){
+                           
+                            expense.Rent_Board_Pay_Amt__c = getValue('app'+i+'_Rent_Board_Pay_Amt__c');
+                            expense.Rent_Board_Pay_Int__c = getValue('app'+i+'_Rent_Board_Pay_Int__c');
+                            
+                            if(resStatus == 'Renting'){
+                                expense.Agent_Landlord_Name__c = getValue('app'+i+'_Agent_Landlord_Name__c');
+                            }
+                        } else if( country == 'NZ'){
+                           expense.Rent_Board_Pay_Amt__c = getValue('app'+i+'_Mortgage_Rent_Board__c');
+                           expense.Rent_Board_Pay_Int__c = getValue('app'+i+'_Mortgage_Rent_Board_Interval__c');
+                           expense.Agent_Landlord_Name__c = getValue('app'+i+'_Agent_Landlord_Name__c');
+                        }
+                         expenses.push(expense); 
+                    }
+                }
+                if(applicant.length > 1){
+                  var expense1 = new sforce.SObject('Expense__c');                                
+                     expense1.Applicant__c = applicant[1].Id;
+                     
+                     expenses.push(expense1);
+                  }
+
+                
+                console.log('expenses: '+expenses);
+                debugLog('Expenses Data',expenses);
+            }
+            
+            function copyResStatus(){
+               console.log('Copied Res Status Entered');
+               var resStatusOne = document.getElementById('app1_Res_Status__c');
+               var resStatusTwo = document.getElementById('app2_Res_Status__c');
+               resStatusTwo.value = resStatusOne.value;
+               console.log('Residential Two Value ??? ' + resStatusTwo.value);
+            }
+        </script>
+    
+    </html>
+    
+</apex:component>

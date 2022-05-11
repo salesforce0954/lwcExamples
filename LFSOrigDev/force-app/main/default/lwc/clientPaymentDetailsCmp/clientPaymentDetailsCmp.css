@@ -1,0 +1,21 @@
+.UD_medium-text{
+    font-size: medium;
+}
+
+.UD_large-text{
+    font-size: large;
+}
+
+.UD_xlarge-text{
+    font-size: x-large;
+}
+
+.optional-tag{
+    --sds-c-badge-text-color: orange;
+    --sds-c-badge-color-border: orange;
+    --sds-c-badge-color-background: white;
+}
+
+.dd-dc-toggle {
+    width: fit-content;
+}

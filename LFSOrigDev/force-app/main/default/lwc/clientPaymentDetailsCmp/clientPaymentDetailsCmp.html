@@ -1,0 +1,544 @@
+<template>
+    <template if:true={showSpinner}>
+        <c-application-spinner></c-application-spinner>
+    </template>
+
+    <template if:true={finishLoad}>
+        <article class="slds-card">
+            <div class="slds-grid slds-var-m-around_small">
+                <div class="slds-col slds-no-flex">
+                    <lightning-icon icon-name="utility:money">
+                        alternative-text="Payment Details" title="Payment Details" size="x-small">
+                    </lightning-icon>
+                </div>
+                <div class="slds-col slds-align-middle slds-text-heading_medium slds-text-title_bold slds-m-left_medium">
+                    <p>Set Up Payment Details</p>
+                </div>
+            </div>             
+            <div class="slds-box slds-var-m-around_small">
+                <div id="client_payment_details_header" class="slds-p-bottom_small slds-border_bottom">
+                    <div class="slds-text-heading_medium slds-text-title_bold">
+                        <p>Application Details</p>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Applicant Name:&nbsp;</b>
+                            <lightning-formatted-text value={fullName}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Loan Number:&nbsp;</b>
+                            <lightning-formatted-text value={loanNumber}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Application Status:&nbsp;</b>
+                            <lightning-formatted-text value={applicationStatus}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="client_payment_details_body" class="slds-m-around_medium">
+                    <lightning-tabset variant="scoped">
+                        <template if:true={showDirectCredit}>
+                            <lightning-tab label="Deposit loan funds" class="slds-theme_shade" icon-name="custom:custom17"> 
+                                <div class="applicant_direct_credit_section slds-var-m-vertical_x-large">
+                                    <div class="UD_xlarge-text slds-text-title_bold slds-var-m-bottom_medium slds-m-vertical_large">
+                                        <p>Provide bank details for depositing loan funds <span class="slds-badge optional-tag slds-m-left_small">Optional</span></p>
+                                    </div>
+
+                                    <div class="slds-m-vertical-large slds-text-title_bold">
+                                        <p>This is where your client's loan funds will be deposited</p>
+                                    </div>
+
+                                    <div class="slds-m-vertical_large">
+                                        <ul class="slds-list_dotted">
+                                            <li>Bank account must be in the name of the loan applicant</li>
+                                            <li>Trust funds or business accounts can't be used to deposit loan funds</li>
+                                            <li>Please call us on <b>1800 035 902</b> or email <b><lightning-formatted-email
+                                                hide-icon label="brokerpersonalloans@latitudefinancial.com" value="brokerpersonalloans@latitudefinancial.com"></lightning-formatted-email></b> if:<br>
+                                                <ul class="slds-list_dotted">
+                                                    <li>Your client requires more than one disbursement</li>
+                                                    <li>You need to edit previously submitted bank account details</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+        
+                                    <template if:true={directCreditExist}>
+                                        <div class="slds-m-vertical_large">
+                                            <div class="slds-grid">
+                                                <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                                    <div class="slds-grid slds-wrap slds-gutters">
+        
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-01">Loan amount</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-number value={dcLoanAmount} format-style="currency"></lightning-formatted-number>
+                                                                </div>
+                                                            </div>
+                                                        </div>  
+        
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-06">Account name</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-text value={directCreditObj.accountName}></lightning-formatted-text>
+                                                                </div>
+                                                            </div>
+                                                        </div>                                               
+            
+                                                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-07">BSB</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-text value={directCreditObj.bsb}></lightning-formatted-text>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_8-of-12 slds-large-size_8-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-08">Account number</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-text value={directCreditObj.accountNumber}></lightning-formatted-text>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+            
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label" for="form-element-09">Bank
+                                                                    name</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-text value={directCreditObj.bankName}></lightning-formatted-text>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+            
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label" for="form-element-10">Branch
+                                                                    location</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-text value={directCreditObj.branchLocation}></lightning-formatted-text>
+                                                                </div>
+                                                            </div>
+                                                        </div>    
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+        
+                                    <template if:false={directCreditExist}>
+                                        <div class="slds-m-vertical_large">
+                                            <div class="slds-grid">
+                                                <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                                    <div class="slds-grid slds-wrap slds-gutters">
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-01">Loan amount</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-formatted-number value={dcLoanAmount} format-style="currency"></lightning-formatted-number>
+                                                                </div>
+                                                            </div>
+                                                        </div> 
+        
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-06">Account name</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-input type="text" 
+                                                                    message-when-value-missing="Enter an account name"
+                                                                    class="dc-lightning-input dc-accountName" max-length="30" name="directCreditAccountName" onblur={handleDirectCreditFields} variant="label-hidden" value={directCreditObj.accountName} required></lightning-input>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+        
+                                                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-07">BSB</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-input 
+                                                                    message-when-value-missing="Enter BSB number"
+                                                                    type="text" class="dc-lightning-input dc-bsb" pattern="[0-9]*" 
+                                                                    onkeypress={handleNumberOnly}
+                                                                    message-when-pattern-mismatch="Enter a 6 digit BSB number"
+                                                                    message-when-too-short="Enter a 6 digit BSB number"
+                                                                    name="directCreditBSB" onblur={handleDirectCreditFields} min-length="6" max-length="6" variant="label-hidden" value={directCreditObj.bsb} required></lightning-input>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_8-of-12 slds-large-size_8-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="form-element-08">Account number</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-input type="text" 
+                                                                    message-when-value-missing="Enter an account number"
+                                                                    class="dc-lightning-input" 
+                                                                    pattern= "[0-9]*" 
+                                                                    message-when-pattern-mismatch="Enter an account number between 1-15 digits" 
+                                                                    name="directCreditAccountNumber" 
+                                                                    onblur={handleDirectCreditFields} 
+                                                                    onkeypress={handleNumberOnly}
+                                                                    variant="label-hidden" 
+                                                                    min-length="1" 
+                                                                    max-length="15" 
+                                                                    value={directCreditObj.accountNumber} required></lightning-input>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+            
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label" for="form-element-09">Bank
+                                                                    name</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-input type="text" 
+                                                                    message-when-value-missing="Enter a bank name" 
+                                                                    max-length="30"
+                                                                    class="dc-lightning-input" 
+                                                                    name="directCreditBankName" 
+                                                                    onkeypress={handleAlphaNumeric}
+                                                                    onblur={handleDirectCreditFields} 
+                                                                    variant="label-hidden" 
+                                                                    value={directCreditObj.bankName} required></lightning-input>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+            
+                                                        <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label" for="form-element-10">Branch
+                                                                    location</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <lightning-input type="text" 
+                                                                    message-when-value-missing="Enter a branch location" 
+                                                                    class="dc-lightning-input" 
+                                                                    name="directCreditBranchLocation" 
+                                                                    max-length="100"
+                                                                    onkeypress={handleAlphaNumeric}
+                                                                    onblur={handleDirectCreditFields} 
+                                                                    variant="label-hidden" 
+                                                                    value={directCreditObj.branchLocation} required></lightning-input>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+        
+                                                        <div class="slds-col slds-size_2-of-12 slds-var-m-vertical_large">
+                                                            <button class="slds-button slds-button_brand" onclick={handleSaveDirectCredit}>Submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>                                
+                            </lightning-tab>
+                        </template>
+                        <template if:true={showDirectDebit}>
+                            <lightning-tab label="Direct debit repayments" class="slds-theme_shade" icon-name="custom:custom16">
+                                    <div class="applicant_direct_debit_section slds-var-m-vertical_x-large">
+                                        <div class="UD_xlarge-text slds-text-title_bold slds-var-m-bottom_medium slds-m-vertical_large">
+                                            <p>Set up direct debit for loan repayments <span class="slds-badge optional-tag slds-m-left_small">Optional</span></p>
+                                        </div>
+
+                                        <div class="slds-m-vertical-large slds-text-title_bold">
+                                            <p>This is where your client's loan repayments will be made from</p>
+                                        </div>
+
+                                        <div class="slds-m-vertical_large">
+                                            <ul class="slds-list_dotted">
+                                                <li>Bank account must be in the name of the loan applicant</li>
+                                                <li>Credit cards (e.g. Visa, Mastercard etc.) can't be used for direct debit</li>
+                                                <li>Please call us on <b>1800 035 902</b> or email <b><lightning-formatted-email
+                                                    hide-icon label="brokerpersonalloans@latitudefinancial.com" value="brokerpersonalloans@latitudefinancial.com"></lightning-formatted-email></b> if:<br>
+                                                    <ul class="slds-list_dotted">
+                                                        <li>Your client would like to make repayments via BPAY® or from a joint bank account</li>
+                                                        <li>You need to edit previously submitted bank account details</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </div>
+            
+                                        <template if:true={directDebitExist}>
+                                            <div class="slds-m-vertical_large">
+                                                <div class="slds-grid">
+                                                    <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                                        <div class="slds-grid slds-wrap slds-gutters">
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-01">Account name</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.accountName}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                
+                                                            <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-02">BSB</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.bsb}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-col slds-small-size_12-of-12 slds-medium-size_8-of-12 slds-large-size_8-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-03">Account number</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.accountNumber}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label" for="form-element-09">Bank
+                                                                        name</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.bankName}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label" for="form-element-10">Branch
+                                                                        location</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.branchLocation}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+            
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-05">Repayment frequency</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.frequencyOfDirectDebit}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+            
+                                                            <!--<div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-05">Minimum repayment amount or higher ?</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-text value={directDebitObj.repaymentLevel}></lightning-formatted-text>
+                                                                    </div>
+                                                                </div>
+                                                            </div> 
+                                                            
+                                                            <template if:true={minimumRepayment}>
+                                                                <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                    <div class="slds-form-element">
+                                                                        <label class="slds-form-element__label"
+                                                                            for="form-element-05">Higher payment amount</label>
+                                                                        <div class="slds-form-element__control">
+                                                                            <lightning-formatted-number value={directDebitObj.higherPaymentAmount} format-style="currency"></lightning-formatted-number>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>  
+                                                            </template>-->                                              
+                
+                                                            <!--<div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-05">Preferred start date</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-formatted-date-time  value={directDebitObj.preferredStartDate}></lightning-formatted-date-time>
+                                                                    </div>
+                                                                </div>
+                                                            </div>-->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                
+                                        <template if:false={directDebitExist}>
+                                            <template if:false={hasAnotherCredit}>
+                                                <div class="slds-m-vertical_large">
+                                                    <div class="slds-form-element dd-dc-toggle">
+                                                        <label class="slds-checkbox_toggle slds-grid">
+                                                        <span class="slds-form-element__label slds-m-bottom_none">Use the same bank account where loan funds will be deposited?</span>
+                                                        <input type="checkbox" name="checkbox-toggle-16" aria-describedby="checkbox-toggle-16" checked={sameAccountToggle} onclick={handleDirectDebitToggle}/>
+                                                        <span id="checkbox-toggle-16" class="slds-checkbox_faux_container" aria-live="assertive">
+                                                            <span class="slds-checkbox_faux"></span>
+                                                            <span class="slds-checkbox_on">Yes</span>
+                                                            <span class="slds-checkbox_off">No</span>
+                                                        </span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <div class="slds-m-vertical_large">
+                                                <div class="slds-grid">
+                                                    <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                                        <div class="slds-grid slds-wrap slds-gutters">
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-01">Account name</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-input 
+                                                                        message-when-value-missing="Enter an account name" class="dd-lightning-input dd-accountName" max-length="30" type="text" name="directDebitAccountName" variant="label-hidden" value={directDebitObj.accountName} onblur={handleDirectDebitFields} required></lightning-input>
+                                                                    </div>
+                                                                </div>
+                                                            </div>                                               
+                
+                                                            <div class="slds-col slds-small-size_12-of-12 slds-medium-size_4-of-12 slds-large-size_4-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-02">BSB</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-input message-when-value-missing="Enter BSB number" class="dd-lightning-input dd-bsb" type="text" pattern="[0-9]*" 
+                                                                        message-when-too-short="Enter a 6 digit BSB number" onkeypress={handleNumberOnly}
+                                                                        message-when-pattern-mismatch="Enter a 6 digit BSB number" min-length="6" max-length="6" name="directDebitBSB" variant="label-hidden" value={directDebitObj.bsb} onblur={handleDirectDebitFields} required></lightning-input>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-col slds-small-size_12-of-12 slds-medium-size_8-of-12 slds-large-size_8-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label"
+                                                                        for="form-element-03">Account number</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-input
+                                                                        message-when-value-missing="Enter an account number" 
+                                                                        class="dd-lightning-input dd-accountNumber" 
+                                                                        onkeypress={handleNumberOnly}
+                                                                        type="text" pattern= "[0-9]*" message-when-pattern-mismatch="Enter an account number between 1-15 digits" name="directDebitAccountNumber" variant="label-hidden" min-length="1" max-length="15" value={directDebitObj.accountNumber} onblur={handleDirectDebitFields} required></lightning-input>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label" for="form-element-09">Bank
+                                                                        name</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-input type="text" class="dd-lightning-input" 
+                                                                        message-when-value-missing="Enter a bank name"
+                                                                        name="directDebitBankName" onblur={handleDirectDebitFields} 
+                                                                        max-length="30"
+                                                                        onkeypress={handleAlphaNumeric}
+                                                                        variant="label-hidden" value={directDebitObj.bankName} required></lightning-input>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label" for="form-element-10">Branch
+                                                                        location</label>
+                                                                    <div class="slds-form-element__control">
+                                                                        <lightning-input type="text" class="dd-lightning-input" 
+                                                                        message-when-value-missing="Enter a branch location"
+                                                                        name="directDebitBranchLocation"
+                                                                        max-length="100" 
+                                                                        onkeypress={handleAlphaNumeric}
+                                                                        onblur={handleDirectDebitFields} variant="label-hidden" value={directDebitObj.branchLocation} required></lightning-input>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+            
+                                                            <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <lightning-combobox
+                                                                class="dd-lightning-input"
+                                                                name="directDebitFrequencyOfDebit"
+                                                                label="Repayment frequency"
+                                                                value={directDebitObj.frequencyOfDirectDebit}
+                                                                message-when-value-missing="Please select an option"
+                                                                placeholder="Please select"
+                                                                options={frequencyPicklist}
+                                                                onchange={handleFrequenceChange} 
+                                                                required></lightning-combobox>                                                
+                                                            </div>
+                
+                                                            <!--<template if:true={repaymentFrequencySelected}>
+                                                                <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                    <div class="slds-form-element">
+                                                                        <label class="slds-form-element__label"
+                                                                            for="form-element-05">Preferred start date</label>
+                                                                        <div class="slds-form-element__control">
+                                                                            <lightning-formatted-text  value={directDebitObj.preferredStartDate}></lightning-formatted-text>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </template>-->
+            
+                                                            <!--<div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                <lightning-combobox
+                                                                class="dd-lightning-input"
+                                                                name="directDebitMinimumRepayment"
+                                                                label="Minimum repayment amount or higher ?"
+                                                                value={directDebitObj.repaymentLevel}
+                                                                placeholder="Please select"
+                                                                options={repaymentLevelPicklist}
+                                                                onchange={handleRepaymentLevelChange} 
+                                                                required></lightning-combobox>                                                
+                                                            </div>      
+            
+                                                            <template if:true={minimumRepayment}>
+                                                                <div class="slds-col slds-size_12-of-12 slds-var-m-bottom_x-small">
+                                                                    <div class="slds-form-element">
+                                                                        <label class="slds-form-element__label"
+                                                                            for="form-element-05">Higher payment amount</label>
+                                                                        <div class="slds-form-element__control">
+                                                                            <lightning-input type="number" class="dd-lightning-input dd-repaymentLevel" 
+                                                                            name="directDebitHigherPaymentAmount" 
+                                                                            min={emiWithService}
+                                                                            step="0.01"
+                                                                            message-when-step-mismatch = "Amount must only have 2 maximum digit of decimal"
+                                                                            message-when-range-underflow={getMinimumPayAmountMessage}
+                                                                            onblur={handleDirectDebitFields} variant="label-hidden" value={directDebitObj.higherPaymentAmount}></lightning-input>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>                                                    
+                                                            </template> -->                                         
+                
+                                                            <div class="slds-col slds-size_2-of-12 slds-var-m-vertical_large">
+                                                                <button class="slds-button slds-button_brand" onclick={handleSaveDirectDebit}>Submit</button>
+                                                            </div>
+                
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>                                
+                                        </template>
+                                    </div>
+                            </lightning-tab>
+                        </template>    
+                    </lightning-tabset>
+
+                    <div class="slds-grid">
+                        <div class="slds-col slds-var-m-top_small slds-text-align_right">
+                            <!--<button class="slds-button slds-button_neutral" onclick={refreshData}>Refresh</button>-->
+                            <button class="slds-button slds-button_neutral" onclick={handleSkip}>Finish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </template>
+</template>

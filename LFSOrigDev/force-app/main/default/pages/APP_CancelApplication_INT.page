@@ -1,0 +1,46 @@
+<apex:page controller="APP_CancelApplication_INTCC" showHeader="false" sidebar="false">
+<apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    <apex:form >
+        <apex:pageMessages />
+        <apex:pageBlock title="Close Application" id="Workflow__c-1">
+            
+            <table width="100%" border="0" cellpadding="3" class="cancelapplication">
+                <tr>
+                    <td colspan="2">
+                        Application will now be assigned a final decision of closed. Do you wish to proceed?
+                    </td>
+              </tr>
+                <tr>
+                    <td align="right">
+                        <apex:outputLabel value="Close Reason" for="reason"/>
+                    </td>
+                    <td align="left">
+                        <apex:selectList id="Status__c" value="{!cancelReasonStr}" size="1" styleClass="width283">
+                            <apex:SelectOptions value="{!cancelReason}"/>
+                        </apex:selectList>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">
+                        <apex:outputLabel value="Comment" for="comment"/>
+                    </td>
+                    <td align="left">
+                        <apex:inputTextarea id="Workflow__c___Comments__c" value="{!comment}" cols="52" 
+                        style="height:100px;"/>
+                        <apex:inputhidden id="Workflow__c___Description__c" value="{!wf.Description__c}" />
+                        <apex:inputHidden value="{!wf.id}" id="Workflow__c___id"/>
+                    </td>
+                </tr>
+              <tr>
+                    <td align="right">
+                        &nbsp;
+                    </td>
+                    <td align="left">
+                        <apex:commandButton value="Save" action="{!save}"/>
+                        <apex:commandButton value="Cancel" action="{!cancel}"/>
+                    </td>
+              </tr>
+            </table>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

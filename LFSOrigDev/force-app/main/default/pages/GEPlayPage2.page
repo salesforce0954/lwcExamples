@@ -1,0 +1,911 @@
+<apex:page id="GePlay" sidebar="false" showHeader="false" controller="GEPlayPage2Controller" action="{!validateReadOnly}" docType="html">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=8" />
+        
+        <apex:includeScript value="/soap/ajax/28.0/connection.js"/>
+        <apex:includeScript value="/support/console/28.0/integration.js"/>
+        <apex:includeScript value="{!URLFOR($Resource.JQUERY1823, '/js/jquery-1.8.0.min.js')}" />
+        <apex:includeScript value="{!$Resource.VSoftphoneLib}"/>
+        <script type="text/javascript">
+        var WrapupCallback = function(success){
+            //alert("Wrapup result = " + success);
+            console.log('Wrapup result = ' + success);
+        }
+        
+        /*  Description: Prepare parameters to be used for dialer
+         *  Author: Mike Lasala
+         *  Date Created: 04-AUG-2016
+         *  Input: Selected outcome,
+                   Reminder datetime
+                   Save and Close/Save and Next
+         */
+        function setWrapUp(outcome, reminderDateTime, isNext){
+            var isValid = document.getElementById('GePlay:mainForm:isValidHidden').value;
+            console.log('$$$ isCallCenter: {!isCallCenter} isValid: '+isValid);
+            
+            if('{!isCallCenter}' == 'true' && //Logged in user has a call center (softphone) and lead was not accessed through softphone (BAU)
+               isValid == 'true'){  //Field validations
+                   
+                var scheduleDateTime = '';
+                var assignedUser = '';
+                var genesysOutcomeCode = document.getElementById('GePlay:mainForm:genesysOutcomeHidden').value;
+                
+                if(outcome == 'Set Follow-Up Call'){
+                    scheduleDateTime = formatDateTime(reminderDateTime);
+                    assignedUser = document.getElementById('GePlay:mainForm:assignedUserSSOHidden').value;
+                }
+                
+                console.log('wrapup: '+genesysOutcomeCode+', '+scheduleDateTime+', '+assignedUser+', '+isNext);
+                Wrapup(genesysOutcomeCode, scheduleDateTime, assignedUser, isNext, WrapupCallback);
+            }
+        }
+        
+        /*  Description: Format datetime for apex to javascript
+         *  Author: Mike Lasala
+         *  Date Created: 16-AUG-2016
+         *  Input: Date
+         */
+        function formatDateTime(date){
+            var dateVar = date.split(" ")[0];
+            var time = date.split(" ")[1];
+            var m = date.split(" ")[2];
+            
+            var day = dateVar.split("/")[0];
+            var month = dateVar.split("/")[1];
+            var year = dateVar.split("/")[2];
+            
+            var hour = parseInt(time.split(":")[0]);
+            var minutes = time.split(":")[1];
+            
+            if(m.toUpperCase() == 'PM'){
+                hour += parseInt(12);
+            }
+            
+            var d = new Date();
+            d.setDate(day);
+            d.setMonth(month-1);
+            d.setFullYear(year);
+            d.setHours(hour);
+            d.setMinutes(minutes);
+            d.setSeconds(0);
+            return d;
+        }
+         
+        /*  Description: Close tab when using softphone
+         *  Author: Mike Lasala
+         *  Date Created: 11-AUG-2016
+         *  Input: None
+         */
+        function closeTab(){
+            //First find the ID of the current tab to close it
+            sforce.console.getEnclosingTabId(closeSubtab);
+        }
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+        </script>
+        <c:sObjectRemote />
+        
+        <script type="text/javascript">
+        
+          var Backlen=history.length;   
+          var loadInitOpp = 0;
+          
+          if(window.history.forward(1) != null){
+              window.history.go(Backlen);
+          } else{
+            loadInitOpp = 1;
+          }
+        
+          window.onload = function(){  
+            if(loadInitOpp == 1) {
+              initOpp();
+            }
+          };
+
+        //blocks double click
+            var originalSubmit = A4J.AJAX.Submit
+            var originalFinish = A4J.AJAX.finishRequest
+            
+            var firstClick = true;
+            
+            A4J.AJAX.Submit = function(a,b,c) {
+                if (firstClick) {
+                //console.log('1st click');
+                  firstClick = false;
+                  originalSubmit(a,b,c);
+                } else {
+                  //console.log('ignoring 2nd click');
+                } 
+            }
+            
+            A4J.AJAX.finishRequest = function(a) {
+                firstClick = true;
+                originalFinish(a)
+            }
+
+            //Service Cloud Console Toolkit Actions
+            if (sforce.console.isInConsole()){
+                //Set the Tab Title & icon in the console        
+                sforce.console.setTabTitle('{!namePanelCustomer}');
+                sforce.console.setTabIcon('{!$Resource.icon_play_button_tab}', null);  //icon is not rendering
+            }
+
+            var queriedOpp = new Array();
+            var queriedBillICBS = new Array();
+            
+            // Query Opportunity Information
+            function queryOpportunity(oppId){
+                queryStrOpp = "SELECT Id, Region__c, Account.CLV_Customer_ID__c, Account.FirstName, Account.LastName," + 
+                              "Account.Date_of_Birth__pc,Account.PersonMailingPostalCode,Account.PersonMobilePhone," +
+                              "Campaign.Promotional_Campaign__c,Application__c, " + 
+                              //BEGIN MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                              "Account.PersonTitle, Account.Middle_Name__pc, Account.PersonHomePhone, Account.PersonMailingStreet, "+
+                              "Account.PersonMailingCity, Account.PersonMailingState, Promo_Loan_Offer_Amount__c "+
+                              //END MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                              //Afreen - 481 3rd Party leads 
+                              //RCADAPAN - TQLQW-489 Veda Quote leads
+                              ", Account.X3rd_Customer_Address__c, X3rd_Party_Lead_Source__c, X3rd_Party_Lead_Number__c, Loan_Purpose__c, Loan_Term__c, X3rd_Party_Photo__c, X3rd_Party_Photo_Tag__c, Account.Gender__c, Account.PersonEmail "+
+                              "FROM Opportunity WHERE  Id ='" + oppId + "'";
+                console.log('Opp Query String:' + queryStrOpp);
+                //alert('Opp Query String:' + queryStrOpp);           
+                sObject.query(queryStrOpp,{escape:false},function(opp,event){
+                    console.log(opp);
+                    console.log('OPP QUERY STATUS:' + event.status);
+                    queriedOpp = opp; 
+                    
+                    /*alert('OPPInsideId:' + queriedOpp[0].Id);
+                    alert('OPPInsideRegion:' + queriedOpp[0].Region__c);
+                    alert('OPPInsideACCCLV:' + queriedOpp[0].Account.CLV_Customer_ID__c);
+                    alert('OPPInsideACCFName:' + queriedOpp[0].Account.FirstName);
+                    alert('OPPInsideACCLName:' + queriedOpp[0].Account.LastName);
+                    alert('OPPInsideACCDayBirth:' + queriedOpp[0].Account.Date_of_Birth__pc);
+                    alert('OPPInsideACCMailing:' + queriedOpp[0].Account.PersonMailingPostalCode);
+                    alert('OPPInsideACCMobile:' + queriedOpp[0].Account.PersonMobilePhone);
+                    alert('OPPInsideACCPromo:' + queriedOpp[0].Campaign.Promotional_Campaign__c);
+                    alert('OPPInsideACCId:' + queriedOpp[0].Application__c);
+                    alert('OPPInsideSource:' + queriedOpp[0].X3rd_Party_Lead_Source__c);*/
+                    
+                    
+                    openSMPrimaryTab(oppId,2);
+                })
+            }
+            
+            // Query Billing ICBS Based on CLV and Region
+            function queryBillICBS(regionVar,clvId,oppId){
+               // Name: Adrian Recio
+                // Change: Perspecsys Removel - Removed Account Number and Contract Date filter for encryption fix
+                // Date: 3/18/2016
+                /*
+                queryStrBICBS = "Select Id,Note_Amount__c,Region__c,Account_Number__c,Account__r.CLV_Customer_ID__c," + 
+                                "Contract_Date__c from Billing_ICBS__c " + 
+                                "where (Account__r.CLV_Customer_ID__c ='" + clvId + "' and Account__r.CLV_Customer_ID__c  !=null) " + 
+                                "and (Region__c = '" + regionVar + "' and Region__c!=null) " + 
+                                "and Account_Number__c!=null and Contract_Date__c !=null";
+                */
+                queryStrBICBS = "Select Id,Note_Amount__c,Region__c,Account_Number__c,Account__r.CLV_Customer_ID__c," + 
+                                "Contract_Date__c from Billing_ICBS__c " + 
+                                "where (Account__r.CLV_Customer_ID__c ='" + clvId + "' and Account__r.CLV_Customer_ID__c  !=null) " + 
+                                "and (Region__c = '" + regionVar + "' and Region__c!=null) ";
+
+                console.log('BillICBS Query String:' + queryStrBICBS);
+                //alert('BillICBS Query String:' + queryStrBICBS);
+                try{
+                    sObject.query(queryStrBICBS,{escape:false},function(billICBS,event){
+                        console.log(billICBS);
+                        console.log('BILL ICBS Query Status:' + event.status);
+                        
+                        // Name: Adrian Recio
+                        // Change: Perspecsys Removel - Added catcher condition to make sure Account Number and Contract Date is not null. 
+                        //         Can't put a filter in the SOQL since Account number is encrypted.
+                        // Date: 3/18/2016
+                        if((billICBS[0].Account_Number__c!=null &&
+                            billICBS[0].Account_Number__c!='') && 
+                           (billICBS[0].Contract_Date__c!=null && 
+                            billICBS[0].Contract_Date__c!='')){
+                          queriedBillICBS = billICBS; 
+                        }
+
+                        /*
+                        alert('BillICBSInsideId:' + queriedBillICBS[0].Id);
+                        alert('BillICBSInsideNoteAmount:' + queriedBillICBS[0].Note_Amount__c);
+                        alert('BillICBSInsideRegion:' + queriedBillICBS[0].Region__c);
+                        alert('BillICBSInsideAccNumber:' + queriedBillICBS[0].Account_Number__c);
+                        alert('BillICBSInsideCLVNumberId:' + queriedBillICBS[0].Account__r.CLV_Customer_ID__c);
+                        alert('BillICBSInsideContractDate:' + queriedBillICBS[0].Contract_Date__c);
+                        */
+                        openSMPrimaryTab(oppId,3);
+                    })
+                }catch(e){
+                    console.log('Billing ICBS Query Internal Error in salesforce:' + e);
+                }
+            }
+
+            // Undefined Checker
+            function undefinedChecker(valuePar){
+                if(typeof valuePar === "undefined"){
+                    return "";
+                }
+                
+                return valuePar;
+            }
+            
+            var pullICBSMethodName = '{!$RemoteAction.GEPlayPage2Controller.pullICBSAccountNumber}';
+            var icbsCheckOnly;                      
+            
+            function checkICBSValue(oppId){
+                    icbsCheckOnly = true;
+                    openSMPrimaryTab(oppId,1);
+            }
+            
+            function createApplication(oppId){
+                icbsCheckOnly = false;
+                openSMPrimaryTab(oppId,1);
+            }
+                                        
+            // Function to open search and match page in console passing the
+            // account lead details to auto fill criteria search fields
+            function openSMPrimaryTab(oppId,step) { 
+
+                //alert('Passed Opp Id:' + oppId);
+                try{                    
+                
+                if(step==1){
+                    // Query Opportunity Updated Details                   
+                    queryOpportunity(oppId);
+                }else if(step==2 && queriedOpp[0].Campaign.Promotional_Campaign__c=="60 Day Certificate"){
+                    /*
+                    alert('OPPOutId:' + queriedOpp[0].Id);
+                    alert('OPPOutRegion:' + queriedOpp[0].Region__c);
+                    alert('OPPOutACCCLV:' + queriedOpp[0].Account.CLV_Customer_ID__c);
+                    alert('OPPOutACCFName:' + queriedOpp[0].Account.FirstName);
+                    alert('OPPOutACCLName:' + queriedOpp[0].Account.LastName);
+                    alert('OPPOutACCDayBirth:' + queriedOpp[0].Account.Date_of_Birth__pc);
+                    alert('OPPOutACCMailing:' + queriedOpp[0].Account.PersonMailingPostalCode);
+                    alert('OPPOutACCMobile:' + queriedOpp[0].Account.PersonMobilePhone);
+                    alert('OPPOutACCPromo:' + queriedOpp[0].Campaign.Promotional_Campaign__c);
+                    alert('OPPOutACCId:' + queriedOpp[0].Application__c);
+                    */
+                    // Query Billing ICBS Details if promotion type is 60 Day Certificate
+                    queryBillICBS(queriedOpp[0].Region__c,queriedOpp[0].Account.CLV_Customer_ID__c,oppId); 
+                }else if((step==2 && queriedOpp[0].Campaign.Promotional_Campaign__c!="60 Day Certificate") || step==3){
+      
+                  firstname = undefinedChecker(queriedOpp[0].Account.FirstName);
+                  lastname = undefinedChecker(queriedOpp[0].Account.LastName);
+                  email = undefinedChecker(queriedOpp[0].Account.PersonEmail);
+                  bDay = undefinedChecker(jsDateStrToDateType(queriedOpp[0].Account.Date_of_Birth__pc,'DAY'));
+                  bMonth = undefinedChecker(jsDateStrToDateType(queriedOpp[0].Account.Date_of_Birth__pc,'MONTH'));
+                  bYear = undefinedChecker(jsDateStrToDateType(queriedOpp[0].Account.Date_of_Birth__pc,'YEAR'));
+                  postcode = undefinedChecker(queriedOpp[0].Account.PersonMailingPostalCode);
+                  mobile = undefinedChecker(queriedOpp[0].Account.PersonMobilePhone);
+                  oppId = undefinedChecker(queriedOpp[0].Id);
+                  promotionType = undefinedChecker(queriedOpp[0].Campaign.Promotional_Campaign__c);
+                  oppAppId = undefinedChecker(queriedOpp[0].Application__c);
+                                
+                  //BEGIN MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                  title = undefinedChecker(queriedOpp[0].Account.PersonTitle);
+                  middlename = undefinedChecker(queriedOpp[0].Account.Middle_Name__pc);
+                  homephone = undefinedChecker(queriedOpp[0].Account.PersonHomePhone);
+                  street = undefinedChecker(queriedOpp[0].Account.PersonMailingStreet);
+                  city = undefinedChecker(queriedOpp[0].Account.PersonMailingCity);
+                  state = undefinedChecker(queriedOpp[0].Account.PersonMailingState);
+                  gender = undefinedChecker(queriedOpp[0].Account.Gender__c); // Added by RCADAPAN for TQLQW-489
+                  xAddress = undefinedChecker(queriedOpp[0].Account.X3rd_Customer_Address__c); // Added by RCADAPAN for TQLQW-489 use the external address field
+                  country = '{!$User.Country__c}';
+                  promoCampaign = undefinedChecker(queriedOpp[0].Campaign.Promotional_Campaign__c);
+                  promoAmount = undefinedChecker(queriedOpp[0].Promo_Loan_Offer_Amount__c);
+                  //END MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+
+                  //Afreen - 481 - 3rd Party opportunities/leads
+                  leadSource    = undefinedChecker(queriedOpp[0].X3rd_Party_Lead_Source__c);
+                  loanAmt       = undefinedChecker(queriedOpp[0].Promo_Loan_Offer_Amount__c);
+                  loanPurpose   = undefinedChecker(queriedOpp[0].Loan_Purpose__c);
+                  loanTerm      = undefinedChecker(queriedOpp[0].Loan_Term__c);
+                  photoTag      = undefinedChecker(queriedOpp[0].X3rd_Party_Photo_Tag__c);
+                  uniqueIdExternalParty   = undefinedChecker(queriedOpp[0].X3rd_Party_Lead_Number__c);
+                  //photoUrl    = undefinedChecker(queriedOpp[0].X3rd_Party_Photo__c);
+                  
+                  if(oppAppId!=null&&oppAppId!=""&&icbsCheckOnly==false){
+                        //Return error message
+                        appSetupMsg("Application is already assigned for this lead.");
+                        
+                        // and show connected application in a new tab
+                        if (sforce.console.isInConsole()) {
+                            sforce.console.openPrimaryTab(null, "/"+oppAppId, true, "Connected App");
+                        }else {
+                            //window.open("{!perspecSysURL}" + "/" + oppAppId,"_blank");
+                            sforce.console.openPrimaryTab(null, "/"+oppAppId, true, "Connected App..");
+                        }
+                  }else if(promotionType=="60 Day Certificate"){
+                        // If Billing ICBS doesn't have a record return an error
+                        if(queriedBillICBS.length==0){
+                            appCreateError("No valid Billing ICBS records found for 60 Day Certificate.");
+                        }else{      
+                            console.log("Bill ICBS Match Size:" + queriedBillICBS.length);
+                            console.log("1st ICBS Match Contract Date:"+queriedBillICBS[0].Contract_Date__c);   
+                            console.log("1st ICBS Match Account Number:"+queriedBillICBS[0].Account_Number__c);
+                            console.log("method name:" + pullICBSMethodName);
+                            console.log("stringfymethod:" + JSON.stringify(queriedBillICBS));
+                            
+                            //alert("Bill ICBS Match Size:" + queriedBillICBS.length);
+                            //alert("1st ICBS Match Contract Date:"+queriedBillICBS[0].Contract_Date__c);   
+                            //alert("1st ICBS Match Account Number:"+queriedBillICBS[0].Account_Number__c);
+                            //alert("method name:" + pullICBSMethodName);
+                            //alert("stringfymethod:" + JSON.stringify(queriedBillICBS));
+                            
+                            // Determine most latest billing icbs record by contract date and pull account number           
+                            sObject.processICBSNumber(queriedBillICBS,oppId,{optAllOrNone: false},function(results,event){
+                                console.log("ICBS Number Event Type:" + event.type);
+                                console.log("ICBS Number Event Message:" + event.message);
+                                console.log("ICBS Number Event Status:" + event.status);
+                                console.log("ICBS Number Value:" + results);
+                                console.log("ICBS Check Only:" + icbsCheckOnly);
+                                //alert('ICBS Check Only:' + icbsCheckOnly);
+                                if(icbsCheckOnly==false){
+                                    openSMPrimaryTab(oppId,4);
+                                }else{
+                                    icbsInfoRefresh();
+                                }
+                            });
+                            
+                        }
+                    // Condition is set to else since all types will fall in this condition
+                    // if (promotionType=="Conditionally Approved Offer" || promotionType=="" || promotionType==null){ 
+                    }else{ 
+                        if(sforce.console.isInConsole()){
+                            //Open a new primary tab with the sfdc.plorig.test3.capital.ge.com home page in it
+                            //BEGIN MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                            if('{!$UserRole.DeveloperName}' == 'PFR_Direct_Service_Team' || 
+                               '{!$UserRole.DeveloperName}' == 'TL_Direct_Service_Team' ){ 
+                                sforce.console.openPrimaryTab(null, 
+                                        '/apex/APP_SearchAndMatch?firstname='+firstname+'&lastname='+lastname+'&bDay='+bDay+'&bMonth='+bMonth+'&bYear='+bYear+'&postcode='+postcode+'&mobilephone='+mobile+'&searchFromSalesAndLeads=TRUE&oppId='+oppId+'&promotionType='+promotionType, 
+                                                          true, 'New Application'); 
+                                
+                            } else {
+                                sforce.console.openPrimaryTab(null, 
+                                                          '/apex/APP_Wizard?firstname='+firstname+'&lastname='+lastname+'&bDay='+bDay+'&bMonth='+bMonth+'&bYear='+bYear+'&postcode='+postcode+'&mobilephone='+mobile+'&searchFromSalesAndLeads=TRUE&oppId='+oppId+'&promotionType='+promotionType+'&title='+title+'&middlename='+middlename+'&homephone='+homephone+'&street='+street+'&city='+city+'&state='+state+'&country='+country+'&promoCampaign='+promoCampaign+'&promoAmount='+promoAmount+'&gender='+gender+'&xAddress='+xAddress+'&email='+email, 
+                                                          true, 'New Application');
+                            }
+                            //END MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                        }else {
+                            //window.open('{!perspecSysURL}' + '/apex/APP_SearchAndMatch?firstname='+firstname+'&lastname='+lastname+'&bDay='+bDay+'&bMonth='+bMonth+'&bYear='+bYear+'&postcode='+postcode+'&mobilephone='+mobile+'&searchFromSalesAndLeads=TRUE&oppId='+oppId+'&promotionType='+promotionType,"_blank");
+                            //BEGIN MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                            if('{!$UserRole.DeveloperName}' == 'PFR_Direct_Service_Team' || 
+                               '{!$UserRole.DeveloperName}' == 'TL_Direct_Service_Team' ){ 
+                                sforce.console.openPrimaryTab(null, '/apex/APP_SearchAndMatch?firstname='+firstname+'&lastname='+lastname+'&bDay='+bDay+'&bMonth='+bMonth+'&bYear='+bYear+'&postcode='+postcode+'&mobilephone='+mobile+'&searchFromSalesAndLeads=TRUE&oppId='+oppId+'&promotionType='+promotionType, true, 'New Application..'); 
+                                } else {            
+                                sforce.console.openPrimaryTab(null, '/apex/APP_Wizard?firstname='+firstname+'&lastname='+lastname+'&bDay='+bDay+'&bMonth='+bMonth+'&bYear='+bYear+'&postcode='+postcode+'&mobilephone='+mobile+'&searchFromSalesAndLeads=TRUE&oppId='+oppId+'&promotionType='+promotionType+'&title='+title+'&middlename='+middlename+'&homephone='+homephone+'&street='+street+'&city='+city+'&state='+state+'&country='+country+'&promoCampaign='+promoCampaign+'&promoAmount='+promoAmount+'&gender='+gender+'&xAddress='+xAddress+'&email='+email+'&leadSource='+leadSource+'&loanAmt='+loanAmt+'&loanPurpose='+loanPurpose+'&loanTerm='+loanTerm+'&photoTag='+photoTag+'&uniqueIdExternalParty='+uniqueIdExternalParty, true, 'New Application..');
+                            }
+                            //END MLASALA: 10/11/15 PMIHM-2107 STAFF UI REDESIGN - Sales and Leads Prefill on Steriods
+                        }
+                        
+                        if(promotionType=="Conditionally Approved Offer"){
+                            appSetupMsg("Conditionally approved values pre-populated in your new application. Please complete application setup in the separated tab.");
+                        }else{
+                            appSetupMsg("Application initialization complete. Please complete application setup in the separated tab.");
+                        }
+                    }
+                                  
+                  }else if (step==4){
+                        // Trim matching account number and assign it to opportunity
+                        Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.GEPlayPage2Controller.campaignProcess}",
+                                                                  oppId,
+                                                                    function(result, event){
+                                                                        console.log("60 Day App Create Type:" + event.type);
+                                                                        console.log("60 Day App Create Message:" + event.message);
+                                                                        console.log("60 Day App Create Status:" + event.status);
+                                                                        console.log("60 Day App Create Value:" + result);
+                                                                        
+                                                                        
+                                                                        if(result.appId==null||result.appId==""){
+                                                                            //alert("No valid application found for 60 day certificate.");
+                                                                            appCreateError(result.response);
+                                                                        }else{
+                                                                            // Refresh Opportunity
+                                                                            refreshAndLinkOpportunityToApp(result.appId);   
+                                                                            if(result!=null && result!=""){             
+                                                                                if (sforce.console.isInConsole()) {  
+                                                                                    sforce.console.openPrimaryTab(null, "/"+result.appId, true, "New Application");
+                                                                                }else {
+                                                                                    //window.open("{!perspecSysURL}"+"/"+result.appId,"_blank");
+                                                                                    sforce.console.openPrimaryTab(null, "/"+result.appId, true, "New Application..");
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    },  
+                                                                    {escape: true});
+                  }
+                }catch(e){
+                    appCreateError("Application setup error(Please contact your administrator):" + e);
+                }
+            }    
+                        
+            // Extract date details from a date string where format is dd/mm/yyyy
+            function jsDateStrToDateType(dateStr,getType){
+              if(dateStr != null){    // Added by Afreen for picStarter - 481
+                var dSplitArr = dateStr.split("/"); 
+
+                // Removed, use of date instance is buggy, increments one day if last day of month
+                //alert("Passed Date:" + dSplitArr);
+                /*
+                var dateVar = new Date(dSplitArr[2],dSplitArr[1], dSplitArr[0],0,0,0,0); 
+                
+                var dd = dateVar.getDate();
+                var mm = dateVar.getMonth(); 
+                var yyyy = dateVar.getFullYear();
+                
+
+                if(dd<10) {
+                    dd="0"+dd;
+                } 
+                
+                if(mm<10) {
+                    mm="0"+mm;
+                } 
+                */
+
+                var dd = parseInt(dSplitArr[0]);
+                var mm = parseInt(dSplitArr[1]); 
+                var yyyy = parseInt(dSplitArr[2]);
+
+                if(dd<10) {
+                    dd="0"+dd.toString();
+                } 
+                
+                if(mm<10) {
+                    mm="0"+mm.toString();
+                } 
+
+                if(getType=="MONTH"){
+                    //alert("return type month:" + mm);
+                    return mm;
+                }else if(getType=="DAY"){
+                    //alert("return type day:" + dd);
+                    return dd;
+                }else if(getType=="YEAR"){
+                    //alert("return type yyyy:" + yyyy);
+                    return yyyy;
+                }
+              }
+            }                      
+        </script>
+        <style type="text/css">
+            body .secondaryPalette.bPageBlock{
+                background-color: #FFF;
+                border-bottom: 0;
+                border-left: 0;
+                border-right: 0;
+                -moz-border-radius: 4px;
+                -webkit-border-radius: 0px;
+                border-radius: 0px;
+            }
+            body .bPageBlock {
+                padding: 0;
+                margin-bottom: 0px;
+                border-top-width: 0px;
+            } 
+        </style>
+        <script type="text/javascript">
+            $(function() {
+                var $items = $('#vtab>ul>li');
+                $items.click(function() {
+                    $items.removeClass('selected');
+                    $(this).addClass('selected');
+    
+                    var index = $items.index($(this));
+                    $('#vtab>div').hide().eq(index).show();
+                }).eq(0).click();
+            });
+            
+            function blockUI(){
+                $.blockUI({ css: { 
+                    border: 'none', 
+                    padding: '15px', 
+                    backgroundColor: '#000', 
+                    '-webkit-border-radius': '10px', 
+                    '-moz-border-radius': '10px', 
+                    opacity: .5, 
+                    color: '#fff' 
+                } }); 
+            }
+    
+            function unBlockUI(){
+                $.unblockUI();
+            }
+            
+        </script>
+    </head>
+    <body>
+    <apex:pageMessages id="mainPageError"/>
+    <apex:form id="mainForm"> 
+    
+    <apex:actionStatus id="updateStatus">
+       <apex:facet name="start">
+            <apex:outputPanel style="z-index:1000;position: absolute;">
+                <c:EnhancedActionStatus BackColor="#efefef" borderColor="#ffffff" borderSize="0" height="50px" width="130px" ImageUrl="{!$Resource.loading}" Message="Setting up application..." messageStyle="color:darkred;font-size:11pt;font-weight:bold;padding:20px;"/>
+            </apex:outputPanel>
+       </apex:facet>
+    </apex:actionStatus>  
+    
+    <apex:actionFunction id="initOpp" name="initOpp" action="{!initOpp}" reRender="blnkPanel"/>
+    <apex:actionFunction id="refreshOpp" name="refreshAndLinkOpportunityToApp" action="{!refreshAndLinkOpportunityToApp}" reRender="outcomePanel" oncomplete="appSetupMsg('Application auto created for 60 day certificate. Please complete application setup in the separated tab.'); return false;">
+        <apex:param name="sixtyDayAppId" value="" assignTo="{!sixtyDayAppId}"/> 
+    </apex:actionFunction>
+    <apex:actionFunction id="appCreateError" name="appCreateError" action="{!appCreateError}" reRender="mainPageError,outcomePanel">
+        <apex:param name="appCreateErrMsg" value="" assignTo="{!appCreateErrMsg}"/> 
+    </apex:actionFunction>
+    <apex:actionFunction id="appSetupMsg" name="appSetupMsg" action="{!appSetupMsg}" reRender="mainPageError,outcomePanel">
+        <apex:param name="appSetupSuccMsg" value="" assignTo="{!appSetupSuccMsg}"/> 
+    </apex:actionFunction>
+    
+    <apex:actionFunction id="icbsInfoRefresh" name="icbsInfoRefresh" action="{!icbsInfoRefresh}" rerender="outcomePanel"/>
+    
+    <!-- MLASALA 18-AUG-2016 Added actionFunction to retrieve genesys data needed for softphone -->
+    <apex:actionFunction name="getGenesysData" action="{!getGenesysData}"  status="myStatus" rerender="genesysOutcomeHidden, assignedUserSSOHidden" oncomplete="console.log('Genesys code: {!genesysOutcome} Assigned user SSO: {!assignedUserSSO}');setWrapUp('{!selectedOpp.StageName}', '{!selectedTask.ReminderDateTime}', false);"/>
+    
+    <!-- MLASALA 04-AUG-2016 Contains latest value from genesys outcome code formula field -->
+    <apex:inputHidden id="genesysOutcomeHidden" value="{!genesysOutcome}"/>
+    <!-- MLASALA 04-AUG-2016 Contains Assigned To SSO -->
+    <apex:inputHidden id="assignedUserSSOHidden" value="{!assignedUserSSO}"/>
+    <!-- MLASALA 16-AUG-2016 Contains validation boolean -->
+    <apex:inputHidden id="isValidHidden" value="{!isValid}"/>
+    
+    <!-- Refresh Opportunity Values in Server Side and on complete refresh opportunity values and create application in client side -->
+    <!--  
+    <apex:actionFunction id="oppRefreshAndAppCreate" name="oppRefreshAndAppCreate" action="{!oppRefreshAndAppCreate}" oncomplete="createApplication('{!selectedOpp.Id}'); return false;" status="updateStatus"/>
+    -->
+    <apex:outputPanel id="blnkPanel"/>
+    <table width="100%" border="0" cellspacing="0">
+        <tr>
+            <td>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <td width="70%" height="2px" valign="bottom" style="padding:1px;background: #2693d8;border-bottom: 1px solid #808080;">
+                    </td>
+                    <td width="30%" height="2px" valign="bottom" style="padding:1px;background: #2693d8;border-bottom: 1px solid #808080;">
+                    </td>
+                </table>
+            </td>  
+        </tr>
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <td valign="top" width="310px">
+                            
+                            <apex:pageblock id="Opportunity-1">
+                            <div style="background-color:#FFF;" width="100%">
+                                <table width="100%" cellspacing="2">
+                                    <tr>
+                                        <td valign="top" style="background-color:#f6873e;border-radius: 5px 5px;padding: 4px 0 4px 2px;">
+                                            <div style="color:white"><h2>Outcome</h2></div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td  valign="top" style="background-color:#F8F8F8;border-radius: 5px 5px;padding: 0 2px; text-align:left; padding-left:10px; padding-right:10px;">
+                                            <apex:actionFunction name="renderFunction" rerender="outcomePanel,mainPageError,btnSaC"/>
+                                            <apex:outputPanel id="outcomePanel">
+                                                <apex:pageblocksection columns="1" showHeader="false" id="section-outcomePanel">
+
+                                                <apex:selectRadio value="{!selectedOpp.Call_Type__c}" onclick="renderFunction();" label=""> 
+                                                    <apex:selectOptions value="{!callTypes}"/>
+                                                </apex:selectRadio>
+                                                <apex:selectList value="{!selectedOpp.StageName}" size="1" style="width:218px;" onChange="console.log('Selected Stage:' + this.value); if(this.value=='Application Taken'&&'{!selectedOpp.Application__c}'==''&&'{!selectedOpp.Campaign.Promotional_Campaign__c}'=='60 Day Certificate'){checkICBSValue('{!selectedOpp.Id}');}else{renderFunction();}" id="stageNameSelect" label="">
+                                                    <apex:selectOptions value="{!stages}"/>
+                                                </apex:selectList>
+                                                
+                                                <apex:outputPanel id="dnsBox" rendered="{!renderDNSBox}">
+                                                    <apex:pageMessage id="solicitId" severity="error" detail="Choose <b>Do Not Solicit</b> if the Customer does not want any future marketing activity. <br/><br/> Choose <strong>Not Interested</strong> if the Customer is not interested in this particular offer. <br/>" escape="false"/>
+                                                </apex:outputPanel>
+                                                
+                                                <apex:outputPanel id="notInterestedBox" rendered="{!renderNIBox}">
+                                                    <apex:pageMessage id="solicitId1" severity="error" detail="Choose <b>Do Not Solicit</b> if the Customer does not want any future marketing activity. <br/><br/> Choose <strong>Not Interested</strong> if the Customer is not interested in this particular offer. <br/>" escape="false"/>
+                                                    <br/>
+                                                </apex:outputPanel>
+
+                                                <apex:outputPanel id="appTakenBox" rendered="{!renderAppTakenBox}">
+                                                    
+                                                   GE Unique Id: <br/> <apex:outputText Id="geUniqueId" value="{!geUniqueId}"/> <br/>
+                                                   <apex:commandButton action="{!refreshGEUniqueId}" value="Refresh" reRender="geUniqueId"/> <br/><br/>
+
+                                                   <apex:actionFunction action="{!checkOrigICBS}" name="rerenderManualFields" rerender="maualFields,mainPageError"/>
+                                                   <apex:outputPanel layout="block" rendered="{!IF(selectedOpp.Campaign.Promotional_Campaign__c=='60 Day Certificate' && selectedOpp.Application__c==null,true,false)}">
+                                                     Override <apex:inputField value="{!selectedOpp.override_ICBS_Billing__c}" onchange="rerenderManualFields();"></apex:inputField> <br/><br/>
+                                                       <apex:outputPanel Id="maualFields" layout="block">
+                                                           <apex:outputPanel rendered="{!selectedOpp.override_ICBS_Billing__c}">
+                                                               Application Number <br/><apex:inputField value="{!selectedOpp.Account_Number__c}" /><br/><br/>
+                                                               Contract Date <br/><apex:inputField value="{!selectedOpp.Contract_Date__c}"/><br/><br/>
+                                                           </apex:outputPanel>
+                                                           
+                                                           <apex:outputPanel rendered="{!NOT(selectedOpp.override_ICBS_Billing__c)}">
+                                                               Application Number <br/><apex:outputText value="{!origAppNumber}"/><br/><br/>
+                                                               Contract Date <br/>
+                                                               <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                                                 <apex:param value="{!origContractDate}" /> 
+                                                               </apex:outputText>
+                                                               <br/><br/>
+                                                           </apex:outputPanel>
+                                                       </apex:outputPanel>
+                                                   </apex:outputPanel>
+
+                                                   <!--
+                                                   <apex:outputPanel layout="block" rendered="{!IF(selectedOpp.Campaign.Promotional_Campaign__c!='60 Day Certificate',true,false)}">
+                                                            Application Number <br/><apex:inputField value="{!selectedOpp.Application__c}"/>
+                                                   </apex:outputPanel>
+                                                   -->
+                                                   
+                                                   <apex:commandButton Id="appButton" value="{!IF(selectedOpp.Application__c==null,'New Application','Connected Application')}" 
+                                                                       action="{!opportunityRefresh}" oncomplete="if('{!selectedOpp.override_ICBS_Billing__c}'=='false'){createApplication('{!selectedOpp.Id}');}else{ openSMPrimaryTab('{!selectedOpp.Id}','4');} return false;" 
+                                                                       status="outcomePanel" />
+                                                </apex:outputPanel>
+
+                                                <apex:outputPanel id="appTakenSpecBox" rendered="{!renderAppTakenSpecialBox}">
+                                                        Application Number <br/><apex:inputField value="{!selectedOpp.Application_Number__c}"/>
+                                                </apex:outputPanel>
+                          
+                                                <apex:outputPanel id="followUpBox" rendered="{!renderFollowUpBox}">
+                                                    <apex:outputText value="No related task" rendered="{!noTask}"/>
+                                                    <apex:outputPanel id="activityBox" rendered="{!!noTask}">
+                                                        <table width="100%">
+                                                            <!-- <tr>
+                                                                <td width="30%" align="right"> Due Date: </td>
+                                                                <td width="70%" align="left"> <apex:inputfield value="{!selectedTask.activityDate}"/></td>
+                                                            </tr> -->
+                                                            <!-- <tr>
+                                                                <td width="30%" align="right"> Comments: </td>
+                                                                <td width="70%" align="left"> <apex:inputfield value="{!selectedTask.description}"/></td>
+                                                            </tr>  -->
+                                                            <tr>
+                                                                <td> Set Reminder:<br/> <apex:inputfield value="{!selectedTask.ReminderDateTime}"/></td>
+                                                                
+                                                            </tr>
+                                                            <tr>
+                                                                <td> Assigned To: <br/> <apex:inputfield value="{!selectedOpp.Assigned_to_User__c}" id="Opportunity___Assigned_to_User__c"/> </td>
+                                                      
+                                                            </tr>
+                                                        </table>
+                                                    </apex:outputPanel>
+                                                    <br/>
+                                                </apex:outputPanel>
+                                                
+                                                <apex:outputText value="- Notes -"/>
+                                                
+                                                <apex:inputField value="{!selectedOpp.Description__c}" style="width:220px;height:100px" id="Opportunity___Description" label=""/>
+                                                <apex:outputPanel id="buttonsection">
+                                                    <apex:actionStatus id="myStatus">
+                                                        <apex:facet name="stop">
+                                                        <apex:outputPanel style="width:100%" >
+                                                            <!-- MLASALA 11-AUG-2016 Added rendered variable -->
+                                                            <apex:commandButton id="btnSaN" style="width:35%" action="{!saveAndNext}" value="Save and Next" rerender="mainPageError, buttonsection" status="myStatus" rendered="{!NOT(hideButtons)}"/>
+                                                            <apex:commandButton id="btnPause" style="width:19%" action="{!pausePlay}" value="Pause" rerender="mainPageError, buttonsection" status="myStatus" rendered="{!NOT(hideButtons)}"/>
+                                                            <!-- MLASALA 04-AUG-2016 Added onclick method -->
+                                                            <apex:commandButton id="btnSaC" style="width:36%" action="{!saveAndClose}" value="Save and Close" rerender="mainPageError, buttonsection, isValidHidden" status="myStatus" oncomplete="if('{!isCallCenter}' == 'true'){getGenesysData();}"/>
+                                                        </apex:outputPanel>
+                                                        </apex:facet>
+                                                        <apex:facet name="start">
+                                                        <apex:outputPanel style="width:100%">
+                                                            <!-- MLASALA 11-AUG-2016 Added rendered variable -->
+                                                            <apex:commandButton style="width:35%" value="Save and Next" disabled="true" status="myStatus" rendered="{!NOT(hideButtons)}"/>
+                                                            <apex:commandButton style="width:19%" value="Pause" disabled="true" status="myStatus" rendered="{!NOT(hideButtons)}"/>
+                                                            <apex:commandButton style="width:36%" value="Save and Close" disabled="true" status="myStatus"/>
+                                                        </apex:outputPanel>
+                                                        </apex:facet>
+                                                    </apex:actionStatus>
+                                                </apex:outputPanel>
+                                                
+                                                </apex:pageblocksection>
+                                            </apex:outputPanel> 
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" style="background-color:#f6873e;border-radius: 5px 5px;padding: 4px 0 4px 2px;">
+                                            <div style="color:white"><strong>My Activity Today</strong></div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" style="background-color:#F8F8F8;border-radius: 5px 5px;padding: 0 2px;">
+                                           <div style="width:100%; margin-top:5px;">
+                                             <c:MetricStatistics /> 
+                                           </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" style="background-color:#f6873e;border-radius: 5px 5px;padding: 4px 0 4px 2px;">
+                                            <div style="color:white"><strong>My Follow-up Tasks</strong></div>
+                                        </td>
+                                    </tr>   
+                                    <tr>
+                                        <td valign="top" style="background-color:#F8F8F8;border-radius: 5px 5px;padding: 0 2px;">
+                                           <div style="width:100%; margin-top:5px;">
+                                                <c:TaskComponent />
+                                           </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            </apex:pageblock>
+                        </td>
+                        <td valign="top">
+                            <div id="nametab">
+                                <strong><apex:outputText value="{!namePanelCustomer}" style="font-size:20px"/></strong>
+                                &nbsp; <apex:outputText value="{!namePanelOpp}" style="font-size:20px"/>
+                            </div>
+                            <style type="text/css">
+                                #vtab {
+                                    margin: auto;
+                                    width: 100%;
+                                    height: 100%;
+      
+                                }
+                                #vtab > ul > li {
+                                    width: 55px;
+                                    height: 55px;
+                                    background-color: #fff !important;
+                                    list-style-type: none;
+                                    display: block;
+                                    text-align: center;
+                                    margin: auto auto auto -4px;
+                                    padding-bottom: 10px;
+                                    border: 1px solid #fff;
+                                    border-radius: 0px 8px 8px 0px;
+                                    position: relative;
+                                    /*border-right: none;*/
+                                    opacity: .5;
+                                    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+                                    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=20);
+                                }
+                                #vtab > ul > li.custPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_customer.png')}') no-repeat center center;
+                                    
+                                }
+                                #vtab > ul > li.creditPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_account.png')}') no-repeat center center;
+                                    
+                                }
+                                #vtab > ul > li.loanPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_loans.png')}') no-repeat center center;
+                                    
+                                }
+                                #vtab > ul > li.taskPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_task.jpg')}') no-repeat center center;
+                                }
+                                
+                                #vtab > ul > li.emailPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_calculator.jpg')}') no-repeat center center;
+                                }
+                                
+                                #vtab > ul > li.campPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_campaign.png')}') no-repeat center center;
+                                }
+                                #vtab > ul > li.campCallPage {
+                                    background: url('{!URLFOR($Resource.TabiconGEPlaytwo, 'icon_script.png')}') no-repeat center center;
+                                }
+                    
+                                #vtab > ul > li.selected {
+                                    opacity: 1;
+                                    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+                                    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+                                    border: 1px solid #ddd;
+                                    /*border-right: none;*/
+                                    z-index: 10;
+                                    background-color: #fafafa !important;
+                                    position: relative;
+                                }
+                                #vtab > ul {
+                                    float: right;
+                                    width: 55px;
+                                    text-align: left;
+                                    display: block;
+                                    margin: auto 0;
+                                    padding: 0;
+                                    position: relative;
+                                    top: 3px;
+                                }
+                                #vtab > div {
+                                    background-color: white;
+                                    margin-right: 55px;
+                                    /*border: 1px solid #ddd;*/
+                                    min-height: 500px;
+                                    padding: 3px;
+                                    position: relative;
+                                    z-index: 9;
+                                    -moz-border-radius: 20px;
+                                }
+                                #vtab > div > h4 {
+                                    color: #800;
+                                    font-size: 1.2em;
+                                    border-bottom: 1px dotted #800;
+                                    padding-top: 5px;
+                                    margin-top: 0;
+                                   
+                                }
+                            </style>
+                            <div id="vtab">
+                                <ul>
+                                    <li class="custPage" title="Customer" ></li>
+                                    <li class="creditPage" title="Credit Card History"></li>
+                                    <li class="loanPage" title="Loan History"></li>
+                                    <li class="taskPage" title="Activity History"></li>
+                                    <li class="emailPage" title="Loan Calculator"></li>
+                                    <li class="campPage" title="Campaign History"></li>
+                                    <li class="campCallPage" title="Call Script"></li>
+                                </ul>
+                                <div>
+                                    <apex:outputPanel layout="block" id="customerDetailPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.CustomerPage}?oppid={!oppId}" id="theIframe" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.CustomerPage}?oppid={!oppId}" id="theIframe" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <!-- IFrames should be wrapped around the output panel so it can be re-rendered -->
+                                <apex:outputPanel layout="block" id="creditCardDetailPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.CreditCardsPage}?oppid={!oppId}" id="creditFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.CreditCardsPage}?oppid={!oppId}" id="creditFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <apex:outputPanel layout="block" id="accountDetailPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.AccountPage}?oppid={!oppId}" id="loanFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.AccountPage}?oppid={!oppId}" id="loanFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <apex:outputPanel layout="block" id="activityPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.ActivityPage}?oppid={!oppId}" id="activityFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.ActivityPage}?oppid={!oppId}" id="activityFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <apex:outputPanel layout="block" id="emailPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.LoanCalculator}" id="emailFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.LoanCalculator}" id="emailFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <apex:outputPanel layout="block" id="campaignPanel">
+                                    <!-- 
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.RecentCampaignPage}?oppid={!oppId}" id="campaignFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.RecentCampaignPage}?oppid={!oppId}" id="campaignFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                                <div>
+                                    <apex:outputPanel layout="block" id="scriptPanel">
+                                    <!--  
+                                        <apex:iframe src="{!perspecSysURL}{!$Page.CallScriptPage}?oppid={!oppId}" id="scriptFrame" scrolling="true"/>
+                                        -->
+                                        <apex:iframe src="{!$Page.CallScriptPage}?oppid={!oppId}" id="scriptFrame" scrolling="true"/>
+                                    </apex:outputPanel>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    </apex:form>
+    </body>
+</apex:page>

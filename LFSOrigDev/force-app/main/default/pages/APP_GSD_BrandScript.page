@@ -1,0 +1,39 @@
+<apex:page sidebar="false" showHeader="false"  standardStylesheets="false">
+	
+	 <!-- Bootstrap Core JavaScript -->
+     <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+  
+    <!-- Bootstrap Core CSS -->
+    <link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+
+ 
+    <!-- Custom CSS -->
+    <!--
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+     
+     -->
+        
+	<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jQueryMin.js')}"/>
+    <!--apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/-->
+    
+    <apex:includeScript value="{!$Resource.autoHideNavBar}"/>
+    
+  
+</apex:page>

@@ -1,0 +1,26 @@
+.UD_medium-text{
+    font-size: medium;
+}
+
+.UD_large-text{
+    font-size: large;
+}
+
+.UD_xlarge-text{
+    font-size: x-large;
+}
+
+.custom-link:hover {
+    cursor: pointer;
+}
+
+.custom-link {
+    color:blue;
+}
+
+.optional-tag{
+    --sds-c-badge-text-color: orange;
+    --sds-c-badge-color-border: orange;
+    --sds-c-badge-color-background: white;
+    --sds-c-badge-font-size: 0.7rem;
+}

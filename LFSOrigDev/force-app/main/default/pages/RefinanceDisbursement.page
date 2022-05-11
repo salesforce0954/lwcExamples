@@ -1,0 +1,13 @@
+<apex:page id="RefinanceDisbursementPage" cache="false" standardController="Application__c" extensions="OFF_OfferPresentationExt" sidebar="false" showHeader="false" title="Refinance Disbursement" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+
+
+	<apex:sectionHeader title="Refinance Disbursement" subtitle="Refinance Disbursement" />
+	<apex:pageBlock title="Refinance Disbursement">
+		<apex:pageBlockButtons location="top">
+			
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection title="Refinance Disbursement">
+
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:page>

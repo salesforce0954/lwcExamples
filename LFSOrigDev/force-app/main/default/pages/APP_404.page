@@ -1,0 +1,32 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" 
+docType="html-5.0">
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="GEDDBody">
+        
+            <div class="maincontent">
+                <div class="row-fluid">
+                    <div class="row-fluid span12 error404">
+                        <div class="tablemainlist llfields" id="addfields">
+                        
+                        <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="clearfix"></div>   
+                </div>
+            </div>
+            
+            <div class="maincontent txtalignl pagenotfound">
+                <div class="row-fluid">
+                    <div class="divider30"></div>
+                    <apex:outputPanel >
+                        <h2>{!$Label.CUI_404_page_title}</h2>
+                        <p>{!$Label.CUI_404_page_message}</p>
+                        <p><a href="{!$Site.Prefix}">Visit the homepage</a></p>
+                    </apex:outputPanel>
+                    <div class="divider30"></div>
+                </div>
+            </div>
+        </apex:define>
+    </apex:composition>
+</apex:page>

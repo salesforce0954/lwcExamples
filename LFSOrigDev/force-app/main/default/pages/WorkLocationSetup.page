@@ -1,0 +1,39 @@
+<!-- 
+Author: Michael Lasala Cloud Sherpas
+Created Date: 2/26/13 
+Description: WorkLocationSetup page
+-->
+<apex:page controller="WorkLocationSetupController" showheader="false">
+
+<apex:includeScript value="{!$Resource.jquery}"/>
+<apex:includeScript value="{!$Resource.jquery_ui}"/>
+
+    <apex:form id="locationForm">
+        <apex:pageBlock >
+        <apex:pageMessages />
+        <apex:outputLabel for="districtList" value="District:"/> 
+        <apex:selectList id="districtList" value="{!districtId}" size="1" >
+				<apex:actionSupport event="onchange" action="{!setLocationList}"
+					rerender="locationList" />
+            <apex:selectOptions value="{!Districts}"/>
+			</apex:selectList>
+			<p />
+        
+			<apex:pageBlockSection title="Work Location" columns="1"
+				collapsible="false" showHeader="false">
+            <apex:selectList id="locationList" value="{!locationId}" size="1" >
+                <apex:selectOptions value="{!Locations}"/>
+				</apex:selectList>
+				<p />
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockButtons location="bottom" >
+				<apex:commandButton action="{!saveLocationAssignment}" value="Save"
+					id="saveButton"
+					onComplete="$('[id$=modalWorkLocation]').dialog('close');" />
+				<apex:commandButton value="Cancel" id="cancelButton"
+					onComplete="$('[id$=modalWorkLocation]').dialog('close');" />
+        </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

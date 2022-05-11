@@ -1,0 +1,855 @@
+<!--
+/*
+  =====================================================================
+      09-07-14: Previous Address Country to only contain Australia - Clint
+      30-10-14: Jira #DBHZL-30 Update - Address Field Localisation. Field handling for New Zealand Addresses
+      11-05-14: Changed maxLength attribute for mobile,work,home phones fields -  By Akash
+      31-03-15: Updated Defect 460 - Added class to validate work phone
+      31-03-15: Updated Defect 90, 91 - Update validation classes for unit and street number NZ - DYU
+      04-08-15: Updated Defect 696 - Removed the client side validation on issuing country since it is a picklist field inline with AML page. - DYU
+      04-08-15: Updated Defect 745 - Removed the client side validation required field on suburb for both residential and previous address NZ. - DYU
+      04-09-15: Updated Defect 359 - Add client side validation to ID number (alphanumeric only) under secondary information section. Add expiry date field in secondary identification - DYU
+      04-11-15: Updated Defect 745 - Update client side validation on email address as not required for NZ - DYU
+      04-13-15: Updated Defect 894 - Add error message div to show server side validation for expiry date
+      04-22-15: Updated Defect 1086 - Create style that displays the driver license based on brand region and removed the parent panel whcih causes to hide the field.
+      04-28-15: Updated Defect 884 - Removed required client side validation on email address - DY
+      08-04-15: DEFECT - BACKSPACE ISSUE FIX- MLASALA
+      25-11-15: DEFECT - FIX validation in Home number to exclude mobile and starting with 04
+      29-03-21: DEFECT - FIX validation in Street name edit to accpet Hyphen values
+  =====================================================================
+ */ 
+-->
+
+<apex:component controller="APP_JointPersonalDetail" id="Applicant__c-mycomponent">
+    
+<apex:attribute name="applicantWrapper" description="This is the value for the component." type="personalDetailsWrapper" required="true"/>
+<apex:attribute name="brandRegion" description="This is the value of the brand country" type="String" required="true"/>
+<apex:attribute name="applicantNo" description="This is the number of applicant." type="Integer" assignTo="{!appCount}" required="true"/>
+    <style>
+        .posabso {position:absolute;}
+    </style>
+    <table width="100%">
+        <tr>
+            <td  width="50%" style="width:400px;">
+                        
+                <apex:inputHidden id="Applicant__c___Date_of_Birth__c" value="{!applicantWrapper.applicant.Date_of_Birth__c}"/>
+                <apex:inputHidden id="Applicant__c___Date_of_Birth_WS__c" value="{!applicantWrapper.applicant.Date_of_Birth_WS__c}"/>
+                <apex:inputHidden id="Applicant__c___Work_WS__c" value="{!applicantWrapper.applicant.Work_WS__c}"/>
+                <apex:inputHidden id="Applicant__c___Home_WS__c" value="{!applicantWrapper.applicant.Home_WS__c}"/>
+                <apex:inputHidden id="Applicant__c___Work_Area_Code__c" value="{!applicantWrapper.applicant.Work_Area_Code__c}"/>
+                <apex:inputHidden id="Applicant__c___Home_Area_Code__c" value="{!applicantWrapper.applicant.Home_Area_Code__c}"/>
+                
+                <table>
+                
+                    <tr>                                        
+                        <td><label class="width100 txtright">Title </label></td>
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Title__c}" id="Applicant__c___Title__c" styleClass="{!if(brandRegion='NZ', 'isPicklistSelect','')}">
+                                <apex:selectOptions value="{!titleOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorTitle}" value="{!applicantWrapper.errorTitleMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">First name</label></td>
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputField value="{!applicantWrapper.applicant.First_Name__c}" styleClass="input-block-level isRequired isMinLength2 isMaxLength15 isPersonalName" id="Applicant__c___First_Name__c" />
+                            <br class="clearfix" />
+                            <apex:outputText id="e" rendered="{!applicantWrapper.errorFName}" value="{!applicantWrapper.errorFNameMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright"> Middle name</label></td>
+                        <td>
+                            <div class="requiredBlocknull"></div>
+                            <apex:inputField value="{!applicantWrapper.applicant.Middle_Name__c}" styleClass="input-block-level isPersonalName isMaxLength15" id="Applicant__c___Middle_Name__c" onkeypress="return isCharacterKey(event)"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorMName}" value="{!applicantWrapper.errorMNameMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">  Last name</label></td>
+                        <td>
+                                <div class="requiredBlock2"></div>
+                                <apex:inputField value="{!applicantWrapper.applicant.Last_Name__c}" onkeypress="return isCharacterKey(event)" styleClass="input-block-level isRequired isPersonalName isMinLength2 isMaxLength20" id="Applicant__c___Last_Name__c"/>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorLName}" value="{!applicantWrapper.errorLNameMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><label class="width100 txtright">Gender</label></td>
+                        <td class="">
+                            <div class="requiredBlock2"></div>
+
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Gender__c}" id="Applicant__c___Gender__c">
+                                <apex:selectOptions value="{!genderOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText id="eg" rendered="{!applicantWrapper.errorGender}" value="{!applicantWrapper.errorGenderMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+
+                    <tr>
+                         <td><label class="width100 txtright">  Preferred contact method </label></td> 
+                         <td class="">
+                            <div class="requiredBlocknull"></div>
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Pref_Contact_Method__c}" id="Applicant__c___Pref_Contact_Method__c">
+                                <apex:selectOptions value="{!preferredContactMethodOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorPrefContactMethod}" value="{!applicantWrapper.errorPrefContactMethodMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                         <td><label class="width100 txtright">Mobile</label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Mobile__c}"  id="Applicant__c___Mobile__c" onkeypress="return isNumberKeyWithCharLimit(event,this)" maxLength="{!if(brandRegion='NZ',11,10)}" styleClass="input-block-level {!if(brandRegion='NZ','NZphoneGroup','phoneGroup')} {!if(brandRegion='NZ','isNZMobile','isMobile')} {!if(brandRegion='NZ','isMaxLength11','isMaxLength10')}"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorMobile}" value="{!applicantWrapper.errorMobileMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">Work</label></td> 
+                        <td>
+                            <div class="{!if(brandRegion='NZ','','requiredBlock2')}"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Work__c}" id="Applicant__c___Work__c" onkeypress="return isNumberKeyWithCharLimit(event,this)" maxLength="{!if(brandRegion='NZ',11,10)}" 
+                            styleClass="input-block-level {!if(brandRegion='NZ','','phoneGroup')} {!if(brandRegion='NZ','isNZWorkNumber','isWorkNumber')} {!if(brandRegion='NZ','isMaxLength11','isMaxLength10')}"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorWork}" value="{!applicantWrapper.errorWorkMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                </table>
+            </td>
+              
+            <td width="50%" style="width:400px;">
+                <table>
+                    <tr>
+                       <td><label class="width100 txtright"> Date of birth </label></td>
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:selectList id="dd" size="1" value="{!applicantWrapper.birthDate}" styleClass="width70">
+                                <apex:selectOptions value="{!DateOptions}"/>
+                            </apex:selectList>
+
+                            <apex:selectList id="mm" size="1" value="{!applicantWrapper.birthMonth}" styleClass="width100">
+                                <apex:actionSupport event="onchange" id="b" action="{!setDate}" rerender="dd"/>
+                                <apex:selectOptions value="{!monthOptions}"/>
+                            </apex:selectList>
+                            
+                            <apex:inputText id="yyyy" maxlength="4" value="{!applicantWrapper.birthYear}" onkeypress="return isNumberKey(event)" styleClass="width50 padd1" />
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorDateOfBirth}" value="{!applicantWrapper.errorDateOfBirthMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright"> Relationship status </label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Rel_Status__c}" id="Applicant__c___Rel_Status__c">                                    
+                                <apex:selectOptions value="{!relationshipStatusOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorRelStat}" value="{!applicantWrapper.errorRelStatMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        <apex:outputPanel rendered="{!IF(applicantNo==1, true, false)}" id="dependantsId">
+                            <label class="width100 txtright">Total number of dependants in the household?</label>
+                            <td>
+                                <div class="requiredBlock2"></div>
+                                <apex:inputText maxlength="2" value="{!applicantWrapper.NoofDeps}" id="Applicant__c___No_of_Deps__c" styleClass="input-block-level isRequired isNumber" onkeypress="return isNumberKey(event)"/>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorNoOfDeps}" value="{!applicantWrapper.errorNoOfDepsMsg}" styleClass="warningMessage"/>
+                            </td>
+                         </apex:outputPanel> 
+                        </td>                    
+                    </tr>
+                     <tr >
+                        <td><label class="width100 txtright" style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"> Driver&apos;s licence number </label></td> 
+                        <td class="">
+                            <apex:outputPanel id="driverLic"><div style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}" class="requiredBlock2"></div></apex:outputPanel>
+                            <apex:inputText value="{!applicantWrapper.applicant.Drivers_Lic_No__c}" styleClass="input-block-level isRequired isMaxLength10 isAUNumeric" id="Applicant__c___Drivers_Lic_No__c" maxlength="10" onkeypress="return isAlphaNumericKey(event)" style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorLicense}" value="{!applicantWrapper.errorLicenseMsg}" styleClass="warningMessage" style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"/>
+                            <div class="clearfix" style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"></div>
+                            <apex:inputField styleClass="dlbox" value="{!applicantWrapper.applicant.Drivers_Lic_Flg__c}"  id="Applicant__c___Drivers_Lic_Flg__c" onclick="enableDriver();" style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"/>
+                            <span style="{!if( brandRegion == 'AU', 'display:block', 'display:none')}"> I don&apos;t have a driver&apos;s licence </span>
+                       </td>
+                    </tr>
+                   
+                    <tr>
+                        <td><label class="width100 txtright">Home </label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                           <apex:inputText value="{!applicantWrapper.applicant.Home__c}" id="Applicant__c___Home__c" styleClass="input-block-level {!if(brandRegion='NZ','NZphoneGroup','phoneGroup')} {!if(brandRegion='NZ','isNZHomeNumber','isNewHomeNumber')} {!if(brandRegion='NZ','isMaxLength9','isMaxLength10')}" onkeypress="return isNumberKeyWithCharLimit(event,this)" maxLength="{!if(brandRegion='NZ',9,10)}"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorHome}" value="{!applicantWrapper.errorHomeMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">Email Address </label></td> 
+                        <td>
+                            <div class="requiredBlocknull"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Email_Address__c}"  id="Applicant__c___Email_Address__c" maxLength="40" styleClass="input-block-level isMaxLength40 isEmailNotRequired"/>
+                            <br class="clearfix"/>
+                            <apex:outputText rendered="{!applicantWrapper.errorEmail}" value="{!applicantWrapper.errorEmailMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <!-- table here for pre submit-->
+    <apex:outputPanel rendered="{!brandRegion == nz_Country}">
+        <div class="pbSubheader bluepartition"> <h3 class="marginleft4px">Pre Submit Identification</h3></div>
+        <div class="clearfix"></div>
+        <table width="100%">
+            <tr>
+                <td  width="50%" style="width:400px;">
+                    <table>
+                        <tr>                                        
+                            <td><label class="width100 txtright">Customer Id Type </label></td>
+                            <td>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputField value="{!applicantWrapper.applicant.Customer_ID_Type__c}" id="Applicant__c___Customer_ID_Type__c" styleClass="" onchange="handlePreSubmitFields(this, 'false');"/>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorCustomerIdType}" value="{!applicantWrapper.errorCustomerIdTypeMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="width100 txtright">ID Number</label></td>
+                            <td>
+                                <apex:outputPanel id="customerIdNumberlabel" styleClass="requiredBlock2"/>
+                                    <!-- BEGIN MLASALA: 08/04/15 DEFECT - BACKSPACE ISSUE FIX-->
+                                    <apex:inputText value="{!applicantWrapper.applicant.ID_Number__c}" id="Applicant__c___ID_Number__c" styleClass="input-block-level isAlphaNumericOnly {!IF(applicantWrapper.applicant.Customer_ID_Type__c != 'NZ Driver Licence','isMaxLength16','isMaxLength8 isNZDriverLicense')}" onkeypress="return isIDNumber(this, event)"/>
+                                    <!-- END MLASALA: 08/04/15 DEFECT - BACKSPACE ISSUE FIX-->
+                                    <br class="clearfix" />
+                               <apex:outputText rendered="{!applicantWrapper.errorIdType}" value="{!applicantWrapper.errorCustomerIdNumberMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputPanel id="customerIdVersionlabel">
+                                    <label class="width100 txtright">Version</label>
+                                </apex:outputPanel>                                    
+                            </td>
+                            <td>
+                                <apex:outputPanel id="customerIdVersionfield">                                
+                                    <div class="requiredBlock2"></div>
+                                    <apex:inputField value="{!applicantWrapper.applicant.Version__c}" id="Applicant__c___Version__c" styleClass="input-block-level isRequired isNumberWithoutDecimal isMinLength3 " />
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorVersion}" value="{!applicantWrapper.errorVersionMsg}" styleClass="warningMessage"/>
+                                </apex:outputPanel> 
+                            </td>
+                        </tr>                        
+                        <tr>
+                            <td>
+                                <apex:outputPanel id="customerIdNZResidencylabel">
+                                    <label class="width100 txtright">NZ Residency Number</label> 
+                                </apex:outputPanel> 
+                            </td>
+                            <td>
+                                <apex:outputPanel id="customerIdNZResidencyField">                                
+                                    <div class="requiredBlock2"></div>
+                                    <apex:inputField value="{!applicantWrapper.applicant.NZ_Residency_Number__c}" id="Applicant__c___NZ_Residency_Number__c" styleClass="input-block-level isRequired isAlphaNumeric isMaxLength10" onkeypress="return isAlphaNumericNZ(event)"/>
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorNZResidencyNumber}" value="{!applicantWrapper.errorNZResidencyNumberMsg}" styleClass="warningMessage"/>
+                                </apex:outputPanel> 
+                            </td>
+                        </tr>                                          
+                    </table>
+                </td>
+                <td width="50%" style="width:400px;">
+                    <table>
+                        <tr>
+                           <td><label class="width100 txtright">Issue date</label></td>
+                            <td>
+                                <div class="requiredBlocknull"></div>
+                                <apex:selectList id="issuedatedd" size="1" value="{!applicantWrapper.issueDate}" styleClass="width70">
+                                    <apex:selectOptions value="{!DateOptions}"/>
+                                </apex:selectList>
+        
+                                <apex:selectList id="issuedatemm" size="1" value="{!applicantWrapper.issueMonth}" styleClass="width100">
+                                    <apex:actionSupport event="onchange" id="issueb" action="{!setDate}" rerender="dd"/>
+                                    <apex:selectOptions value="{!monthOptions}"/>
+                                </apex:selectList>
+                                <apex:inputText id="issuedateyyyy" maxlength="4" value="{!applicantWrapper.issueYear}" onkeypress="return isNumberKey(event)" styleClass="width50 padd1" />
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorIssuedate}" value="{!applicantWrapper.errorIssuedateMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                      <tr>
+                           <td><label class="width100 txtright">Expiry date</label></td>
+                            <td>
+                                <apex:outputPanel id="customerIdExpirydateRequired" styleClass="requiredBlock2"/>
+                                <apex:selectList id="expirydatedd" size="1" value="{!applicantWrapper.expiryDate}" styleClass="width70">
+                                    <apex:selectOptions value="{!DateOptions}"/>
+                                </apex:selectList>
+                                <apex:selectList id="expirydatemm" size="1" value="{!applicantWrapper.expiryMonth}" styleClass="width100">
+                                    <apex:actionSupport event="onchange" id="expiryb" action="{!setDate}" rerender="dd"/>
+                                    <apex:selectOptions value="{!monthOptions}"/>
+                                </apex:selectList>
+                                <apex:inputText id="expirydateyyyy" maxlength="4" value="{!applicantWrapper.expiryYear}" onkeypress="return isNumberKey(event)" styleClass="width50 padd1" />
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorExpirydate}" value="{!applicantWrapper.errorExpirydateMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                    <label class="width100 txtright">Issuing country</label>
+                            </td>
+                            <td>
+                                <apex:outputPanel id="customerIdIssueAuthRequired"/>
+                                    <apex:inputField value="{!applicantWrapper.applicant.Issuing_Country__c}" id="Applicant__c___Issuing_Country__c" styleClass="input-block-level  {!IF(applicantWrapper.applicant.Customer_ID_Type__c = 'Australia/Cook Islands/Tokelau/Niue Passport', 'isRequired','')} width303"/>
+                                    <br class="clearfix" />
+                               <apex:outputText rendered="{!applicantWrapper.errorIssuingcountry}" value="{!applicantWrapper.errorIssuingcountryMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>                                         
+                    </table>    
+                </td> 
+            </tr>
+        </table>   
+        <apex:outputPanel id="Secondary-Verification-Panel">
+            <div class="pbSubheader bluepartition">
+                <h3 class="marginleft4px">Secondary Identification</h3>
+            </div>
+            <table class="grid80">
+                <tr>
+                    <td>
+                        <div class="fleft">
+                            <label class="width130 txtright">Identification</label>
+                            <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                        </div>
+                        <div class="fleft">
+                            <apex:inputField styleClass="amainselect width450" value="{!applicantWrapper.applicant.ID_1__c}" onchange="checkValue2(this);setRequiredBars2();" id="Appllicant__c___Identification__c" />
+                        </div>
+                        <div class="clearall"></div>
+        
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="fleft">
+                            <label class="width130 txtright">ID No.</label>
+                            <apex:outputPanel styleClass="requiredBlock2" id="idNo"></apex:outputPanel>
+                        </div>
+                        <div class="fleft">
+                            <apex:inputField styleClass="width100  {!if(brandRegion == 'NZ', 'isRequired isAlphaNumericOnly isMaxLength16', '')}" value="{!applicantWrapper.applicant.ID_No__c}" id="SecIdentification_ID_No__c" />
+                            <br class="clearfix" />
+                           <apex:outputText rendered="{!applicantWrapper.errorSecIDNumber}" value="{!applicantWrapper.errorSecIDNumberMsg}" styleClass="warningMessage"/> 
+                        </div>
+                        <div class="clearall"></div>
+                    </td>
+                </tr>
+                 <tr>
+                    <td>
+                        <div class="fleft">
+                            <label class="width130 txtright">Issue date</label>
+                            <apex:outputPanel styleClass="requiredBlocknull" id="SecIDIssueDate"></apex:outputPanel>
+                        </div>
+                        <div class="fleft">
+                            <apex:inputField styleClass="width100" value="{!applicantWrapper.applicant.Sec_ID_Issue_Date__c}" id="SecId_Sec_ID_Issue_Date__c" />
+                        </div>
+                        <div class="clearall"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="fleft">
+                            <label class="width130 txtright">Expiry date</label>
+                            <apex:outputPanel styleClass="requiredBlocknull" id="SecIDExpiryDate"></apex:outputPanel>
+                        </div>
+                        <div class="fleft">
+                            <apex:inputField styleClass="isNZSecondaryExpiryDate width100" value="{!applicantWrapper.applicant.Sec_ID_Expiry_Date__c}" id="Applicant__c__ID_Expiry_Date__c" />
+                           <br class="clearfix" />
+                           <apex:outputText rendered="{!applicantWrapper.errorSecIDExpiryDate}" value="{!applicantWrapper.errorSecIDExpiryDateMsg}" styleClass="warningMessage"/> 
+                        </div>
+                        <div class="clearall"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    <div class="fleft">
+                          <label class="width130 txtright">Issuing country</label>
+                          <apex:inputField styleClass="width130" value="{!applicantWrapper.applicant.Sec_ID_Issue_Country__c}" id="Applicant__c___Sec_ID_Issue_Country__c" />
+                     </div> 
+                     </td>      
+                </tr>   
+                <tr>
+                    <td>
+                    <div class="fleft">
+                          <label class="width130 txtright">Issuer </label>
+                          <apex:inputField styleClass="width130" value="{!applicantWrapper.applicant.Sec_ID_Issuer__c}" id="Applicant__c___SSec_ID_Issuer__c" />
+                     </div> 
+                     </td>      
+                     
+                </tr> 
+            </table>
+        </apex:outputPanel>   
+             
+    </apex:outputPanel>
+   <div class="clearfix"></div> 
+    <!--table here-->
+
+    <div class="pbSubheader bluepartition"> <h3 class="marginleft4px">Address information</h3></div>
+    <div class="clearfix"></div> 
+        
+    <table width="100%">
+    
+        <tr>
+            <td width="50%" style="width:400px;">
+                <table>
+                    <tr>
+                        <td colspan="2" style="border: 1px solid #9C9C9C; padding:7px; border-radius:5px;">
+                            <label class="txtright">Residential Address Search</label>  
+                            <apex:inputText id="fulAdd" value="{!searchAddressValue}" styleClass="datatools" style="width: 220px;"/>
+                        </td>
+                    </tr>
+                </table>
+                
+                <table>
+                    <tr>
+                        <td><label class="width100 txtright">&nbsp;</label></td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright">Property Name</label></td> 
+                        <td>
+                            <div class="requiredBlocknull"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Residential_Property_Name__c}" id="Applicant__c___Residential_Property_Name__c" maxlength="40" styleClass="input-block-level isMaxLength20"/>
+                            <apex:inputHidden value="{!applicantWrapper.applicant.Postal_Property_Name__c}" id="Applicant__c___Postal_Property_Name__c_Hidden"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorProperty}" value="{!applicantWrapper.errorPropertyMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>                 
+                    <tr>
+                        <td><label class="width100 txtright">Unit number</label></td> 
+                         <td>
+                            <div class="requiredBlocknull"></div>
+                            <apex:inputField value="{!applicantWrapper.applicant.Unit_No_Res__c}" id="Applicant__c___Unit_No_Res__c" styleClass="input-block-level {!if(brandRegion='NZ', 'isMaxLength5', 'isMaxLength4')}" />
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorUnitNum}" value="{!applicantWrapper.errorUnitNumMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright">Street number</label></td> 
+                          <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Street_No_Res__c}" id="Applicant__c___Street_No_Res__c" styleClass="{!if(brandRegion='NZ', 'isRequired', '')}" maxLength="{!if(brandRegion='NZ', 6, 30)}"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorStreetNum}" value="{!applicantWrapper.errorStreetNumMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright">Street</label></td>
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputField value="{!applicantWrapper.applicant.Street_Res__c}" id="Applicant__c___Street_Res__c" styleClass="input-block-level isRequired {!if(brandRegion='NZ','isNZAlphaNumeric isMaxLength22','isStreetName isMaxLength15')}" onkeypress="return isStreetNZ(event, '{!brandRegion}');"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorStreetName}" value="{!applicantWrapper.errorStreetNameMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright">Street type</label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Street_Type_Res__c}" id="Applicant__c___Street_Type_Res__c" >
+                                <apex:selectOptions value="{!streetTypeOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorStreetType}" value="{!applicantWrapper.errorStreetTypeMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    
+                    <tr>
+                       <td><label class="width100 txtright">{!if(brandRegion = 'NZ', 'Suburb/Rural Delivery Number', 'Suburb')}</label></td> 
+                        <td>
+                            <div class="{!if(brandRegion = 'NZ', 'requiredBlocknull', 'requiredBlock2')}"></div>
+                            <apex:inputField value="{!applicantWrapper.applicant.Suburb_Res__c}" id="Applicant__c___Suburb_Res__c" styleClass="input-block-level  isMaxLength22 {!if(brandRegion='NZ', 'isNZAlphaNumericSuburb isRDNumber', 'isAlphaNumericSuburb isSuburb isRequired')}" onkeypress="return isAlphaNumericKeySuburbNZ(event, '{!brandRegion}')"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorSuburb}" value="{!applicantWrapper.errorSuburbMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    <tr id="resTownRow" style="{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, 'visibility:visible', 'display:none')}">
+                       <td><label class="width100 txtright">Town/City</label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.City_Res__c}" id="Applicant__c___City_Res__c" styleClass="input-block-level isRequired isNZAlphaNumericTown isMaxLength22" maxLength="{!if(brandRegion='NZ',22,30)}" onkeypress="return isCityNZ(event, '{!brandRegion}');"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorCity}" value="{!applicantWrapper.errorCityMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">Postcode</label></td> 
+                        <td>
+                            <div class="requiredBlock2"></div>
+                            <apex:inputText value="{!applicantWrapper.applicant.Postcode_Res__c}" id="Applicant__c___Postcode_Res__c" styleClass="input-block-level isRequired isNumber isMaxLength4 isMinlength4" maxlength="4" onkeypress="return isNumberKey(event)"/>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorPostcode}" value="{!applicantWrapper.errorPostcodeMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="width100 txtright covbarlbel">Country</label></td> 
+                        <!-- <td class="covrbar"> -->
+                        <td>
+                            <apex:outputPanel styleClass="requiredBlock2"/>
+                             <apex:selectList size="1" styleClass="width303" value="{!applicantWrapper.applicant.Country_Res__c}" id="Applicant__c___Country_Res__c" onChange="disableState();">                                
+                                <apex:selectOptions value="{!countryOpts}"/> 
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorCountry}" value="{!applicantWrapper.errorCountryMsg}" styleClass="warningMessage"/>
+                        </td>
+                    </tr>
+                    <tr style="{!if($ObjectType.Applicant__c.fields.State_Pre__c.Accessible, 'visibility:visible', 'display:none')}">
+                        <td><apex:outputLabel id="resSate" styleClass="width100 txtright paddr16" value="State"/></td> 
+                        <td>
+                            <apex:outputPanel id="reqState" styleclass="requiredBlock2"></apex:outputPanel>
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.State_Res__c}" id="Applicant__c___State_Res__c" >
+                                <apex:selectOptions value="{!stateOptions}"/>
+                            </apex:selectList>
+                            <br class="clearfix" />
+                            <apex:outputText rendered="{!applicantWrapper.errorState}" value="{!applicantWrapper.errorStateMsg}" styleClass="warningMessage"/>
+                       </td>
+                    </tr>
+                    
+                    <tr>
+                        <td><label class="width100 txtright">Time at this address</label></td>
+                        <td class="">
+                            <div class="requiredBlock2"></div>
+                                 <!--Mar-21-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Years_At_Addr__c}" id="Applicant__c___Years_At_Addr__c" onChange="enablePrevious();">
+                                    <apex:selectOptions value="{!yearAtAddressOptions}"/>
+                                </apex:selectList> -->
+                                <!--Defect 511; Afreen Adding maxlength-->
+                                <apex:inputtext maxlength="2" value="{!applicantWrapper.applicant.Years_At_Addr__c}" id="Applicant__c___Years_At_Addr__c" onChange="enablePrevious();" html-placeholder="Years" onkeypress="return isNumberKey(event, this)"/>
+                                
+                                <!--May-05-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Months_At_Addr__c}" id="Applicant__c___Months_At_Addr__c" onChange="enablePrevious();" >
+                                    <apex:selectOptions value="{!monthsAtAddressOptions}"/>
+                                </apex:selectList>-->
+                                <apex:inputtext maxlength="2" value="{!applicantWrapper.applicant.Months_At_Addr__c}" id="Applicant__c___Months_At_Addr__c" onChange="enablePrevious();" html-placeholder="Months" onkeypress="return isNumberKey(event, this)"/>
+                            
+                                <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorTimeAtAddress}" value="{!applicantWrapper.errorTimeAtAddressMsg}" styleClass="warningMessage"/>
+                       </td>
+                     </tr>
+                </table>
+            </td>
+
+            <td width="50%" style="width:400px;">
+                <div id="prevAdd1">
+                    <table>                       
+                        <tr>
+                            <td colspan="2" style="border: 1px solid #9C9C9C; padding:7px; border-radius:5px;">    
+                                <label class="txtright">Postal Address Search</label>
+                                <apex:inputText id="fulPAdd" styleClass="datatools" style="width: 220px;"/><br />
+                            </td>
+                            <td style="padding:7px;">
+                                <a href="#" onclick="enablePostal(); return false;">Copy Residential Addresss</a>
+                            </td>
+                        </tr>
+                    </table>
+                   
+                    <table class="poboxfields">
+                        <tr id="poBoxRow" style="visibility: {!if($ObjectType.Applicant__c.fields.PO_Box__c.Accessible, 'visible', 'hidden')}">
+                            <td><label class="width100 txtright paddr16"> PO/GPO Box </label></td>
+                            <td>
+                                <apex:outputPanel id="requiredBlocknullpo" styleClass="requiredBlocknull"></apex:outputPanel>
+                                <apex:inputCheckbox value="{!applicantWrapper.applicant.PO_Box__c}" id="Applicant__c___Po_Box__c" onChange="enablePOBox();"/>&nbsp;
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalAddress}" value="{!applicantWrapper.errorPostalAddressMsg}" styleClass="warningMessage"/>
+                           </td>
+                        </tr>      
+                        <tr id="serviceTypeRow" style="{!if($ObjectType.Applicant__c.fields.Service_Delivery_Type__c.Accessible, 'visibility:visible', 'display:none')}">
+                           <td><apex:outputLabel id="posType" styleClass="width100 txtright paddr16 remborder" value="Service Delivery Type" /></td>
+                           <td>
+                               <apex:outputPanel id="reqServiceType" styleClass="requiredBlock2"></apex:outputPanel>
+                               <apex:inputField value="{!applicantWrapper.applicant.Service_Delivery_Type__c}" id="Applicant__c___Service_Delivery_Type__c" styleClass="poadjFields"
+                               onclick="enablePostalFieldsByType(this)"/>
+                               <div class="clearfix"></div>
+                               <apex:outputText rendered="{!applicantWrapper.errorServiceType}" value="{!applicantWrapper.errorServiceTypeMsg}" styleClass="warningMessage"/>
+                           </td>
+                        </tr>
+                        <tr id="posRowServiceId" style="{!if($ObjectType.Applicant__c.fields.Service_Delivery_Id__c.Accessible, 'visibility:visible', 'display:none')}">
+                           <td><apex:outputLabel id="posId" styleClass="width100 txtright paddr16 remborder" value="Service Delivery Id" /></td>
+                             <td>
+                                <apex:outputPanel id="reqServiceId" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:inputText value="{!applicantWrapper.applicant.Service_Delivery_Id__c}" id="Applicant__c___Service_Delivery_Id__c" styleClass="input-block-level isMaxLength12 poadjFields" />
+                                <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorServiceId}" value="{!applicantWrapper.errorServiceIdMsg}" styleClass="warningMessage"/>
+                           </td>
+                        </tr>
+                        <tr id="rmvetrtdattr6">
+                           <td><apex:outputLabel id="posProperty" styleClass="width100 txtright paddr16 remborder" value="Property Name" /></td>
+                             <td>
+                                <apex:outputPanel id="requiredBlocknullproperty" styleClass="requiredBlocknull"></apex:outputPanel>
+                                <apex:inputText value="{!applicantWrapper.applicant.Postal_Property_Name__c}" id="Applicant__c___Postal_Property_Name__c" maxlength="40" styleClass="poadjFields" />
+                           </td>
+                        </tr>                        
+                        <tr id="rmvetrtdattr1">
+                            <td><apex:outputLabel id="posUnitNum" styleClass="width100 txtright paddr16 remborder" value="Unit number"/></td>
+                            <td>
+                                <apex:outputPanel id="requiredBlocknullunit" styleClass="requiredBlocknull"></apex:outputPanel>
+                                 <apex:inputField value="{!applicantWrapper.applicant.Unit_No_Pos__c}" id="Applicant__c___Unit_No_Pos__c" styleClass=" {!if(brandRegion='NZ', 'isMaxLength5', 'poadjFields')}" />
+                                 <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalUnitNo}" value="{!applicantWrapper.errorPostalUnitNoMsg}" styleClass="warningMessage"/>
+                           </td>
+                        </tr>
+                        <tr id="rmvetrtdattr2">
+                            <td><apex:outputLabel id="posStNum" styleClass="width100 txtright paddr16" value="Street number"/></td>
+                            <td>
+                               <apex:outputPanel id="reqPosStNo" styleClass="requiredBlock2"></apex:outputPanel>
+                               <apex:inputText value="{!applicantWrapper.applicant.Street_No_Pos__c}" id="Applicant__c___Street_No_Pos__c" styleClass="poadjFields {!if(brandRegion='NZ', 'isRequired', '')}" maxLength="{!if(brandRegion='NZ', 6, 30)}" />
+                               <br class="clearfix" />
+                               <apex:outputText rendered="{!applicantWrapper.errorPostalStreetNo}" value="{!applicantWrapper.errorPostalStreetNoMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr id="rmvetrtdattr3">
+                            <td><apex:outputLabel id="posSt" value="Street" styleClass="width100 txtright paddr16" /></td>
+                            <td>
+                                <apex:outputPanel id="reqPosSt" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:inputField value="{!applicantWrapper.applicant.Street_Pos__c}" id="Applicant__c___Street_Pos__c" onkeypress="return isStreetNZ(event, '{!brandRegion}');" styleClass="poadjFields" /> 
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalStreet}" value="{!applicantWrapper.errorPostalStreetMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr id="rmvetrtdattr4">
+                            <td><apex:outputLabel id="posStType" styleClass="width100 txtright paddr16" value="Street type"/></td>
+                            <td>
+                                <apex:outputPanel id="reqPosStType" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:selectList size="1" value="{!applicantWrapper.applicant.Street_Type_Pos__c}" id="Applicant__c___Street_Type_Pos__c" styleClass="poadjFields" >
+                                    <apex:selectOptions value="{!streetTypeOptions}"/>
+                                </apex:selectList>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalStreetType}" value="{!applicantWrapper.errorPostalStreetTypeMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr id="rmvetrtdattr7">
+                            <td><apex:outputLabel id="posSuburb" styleClass="width100 txtright paddr16" value="{!if(brandRegion = 'NZ', 'Suburb/Rural Delivery Number', 'Suburb')}"/></td>
+                            <td>
+                                <apex:outputPanel id="reqPosSub" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:inputText value="{!applicantWrapper.applicant.Suburb_Pos__c}" id="Applicant__c___Suburb_Pos__c" styleClass="input-block-level isMaxLength22 isAlphaNumeric {!if(brandRegion='NZ', 'isRDNumber', '')}" />
+                                <!--
+                                poadjFields
+                                onkeypress="return isAlphaNumericKeySuburbNZ(event, '{!brandRegion}')"/>
+                                -->
+                                
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalSuburb}" value="{!applicantWrapper.errorPostalSuburbMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr id="rmvetrtdattr5" style="{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, 'visibility:visible', 'display:none')}">
+                            <td><apex:outputLabel id="posTown" value="Town/City" styleClass="width100 txtright paddr16" /></td>
+                            <td>
+                                <apex:outputPanel id="reqPosTown" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:inputText value="{!applicantWrapper.applicant.City_Pos__c}" id="Applicant__c___City_Pos__c" maxLength="{!if(brandRegion='NZ',22,30)}" onkeypress="return isCityNZ(event, '{!brandRegion}');" styleClass="poadjFields" /> 
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalCity}" value="{!applicantWrapper.errorPostalCityMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="width100 txtright paddr16">Postcode</label></td>
+                            <td>
+                                <apex:outputPanel id="reqPosPost" styleClass="requiredBlock2"></apex:outputPanel>
+                                <apex:inputText value="{!applicantWrapper.applicant.Postcode_Pos__c}" id="Applicant__c___Postcode_Pos__c" maxlength="4" onkeypress="return isNumberKey(event)" styleClass="poadjFields" />
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalPostcode}" value="{!applicantWrapper.errorPostalPostcodeMsg}" styleClass="warningMessage"/>
+                           </td>
+                        </tr>
+
+                        <tr>
+                             <td><label class="width100 txtright paddr16">Country</label></td>
+                           <td>
+                               <apex:outputPanel id="reqPosCountry" styleClass="requiredBlock2"></apex:outputPanel>
+                               <apex:selectList size="1" value="{!applicantWrapper.applicant.Country_Pos__c}" id="Applicant__c___Country_Pos__c" styleClass="poadjFields width303 posabso" onChange="disableState();">
+                                    <apex:selectOptions value="{!countryOpts}"/>                                
+                                </apex:selectList>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalCountry}" value="{!applicantWrapper.errorPostalCountryMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+
+                        <tr style="visibility:{!if($ObjectType.Applicant__c.fields.State_Pos__c.Accessible, 'visible', 'hidden')}">
+                           <td><apex:outputLabel id="posState" styleClass="width100 txtright paddr16" value="State"/></td>
+                            <td>
+                                <apex:outputPanel id="reqPosState" styleClass="requiredBlocknull"></apex:outputPanel>
+                                <apex:selectList size="1" value="{!applicantWrapper.applicant.State_Pos__c}" id="Applicant__c___State_Pos__c" styleClass="poadjFields">
+                                    <apex:selectOptions value="{!stateOptions}"/>
+                                </apex:selectList>
+                                <br class="clearfix" />
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalState}" value="{!applicantWrapper.errorPostalStateMsg}" styleClass="warningMessage"/>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div id="prevAdd2">
+                    <apex:outputPanel id="previousAddressPanel">
+                        <div class="pbSubheader bluepartition"> <h3 class="marginleft4px">Previous Residential Address information</h3></div>
+                        <table>
+                            <tr>
+                                <td colspan="2" style="border: 1px solid #9C9C9C; padding:7px; border-radius:5px;">
+                                    <label class="txtright">Previous Residential Address Search</label>
+                                    <apex:inputText id="fulPreAdd" styleClass="datatools" style="width: 220px;" />
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                 <td><label class="width100 txtright">Property Name</label></td> 
+                                  <td>
+                                        <div class="requiredBlocknull"></div>
+                                         <apex:inputText value="{!applicantWrapper.applicant.Previous_Property_Name__c}" styleClass="input-block-level isMaxLength20" id="Applicant__c___Previous_Property_Name__c" maxlength="40"/>
+                                         <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousProperty}" value="{!applicantWrapper.errorPreviousPropertyMsg}" styleClass="warningMessage"/>
+                                </td>
+                            </tr>   
+                            
+                            <tr>
+                                 <td><label class="width100 txtright"> Unit number</label></td> 
+                                <td>
+                                    <div class="requiredBlocknull"></div>
+                                    <apex:inputField value="{!applicantWrapper.applicant.Unit_No_Pre__c}" id="Applicant__c___Unit_No_Pre__c" styleClass="input-block-level {!if(brandRegion='NZ', 'isMaxLength5', 'isMaxLength4')}" />
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorPreviousUnitNo}" value="{!applicantWrapper.errorPreviousUnitNoMsg}" styleClass="warningMessage"/>
+                               </td>
+                            </tr>
+                            
+                            <tr>
+                               <td><label class="width100 txtright">Street number</label></td> 
+                                 <td>
+                                     <div class="requiredBlock2"></div>     
+                                    <apex:inputText value="{!applicantWrapper.applicant.Street_No_Pre__c}" id="Applicant__c___Street_No_Pre__c" styleClass="{!if(brandRegion='NZ', 'isRequired', '')}" maxLength="{!if(brandRegion='NZ', 6, 30)}"/>
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorPreviousStreetNo}" value="{!applicantWrapper.errorPreviousStreetNoMsg}" styleClass="warningMessage"/>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td><label class="width100 txtright"> Street</label></td> 
+                                   <td>
+                                        <div class="requiredBlock2"></div>    
+                                        <apex:inputField value="{!applicantWrapper.applicant.Street_Pre__c}"  id="Applicant__c___Street_Pre__c" styleClass="input-block-level isRequired {!if(brandRegion='NZ','isNZAlphaNumeric isMaxLength22','isStreetName isMaxLength15')}" onkeypress="return isStreetNZ(event, '{!brandRegion}');"/>
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousStreet}" value="{!applicantWrapper.errorPreviousStreetMsg}" styleClass="warningMessage"/>
+                                    </td>
+                            </tr>
+                            
+                            <tr>
+                                <td><label class="width100 txtright">  Street type</label></td> 
+                                 <td>
+                                     <div class="requiredBlock2"></div>
+                                    <apex:selectList size="1" value="{!applicantWrapper.applicant.Street_Type_Pre__c}" id="Applicant__c___Street_Type_Pre__c">
+                                        <apex:selectOptions value="{!streetTypeOptions}"/>
+                                    </apex:selectList>
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorPreviousStreetType}" value="{!applicantWrapper.errorPreviousStreetTypeMsg}" styleClass="warningMessage"/>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                  <td><label class="width100 txtright">{!if(brandRegion = 'NZ', 'Suburb/Rural Delivery Number', 'Suburb')}</label></td> 
+                                   <td>
+                                        <div class="{!IF(brandRegion = 'NZ', 'requiredBlocknull', 'requiredBlock2')}"></div>   
+                                        <apex:inputField value="{!applicantWrapper.applicant.Suburb_Pre__c}" id="Applicant__c___Suburb_Pre__c" onkeypress="return isAlphaNumericKeySuburbNZ(event, '{!brandRegion}')" styleClass="input-block-level  isMaxLength22 {!if(brandRegion='NZ', 'isNZAlphaNumericSuburb isRDNumber', 'isAlphaNumericSuburb isSuburb isRequired')}" />
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousSuburb}" value="{!applicantWrapper.errorPreviousSuburbMsg}" styleClass="warningMessage"/>
+                                    </td>
+                            </tr>
+                            
+                            <tr id="prevCityRow" style="{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, 'visibility:visible', 'display:none')}">
+                                <td><label class="width100 txtright"> Town/City</label></td> 
+                                   <td>
+                                        <div class="requiredBlock2"></div>    
+                                        <apex:inputText value="{!applicantWrapper.applicant.City_Pre__c}" maxLength="{!if(brandRegion='NZ',22,30)}" id="Applicant__c___Previous_Town_City__c" onkeypress="return isCityNZ(event, '{!brandRegion}');" styleClass="input-block-level isRequired isNZAlphaNumericTown isMaxLength22"/>
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousCity}" value="{!applicantWrapper.errorPreviousCityMsg}" styleClass="warningMessage"/>
+                                    </td>
+                            </tr>
+                            
+                            <tr>
+                                 <td><label class="width100 txtright"> Postcode </label></td> 
+                                  <td>
+                                    <div class="requiredBlock2"></div>   
+                                    <apex:inputText value="{!applicantWrapper.applicant.Postcode_Pre__c}" id="Applicant__c___Postcode_Pre__c" maxlength="4" onkeypress="return isNumberKey(event)" styleClass="input-block-level isRequired isNumber isMaxLength4 isMinlength4"/>
+                                    <br class="clearfix" />
+                                    <apex:outputText rendered="{!applicantWrapper.errorPreviousPostcode}" value="{!applicantWrapper.errorPreviousPostcodeMsg}" styleClass="warningMessage"/>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td><label class="width100 txtright"> Country </label></td> 
+                                  <td>
+                                        <div class="requiredBlock2"></div>   
+                                     <apex:selectList size="1" styleClass="width303 posabso" value="{!applicantWrapper.applicant.Country_Pre__c}" id="Applicant__c___Country_Pre__c" onChange="disableState();" >
+                                                <apex:selectOptions value="{!countryOpts}"/>                                
+                                        </apex:selectList>
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousCountry}" value="{!applicantWrapper.errorPreviousCountryMsg}" styleClass="warningMessage"/>
+                               </td>
+                            </tr>
+                            <!--<tr style="visibility:{!if(isPrevResidentialStateVisible, 'visible', 'hidden')}">-->
+                            <tr style="{!if($ObjectType.Applicant__c.fields.State_Pre__c.Accessible, 'visibility:visible', 'display:none')}">
+                               <td><apex:outputLabel id="prevState" styleClass="width100 txtright paddr16" value="State"/></td> 
+                                 <td>
+                                        <apex:outputPanel id="reqPrevState" styleclass="requiredBlocknull"></apex:outputPanel>
+                                        <apex:selectList size="1" value="{!applicantWrapper.applicant.State_Pre__c}" id="Applicant__c___State_Pre__c">
+                                            <apex:selectOptions value="{!stateOptions}"/>
+                                        </apex:selectList>
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorPreviousState}" value="{!applicantWrapper.errorPreviousStateMsg}" styleClass="warningMessage"/>
+                               </td>
+                            </tr>
+                            
+                            
+                            
+                            <tr>
+                               <td><label class="width100 txtright"> Time at previous address  </label></td> 
+                                <td>
+                                        <div class="requiredBlock2"></div>   
+                                        <!--Mar-21-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Years_At_Prev_Addr__c}" id="Applicant__c___Years_At_Prev_Addr__c" styleClass="prevt" >
+                                            <apex:selectOptions value="{!yearAtAddressOptions}"/>
+                                        </apex:selectList> -->
+                                        <!--Defect 511; Afreen Adding maxlength-->
+                                        <apex:inputText maxlength="2" value="{!applicantWrapper.applicant.Years_At_Prev_Addr__c}" id="Applicant__c___Years_At_Prev_Addr__c" styleClass="prevt"  html-placeholder="Years" onkeypress="return isNumberKey(event, this)"/>
+                                        <!--May-05-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Months_At_Prev_Addr__c}" id="Applicant__c___Months_At_Prev_Addr__c" styleClass="prevm" >
+                                            <apex:selectOptions value="{!monthsAtAddressOptions}"/>
+                                        </apex:selectList>-->
+                                        <apex:inputText maxlength="2" value="{!applicantWrapper.applicant.Months_At_Prev_Addr__c}" id="Applicant__c___Months_At_Prev_Addr__c" styleClass="prevm" html-placeholder="Months" html-Type="number" onkeypress="return isNumberKey(event, this)"/>
+                                        <br class="clearfix" />
+                                        <apex:outputText rendered="{!applicantWrapper.errorTimePrevAtAddress}" value="{!applicantWrapper.errorTimePrevAtAddressMsg}" styleClass="warningMessage" />
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td>
+                                    <!-- <apex:inputField value="{!applicantWrapper.applicant.PRS_RECORD_ID__c}" id="Applicant__c___PRS_RECORD_ID__c" /> -->
+                                </td>
+                                <td>
+                                     <apex:inputHidden value="{!applicantWrapper.applicant.id}" id="Applicant__c___id" />                                       
+                                </td>
+                            </tr>
+                            
+                        </table>
+                    </apex:outputPanel>
+                </div>
+            </td>
+        </tr>
+    </table>
+</apex:component>

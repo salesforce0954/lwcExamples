@@ -1,0 +1,8 @@
+<apex:component >
+<div class="clearfix"></div>
+<div class="gethelp">
+    <h3>Get Help</h3>
+    <p class="phoneicon">1300 773 589</p>
+    <p class="timeicon">Monday - Friday 9am - 5pm AEST</p>
+</div>
+</apex:component>

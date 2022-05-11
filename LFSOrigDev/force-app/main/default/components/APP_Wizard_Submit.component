@@ -1,0 +1,578 @@
+<apex:component controller="APP_Wizard_Ext">
+    
+    <div class="slds-grid slds-wrap slds-m-vertical--large">
+        
+         
+            
+        <!-- EMPTY SECTION -->
+        <section class="slds-col slds-size--1-of-5 slds-medium-size--1-of-2 slds-large-size--1-of-5"/>
+        
+        <!--SAVE BUTTON-->
+
+            <section class="slds-col slds-size--1-of-5 slds-medium-size--1-of-2 slds-large-size--1-of-5">
+                <apex:outputPanel rendered="{!!isSoftQuoteApplication}">
+                    <button type="submit" id="saveApplication" class="slds-button slds-button--brand" style="width:75%" onclick="saveApp();return false;">SAVE</button>
+                </apex:outputPanel>
+            </section>
+
+        
+        <!--EMPTY SECTION -->
+        <section class="slds-col slds-size--1-of-5 slds-medium-size--1-of-2 slds-large-size--1-of-5"/>
+        <!--SUBMIT BUTTON
+            Changing Submit button to Get Quote Button 
+            NZ CR Code Changes-->
+        <section class="slds-col slds-size--1-of-5 slds-medium-size--1-of-2 slds-large-size--1-of-5">
+            <button type="button" id="submitApplication"  class="slds-button slds-button--brand" 
+                    style="width:75%"  
+                    onclick="submitApp(); return false;">    
+                {!IF($CurrentPage.parameters.country == 'NZ' && !isSoftQuoteApplication,  'GET QUOTE', 'SUBMIT')}
+            </button>
+            <!-- <button type="button" id="submitApplication"  class="slds-button slds-button--brand" style="width:75%" onclick="mapApplication();">SUBMIT</button> -->
+        </section>
+        
+        <!--EMPTY SECTION -->
+        <section class="slds-col slds-size--1-of-5 slds-medium-size--1-of-2 slds-large-size--1-of-5"/>
+        
+    </div>
+    
+    <!-- Modal window for progress bar -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true" data-backdrop='static' data-keyboard='false'>
+        <div class="modal-dialog">
+          <!-- Modal content-->
+          <div class="modal-content">
+                
+                <div class="modal-header">
+                    <!-- Removed by: Adrian Recio -->
+                    <!-- Date: 12/16/2015 -->
+                    <!-- Description: User can't close the loader while values are being generated in the data base.
+                    <!--
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    -->
+                    <h4 class="modal-title" id="myModalLabel1"></h4>
+                </div>
+                
+                <div class="modal-body center-block">
+                    <div class="progress">
+                        <div class="progress-bar bar rogress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">    
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Removed by: Adrian Recio -->
+                <!-- Date: 12/16/2015 -->
+                <!-- Description: User can't close the loader while values are being generated in the data base.
+                <!--
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+                -->
+                
+            </div>
+        </div>
+  </div>
+    
+  <script>
+    /* Description: Create record/s
+     *  Author: Mike Lasala
+     *  Date Created: 29-OCT-2015
+     *  Input: Object/array
+     */
+     
+    var quoteId= '{!JSENCODE($CurrentPage.parameters.qid)}';
+    
+    function createRecord(objectArray){
+        
+        var bar = $('.bar');
+        
+        //Temporary array to be used for inserting single records
+        var tempArray = [];
+        
+        //Identify if parameter is an array
+        if(!$.isArray(objectArray)){
+            
+            //Push object for single record
+            tempArray.push(objectArray);
+            
+        } else {
+            
+            //Replace array for multiple records
+            tempArray = objectArray.slice(0);
+        }
+        
+        if(tempArray.length>0){
+            
+            sforce.connection.create(tempArray,{
+                
+                onSuccess: function success(result){
+                    
+                    if(result[0].getBoolean('success')){
+                        
+                        if(tempArray[0].type == 'Application__c'){
+                            
+                            bar.width('30%');
+                            bar.text('Creating Application');
+                            
+                            //Assign application id to global variable to be used on child objects
+                            app.Id = result[0].id;
+                            console.log('app.Id: '+app.Id);
+                            debugLog('Application ID',app.Id);
+                            
+                            //Create Product Item and ONR related to application
+                            createProductItemAndONR();
+                             console.log('119',app.Id);
+                            //Soft Quote Changes to update Quote loan number into Application
+                           createQuoteAppUpdate();
+                             console.log('122 quoteApp',app.Id);
+                        } else if(tempArray[0].type == 'ONR__c'){
+                            
+                            bar.width('35%');
+                            bar.text('Creating Application ONR');
+                            
+                            //Update application with product item id
+                            updateRecord(app);
+                            
+                            for(var i=0; i<result.length; i++){
+                                onrs[i].Id = result[i].id;
+                                console.log('onrs[i].Id: '+onrs[i].Id);   
+                            }
+                            
+                            //Map loan purpose/s
+                            mapLoanPurpose();
+                            
+                        } else if(tempArray[0].type == 'Loan_Purpose__c'){
+                            
+                            bar.width('35%');
+                            bar.text('Creating Loan Purpose');
+                            
+                            for(key in loanPurposeDisbursementMap){
+                                loanPurposeDisbursementMap[key] = result[key].id;
+                            }
+                            console.log('loanPurposeDisbursementMap: '+JSON.stringify(loanPurposeDisbursementMap));
+                            
+                            //Create applicant/s
+                            createApplicant();
+                            
+                        } else if(tempArray[0].type == 'Applicant__c'){
+                            
+                            bar.width('55%');
+                            bar.text('Creating Applicant');
+
+                            //Assign applicant id/s to be used on child objects
+                            applicant[0].Id = result[0].id;
+                            console.log('applicant[0].Id: '+applicant[0].Id);
+                            
+                            if(result.length>1){
+                                applicant[1].Id = result[1].id;
+                                console.log('applicant[1].Id: '+applicant[1].Id);
+                            }
+                            
+                            //Map child records
+                            mapAML();
+                            mapIncome();
+                            mapExpense();
+                            mapAsset();
+                            mapDebt();
+                            mapDisbursements();
+                            buildApplicantCLVs();
+                            
+                            //Create child records
+                            if(amls.length != 0){
+                                
+                                //Create AML records for NZ
+                                checkRecords('aml');
+                                
+                            }else{
+                                
+                                //Create other records here as they are not required
+                                checkRecords('income');
+                            }
+                            
+                        } else if(tempArray[0].type == 'AML__c'){
+                            
+                            bar.width('55%');
+                            bar.text('Creating AML');
+                            
+                            //For NZ create income after AML created
+                            //Create other records here as they are not required
+                            checkRecords('income');
+                            
+                        } else if(tempArray[0].type == 'Income__c'){
+                            
+                            bar.width('60%');
+                            bar.text('Creating Income');
+                            
+                            //Create expense records
+                            checkRecords('expense');
+                            
+                        } else if(tempArray[0].type == 'Expense__c'){
+                            
+                            bar.width('65%');
+                            bar.text('Creating Expense');
+                            
+                            //Create other records here as they are not required
+                            checkRecords('asset');
+                            
+                        } else if(tempArray[0].type == 'Asset__c'){
+                            
+                            bar.width('70%');
+                            bar.text('Creating Asset');
+                            
+                            checkRecords('debt');
+                            
+                        } else if(tempArray[0].type == 'Liability__c'){
+                            
+                            bar.width('75%');
+                            bar.text('Creating Liability');
+                            
+                            checkRecords('disbursement');
+                            
+                        } else if(tempArray[0].type == 'Disbursement__c'){
+
+                            bar.width('80%');
+                            bar.text('Creating Disbursement');
+                            
+                            checkRecords('clv');
+                            
+                        } else if(tempArray[0].type == 'Debug_Log__c'){
+                            
+                            checkRecords('applicantAccount');
+                            
+                        } else if(tempArray[0].type == 'Applicant_Account_Customer__c'){
+                            
+                            var applicantUpdate = [];
+                            
+                            for(var i=0; i<applicant.length; i++){
+                                
+                                if(typeof applicantAccountMap[applicant[i].Id] !== 'undefined'){
+                                    
+                                    //Instantiate new records
+                                    var aplcnt = new sforce.SObject('Applicant__c');
+                                    
+                                    //Update applicant fields
+                                    aplcnt.Id =                      applicant[i].Id;
+                                    aplcnt.ICBS_Account_Number__c =  applicantAccountMap[applicant[i].Id].Account_Number__c;
+                                    aplcnt.ICBS_Customer_Number__c = applicantAccountMap[applicant[i].Id].Customer_Number__c;
+                                    applicantUpdate.push(aplcnt)
+                                }
+                            }
+                            console.log('applicantUpdate: '+applicantUpdate);
+                            updateRecord(applicantUpdate);
+                        }
+                        console.log(tempArray[0].type+' records created');
+                        
+                    } else {
+                        console.log(tempArray[0].type+' onSuccess create error: '+result[0]);
+                        debugLog(tempArray[0].type+' Creation Error', result[0]);
+                    }
+                }, 
+                
+                onFailure : function failed(error){
+                    console.log(tempArray[0].type+' onFailure create error:'+error);
+                    debugLog(tempArray[0].type+' Record Creation ERROR', error);
+                }
+            });
+            callCount++;
+        }
+        
+        console.log('callCount: '+callCount);
+    }
+    
+    /*Description: Update the Application with the Quote generated application and Submit Flag
+    *  Author: Madhusudhan Seethala
+    *  Date Created: 15-09-2020        
+    */
+        function createQuoteAppUpdate(){
+        console.log('282 appId',quoteId);
+         if(quoteId != ''){  
+          console.log(quoteId); 
+           var result = sforce.connection.query("SELECT Id, UID__c,Region__c FROM Quote__c WHERE Id = '"+quoteId+"'",{              
+              onSuccess: function(result){
+                if(result.size > 0){
+                   var records = result.getArray('records');
+                    console.log('app Id',app.Id);
+                   var quoteApp = new sforce.SObject("Application__c"); 
+                   var appRecords = []; 
+                   quoteApp.Id =app.Id;
+                   console.log('Quoteapp Id',quoteApp.Id);
+                   quoteApp.UID__c =records[0].UID__c; 
+                   if(records[0].Region__c =='AU'){
+                       quoteApp.AU_Submit_Flag__c = true;
+                   }else if(records[0].Region__c =='NZ'){
+                       quoteApp.NZ_Submit_Flag__c = true;
+                   }            
+                   
+                    appRecords.push(quoteApp); 
+                   sforce.connection.update(appRecords,{onSuccess : outcome, onFailure : outcome}); 
+                   
+                }
+                
+              },
+              onFailure: function(error){
+                    console.log(error);
+                }  
+        
+        });
+        }
+    }
+    function outcome(result){           
+           console.log('appUpdate',result);
+     }
+    /*  Description: Update record
+     *  Author: Mike Lasala
+     *  Date Created: 06-NOV-2015
+     *  Input: Object/array
+     */
+     function updateRecord(objectArray){
+            
+        //Temporary array to be used for inserting single records
+        var tempArray = [];
+        
+        //Identify if parameter is an array
+        if(!$.isArray(objectArray)){
+        
+            //Push object for single record
+            tempArray.push(objectArray);
+            
+        } else {
+            
+            //Replace array for multiple records
+            tempArray = objectArray.slice(0);
+        }
+        
+        if(tempArray.length>0){
+            sforce.connection.update(tempArray,{
+                
+                onSuccess: function success(result){
+                    if(result[0].getBoolean('success')){
+                        
+                        if(tempArray[0].type == 'Applicant_CLV__c'){
+                            
+                            //Create CLV search history
+                            createRecord(CLVHistory);
+                        
+                        } else if(tempArray[0].type == 'Applicant__c'){
+                            
+                            //Submit App
+                             console.log('Applicant level app submission', quoteId);
+                            submitApplicationWS();
+                             if(quoteId != ''){
+                                quoteToApplication();
+                            }
+                        }
+                        console.log(tempArray[0].type+' records updated');
+                    
+                    } else {
+                        console.log(tempArray[0].type+' onSuccess update error: '+result[0]);
+                        debugLog(tempArray[0].type+' Update Error', result[0]);
+                    }
+                }, 
+                
+                onFailure : function failed(error){
+                    console.log(tempArray[0].type+' onFailure create error'+error);
+                    debugLog(tempArray[0].type+' Update Error',error);
+                }
+            });
+            callCount++;
+        }
+    }
+    
+    /*  Description: Check array size and return first array which has values
+     *  Author: Mike Lasala
+     *  Date Created: 17-NOV-2015
+     *  Input: Object type to identify which array to check size and the next array to create
+     */
+    function checkRecords(objectType){
+        
+        //Identify parameter to execute creation of record 
+        //if respective array size is > 0, create records next to hierarchy
+        if(objectType == 'aml'){
+            if(amls.length != 0){
+                createRecord(amls);
+            } else {
+                checkRecords('income');
+            } 
+            
+        } else if(objectType == 'income'){
+            if(incomes.length != 0){
+                createRecord(incomes);
+            } else {
+                checkRecords('expense');
+            } 
+            
+        } else if(objectType == 'expense'){
+            if(expenses.length != 0){
+                createRecord(expenses);
+            } else {
+                checkRecords('asset');
+            } 
+            
+        } else if(objectType == 'asset'){
+            if(assets.length != 0){
+                createRecord(assets);
+            } else {
+                checkRecords('debt');
+            } 
+            
+        } else if(objectType == 'debt'){
+            if(liabilities.length != 0){
+                createRecord(liabilities);
+            } else {
+                checkRecords('disbursement');
+            }
+        
+        } else if(objectType == 'disbursement'){
+            if(disbursements.length != 0){
+                //Create disbursement for broker and/or refinance
+                createRecord(disbursements);
+            } else {
+                checkRecords('clv');
+            }
+        } else if(objectType == 'clv'){
+            
+            if(applicantCLVs.length != 0){
+                updateRecord(applicantCLVs);
+            } else {
+                //Submit App
+                submitApplicationWS();
+                if(quoteId != ''){
+                    quoteToApplication();
+                }
+                
+            }
+        } else if(objectType == 'applicantAccount'){
+            
+            if(applicantAccountCustomer.length != 0){
+                createRecord(applicantAccountCustomer);
+            } else {
+                //Submit App
+                console.log('Before applicationaccount submission', quoteId);
+                submitApplicationWS();
+                 if(quoteId != ''){
+                    quoteToApplication();
+                }
+                
+            }
+        }
+    }
+     
+    /*  Description: Call APEX remote action to submit application
+     *  Author: Tony X
+     *  Date Created: 2015-11-06
+     */
+    function submitApplicationWS(){
+              
+        //Proceed with submit if variable is true
+        if(isSubmit){
+            
+            $('.bar').width('90%');
+            $('.bar').text('Submitting Application');
+            
+            //TXU TEST
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_Wizard_Ext.submitApplicaton}', app.Id,
+                function(result,event){
+                    if(event.status && result.length == 0){
+                        //Activate streaming api looking for response from integration
+                        //Connect to server 
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.APP_Wizard_Ext.addApplicationResponseTopic}',
+                            function(result,event){
+                                connectToServer();
+                                $.cometd.subscribe('/topic/ApplicationResponseInsert', function(message) {
+                                    //Redirect to old staff ui, if there is a new application response created with the new appId
+                                    console.log(message.data);
+                                    console.log(message.data.sobject.Application__c);
+                                    console.log(app.Id);
+                                    $('.bar').width('100%');
+                                    $('.bar').text('Submit Success, Redirecting...');
+                                    if(message.data.sobject.Application__c == app.Id){
+                                           closeTab();
+                                           sforce.console.openPrimaryTab(null, '/'+app.Id+'?tab=offerTab&submit=true', true, 
+                                                                'New Application', openSuccess, 'salesforceTab');
+                                            
+                                           $.cometd.subscribe.unsubscribe('/topic/ApplicationResponseInsert');
+                                           $.cometd.disconnect();
+                                    }
+                                });
+                            });
+                    }else{
+                        
+                    }
+                }
+            );
+            
+        } else {
+            
+            //Variable is false meaning partial save was initiated
+            $('.bar').width('100%');
+            $('.bar').text('Application saved, Redirecting...');
+            
+            //Close tab and open created application in old form
+            closeTab();
+            sforce.console.openPrimaryTab(null, '/'+app.Id, true, 'New Application', openSuccess, 'salesforceTab');
+        }
+    }
+    
+    var openSuccess = function openSuccess(result) {
+        //Report whether opening the new tab was successful
+        if (result.success == true) {
+            
+        } else {
+            
+        }
+    };
+    
+    function closeTab() {
+        
+        //Insert Debug Log before close the tab
+        if(DEBUGLOG !== ''){
+            var debuglog = new sforce.SObject('Debug_Log__c');
+            debuglog.Application__c = app.Id;
+            debuglog.Staff_UI_Debug__c = DEBUGLOG;   
+            debuglog.RecordTypeId = RECORDTYPES['Debug_Log__c.Sales_UI'];
+            debuglogs.push(debuglog);
+        }
+        
+        sforce.connection.create(debuglogs, {
+            onSuccess: function success(result){
+                //First find the ID of the current tab to close it
+                sforce.console.getEnclosingTabId(closeSubtab);                
+            },
+            onFailure : function failed(error){
+                console.log('Upsert debug log error:'+error);
+                sforce.console.getEnclosingTabId(closeSubtab);
+            }    
+        });  
+    }
+        
+    var closeSubtab = function closeSubtab(result) {
+        //Now that we have the tab ID, we can close it
+        var tabId = result.id;
+        sforce.console.closeTab(tabId);
+    };
+    
+    /*  Description: Call APEX remote action to link softquotes with application
+     *  Author: Madhusudhan Seethala
+     *  Date Created: 2020-08-09
+     */
+    function quoteToApplication(){
+              
+        //Proceed with submit if variable is true
+        if(isSubmit && quoteId != ''){
+            console.log(quoteId);
+          
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_Wizard_Ext.linkQuoteToApplicaton}', app.Id, quoteId,
+                function(result,event){
+                    if(event.status && result.length == 0){
+                      
+                    }else{
+                        
+                    }
+                });
+            
+        } 
+    }
+    </script>
+        
+</apex:component>

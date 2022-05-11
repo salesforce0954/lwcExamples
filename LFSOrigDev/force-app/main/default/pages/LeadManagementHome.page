@@ -1,0 +1,142 @@
+<!-- 
+/**
+* @author Original: Adrian Recio Cloud Sherpas
+* @date Original: 05 Feb 2013
+* @description Home page for Lead Management
+* @last modified by: Michael Lasala     2/26/13     Added Work Location logic
+*/
+-->
+
+<apex:page controller="LeadManagementController" showHeader="false" sidebar="false"> 
+<!-- Style Class -->
+<style>
+    .bPageBlock{
+       border-top: 4px solid #808080;
+     }
+     
+    buttonsize{
+        width: 170px;
+        height:  35px;
+    }
+     
+</style>
+
+<!--  Include jquery, jquery ui and jquery scripts-->
+<apex:stylesheet value="{!URLFOR($Resource.jquery_ui_css, 'jquery-ui.css')}"/>
+<apex:includeScript value="{!$Resource.jquery}"/>
+<apex:includeScript value="{!$Resource.jquery_ui}"/>
+<apex:includeScript value="{!$Resource.jquery_ui_block}"/> 
+
+<script type="text/javascript">
+
+
+    var originalSubmit = A4J.AJAX.Submit
+    var originalFinish = A4J.AJAX.finishRequest
+    
+    var firstClick = true;
+    
+    A4J.AJAX.Submit = function(a,b,c) {
+        if (firstClick) {
+        //console.log('1st click');
+          firstClick = false;
+          originalSubmit(a,b,c);
+        } else {
+          //console.log('ignoring 2nd click');
+        } 
+    }
+    
+    A4J.AJAX.finishRequest = function(a) {
+        firstClick = true;
+        originalFinish(a)
+    }
+                
+                
+    function allocateAC(){
+    alert('working');
+    locateLeads();
+        
+    }
+    function allocateAndBlock(){
+        locateLeads();
+        $.blockUI({ css: { 
+            border: 'none', 
+            padding: '15px', 
+            backgroundColor: '#000', 
+            '-webkit-border-radius': '10px', 
+            '-moz-border-radius': '10px', 
+            opacity: .5, 
+            color: '#fff', 
+        } }); 
+    }
+    
+    function unBlock(){
+        $.unblockUI();
+    }
+</script>
+<apex:form id="mainFormId">
+    <apex:actionFunction id="allocateLeadId" name="locateLeads" action="{!allocateLeads}" status="status"  rerender="messageId"/>
+    <apex:panelGrid cellspacing="5" columns="1" width="50%">
+         <apex:pagemessages id="messageId"/> 
+    </apex:panelGrid>
+    <!-- MLASALA 11-AUG-2016 Added rendered variable -->
+<!--    <apex:pageBlock tabStyle="Account" rendered="{!NOT(isCallCenter)}"> -->
+<!-- Added by Arshad on 03/05/2018 -->
+<!-- Description: To enable below 3 buttons for all the user profiles irrespective of dialler access provided -->
+<apex:pageBlock tabStyle="Account" rendered="{!(($Profile.Name =='A1 Originations Staff Profile'||$Profile.Name =='A2 Originations Manager Profile'||$Profile.Name =='A2 Originations District Manager Profile' || $Profile.Name =='B1 Originations Staff Profile' || $Profile.Name == 'B2 Originations Manager Profile'))}">   
+ <apex:panelGrid cellspacing="15"  columns="5" width="50%" id="buttonsection">
+       <apex:commandButton onclick="callCampaign(); return false;" id="campaignLink" value="Choose Campaign" style="width:170px; height:35px"/>
+       <apex:commandButton onclick="callBranch(); return false;" id="branchLink" value="Choose Leads" style="width:170px; height:35px"/>
+       <apex:commandButton onclick="callWorkLocation(); return false;" id="branchLocationLink" value="Choose Branch" style="width:170px; height:35px" />
+       <!-- <apex:commandButton immediate="true" image="{!$Resource.icon_play_button}" action="{!allocateLeads}" value="Play" id="playButton" rerender="messageId" OnMouseOver="this.style.cursor='pointer';" OnMouseOut="this.style.cursor='default';"/> -->
+       
+    <apex:actionStatus id="myStatus">
+        <apex:facet name="stop">
+            <apex:outputPanel >
+                <apex:image id="theImage" value="{!$Resource.icon_play_button}">
+                    <apex:actionSupport event="onclick" action="{!allocateLeads}" status="myStatus" reRender="buttonsection,messageId"/>
+                </apex:image>
+            </apex:outputPanel>
+        </apex:facet>
+        <apex:facet name="start">
+            <apex:outputPanel >
+                <apex:image value="{!$Resource.geLoading}" style="height: 30px;">
+                    <apex:actionSupport status="myStatus"/>
+                </apex:image>
+            </apex:outputPanel>
+        </apex:facet>
+    </apex:actionStatus>
+    </apex:panelGrid>
+    </apex:pageBlock>
+</apex:form>
+
+
+<!--Include branch, work location and campaign setup pages-->
+<div style="display:none">
+<apex:include id="modalBranch" pageName="BranchSetup"/>
+<apex:include id="modalCampaign" pageName="CampaignSetup"/>
+<apex:include id="modalWorkLocation" pageName="WorkLocationSetup"/>
+</div>
+
+<!--  Hide Branch and Campaign Setup pages-->
+<script>
+    $('[id$=modalBranch]').hide();
+    $('[id$=modalCampaign]').hide();
+    $('[id$=modalWorkLocation]').hide();
+    
+    function callBranch() {
+        $('[id$=modalBranch]').dialog({ height: 300, width: 320, modal: true});
+    }
+ 
+    function callCampaign() {
+        $('[id$=modalCampaign]').dialog({ height: 300, width: 320, modal: true});
+    }
+    
+    function callWorkLocation() {
+        $('[id$=modalWorkLocation]').dialog({ height: 300, width: 320, modal: true});
+    }
+</script>
+
+<c:ToDoListComponent ></c:ToDoListComponent>
+<c:RecentLeadComponent ></c:RecentLeadComponent>
+
+</apex:page>

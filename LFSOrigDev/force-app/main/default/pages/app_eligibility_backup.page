@@ -1,0 +1,2118 @@
+<!--
+  /*
+   * @Description: Eligibility (Customer UI)
+   * @Author: 
+   
+   * @Date Created: 
+   * @History:
+     =====================================================================
+         JUN-12-2014: Added jQuery validation plugin - Davey
+         NOV-25-2014: Modified code for DBHZL-54 Eligibility Copy & Acknowledgements -vijay
+         MAR-01-2015: TQLQW - 104 Rebranding - MDAVID
+         AUG-29-2016: MGould - Updated validation error messages and requirements
+     =====================================================================
+   */ 
+  -->
+<apex:page controller="app_eligibility_backup" action="{!validatePostSubmit}"  
+  showheader="false" sidebar="false" cache="false"
+  showHeader="false" id="GETemplate" standardStylesheets="false" 
+  applyHtmlTag="true" applyBodyTag="true" docType="html-5.0" >
+  <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+
+  <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+  <apex:stylesheet value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/> 
+  <style>
+    ul.eligibilitylabelyesno li label.error { 
+    border : 0px;
+    width : 100%;
+    padding : 0px;
+    margin : 0px;
+    text-align: left;
+    }   
+  </style>
+  <apex:composition template="{!$Site.Template}">
+    <apex:define name="GEDDBody">
+      <!-- Added by DYU JUNE.12.2014 - JQUERY Validate Plugin 
+        Notes: This must be placed here to avoid conflicts with existing scripts
+        -->
+      
+      <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+      <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+      <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+      <apex:includeScript value="{!$Resource.jqueryValidateScript}"/>
+      <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+      <apex:outputPanel rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'true', 'false')}">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+        <!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="lstyle2"/>
+          <style>
+              .hidetotally {display:none !important;}
+              .mv_hidetotally {display:none !important;}
+          </style>-->
+      </apex:outputPanel>
+      <script><!-- // This controls the show hide of the privacy and loan purpose sections -->
+        var siteName = "{!$Site.Name}";
+        var selectedStyle;
+        var unSelectedStyle;
+        /** Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding **/
+         if(siteName == "{!$Label.Kiwibank_Site_Name}") {
+           selectedStyle = "color: #fff; background:#77BA22; border: 1px solid #77ba22 !important;";
+           unSelectedStyle = "color: #333; background:#fff; border: 1px solid #77ba22 !important;";
+         } else if (siteName == 'Aussie') {
+           selectedStyle = "color: #fff; background:#76b900;";
+           unSelectedStyle = "color: #333; background:#fff;";
+         } else if (siteName == 'Gem'){
+           selectedStyle = "color: #fff; background:#4465ad; border: 1px solid #4465ad !important;";
+           unSelectedStyle = "color: #4465ad; background:#fff; border: 1px solid #4465ad !important;";
+         } else {
+            selectedStyle = "color: #fff; background:#319b42;";
+            unSelectedStyle = "color: #319b42; background:#fff;"; 
+         }
+            $(document).ready(function() {
+                
+                //alert('test');
+                //document.getElementById('lstyle1').style.display='none';
+                $('lstyle1').addClass('hidden');
+                var $b1 = $('div.learn-more');
+                var $b2 = $('div.learn-more2');
+                var $c1 = $('div.paginated-privacy');
+                var $c2 = $('div.lp_eligibility');
+                var $d1 = $('input.val_button');
+                
+                $(document).on('click', '.learn-more', function(){
+                    $('.paginated-privacy').show();
+                    $('.lp_eligibility').hide();
+                });
+                
+                $(document).on('click', '.learn-more2', function(){
+                    $('.lp_eligibility').show();
+                    $('.paginated-privacy').hide();
+                });
+                
+                $(window).bind('resize load',function(){
+                    if( $(this).width() < 568 )
+                    {
+                        $(document).on('click', '.val_button', function(){
+                            $('.lp_eligibility').show();
+                            $('.paginated-privacy').hide();
+                        });
+                    }
+                    else
+                    {
+                        $('.lp_eligibility').show();
+                        $('.paginated-privacy').show();
+                    }   
+                });
+            });
+      </script>
+      <script> //Show Hide accordion text box Desktop and Mobile -->
+        $(window).bind('resize load',function(){
+            if( $(this).width() < 767 )
+            {
+                $('#gettingstartedbox').removeClass('in');
+                $('#gettingstartedbox').addClass('out');
+                $('#eligibilitybox').removeClass('in');
+                $('#eligibilitybox').addClass('out');
+                $('.gsbuttonon').removeClass('blue gsbuttonon');
+                $('.elibuttonon').removeClass('blue elibuttonon');
+                
+                $(document).on('click', '.gsbuttonon, .gsbuttonoff', function(){
+                    
+                    $('.gsbuttonon, .gsbuttonoff').toggleClass('gsbuttonoff gsbuttonon blue');
+                    $('#gettingstartedbox').toggleClass('in out');
+                });
+                $(document).on('click', '.elibuttonoff, .elibuttonon', function(){
+                    $('.elibuttonon, .elibuttonoff').toggleClass('elibuttonon elibuttonoff blue');
+                    $('#eligibilitybox').toggleClass('in out');
+                });
+                
+            }
+            else
+            {
+                $('#gettingstartedbox').removeClass('out');
+                $('#gettingstartedbox').addClass('in');
+                $('#eligibilitybox').removeClass('out');
+                $('#eligibilitybox').addClass('in');
+                
+                $('.gsbuttonon').removeClass('blue gsbuttonon collapsed');
+                $('.elibuttonon').removeClass('blue elibuttonon collapsed');
+                
+                $(document).on('click', '.gsbuttonon, .gsbuttonoff', function(){
+                    $('.gsbuttonon, .gsbuttonoff').toggleClass('gsbuttonoff gsbuttonon blue');
+                    $('.gsbuttonoff').removeClass('collapsed');
+                    $('.gsbuttonon').addClass('collapsed');
+                    $('#gettingstartedbox').toggleClass('in out');
+                });
+                $(document).on('click', '.elibuttonoff, .elibuttonon', function(){
+                    $('.elibuttonon, .elibuttonoff').toggleClass('elibuttonon elibuttonoff blue');
+                    $('.elibuttonoff').removeClass('collapsed');
+                    $('.elibuttonon').addClass('collapsed');
+                    $('#eligibilitybox').toggleClass('in out');
+                });
+            }   
+        });
+        
+      </script>
+      <header>
+        <div class="headerdivider" style="{!if($site.Name = 'Latitude', 'display: block', 'display:none')}">
+          <div style="height: 5px;"></div>
+          <div class="divider10"></div>
+        </div>
+      </header>
+      <section>
+      <!--BEGIN - TQLQW-481 [PL - AU] PicStarter - MDAVID - 8/30/2016-->
+        <apex:panelGroup rendered="{!!securityTokenValid}">
+        <div class="maincontent txtalignc">
+            <div class="row-fluid">
+                <div class="divider30"></div>
+                <apex:outputPanel >
+                    <p class="txt-red">{!$Label.PicStarterURLError_AU}</p>
+                </apex:outputPanel>
+                <div class="divider30"></div>
+            </div>
+        </div>
+        </apex:panelGroup>
+       <table cellspacing="10" cellpadding="10" style="width:100%"><!--Madu added table-->
+           <tr>
+           		<th colspan="2">
+					<div class="headertitle" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+					  <h3 class="droid-normal dark main-page-header">Personal loan <span class="clearright"></span>application</h3>
+					</div>
+               </th>
+           </tr>
+           <tr>
+               <td style="width:40% !important;padding:1%;">
+        <!--END - TQLQW-481 [PL - AU] PicStarter - MDAVID - 8/30/2016-->
+        <apex:form id="loanForm" styleClass="validateLoanForm" style="width:80%;">
+          <apex:actionFunction name="UpdateAmount"  action="{!calculateLoanAmountTotal}" reRender="Exp_total" 
+            onComplete="showOtherLoanPurpose();"/>
+            <!--Application__c-1-->
+          <apex:actionFunction name="validateLoan" action="{!nextPage}" rerender="loanForm,brokerForm"
+            status="pleasewait" oncomplete="adjustStyleSheets();setNavigationFlag(null);executeOnLoad();"/>
+          <!--Added by MDAVID - 03/02/2016 TQLQW - 104 Rebranding-->
+          <!--<apex:actionFunction name="addLoanPurpose" action="{!addLoanPurpose}" rerender="loanPPageBlock,loanPurposeSize,OtherPanelId" status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+          <apex:actionFunction name="removeLoanPurpose" action="{!removeLoanPurpose}" rerender="loanForm,loanPurposeSize" rendered="{!if(loanPurposeSize >=2, true, false)}" status="removeStatus" onComplete="showOtherLoanPurpose();"/>-->  
+          <apex:inputHidden id="navFlag"/>
+          <apex:inputHidden id="loanResult" value="{!loanValidationResults}"/>
+          <apex:inputHidden id="appType" value="{!applicationType}"/>
+          <!--<apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}"/>-->
+          <apex:inputHidden id="loanTerm" value="{!loanTermSelected}"/>
+          <apex:inputHidden id="loanTermFreq" value="{!loanFrequencySelected}"/>
+          <apex:inputHidden id="otherOffers1" value="{!confirmInterestedInOtherOffer}"/>
+          <apex:inputHidden id="otherOffers2" value="{!confirm2InterestedInOtherOffer}"/>
+          <apex:inputHidden id="name1" value="{!applicant1FirstName}"/>
+          <apex:inputHidden id="name2" value="{!applicant2FirstName}"/>
+          <apex:inputHidden id="app1confirm1" value="{!confirmEligibleForLoan}"/>
+          <apex:inputHidden id="app1confirm2" value="{!confirmApplicationMeetsNeeds}"/>
+          <apex:inputHidden id="app1confirm3" value="{!confirmAgreedToPolicy}"/>
+          <apex:inputHidden id="app1confirm4" value="{!confirmReadCreditGuide}"/>
+          <apex:inputHidden id="app1confirm5" value="{!confirmInterestedInOtherOffer}"/>
+          <apex:inputHidden id="appconfirmHigherApproval" value="{!confirmHigherApprovalConsent}"/>
+          <apex:inputHidden id="app1hiddenKBHLCustomer" value="{!confirmKBHLGraduateCustomer }"/>
+          <apex:inputHidden id="app2confirm1" value="{!confirm2EligibleForLoan}"/>
+          <apex:inputHidden id="app2confirm2" value="{!confirm2ApplicationMeetsNeeds}"/>
+          <apex:inputHidden id="app2confirm3" value="{!confirm2AgreedToPolicy}"/>
+          <apex:inputHidden id="app2confirm4" value="{!confirm2ReadCreditGuide}"/>
+          <apex:inputHidden id="app2confirm5" value="{!confirm2InterestedInOtherOffer}"/>
+          <apex:inputHidden id="app2hiddenKBHLCustomer" value="{!confirm2KBHLGraduateCustomer}"/>
+          <!--  315-->
+          <apex:inputHidden id="app1access" value="{!isApp1AccessNumber}"/>
+          <apex:inputHidden id="app2access" value="{!isApp2AccessNumber}"/>
+          <apex:inputHidden id="hidPBUID" value="{!pbuid}"/>
+          <apex:inputHidden id="hidapp1AccessNumber" value="{!app1AccessNumber}"/>
+          <apex:inputHidden id="hidapp2AccessNumber" value="{!app2AccessNumber}"/>
+          <apex:inputHidden id="brokerIdHidden" value="{!brokerId}"/>
+          <apex:inputHidden id="brokerFNameHidden" value="{!brokerFName}"/>
+          <apex:inputHidden id="brokerLNameHidden" value="{!brokerLName}"/>
+          <apex:inputHidden id="brokerFeeHidden" value="{!brokerFee}"/>
+          <apex:inputHidden id="brokerCNumnberHidden" value="{!brokerContactNumber}"/>
+          <apex:inputHidden id="hiddenkiwiComments" value="{!kiwiComments}"/>
+          <!-- BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine -->
+          <apex:inputHidden id="promoIdHidden" value="{!promoId}"/>
+          <apex:inputHidden id="isPromoHidden" value="{!isPromo}"/>
+          <apex:outputPanel id="loanPurposePanel">
+              <apex:actionFunction name="addLoanPurpose" action="{!addLoanPurpose}" rerender="loanPurposePanel,loanPPageBlock,loanPurposeSize,OtherPanelId" status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+              <apex:actionFunction name="removeLoanPurpose" action="{!removeLoanPurpose}" rerender=" loanPurposePanel, loanPPageBlock,loanPurposeSize" rendered="{!if(loanPurposeSize >=2, true, false)}" status="removeStatus" onComplete="showOtherLoanPurpose()"/>
+              <apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}"/>
+          </apex:outputPanel>
+          <apex:pageBlock id="loanPPageBlock">
+            <div class="{!if(OR($site.Name=='Latitude', $site.Name=='Gem'), 'lp_eligibility', 'maincontent lp_area lp_eligibility')}">
+              <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'container-fluid headerbackground', 'row-fluid')}">
+                <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_area lp_eligibility', 'row-fluid span12 loanfields')}">
+                  <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid', '')}">
+                    <!-- Start of Content Here -->
+                    <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid span12', '')}">
+                      <div id="addfields" class="tablemainlist llfields {!if(OR($site.Name=='Latitude', $site.Name=='Gem'),'width800','')}">
+                        
+                        <!-- Start Loop-->
+                        <apex:repeat value="{!loanWrapList}" var="l" id="lw">
+                          <c:APP_Main l="{!l}" country="{!siteName}" id="component-1"/>
+                        </apex:repeat>
+                        <script>
+                        // ADDED by RCADAPAN - Re-Branding, controlling new Icons and layout for Latitude / GEM
+                        function hideAddMinusIcons(){
+                            var loansize = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                            if(loansize.value == 1){
+                                var elementMinus = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:0:component-1:Loan_Purpose__c-mycomponent:minusIcon");
+                                elementMinus.style = "display: none;";
+                            }
+                            else {
+                                for(var i=0;i<loansize.value-1;i++){
+                                var elementMinus = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:minusIcon");
+                                elementMinus.style = "display: none;";
+                                var elementAdd = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:addIcon");
+                                elementAdd.style = "display: none;";
+                                }
+                                if(loansize.value == 10){
+                                    var elementAdd = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:9:component-1:Loan_Purpose__c-mycomponent:addIcon");
+                                    elementAdd.style = "display: none;";
+                                }
+                            }
+                        }
+                        if("{!$Site.Name}" == "Latitude" || "{!$Site.Name}" == "Gem"){
+                          hideAddMinusIcons();
+                        }
+                        </script>
+                        <div class="clearfix"></div>
+                        <div class="span12"></div>
+                        <!-- moved addLoanIcon belo - gerome.teodosio@cloudsherpas.com -->
+                      </div>
+                      <!-- addfields -->
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="container-fluid loanamountdiv">
+                  <!-- moved addLoanIcon here - gerome.teodosio@cloudsherpas.com -->
+                  <div id="countIcons" class="span12 adjustmeicon">
+                          <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                            <div class="minusplusicon miconad" style="{!if($site.Name=='Kiwibank', 'margin-top: -90px !important;', '')}">
+                              <apex:commandButton value=" " styleClass="minusfield" 
+                                action="{!removeLoanPurpose}" 
+                                rerender="loanPPageBlock,loanPurposeSize" 
+                                rendered="{!if(loanPurposeSize >=2, true, false)}" 
+                                status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+                            </div>
+                            <div class="minusplusicon adconad mv_addicon">
+                              <apex:commandButton value="Add another loan purpose " 
+                                styleClass="plusfield" action="{!addLoanPurpose}"
+                                rerender="loanPPageBlock,loanPurposeSize" 
+                                rendered="{!loanPurposeSize <=9}" status="addStatus" 
+                                onComplete="showOtherLoanPurpose();"/>
+                            </div>
+                          </apex:panelGroup>
+                          <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                            <apex:panelGroup rendered="{!if(loanPurposeSize >=2, true, false)}">
+                              <div class="minusplusicon miconad">
+                                <span class="minusicon" onclick="removeLoanPurpose()"></span>
+                              </div>
+                            </apex:panelGroup>
+                            <apex:panelGroup rendered="{!loanPurposeSize <=9}">
+                              <span onclick="addLoanPurpose();">
+                                <div class="minusplusicon adconad">
+                                    <span id="" class="plusicon" onclick="addLoanPurpose()"></span>
+                                    <span class="GAdd-loan">Add Loan Purpose</span>
+                                </div>
+                              </span>
+                            </apex:panelGroup>
+                          </apex:panelGroup>
+                        </div>
+                        <div class="clearfix"></div>
+                        
+                <div class="maincontent">
+                  <div class="row-fluid">
+                    <div class="computation {!if($site.Name=='Latitude','comp700','')}{!if($site.Name=='Gem','width580','')}">
+                      <div class="span5 dbtotal">
+                        <span class="totalname gem-subtitle">
+                          Total loan amount:
+                          <span class="total">
+                            <apex:outputText value="${0, number, ###,###,###,##0.00}" id="Exp_total">
+                              <apex:param value="{!totAmount}"/>
+                            </apex:outputText>
+                            <apex:outputPanel rendered="{!loanAmountNotValid}">
+                                <div class="loanAmountError">
+                                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanAmountNotValid}" value="Your preferred loan amount must be at least ${!validLPAmount}."/>
+                                </div>
+                            </apex:outputPanel>
+                            <!--UPDATED by RCADAPAN @ 08-MAR-2016 to merge Valid Total Loan Amount per Region - TQLQW-29-->
+                          </span>
+                        </span>
+                      </div>
+                      <div class="{!if($site.Name=='Kiwibank','span5','span6 input100pct removelmargin')} overfield">
+                        <div class="span4" style="width: {!if($site.Name='Latitude','127px; font-size: 16px !important; color: #ffffff !important;','115px')};">
+                          <apex:outputLabel styleClass="gem-subtitle" style="{!if($site.Name=='Latitude','color: #ffffff !important; font-family: Lexia Book !important; font-size: 16px !important;','')}">{!$Label.Over}</apex:outputLabel>
+                        </div>
+                        <div class="span6 GPicklist-fix m-block-fix" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'width: 127px', '')}">
+                          <apex:selectList styleClass="input-block-level isPicklistLoanTerm dropdownicon checkPreviousFields removebmargin" id="loanterm" size="1" value="{!loanTermSelected}" onblur="$j(this).valid();" >
+                            <apex:selectOptions value="{!loanTermOptions}"/>
+                          </apex:selectList>
+                          <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}" value="You must select a loan term."/>
+                        </div>
+                      </div>
+                      <div class="clearfix"></div>
+                    </div>
+                    <!-- computation -->
+                    <div class="clearfix"></div>
+                    <div class="btn btn-block btn-large fright btn-reset-m btn-activec fright buttonarrowimg
+                      learn-more hidetotally">
+                      That's all, Continue
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                </div>
+                <!-- end maincontent -->
+              </div>
+            </div>
+            <div class="maincontent">
+            <apex:outputText id="vedaErrMsg" styleClass="warningMessage" escape="false" rendered="{!vedaAppError}" value="{!vedaAppErrorMessage}"/>
+            </div>
+          </apex:pageBlock>
+		  
+		  <script type="text/javascript">
+            function showOtherLoanPurpose(){
+                var loanrepeat = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                for(var i=0;i<loanrepeat.value;i++){
+                    var purpose = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                    var other = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:OtherPanelId");
+                    other.style.display = "none";
+                    if(purpose.value == 'Other'){
+                        other.style.display = "block";
+                    }
+                }
+            }
+             showOtherLoanPurpose();
+          </script>
+          
+          
+        </apex:form>
+        </td>
+        <td style="padding:1%;width:60%">
+        <div class="maincontent {!if($site.Name!='Latitude','mobileCon','')} GGetting-started">
+          <div class="paginated-privacy {!if($site.Name=='Latitude','width800','')}{!if($site.Name=='Gem','width580','')}">
+            <div class="clearfix"></div>
+            <div class="btn btn-block btn-large fright btn-reset-m btn-activec fright buttonarrowimg learn-more2 hidetotally">
+              Back to Loan Purpose
+            </div>
+            <div class="clearfix"></div>
+            <div class="row-fluid accordioneligibilityovr">
+            <!-- UPDATED by RUSSELL CADAPAN for Re-Branding -->
+            <apex:outputPanel rendered="{!OR($site.Name=='Kiwibank',$site.Name=='Aussie')}">
+              <div id="refine" class="accordion"> 
+                <div class="alert {!IF(siteName==$label.NZ_Site_Name,'alert-infoNZ','alert-info')}">
+                    <apex:panelGroup rendered="{!IF(siteName==$label.NZ_Site_Name,false,true)}">
+                        <div class="accordion-heading">
+                            <h4><a tabindex="-1" class="accordion-toggle gsbuttonon gsbuttonoff" 
+                            data-toggle="collapse" data-parent="#accordion" href="#gettingstartedbox">
+                            Getting Started</a></h4>
+                        </div>
+                    </apex:panelGroup>
+                    <apex:panelGroup rendered="{!IF(siteName==$label.NZ_Site_Name,true,false)}">
+                        <div class="accordion-heading">
+                            <h3><a tabindex="-1" class="accordion-toggle gsbuttonon gsbuttonoff" 
+                            data-toggle="collapse" data-parent="#refine" href="#gettingstartedbox">
+                            Getting Started</a></h3>
+                        </div>
+                    </apex:panelGroup>
+                    
+                    <div id="gettingstartedbox" class="accordion-body collapse in">
+                        <div id="accordion" class="accordion-inner">
+                           <apex:outputText escape="false" value="{!currentBrand.Getting_Started_HTML__c}"/>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+            <!--
+                <p>To apply for a {!brandName} Loan you will need:</p> 
+                <ul class="el-ellist">
+                    <li>Your Australian driver's licence details (if you have one)</li>
+                  <li>Your employment details including two of your most recent payslips, or tax return if you are self employed.</li>
+                    <li>Any amount owing on loans, overdrafts, credit/store cards (including limits and repayments)</li>
+                    <li>Your living expenses, including rent and/or mortgage repayments</li>
+                </ul>
+            -->    
+  
+              <div id="refine" tabindex="-1" class="accordion">                     
+                <div class="alert {!IF(siteName==$label.NZ_Site_Name,'alert-infoNZ','alert-info')}">
+                    <apex:panelGroup rendered="{!IF(siteName==$label.NZ_Site_Name,false,true)}">
+                    <div class="accordion-heading">
+                        <h4><a tabindex="-1" class="accordion-toggle elibuttonon elibuttonoff" 
+                        data-toggle="collapse" data-parent="#refine" href="#eligibilitybox">Eligibility</a>
+                        </h4>
+                    </div>
+                    </apex:panelGroup>
+                    <apex:panelGroup rendered="{!IF(siteName==$label.NZ_Site_Name,true,false)}">
+                    <div class="accordion-heading">
+                        <h3><a tabindex="-1" class="accordion-toggle elibuttonon elibuttonoff" 
+                        data-toggle="collapse" data-parent="#refine" href="#eligibilitybox">Eligibility</a>
+                        </h3>
+                    </div>
+                    </apex:panelGroup>
+                    <div id="eligibilitybox" class="accordion-body collapse in">
+                        <div id="accordion" class="accordion-inner">
+                            <apex:outputText escape="false" value="{!currentBrand.Eligibility_HTML__c}" />
+                        </div>
+                    </div>
+                  </div>                            
+               </div>  
+            <!--
+              <p>To apply for a {!brandName} Personal Loan, you must:</p>
+                <ul class="el-ellist">
+                    <li>Be over the age of 18</li>
+                    <li>Be a permanent Australian Resident</li>
+                    <li>Currently be working and earning an annual gross income of more than $24,000</li>
+                    <li>Currently earning an annual gross income of more than $24,000</li>
+                    <li>Have had a good credit history for the last 5 years</li>
+                    <li>Not have been bankrupt in the last 7 years</li>
+                </ul>
+            -->
+            </apex:outputPanel> <!-- END RUSSELL CADAPAN for Re-Branding -->
+            <apex:form styleClass="validateMainForm broker" id="brokerForm" >
+              <div class="clearfix"></div>
+              <!-- <apex:form styleClass="validateMainForm" id="brokerForm" > -->
+                <!--Uncomment the below line if you want to restrict the broker section to any particular brnad name using appropriate brand name -->
+                <!--<apex:outputPanel rendered="{!IF($CurrentPage.parameters.form == 'broker'&& $Site.Name == 'Latitude', true , false)}" layout="block">-->        <!-- MLASALA: 23-MAR-16 TQLQW-127 Re-brand -->
+                <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form == 'broker', true , false)}" layout="block">
+                  <div class="span12 removelmargin ">
+                    <h3 class="subpagetitle sptline {!titleStyle}">
+                      <span class="whispacenormal">Broker Details</span>
+                    </h3>
+                  </div>
+                  <label class="pix40 labelrightdark3 paddingt10">Broker Number</label>
+                  <div class="span3 appl12 input100pct" style="display:inline;" >
+                    <apex:inputText value="{!brokerId}" id="bId" styleClass="input-block-level isRequired "  />
+                    <apex:outputText styleClass="warningMessage mv_wmovr" escape="false" rendered="{!isNotValidBroker}" value="<br/>Please provide a valid ID or call Latitude for help."/>
+                  </div>
+                  <div class="divider20"></div>
+                  <label class="pix40 labelrightdark3 paddingt10">Broker First Name</label>
+                  <div class="span3 appl12 input100pct" style="min-width=20px">
+                    <apex:inputText value="{!brokerFName}" id="bFName" styleClass="input-block-level isRequired"/>
+                  </div>
+                  <div class="divider20"></div>
+                  <label class="pix40 labelrightdark3 paddingt10" >Broker Last Name</label>
+                  <div class="span3 appl12 input100pct">
+                    <apex:inputText value="{!brokerLName}" id="bLName" styleClass="input-block-level isRequired"/>
+                  </div>
+                  <div class="divider20"></div>
+                  <label class="pix40 labelrightdark3 paddingt10" >Broker Contact Number</label>
+                  <div class="span3 appl12 input100pct">
+                    <apex:inputText value="{!brokerContactNumber}" id="bCNumber" styleClass="input-block-level isRequired isHomeNumber"/>
+                  </div>
+                  <div class="divider20"></div>
+                  <label class="pix40 labelrightdark3 paddingt10">Brokerage Fee $</label>
+                  <div class="span3 appl12 input100pct">
+                    <apex:inputText value="{!brokerFee}"  id="bFee"  styleClass="input-block-level isRequired isNumber"/>
+                  </div>
+                </apex:outputPanel>
+              <!-- </apex:form> -->
+              <div class="divider20"></div>
+              <div class="clearfix"></div>
+              <!-- ADDED by RUSSELL CADAPAN for Re-Branding -->
+              <apex:outputPanel rendered="{!OR($site.Name=='Kiwibank',$site.Name=='Aussie')}">
+              <div class="span12 removelmargin {!if($site.Name=='Latitude','width800','')}{!if($site.Name=='Gem','width580','')}">
+                <h3 class="subpagetitle sptline {!titleStyle}">
+                  <span class="whispacenormal">Your Loan Application And Privacy</span>
+                </h3>
+              </div>
+              </apex:outputPanel>
+              <apex:outputPanel rendered="{!OR($site.Name=='Latitude',$site.Name=='Gem')}">
+              <div class="span12 removelmargin">
+                <h3 class="subpagetitle sptline {!titleStyle} gem-heading mv-marginl10">
+                  <span class="whispacenormal">Getting Started</span>
+                </h3>
+              </div>
+              </apex:outputPanel>
+              <!-- END RUSSELL CADAPAN for Re-Branding -->
+              <div class="clearfix"></div>
+              <!-- <apex:form id="formId" styleClass="validateEligibilityForm {!if($site.Name=='Kiwibank','{!if($site.Name=='Latitude','width800','width580')}','')}"> -->
+                <!-- story 315  -->      
+                <apex:outputPanel rendered="{!$CurrentPage.parameters.form == 'postshop'}" layout="block">
+                  <label class="pix40 labelrightdark">Your PBUID &nbsp;</label>&nbsp;
+                  <div class="span3 appl12">
+                    <apex:inputText value="{!pbuid}" id="pbuid" styleClass="input-block-level isRequired isNumberPBUID isMaxLength5"/>
+                  </div>
+                </apex:outputPanel>
+                <!--<div class="divider20"></div>-->
+                <!-- UPDATED by RUSSELL CADAPAN for Re-Branding -->
+                <apex:outputPanel rendered="{!OR($site.Name=='Kiwibank',$site.Name=='Aussie')}">
+                    Let's get you started:
+                    <div class="divider20"></div>
+                </apex:outputPanel>
+                <!-- END RUSSELL CADAPAN for Re-Branding -->
+                <!--Let's get you started:-->
+                <label class="pix40 labeldark newsubheader {!if($site.Name='Gem', 'mv-marginl10','')}">The number of people applying for this loan </label>
+                <!--<div class="span3 appl12">
+                  <apex:selectList id="applicationTypePicklist" styleClass="dropdownicon GPicklist-fix" size="1" value="{!applicationType}" 
+                                    onChange="checkToUnlockTabs();" disabled="{!disableApplicationType}">
+                                    <apex:selectOption itemValue="Single" itemLabel="One Person"/>
+                                    <apex:selectOption itemValue="Joint" itemLabel="Two People"/>
+                                  </apex:selectList>
+                </div>-->
+                <!--<label class="pix40 labelrightdark mv_label_eligibility_ovr">
+                applying for this loan.</label>-->
+                <div class="clearfix"></div>
+                <div class="divider20"></div>
+                <div class="tabbable mobileCon">
+                  <div class="clearfix"></div>
+                  <div class="tab-content">
+                      
+                      <div class="span4 appl12 input100pct">
+                                <apex:selectList id="applicationTypePicklist" styleClass="dropdownicon GPicklist-fix" size="1" value="{!applicationType}" 
+                                    onChange="checkToUnlockTabs();" disabled="{!disableApplicationType}">
+                                    <apex:selectOption itemValue="Single" itemLabel="One Person"/>
+                                    <apex:selectOption itemValue="Joint" itemLabel="Two People"/>
+                                  </apex:selectList>
+                            </div>
+                    <apex:pageBlock id="Application__c-1">
+                      <!-- applicant 1 -->
+                      
+                          <apex:outputPanel id="applicantsNamePanel">
+                            
+                            <div class="applicantnames span8 ">
+                              <!--<div class="span7 mv_hidename"><br />
+                                <label class="tabfname">First Name</label>
+                              </div>-->
+                              <div class="span12 removelmargin mv_fullwidth">
+                                
+                                <div class="span6 input100pct">
+                                  <!--<span class="txtalignc displayblock">Applicant 1</span>-->
+                                  <apex:inputText id="Applicant__c___First_Name__c" 
+                                    styleClass="input-block-level isApplicantFirst checkPreviousFields removebmargin" 
+                                    size="20" value="{!applicant1FirstName}" html-placeholder="Applicant 1" onChange="checkRequiredfields();" onblur="$j(this).valid();"/>
+                                  <apex:outputText rendered="{!errorFName1}" value="{!errorFName1Msg}" styleClass="warningMessage" />
+                                </div>
+                                <div class="span6 input100pct">
+                                  <!--<span class="txtalignc displayblock">Applicant 2</span>-->
+                                  <apex:inputText id="Applicant__c___First_Name__c-2" 
+                                    styleClass="input-block-level isApplicantSecond checkPreviousFields removebmargin" 
+                                    size="20" value="{!applicant2FirstName}" html-placeholder="Applicant 2" onChange="checkRequiredfields();" onblur="$j(this).valid();" />
+                                  <apex:outputText rendered="{!errorFName2}" value="{!errorFName2Msg}" styleClass="warningMessage" />
+                                </div>
+                              </div>
+                            </div>
+                          </apex:outputPanel>
+                      <div class="clearfix"></div>
+                      <div class="span12 removelmargin">
+                        <ul class="no-bullets ovrchkbox ovrlistchcbox eligibilitylabelyesno topline-elig">
+                          <li class="ovrfix2 col1-1 bottomline-elig">
+                            <div class="privacyloancontent">
+                              <apex:outputPanel rendered="{!$Site.name=='Latitude'}">
+                                <h4 class="eligibility-subhead newsubheader">Privacy and Credit reporting</h4>  
+                              </apex:outputPanel>
+                              <apex:outputText value="{!eligiblityQuestions[0].Output_HTML__c}" escape="false"/>
+                              <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form != 'broker', true , false)}">
+                                  <apex:outputLink id="privacyLink" target="_blank" value="/APP_PrivacyPolicy" 
+                                    tabindex="-1" style="{!if($Site.name==$Label.Kiwibank_Site_Name,'color:#6AB421','')} text-decoration: none;" >
+                                    <!-- commented out by MDAVID 2/24/2016
+                                      <u>Important Privacy Notice</u></apex:outputLink>. -->
+                                      <!-- updated by MDAVID 5/11/2016 - Defect ID: 769 -->
+                                    <span class="textlink">{!IF($Site.name=='Latitude',"Latitude&#39;s","")} Important Privacy Notice</span>
+                                  </apex:outputLink>.
+                              </apex:outputPanel>
+                            </div>
+                            <div class="optionyn1">
+                              <apex:outputLabel value="YES" id="loanConfirmationYes1" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="loanConfirmationNo1" onclick="applicantConfirmation(this);"/>
+                            </div>
+                            <!--commented out by FSaliba 16/1/2015 DBHZL-213
+                              <div class="optionyn2">
+                                  <apex:outputLabel value="YES" id="loan2ConfirmationYes1" onclick="applicantConfirmation(this);"/>
+                                  <apex:outputLabel value="NO" id="loan2ConfirmationNo1" onclick="applicantConfirmation(this);"/>
+                              </div>-->
+                            <div class="clearfix"></div>
+                          </li>
+                          <!--Changed By Vijay-->
+                          <li class="ovrfix2 col1-2 bottomline-elig" Style="display:{!IF(siteName==$label.NZ_Site_Name,'none','inline-block')}">
+                            <div class="privacyloancontent">
+                                <apex:outputPanel rendered="{!$Site.name=='Latitude'}">
+                                    <h4 class="eligibility-subhead newsubheader">Product Disclosure</h4>
+                                </apex:outputPanel>
+                              <apex:outputText value="{!eligiblityQuestions[1].Output_HTML__c}" escape="false"/>
+                            </div>
+                            <div class="optionyn1">
+                              <apex:outputLabel value="YES" id="loanConfirmationYes2" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="loanConfirmationNo2" onclick="applicantConfirmation(this);" />
+                            </div>
+                            <!--commented out by FSaliba 16/1/2015 DBHZL-213
+                              <div class="optionyn2">
+                                  <apex:outputLabel value="YES" id="loan2ConfirmationYes2" onclick="applicantConfirmation(this);"/>
+                                  <apex:outputLabel value="NO" id="loan2ConfirmationNo2" onclick="applicantConfirmation(this);"/>
+                              </div>-->
+                            <div class="clearfix"></div>
+                          </li>
+                          <li class="ovrfix2 col1-3 bottomline-elig" Style="display:{!IF(siteName==$label.NZ_Site_Name,'none','inline-block')}">
+                            <div class="privacyloancontent">
+                              <apex:outputPanel rendered="{!$Site.name=='Latitude'}">
+                                    <h4 class="eligibility-subhead newsubheader">Electronic Communication</h4>
+                                </apex:outputPanel>
+                              <apex:outputText value="{!eligiblityQuestions[2].Output_HTML__c}" escape="false"/>
+                            </div>
+                            <div class="optionyn1">
+                              <apex:outputLabel value="YES" id="loanConfirmationYes3" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="loanConfirmationNo3" onclick="applicantConfirmation(this);"/>
+                            </div>
+                            <!--commented out by FSaliba 16/1/2015 DBHZL-213
+                              <div class="optionyn2">
+                                  <apex:outputLabel value="YES" id="loan2ConfirmationYes3" onclick="applicantConfirmation(this);"/>
+                                  <apex:outputLabel value="NO" id="loan2ConfirmationNo3" onclick="applicantConfirmation(this);"/>
+                              </div>-->
+                            <div class="clearfix"></div>
+                          </li>
+                          <li class="ovrfix2 col1-4 bottomline-elig" Style="display:{!IF(siteName==$label.NZ_Site_Name,'none','inline-block')}">
+                            <div class="privacyloancontent">
+                                <apex:outputPanel rendered="{!$Site.name='Latitude'}">
+                                    <h4 class="eligibility-subhead newsubheader">Electronic Identification (optional)</h4>
+                                </apex:outputPanel>
+                              <apex:outputText value="{!eligiblityQuestions[3].Output_HTML__c}" escape="false"/>
+                              <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form != 'broker', true , false)}">
+                                <apex:outputLink id="theLink" target="_blank" value="/APP_VerifyIdentity" tabindex="-1" style="text-decoration: none;">
+                                  <!-- commented out by MDAVID 2/24/2016
+                                    <u>terms</u></apex:outputLink>?-->
+                                  <u>terms</u>
+                                </apex:outputLink>
+                              </apex:outputPanel>
+                            </div>
+                            <div class="optionyn1">
+                              <apex:outputLabel value="YES" id="loanConfirmationYes5" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="loanConfirmationNo5" onclick="applicantConfirmation(this);"/>
+                            </div>
+                            <!--commented out by FSaliba 16/1/2015 DBHZL-213
+                              <div class="optionyn2">
+                                  <apex:outputLabel value="YES" id="loan2ConfirmationYes5" onclick="applicantConfirmation(this);"/>
+                                  <apex:outputLabel value="NO" id="loan2ConfirmationNo5" onclick="applicantConfirmation(this);"/>
+                              </div>-->
+                            <div class="clearfix"></div>
+                          </li>
+                          <!--Changed By Vijay end-->
+                          <li class="ovrfix2 col1-5 bottomline-elig">
+                            <div class="privacyloancontent">
+                                <apex:outputPanel rendered="{!$Site.name=='Latitude'}">
+                                    <h4 class="eligibility-subhead newsubheader">Maximum Limit (optional)</h4>
+                                </apex:outputPanel>
+                              <apex:outputText value="{!eligiblityQuestions[4].Output_HTML__c}" escape="false"/>
+                            </div>
+                            <div class="optionyn1">
+                              <apex:outputLabel value="YES" 
+                                id="loanConfirmationYesHigherApproval" 
+                                onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" 
+                                id="loanConfirmationNoHigherApproval" 
+                                onclick="applicantConfirmation(this);"/>
+                            </div>
+                            <div class="optionyn2">
+                            </div>
+                            <div class="clearfix"></div>
+                          </li>
+                          <!--- 315 -->
+                          <li class="ovrfix2 col1-2 bottomline-elig" Style="display:{!IF($Site.Name = 'Kiwibank','inline-block','none')}">
+                            <div class="privacyloancontent">
+                              <apex:outputText value="Are you an existing Kiwibank customer?" escape="false"/>
+                            </div>
+                            <div class="optionyn1" id="app1accessblock {!if($site.Name=='Kiwibank','bottomline-elig', '')}">
+                              <apex:outputLabel value="YES" id="app1accessy" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="app1accessn" onclick="applicantConfirmation(this);" />
+                              <div style="width:97%;margin-left:0px;display:none;text-align:center;" 
+                                    id="app1AccessNumberdiv" >
+                                    Kiwibank access number
+                                    <apex:inputText value="{!app1AccessNumber}" id="app1accessnumber" />
+                                </div>
+                            </div>
+                            
+                            <div class="optionyn2" id="app2accessblock" style="display:none;">
+                              <apex:outputLabel value="YES" id="app2accessy" onclick="applicantConfirmation(this);"/>
+                              <apex:outputLabel value="NO" id="app2accessn" onclick="applicantConfirmation(this);"/>
+                              <div style="width:97%;margin-left:0px;display:none;text-align:center;" id="app2AccessNumberdiv">
+                                Kiwibank access number
+                                <apex:inputText value="{!app2AccessNumber}" id="app2accessnumber"/>
+                              </div>
+                            </div>
+                            
+                            <div class="clearfix"></div>
+                          </li>
+                          <li class="ovrfix2 col1-2">
+                            <div id="KBHLDiv" style="display:none;">
+                              <div class="privacyloancontent">
+                                <apex:outputText value="Are you a Kiwibank home loan or Graduate Customer?" escape="false"/>
+                              </div>
+                            </div>
+                            <div id="KBHLDivOption1" style="display:none;">
+                              <div class="optionyn1">
+                                <apex:outputLabel value="YES" id="KBHLCustomerY" onclick="applicantConfirmation(this);"/>
+                                <apex:outputLabel value="NO" id="KBHLCustomerN" onclick="applicantConfirmation(this);" />
+                              </div>
+                            </div>
+                            <div id="KBHLDivOption2" style="display:none;">
+                              <div class="optionyn1" >
+                              </div>
+                              <div class="optionyn2" >
+                                <apex:outputLabel value="YES" id="KBHLCustomer2Y" onclick="applicantConfirmation(this);"/>
+                                <apex:outputLabel value="NO" id="KBHLCustomer2N" onclick="applicantConfirmation(this);" />
+                              </div>
+                            </div>
+                            <div class="clearfix"></div>
+                          </li>
+                          
+                          <!-- BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine -->
+                          <div id="promoDiv">
+                              <li class="ovrfix2 col1-6 bottomline-elig">
+                                <div class="privacyloancontent">
+                                    <apex:outputPanel rendered="{!$Site.name=='Latitude'}">
+                                        <h4 class="eligibility-subhead newsubheader">Promo Code (optional)</h4>
+                                    </apex:outputPanel>
+                                  <apex:outputText value="{!$Label.Promo_EligibilityQuestion}" escape="false"/>
+                                </div>
+                                <div class="optionyn1" id="app1accessblock bottomline-elig">
+                                  <apex:outputLabel value="YES" id="isPromoYes" onclick="applicantConfirmation(this);"/>
+                                  <apex:outputLabel value="NO" id="isPromoNo" onclick="applicantConfirmation(this);" />
+                                  <div style="width:97%;margin-left:0px;display:none;text-align:center;clear: both;text-align: left !important;padding-top: 20px !important;padding-bottom: 20px !important;max-width: 270px;" 
+                                        id="promoCodeDiv" >
+                                        {!$Label.Promo_EnterCode}
+                                        <apex:inputText value="{!promoId}" id="promoId" maxlength="12" styleClass="input-block-level isRequired isMaxLength12"/>
+                                        <apex:outputText styleClass="warningMessage mv_wmovr" escape="false" rendered="{!isValidPromo}" value="<br/>No active promo found."/>
+                                    </div>
+                                </div>
+                                
+                                    
+                                
+                                <div class="clearfix"></div>
+                              </li>
+                          </div>
+                          <!-- END MLASALA 20-SEPT-16 TQLQW-487 Promo engine -->
+                          
+                        </ul>
+                        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form == 'postshop', true , false)}">
+                          <apex:outputLabel value="Kiwibank Branch comments"/>
+                          <apex:inputTextarea id="kiwiComments" value="{!callLog.Description}" styleClass="input-block-level" style="width:50%"/>
+                        </apex:outputPanel>
+                      </div>
+                      <!-- end of applicant 1 -->
+                    </apex:pageBlock>
+                  </div>
+                </div>
+                
+                <div class="divider10"></div>
+                <div class="row-fluid marginlftzero">
+                  <!-- Loading -->
+                  <apex:actionStatus id="pleasewait" layout="block">
+                    <apex:facet name="start">
+                      <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" styleClass="fright"/>
+                    </apex:facet>
+                  </apex:actionStatus>
+                  <div class="divider10"></div>
+                  <div class="span8 mviewhide"></div>
+                  <div class="span4 marginlftzero removelmargin">
+                      <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                        <apex:commandButton id="loanDetailsNextButton" value="Begin" 
+                        onclick="this.disabled = true; if(validateForm()){setNavigationFlag('false');};" 
+                        status="saveStatus"  style="{!if($site.Name=='Kiwibank','width: 160px !important;','')}"
+                        styleClass="btn btn-block btn-large fright btn-reset-m {!IF($site.Name = 'Gem','btn-activecNZ','btn-activec')} fright val_button buttonarrowimg nextBtn" 
+                        onClick="populateHiddenfields();setNavigationFlag('false'); if(validateForm()){calculateLoan('Save'); return false;}" 
+                        onComplete="hideSecondPageMobile();showOtherLoanPurpose();adjustStyleSheets();" rerender="false"/>
+                      </apex:panelGroup>
+                      <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding -->
+                      <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                        <button type="submit" id="loanDetailsNextButton" disabled="true"
+                        onclick="this.disabled = true;   if(validateForm()){  setNavigationFlag('false');}; return false;" 
+                        status="saveStatus" style="{!if($site.Name=='Gem','width: 160px !important; max-width: 160px !important','')}"
+                        class="btn btn-block btn-large fright btn-reset-m fright val_button nextBtn buttonarrowimg GPrimary-button lfs-next-btn" 
+                        onClick="populateHiddenfields(); setNavigationFlag('false'); if(validateForm()){ calculateLoan('Save');} return false;" 
+                        rerender="false">Begin<!--<span class="arrowrighticon" style="margin-left:20px"></span>--></button>
+                      </apex:panelGroup>
+                  </div>
+                </div>
+              </apex:form>
+            </div>
+          </div>
+          <!-- mobile paginate -->
+            </div></td></tr></table>
+               </section>
+    </apex:define>
+  </apex:composition>
+  <script type="text/javascript">
+
+    //Toggle Button Ids
+    var app1confirm1YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationYes1";
+    var app1confirm2YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationYes2";
+    var app1confirm3YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationYes3";
+    var app1confirm4YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationYes5";
+    var appconfirmYesHigherApproval = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationYesHigherApproval"; 
+    
+    //var app2confirm1YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationYes1";
+    //var app2confirm2YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationYes2";
+    //var app2confirm3YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationYes3";
+    //var app2confirm4YesId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationYes5";
+    
+    var app1confirm1NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationNo1";
+    var app1confirm2NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationNo2";
+    var app1confirm3NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationNo3";
+    var app1confirm4NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationNo5";
+    var appconfirmNoHigherApproval = "GETemplate:GETemplate:brokerForm:Application__c-1:loanConfirmationNoHigherApproval";
+    
+    //var app2confirm1NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationNo1";
+    //var app2confirm2NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationNo2";
+    //var app2confirm3NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationNo3";
+    //var app2confirm4NoId = "GETemplate:GETemplate:brokerForm:Application__c-1:loan2ConfirmationNo5";
+    
+    var app1Confirm1 = document.getElementById("GETemplate:GETemplate:loanForm:app1confirm1");
+    var app1Confirm2 = document.getElementById("GETemplate:GETemplate:loanForm:app1confirm2");
+    var app1Confirm3 = document.getElementById("GETemplate:GETemplate:loanForm:app1confirm3");
+    var app1Confirm4 = document.getElementById("GETemplate:GETemplate:loanForm:app1confirm4");
+    var app1Confirm5 = document.getElementById("GETemplate:GETemplate:loanForm:app1confirm5");
+    var appconfirmHigherApproval = document.getElementById("GETemplate:GETemplate:loanForm:appconfirmHigherApproval");
+    
+    var app2Confirm1 = document.getElementById("GETemplate:GETemplate:loanForm:app2confirm1");
+    var app2Confirm2 = document.getElementById("GETemplate:GETemplate:loanForm:app2confirm2");
+    var app2Confirm3 = document.getElementById("GETemplate:GETemplate:loanForm:app2confirm3");
+    var app2Confirm4 = document.getElementById("GETemplate:GETemplate:loanForm:app2confirm4");
+    var app2Confirm5 = document.getElementById("GETemplate:GETemplate:loanForm:app2confirm5");
+    var appFName1 = document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:Applicant__c___First_Name__c");
+    var appFName2 = document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:Applicant__c___First_Name__c-2");
+    var styleSelected = "#76b900";
+    var styleUnselected = "#fff";
+    var appTypeJoint = "Joint";
+    var appTypeSingle = "Single";
+    
+    var appType = document.getElementById("GETemplate:GETemplate:brokerForm:applicationTypePicklist");
+    
+    //BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+    var promoConfirmYes = document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoYes');
+    var promoConfirmNo = document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoNo');
+    var isPromo = document.getElementById("GETemplate:GETemplate:loanForm:isPromoHidden");
+    //END MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+
+    function executeOnLoad(){
+        checkToUnlockTabs();
+        checkRequiredfields();
+        prefillVedaApplication(); // Added by RCADAPAN for TQLQW-489 - pre-fill fields with URL parameters formulated from Veda
+    }
+     // Added by RCADAPAN for TQLQW-489 - pre-fill fields with URL parameters formulated from Veda
+    function prefillVedaApplication(){
+        var exSourceId = "{!$CurrentPage.parameters.sourceId}";
+        var exAmount = "{!$CurrentPage.parameters.amount}";
+        var exTerm = "{!$CurrentPage.parameters.term}";
+        var exPurpose = "{!$CurrentPage.parameters.purpose}";
+        
+        // set the loan amount in the page using script as default field state is defined by the UI/UX team
+        if((exSourceId != null && exSourceId != "" && exSourceId != undefined) && exSourceId == "3"){
+            var loanAmount = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:0:component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+            loanAmount.value = exAmount;
+            calculateTotalLoanAmount(loanAmount);
+        }
+        else{
+            // check the following parameters if provided (mainly from brochurware)
+            if(exAmount != null && exAmount != "" && exAmount != undefined){
+                var loanAmount = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:0:component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+                loanAmount.value = exAmount;
+                calculateTotalLoanAmount(loanAmount);
+            }
+            if(exTerm != null && exTerm != "" && exTerm != undefined){
+                document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:loanterm").value = exTerm;
+            }
+            if(exPurpose != null && exPurpose != "" && exPurpose != undefined){
+                document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:0:component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c").value = exPurpose;
+            }
+        }
+    }
+    //to populate hidden fields
+    function populateHiddenfields() {
+        var elepbuid = document.getElementById('GETemplate:GETemplate:loanForm:hidPBUID');
+        if(elepbuid != null && document.getElementById('GETemplate:GETemplate:brokerForm:pbuid') != null) {
+          elepbuid.value = document.getElementById('GETemplate:GETemplate:brokerForm:pbuid').value;
+        }
+        var eleapp1accessnum =  document.getElementById('GETemplate:GETemplate:loanForm:hidapp1AccessNumber');
+        if(eleapp1accessnum != null && document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessnumber') != null) {
+          eleapp1accessnum.value = document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessnumber').value;
+        }
+        var eleapp2accessnum =  document.getElementById('GETemplate:GETemplate:loanForm:hidapp2AccessNumber');
+        if(eleapp2accessnum != null && document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessnumber') != null) {
+          eleapp2accessnum.value =  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessnumber').value;
+        }
+        
+        //BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+        if(isPromo.value == "true"){
+            document.getElementById('GETemplate:GETemplate:loanForm:promoIdHidden').value = document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:promoId').value;
+        } else {
+            document.getElementById('GETemplate:GETemplate:loanForm:promoIdHidden').value = null;
+        }
+        //END MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+    }
+       
+        function checkToUnlockTabs(){
+            var applicationType = document.getElementById("GETemplate:GETemplate:brokerForm:applicationTypePicklist").value;
+            var applicantsName = document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:applicantsNamePanel");
+    
+            if(applicationType == appTypeJoint){
+               applicantsName.style.display = "block";
+               document.getElementById('app2accessblock').style.display = "block";
+               //document.getElementById(app2confirm1YesId).style.display = "block";
+               //document.getElementById(app2confirm2YesId).style.display = "block";
+               //document.getElementById(app2confirm3YesId).style.display = "block";
+               //document.getElementById(app2confirm4YesId).style.display = "block";
+    
+               //document.getElementById(app2confirm1NoId).style.display = "block";
+               //document.getElementById(app2confirm2NoId).style.display = "block";
+               //document.getElementById(app2confirm3NoId).style.display = "block";
+               //document.getElementById(app2confirm4NoId).style.display = "block";
+               
+            }else{
+                applicantsName.style.display = "none";
+                document.getElementById('app2accessblock').style.display = "none";
+                //document.getElementById(app2confirm1YesId).style.display = "none";
+                //document.getElementById(app2confirm2YesId).style.display = "none";
+                //document.getElementById(app2confirm3YesId).style.display = "none";
+                //document.getElementById(app2confirm4YesId).style.display = "none";
+                //document.getElementById(appconfirmYesHigherApproval).style.display = "none";
+    
+                //document.getElementById(app2confirm1NoId).style.display = "none";
+                //document.getElementById(app2confirm2NoId).style.display = "none";
+                //document.getElementById(app2confirm3NoId).style.display = "none";
+                //document.getElementById(app2confirm4NoId).style.display = "none";
+                //document.getElementById(appconfirmNoHigherApproval ).style.display = "none";
+            }
+            checkRequiredfields();
+        }
+        function isNumberKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 118) return false;
+            //if(field.value.length >= maxlimit) return false;
+            if(charCode == 46) return false;
+            if(charCode == 32) return false;
+            return true;        
+        }
+        function isAlNumericWithHyphen(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 08 || charCode == 45 || charCode == 8 || charCode == 189 || charCode == 39 ||
+            ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || 
+            (charCode >= 48 && charCode <= 57))))
+                return true;
+            return false;
+        }
+        function applicantConfirmation(elem){
+          
+            if(elem.id == app1confirm1YesId){
+                app1Confirm1.value = true;
+            }
+            if(elem.id == app1confirm2YesId){
+                app1Confirm2.value = true;
+            }
+            if(elem.id == app1confirm3YesId){
+                app1Confirm3.value = true;
+            }
+            if(elem.id == app1confirm4YesId){
+                app1Confirm4.value = true;
+            }
+            if(elem.id == appconfirmYesHigherApproval){
+                appconfirmHigherApproval.value = true;
+            }
+            
+            
+            
+            //315
+            if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:app1accessy'){
+                document.getElementById('GETemplate:GETemplate:loanForm:app1access').value = true;
+                document.getElementById('app1AccessNumberdiv').style.display = 'block';
+                document.getElementById('KBHLDiv').style.display = 'block';
+                //document.getElementById('KBHLDivOption1').style.display = 'block';
+                document.getElementById('KBHLDivOption1').setAttribute("style", "display: block");
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessnumber').className = 'input-block-level isNumberAccess isRequired isMaxLength15';
+            } 
+            
+            if(elem.id == app1confirm1NoId){
+                app1Confirm1.value = false; 
+            }
+            if(elem.id == app1confirm2NoId){
+                app1Confirm2.value = false;
+            }
+            if(elem.id == app1confirm3NoId){
+                app1Confirm3.value = false;
+            }
+            if(elem.id == appconfirmNoHigherApproval){
+                appconfirmHigherApproval.value = false;
+            }
+            if(elem.id == app1confirm4NoId){
+                app1Confirm4.value = false;
+            }
+            
+            //315
+            if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:app1accessn'){
+                if(document.getElementById('GETemplate:GETemplate:loanForm:app2access').value != "true" ){
+                    //alert('hello');
+                    document.getElementById('KBHLDiv').style.display = 'none'; // Mar-22-2016- Afreen Fix for Defect 410
+                }
+                document.getElementById('GETemplate:GETemplate:loanForm:app1access').value = false;
+                document.getElementById('app1AccessNumberdiv').style.display = 'none';
+                //document.getElementById('KBHLDivOption1').style.display = 'none';
+                document.getElementById('KBHLDivOption1').setAttribute("style", "visibility: hidden");
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessnumber').className = '';
+            }
+    
+            if(elem.id  == 'GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerY'){
+                document.getElementById('GETemplate:GETemplate:loanForm:app1hiddenKBHLCustomer').value = true;
+            }
+    
+            if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerN'){
+                document.getElementById('GETemplate:GETemplate:loanForm:app1hiddenKBHLCustomer').value = false;
+            }     
+            
+            //BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+            if(elem.id == promoConfirmYes.id){
+                isPromo.value = true;
+            }
+            
+            if(elem.id == promoConfirmNo.id){
+                isPromo.value = false;
+            }
+            //END MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+            
+            if(appType.value == appTypeJoint){
+                //if(elem.id == app2confirm1YesId){
+                //    app2Confirm1.value = true;
+                //}
+                //if(elem.id == app2confirm2YesId){
+                //    app2Confirm2.value = true;
+                //}
+                //if(elem.id == app2confirm3YesId){
+                //    app2Confirm3.value = true;
+                //}
+                //if(elem.id == app2confirm4YesId){
+                //    app2Confirm4.value = true;
+                //}
+                
+                //if(elem.id == app2confirm1NoId){
+                //    app2Confirm1.value = false;
+                //}
+                //if(elem.id == app2confirm2NoId){
+                //   app2Confirm2.value = false;
+                //}
+                //if(elem.id == app2confirm3NoId){
+                    app2Confirm3.value = false;
+                //}
+                //if(elem.id == app2confirm4NoId){
+                //    app2Confirm4.value = false;
+                //}
+                //315
+                if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:app2accessy'){
+                  document.getElementById('GETemplate:GETemplate:loanForm:app2access').value = true;
+                  document.getElementById('app2AccessNumberdiv').style.display = 'block';
+                  document.getElementById('KBHLDiv').style.display = 'block';
+                  //document.getElementById('KBHLDivOption2').style.display = 'block';
+                  document.getElementById('KBHLDivOption2').setAttribute("style", "display: block");
+                  // Mar-22-2016- Afreen Fix for Defect 411
+                  if(document.getElementById('GETemplate:GETemplate:loanForm:app1access').value == 'false'){
+                    document.getElementById('KBHLDivOption1').setAttribute("style", "visibility: hidden");
+                  }
+                  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessnumber').className = 'input-block-level isNumberAccess isRequired isMaxLength15';
+                } 
+                //315
+                if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:app2accessn'){
+                    document.getElementById('GETemplate:GETemplate:loanForm:app2access').value = false;
+                    document.getElementById('app2AccessNumberdiv').style.display = 'none';
+                    //document.getElementById('KBHLDiv').style.display = 'none';
+                    //document.getElementById('KBHLDivOption2').style.display = 'none';
+                    document.getElementById('KBHLDivOption2').setAttribute("style", "visibility: hidden");
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessnumber').className = '';
+                    // Mar-22-2016- Afreen Fix for Defect 410
+                    if(document.getElementById('GETemplate:GETemplate:loanForm:app1access').value != "true" ){
+                       document.getElementById('KBHLDiv').style.display = 'none';
+                    }
+                    
+                } 
+    
+                if(elem.id  == 'GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2Y'){
+                    document.getElementById('GETemplate:GETemplate:loanForm:app2hiddenKBHLCustomer').value = true;
+                }
+    
+                if(elem.id == 'GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2N'){
+                    document.getElementById('GETemplate:GETemplate:loanForm:app2hiddenKBHLCustomer').value = false;
+                }
+    
+    
+    
+            }
+            checkRequiredfields();
+        }
+        function checkRequiredfields(){
+            if(app1Confirm1.value == "true"){
+                document.getElementById(app1confirm1YesId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm1NoId).setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById(app1confirm1NoId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm1YesId).setAttribute( "style", unSelectedStyle);
+            }
+    
+            if(app1Confirm2.value == "true"){
+                document.getElementById(app1confirm2YesId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm2NoId).setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById(app1confirm2NoId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm2YesId).setAttribute( "style", unSelectedStyle);
+            }
+    
+            if(app1Confirm3.value == "true"){
+                document.getElementById(app1confirm3YesId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm3NoId).setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById(app1confirm3NoId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm3YesId).setAttribute( "style", unSelectedStyle);
+            }
+            if(app1Confirm4.value == "true"){
+                document.getElementById(app1confirm4YesId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm4NoId).setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById(app1confirm4NoId).setAttribute( "style", selectedStyle);
+                document.getElementById(app1confirm4YesId).setAttribute( "style", unSelectedStyle);
+            }
+            if(appconfirmHigherApproval.value == "true"){
+                document.getElementById(appconfirmYesHigherApproval).setAttribute( "style", selectedStyle);
+                document.getElementById(appconfirmNoHigherApproval).setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById(appconfirmNoHigherApproval).setAttribute( "style", selectedStyle);
+                document.getElementById(appconfirmYesHigherApproval).setAttribute( "style", unSelectedStyle);
+            }
+            
+            if(document.getElementById('GETemplate:GETemplate:loanForm:app1access').value == "true"){
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessy').setAttribute( "style", selectedStyle);
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessn').setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessn').setAttribute( "style", selectedStyle);
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app1accessy').setAttribute( "style", unSelectedStyle);
+            }
+    
+            
+            if(document.getElementById('GETemplate:GETemplate:loanForm:app1hiddenKBHLCustomer').value == "true"){
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerY').setAttribute( "style", selectedStyle);
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerN').setAttribute( "style", unSelectedStyle);
+            }else{
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerN').setAttribute( "style", selectedStyle);
+                document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomerY').setAttribute( "style", unSelectedStyle);
+            }
+            
+            //BEGIN MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+            if('{!IF(OR($CurrentPage.parameters.gemid1 != null, $CurrentPage.parameters.gemid2 != null, $Site.Name == "Latitude", $Site.Name = "Aussie"), true , false)}' == 'false'){
+                document.getElementById('promoDiv').style.display = 'block';
+                if(isPromo.value == "true"){
+                    //Display promo id field
+                    document.getElementById('promoCodeDiv').style.display = 'block';
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoYes').setAttribute( "style", selectedStyle);
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoNo').setAttribute( "style", unSelectedStyle);
+                }else{
+                    //Flush and hide promo id field
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:promoId').value = null;
+                    document.getElementById('promoCodeDiv').style.display = 'none';
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoNo').setAttribute( "style", selectedStyle);
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:isPromoYes').setAttribute( "style", unSelectedStyle);
+                }
+            } else {
+                document.getElementById('promoDiv').style.display = 'none';
+            }
+            //END MLASALA 20-SEPT-16 TQLQW-487 Promo engine
+            
+            if(appType.value == appTypeJoint){
+                if(document.getElementById('GETemplate:GETemplate:loanForm:app2hiddenKBHLCustomer').value == "true"){
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2Y').setAttribute( "style", selectedStyle);
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2N').setAttribute( "style", unSelectedStyle);
+                }else{
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2N').setAttribute( "style", selectedStyle);
+                    document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:KBHLCustomer2Y').setAttribute( "style", unSelectedStyle);
+                }
+    
+                if(app2Confirm1.value == "true"){
+                    //document.getElementById(app2confirm1YesId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm1NoId).setAttribute( "style", unSelectedStyle);
+                }else{
+                    //document.getElementById(app2confirm1NoId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm1YesId).setAttribute( "style", unSelectedStyle);
+                }
+    
+                if(app2Confirm2.value == "true"){
+                    //document.getElementById(app2confirm2YesId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm2NoId).setAttribute( "style", unSelectedStyle);
+                }else {
+                    //document.getElementById(app2confirm2NoId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm2YesId).setAttribute( "style", unSelectedStyle);
+                }
+    
+                if(app2Confirm3.value == "true"){
+                    //document.getElementById(app2confirm3YesId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm3NoId).setAttribute( "style", unSelectedStyle);
+                }else{
+                    //document.getElementById(app2confirm3NoId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm3YesId).setAttribute( "style", unSelectedStyle);
+                }
+    
+                if(app2Confirm4.value == "true"){
+                    //document.getElementById(app2confirm4YesId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm4NoId).setAttribute( "style", unSelectedStyle);
+                }else{
+                    //document.getElementById(app2confirm4NoId).setAttribute( "style", selectedStyle);
+                    //document.getElementById(app2confirm4YesId).setAttribute( "style", unSelectedStyle);
+                }
+                //315
+                if(document.getElementById('GETemplate:GETemplate:loanForm:app2access').value == "true"){
+                  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessy').setAttribute( "style", selectedStyle);
+                  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessn').setAttribute( "style", unSelectedStyle);
+                }else{
+                  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessn').setAttribute( "style", selectedStyle);
+                  document.getElementById('GETemplate:GETemplate:brokerForm:Application__c-1:app2accessy').setAttribute( "style", unSelectedStyle);
+                }
+            }
+            
+            //Added by Vijay
+             if('{!JSENCODE(siteName)}'=='{!$Label.NZ_Site_Name}'){ //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+                 if(appType.value == appTypeSingle){
+                     if(app1Confirm1.value == "true")    
+                         //Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding
+                         
+                        if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = false;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").removeAttribute("disabled");
+                        }
+                     else
+                         //Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding
+                        if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = true;
+                        }else{
+                         document.getElementById("loanDetailsNextButton").setAttribute("disabled", "true");
+                        }
+                 }
+                 if(appType.value == appTypeJoint){
+                     //Commented out by FSaliba - Applicant 2 Eligibility is not required.
+                     //if(app1Confirm1.value == "true" && app2Confirm1.value == "true" && appFName1.value != "" && appFName2.value != "")
+                     if(app1Confirm1.value == "true" && appFName1.value != "" && appFName2.value != "")
+                        if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = false;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").removeAttribute("disabled");
+                        }
+                     else
+                        if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = true;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").setAttribute("disabled", "true");
+                        }
+                 }
+            }else{
+                if(appType.value == appTypeSingle &&
+                    (app1Confirm1.value == "true" &&
+                     app1Confirm2.value == "true" &&
+                     app1Confirm3.value == "true")){
+                     
+                     if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = false;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").removeAttribute("disabled");
+                    }
+                }else if(appType.value == appTypeJoint &&
+                    (app1Confirm1.value == "true" &&
+                     app1Confirm2.value == "true" &&
+                     app1Confirm3.value == "true" &&
+                     //Commented out by FSaliba - Applicant 2 Eligibility is not required.
+                     //app2Confirm1.value == "true" &&
+                     //app2Confirm2.value == "true" &&
+                     //app2Confirm3.value == "true" &&
+                     (appFName1.value != "") &&
+                     appFName2.value != "")){
+                     if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = false;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").removeAttribute("disabled");
+                    }
+                }else{
+                     if(("{!$Site.name}"=="{!$Label.Kiwibank_Site_Name}") || ("{!$Site.name}"=="Aussie")){
+                            document.getElementById("GETemplate:GETemplate:brokerForm:loanDetailsNextButton").disabled = true;
+                        }else{
+                            document.getElementById("loanDetailsNextButton").setAttribute("disabled", "true")
+                    }
+                }
+            }
+        }
+        function trimField(element){
+            element.value = element.value.replace(/,/g,"");
+        }
+        
+        function calculateTotalLoanAmount(elem){
+            if(isNaN(elem.value)){
+                elem.value = '';
+            }
+            UpdateAmount();
+        }
+        function calculateLoan(action){
+            
+            var amount = document.getElementById('GETemplate:GETemplate:loanForm:loanPPageBlock:Exp_total').innerHTML;
+            calculateTotalLoanAmount(amount);
+            //alert('hello3.5');
+            setFields();
+            //alert('hello4');
+            validateLoan();
+            //alert('hello5');
+        }
+        function setFields(){
+            var appType         = document.getElementById("GETemplate:GETemplate:loanForm:appType");
+            var appTypePicklist = document.getElementById("GETemplate:GETemplate:brokerForm:applicationTypePicklist");
+            var term            = document.getElementById("GETemplate:GETemplate:loanForm:loanTerm");
+            var offers1         = document.getElementById("GETemplate:GETemplate:loanForm:otherOffers1");
+            var offers2         = document.getElementById("GETemplate:GETemplate:loanForm:otherOffers2");
+            var name1           = document.getElementById("GETemplate:GETemplate:loanForm:name1");
+            var name2           = document.getElementById("GETemplate:GETemplate:loanForm:name2");
+            var loanTerm        = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:loanterm");
+            var fName1          = document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:Applicant__c___First_Name__c");
+            var fName2          = document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:Applicant__c___First_Name__c-2");
+            
+            term.value          = loanTerm.value;
+            appType.value       = appTypePicklist.value;
+            
+            if(appType.value == appTypeJoint){;
+                name1.value     = fName1.value;
+                name2.value     = fName2.value;
+            }
+            
+            //MLASALA: 23-MAR-16 TQLQW-127 Re-brand
+            if('{!$CurrentPage.parameters.form }' == 'broker'){// && '{!$Site.Name}'== 'Latitude'){ AK - Uncomment this section if you wnat to restrict the broker details for a particualr brand using appropriate brand name
+                
+                var fbrokerId           =  document.getElementById("GETemplate:GETemplate:brokerForm:bId");
+                var fbrokerFname        =  document.getElementById("GETemplate:GETemplate:brokerForm:bFName");
+                var fbrokerLname        =  document.getElementById("GETemplate:GETemplate:brokerForm:bLName");
+                var fbrokerCNumber      =  document.getElementById("GETemplate:GETemplate:brokerForm:bCNumber");
+                var fbrokerFee          =  document.getElementById("GETemplate:GETemplate:brokerForm:bFee");
+                var hidBrokerId         =  document.getElementById("GETemplate:GETemplate:loanForm:brokerIdHidden");
+                var hidBrokerFname      =  document.getElementById("GETemplate:GETemplate:loanForm:brokerFNameHidden");
+                var hidBrokerLname      =  document.getElementById("GETemplate:GETemplate:loanForm:brokerLNameHidden");
+                var hidBrokerFee        =  document.getElementById("GETemplate:GETemplate:loanForm:brokerFeeHidden");
+                var hidBrokerCNumber    =  document.getElementById("GETemplate:GETemplate:loanForm:brokerCNumnberHidden");
+    
+                hidBrokerId.value       = fbrokerId.value;
+                hidBrokerFname.value    = fbrokerFname.value;
+                hidBrokerLname.value    = fbrokerLname.value;
+                hidBrokerFee.value      = fbrokerFee.value;
+                hidBrokerCNumber.value  = fbrokerCNumber.value;
+            }
+    
+            if('{!$CurrentPage.parameters.form }' == 'postshop'){
+                var fKiwiComments       =  document.getElementById("GETemplate:GETemplate:brokerForm:Application__c-1:kiwiComments");
+                var hidKiwiCOmments     =  document.getElementById("GETemplate:GETemplate:loanForm:hiddenkiwiComments");
+                
+                if(fKiwiComments != null){
+                    hidKiwiCOmments.value   = fKiwiComments.value;
+                }
+               
+            }
+        }
+        function showOtherLoanPurpose(){
+            var loanrepeat = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+            for(var i=0;i<loanrepeat.value;i++){
+                var purpose = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                var other = document.getElementById("GETemplate:GETemplate:loanForm:loanPPageBlock:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:OtherPanelId");
+                other.style.display = "none";
+                if(purpose.value == 'Other'){
+                    other.style.display = "block";
+                }
+            }
+        }
+        function setNavigationFlag(val){
+            document.getElementById("GETemplate:GETemplate:loanForm:navFlag").value = val;
+        }
+        
+        window.onbeforeunload = function(e){
+            var flag = document.getElementById("GETemplate:GETemplate:loanForm:navFlag");
+            if(flag.value == false){
+                return "Application has not been saved. Do you wish to exit?";
+                /*if (confirm("Application has not been saved. Do you wish to exit?") == true){
+                    window.location = "https://origdev-gecapitalau.cs5.force.com/gemoney/APP_Register"
+                }*/
+                
+            }
+            
+        }
+        
+        function adjustStyleSheets(){
+            var res = document.getElementById("GETemplate:GETemplate:loanForm:loanResult");
+            if(res.value == "false"){
+                document.getElementById("countIcons").className = "span12 adjustmeicon triggericon";
+                
+                $('.lp_eligibility').addClass('GImportant-block');
+                $('.lp_eligibility').removeClass('GImportant-none');
+                $('.paginated-privacy').addClass('GImportant-none');
+                $('.paginated-privacy').removeClass('GImportant-block');
+            }
+        }
+        
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=loanterm] option[value=""]').text("Select");
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        executeOnLoad();
+    
+    </script>
+ 
+    
+    <!-- @title     Design OverRide for APP_Eligibility VF Page -->
+    <!-- @author    gerome.teodosio@cloudsherpas.com            -->
+    <!--            gerome.h.teodosio@Accenture.com             -->
+    
+    <!-- Include MobileStyles component to fix general mobile style issues -->
+    <c:APP_GSD_MobileStyles />
+ 
+    <style>
+        .lp_eligibility {
+            display: block !important;
+          }
+          
+           @media screen and (min-width: 415px) {
+              .minusplusicon.adconad {
+                margin: 0 !important;
+                margin-top: -70px !important;
+              }
+           }
+          
+           @media screen and (max-width: 415px) {
+               .pbBody > .span12 {
+                  display: block !important;
+            }
+            
+            .GImportant-block { display: block !important; }
+            .GImportant-none { display: none !important; }
+          }
+    </style>
+    
+    <!-- The following script addresses the issue on 2page-view when on mobile view -->
+    <script>
+        $(document).on('click', '.learn-more', function(){
+            $('.paginated-privacy').addClass('GImportant-block');
+            $('.paginated-privacy').removeClass('GImportant-none');
+            $('.lp_eligibility').addClass('GImportant-none');
+            $('.lp_eligibility').removeClass('GImportant-block');
+        });
+                
+        $(document).on('click', '.learn-more2', function(){
+            $('.lp_eligibility').addClass('GImportant-block');
+            $('.lp_eligibility').removeClass('GImportant-none');
+            $('.paginated-privacy').addClass('GImportant-none');
+            $('.paginated-privacy').removeClass('GImportant-block');
+        }); 
+        
+        $(document).on('click', '.learn-more', function(){
+        $('.paginated-privacy').addClass('GImportant-block');
+        $('.paginated-privacy').removeClass('GImportant-none');
+        $('.lp_eligibility').addClass('GImportant-none');
+        $('.lp_eligibility').removeClass('GImportant-block');
+      });
+                
+      var siteName = "{!$Site.Name}";  
+      
+ 
+    </script>
+    <!--Afreen - Story 271 Added the Bootstrap popover-->
+    <script>
+     
+      $(document).ready(function(){
+          $('[data-toggle="popover"]').popover({html:true});   
+      });
+    </script>
+
+    <!-- Include StylePicker component to fix general brand style issues -->
+    <c:APP_GSD_StylePicker />
+  
+    <!-- Aussie brand styling specific for APP_Eligibility VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/aussie-iconfix.css')}" rel="stylesheet" />
+        <style>
+            .adconad {
+                background-image: none !important;
+            }
+
+            .accordion-heading h4 a {
+                background-color: #82807a;
+                padding: 15px !important;
+                color: #fff;
+                font: 18px Arial, Verdana;
+                text-decoration: none;
+                background-image: url(../images/minus_icon.png);
+                background-repeat: no-repeat;
+                background-position: 98% 50%;
+            }
+            
+            div#refine {
+                margin-top: 20px;
+            }
+            
+            li.ovrfix2.col1-2 {
+                display: block;
+            }
+            
+            .span12.removelmargin ul.no-bullets.eligibilitylabelyesno li:nth-child(7) {
+                display: none;
+            }
+            .textlink {
+                text-decoration: underline;
+            }
+            
+             @media screen and (min-width: 415px) {
+                .minusplusicon {
+                    width: 20px;
+                }
+                
+                div#countIcons {
+                    margin-top: -20px;
+                    margin-left: 0px;
+                }
+                .miconad {
+                    margin-top: -75px;
+                }
+                .minusplusicon.adconad.mv_addicon {
+                    margin-top: -75px !important;
+                    float: right;
+                    margin-right: 22% !important;
+                }
+                .minusplusicon.adconad {
+                    margin: 0 !important;
+                    margin-top: -47px !important;
+                }
+                .span12 {
+                    width: 980px;
+                }
+                
+                .span12.adjustmeicon {
+                    background-color: #512D6D;
+                    margin-left: -20px !important;
+                    padding: 0 30px 50px 10px;
+                }
+                
+                .btn.btn-block.btn-large.fright.btn-reset-m.btn-activec.fright.val_button.buttonarrowimg.nextBtn {
+                    margin-bottom: 15px;
+                }
+                .olp_field {
+                    width: 429px;
+                }
+             }
+        
+            @media screen and (max-width: 415px) {
+                .container-fluid.loanamountdiv {
+                    padding: 0 !important;
+                } 
+                
+                .minusplusicon.miconad {
+                    background-color: transparent !important;
+                }
+                
+                .adjustmeicon {
+                    background-color: transparent !important;
+                    margin: 0;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent {
+                    margin-top: 45px !important;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent .row-fluid {
+                    margin-top: 65px;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent .row-fluid .computation {
+                    padding: 10px !important;
+                }
+                
+                .minusplusicon.miconad {
+                    margin-top: -95px !important;
+                    margin-left: 15px;
+                }
+                
+                .pllabel.pllabel2 {
+                    margin-left: 50px;
+                }
+                
+                .minusplusicon.adconad.mv_addicon .plusfield {
+                    width: 90% !important;
+                    margin: 0 15px !important;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 40px;
+                }
+                .olp_field {
+                    margin-left: 30px;
+                    padding-top: 5px;
+                }
+                .pllabel.pllabel2 {
+                    margin-left: 40px;
+                }
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                }
+                .minusplusicon.miconad {
+                    margin-top: -95px !important;
+                }
+                .computation .total {
+                    margin-top: -19px;
+                    margin-left: 1px;
+                }
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 50px;
+                }
+                .span5.headertitle {
+                    margin-left: 50px !important;
+                }
+                .computation .total {
+                    margin-top: -19px;
+                    margin-left: -4px;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                }
+                .computation .total {
+                    margin-top: -19px;
+                    margin-left: -7px;
+                }
+            }
+            
+          
+        </style>     
+    </apex:outputPanel>
+    
+    
+    <!-- Latitude brand styling specific for APP_Eligibility VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+        
+        <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/lat-iconfix.css')}" rel="stylesheet" />
+        <style>
+        
+            li.ovrfix2.col1-2 {
+                display: none;
+            }
+            
+            #loanDetailsNextButton[disabled] {
+                background-color: RGB(85, 85, 85);
+                color: white;
+            }
+            
+            @media screen and (min-width: 415px) {
+                .minusplusicon.miconad {
+                    margin-left: 80px;
+                }
+                
+                div#countIcons {
+                    width: 940px;
+                    margin-top: -5px;
+                    margin-left: 70px;
+                }
+                
+                .minusplusicon.adconad.GAdd-02 {
+                    float: left;
+                    margin-top: 5px !important;
+                    margin-left: 0px !important;
+                }
+                    
+                .minusplusicon.miconad.GMinus-02 {
+                    margin-left: -40px;
+                    margin-top: 5px;
+                }
+                    
+                div#countIcons {
+                    display: none;
+                }
+            }
+            
+            @media screen and (max-width: 415px) {
+                .minusplusicon.adconad.GAdd-02,
+                .minusplusicon.miconad.GMinus-02 {
+                    display: none;
+                }
+                    
+                div#countIcons {
+                    display: block;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px)  and (orientation: portrait) {
+                .btn.btn-large {
+                    background-position: 83% 50% !important;
+                }
+                .minusplusicon {
+                    width: 30px;
+                }
+                .pllabel2 {
+                    padding-left: 10px;
+                }
+                .olp_field {
+                    margin-left: 30px;
+                    padding-top: 0px;
+                }
+                .headertitle {
+                    margin-left: 115px;
+                }
+            }
+            /*For Iphone 6*/ 
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .btn.btn-large {
+                    background-position: 78% 50%;
+                }
+                .olp_field {
+                    margin-left: 50px;
+                    padding-top: 0px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                }
+                .headertitle {
+                    margin-left: 125px;
+                }
+                .mobileCon {
+                    width: 95%;
+                    padding-top: 9px !important;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .minusplusicon.miconad {
+                    width: 25px;
+                }
+                .themelogo {
+                    margin-top: 13px;
+                }
+                .mobileCon {
+                    width: 95%; 
+                    padding-top: 9px !important;
+                }
+            }
+            
+        </style>
+    </apex:outputPanel>
+    
+    
+    <!-- Gem brand styling specific for APP_Eligibility VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <style>
+        
+            li.ovrfix2.col1-2 {
+                display: none;
+            }
+            
+            @media screen and (min-width: 415px) {
+                .minusplusicon.miconad {
+                    margin-left: 80px;
+                }
+                
+                div#countIcons {
+                    width: 850px;
+                    margin-top: -5px;
+                    margin-left: 90px;
+                }
+                
+                div#countIcons {
+                    display: none;
+                }
+                
+                .minusplusicon.adconad.GAdd-02 {
+                    margin: 5px 250px 0px 0px !important;
+                }
+                
+                .minusplusicon.miconad.GMinus-02 {
+                    margin-left: -60px;
+                    margin-top: 5px;
+                }
+                .pbBody .lp_eligibility .olp_field {
+                    margin-left: 207px;
+                }
+            }
+            
+            @media screen and (max-width: 415px) {
+                .themelogo {
+                    margin-left: 20px;
+                    margin-top: 15px;
+                    width: 80px;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 35px;
+                }
+                .pllabel, .pllabel2 {
+                    margin-right: 0px;
+                }
+                .olp_field {
+                    padding-top: 0px;
+                }
+                .btn.btn-large {
+                    background-position: 83% 50% !important;
+                }
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 50px;
+                }
+                /*.pllabel2 {*/
+                /*    margin-left: 50px !important;*/
+                /*}*/
+                .headertitle {
+                    margin-left: 120px;
+                } 
+                .olp_field {
+                    padding-top: 0px;
+                }
+                .themelogo {
+                    width: 90px;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 135px;
+                }
+                .olp_field {
+                    margin-left: 51px;
+                    padding-top: 0px;
+                }
+                .themelogo {
+                    width: 100px;
+                }
+                .olp_field {
+                    padding-top: 0px;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <!-- Kiwibank brand styling specific for APP_Eligibility VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <style>
+        
+            .accordion-heading h4 a {
+                background-color: #82807a;
+                padding: 15px !important;
+                color: #fff;
+                font: 18px Arial, Verdana;
+                text-decoration: none;
+                background-image: url(../images/minus_icon.png);
+                background-repeat: no-repeat;
+                background-position: 98% 50%;
+            }
+            
+            div#refine {
+                margin-top: 20px;
+            }
+            
+            li.ovrfix2.col1-2 {
+                display: block; 
+            }
+            
+            .span12 ul.no-bullets li:nth-child(7) {
+                min-height: auto;
+            }
+            
+             @media screen and (min-width: 415px) {
+                .row-fluid.span12.loanfields {
+                    padding-bottom: 50px;
+                }
+                .minusplusicon {
+                    width: 20px;
+                }
+                
+                .adjustmeicon .minusplusicon.adconad.mv_addicon {
+                    margin-top: -92px !important;
+                    float: right;
+                    margin-right: 260px !important;
+                }
+                
+                .span12 {
+                    width: 940px;
+                }
+                
+                div#countIcons {
+                    margin-top: -50px !important;
+                    margin-left: 20px !important;
+                }
+                
+                .maincontent{
+                    width: 980px;
+                    padding-left: 0;
+                }
+             }
+             
+            @media screen and (max-width: 415px) {
+                .container-fluid.loanamountdiv {
+                    padding: 0 !important;
+                } 
+                
+                .minusplusicon.miconad {
+                    background-color: transparent !important;
+                }
+                
+                .adjustmeicon {
+                    background-color: transparent !important;
+                    margin: 0;
+                    border: none !important;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent {
+                    margin-top: 45px !important;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent .row-fluid {
+                    margin-top: 65px;
+                }
+                
+                .container-fluid.loanamountdiv .maincontent .row-fluid .computation {
+                    padding: 10px !important;
+                }
+                
+                .minusplusicon.miconad {
+                    margin-top: -70px !important;
+                    margin-left: 15px;
+                }
+                
+                .pllabel.pllabel2 {
+                    margin-left: 50px;
+                }
+                
+                .minusplusicon.adconad.mv_addicon .plusfield {
+                    width: 90% !important;
+                    margin: 0 15px !important;
+                }
+                
+                .minusplusicon.adconad.mv_addicon {
+                    padding: 10px 0px;
+                }
+                
+                .pllabel label {
+                    padding-right: 10px;
+                }
+                
+                .llfields .pllabel, .llfields .pllabel2{
+                    width: 100% !important;
+                }
+                
+                .llfields .pllabel2{
+                    margin-left: 0 !important;
+                }
+                
+                div#header-logo {
+                    height: 0;
+                }
+                
+                .total span{
+                    position: relative;
+                    right: 0;
+                }
+                
+                .dbtotal .totalname{
+                    display: block;
+                    float: none;
+                    clear: both;
+                }
+                
+                .dbtotal .totalname .total{
+                    margin-top: 10px !important;
+                    text-align: left;
+                }
+                
+                .applicantnames, .mobileCon .appl12, .applicantnames .input100pct{
+                    width: 100% !important;
+                    margin-left: 0 !important;
+                }
+                
+                .eligibilitylabelyesno .optionyn2{
+                    float: left;
+                    width: 160px;
+                    margin-top: 20px;
+                }
+                
+                ul.eligibilitylabelyesno li .optionyn1 label, ul.eligibilitylabelyesno li .optionyn2 label{
+                    width: 80px !important;
+                }
+        .olp_field {
+                width: 200px !important; 
+                }
+        
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .btn.btn-large {
+                    background-position: 83% 50% !important;
+                }
+                .minusplusicon {
+                    width: 25px;
+                }
+                .pllabel2 {
+                    margin-left: 25px !important;
+                }
+                .pllabel, .pllabel2 {
+                    width: 200px !important;
+                    margin-right: 5px;
+                }
+                .headertitle {
+                    top: 5px !important;
+                    margin-left: 20px;
+                }
+                .pllabel label {
+                    padding-right: 0px;
+                }
+                .olp_field {
+                    padding-top: 0px;   
+                }
+                .minusplusicon.miconad {
+                    margin-top: -100px !important;
+                }
+                
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 30px;
+                }
+                .pllabel2 {
+                    margin-left: 30px !important;
+                }
+                .olp_field {
+                    padding-top: 0px;
+                }
+                .minusplusicon.miconad {
+                    margin-top: -100px !important;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .minusplusicon {
+                    width: 30px;
+                }
+                .pllabel2 {
+                    margin-left: 30px !important;
+                }
+                .olp_field {
+                    padding-top: 0px;
+                }
+                .minusplusicon.miconad {
+                    margin-top: -100px !important;
+                }
+            }
+            
+            /*For desktop*/
+            @media (min-width: 1200px) {
+                .olp_field {
+                    width: 399px !important;
+                }
+                .miconad {
+                    margin-top: -97px;
+                }
+            }
+          
+        </style>     
+    </apex:outputPanel>
+         
+</apex:page>

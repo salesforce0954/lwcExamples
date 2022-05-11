@@ -1,0 +1,22 @@
+<apex:component controller="TaskComponentController">
+  
+  <table width="100%">
+      <tr>
+          <td width="50%" font-style="bold" align="left" style="padding-right:10px;"><strong>Customer</strong></td>
+          <td width="50%" font-style="bold" align="left" style="padding-right:10px;"><strong>Time/Date</strong></td>  
+                          
+      </tr>
+      <tr>
+          <td>
+              <br/>
+          </td>
+      </tr>
+      <apex:repeat value="{!taskSubject}" var="t">
+      <tr>
+          <td width="50%" align="left">{!t.Subject}</td>
+          <td width="50%" align="left">{!t.ReminderDateTime}</td>
+      </tr>
+      </apex:repeat>
+  </table>
+
+</apex:component>

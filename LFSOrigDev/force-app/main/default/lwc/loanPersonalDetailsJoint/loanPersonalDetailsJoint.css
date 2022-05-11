@@ -1,0 +1,12 @@
+.addressComponent{
+    cursor: pointer;
+    color: royalblue;
+}
+
+.confirmEmail{
+    cursor: auto;
+}
+
+.dont-have-dl{
+    cursor: default;
+}

@@ -1,0 +1,236 @@
+<!--
+/**
+* @Description: Main Page for the Rule Management
+* @Author: Jan Mark Domingo
+* @Date Created: 29.OCT.2013
+* @History:
+  =====================================================================
+      10-29-13: Created - Mac
+      11-04-13: Updated - Added delete and add functionality of Condition - Mac
+      11-06-13: Updated - Added re ordering of rule and saving functionlaity - Mac
+      10-12-13: Updated - Added re ordering of conditions - Mac
+      03-18-15: Updated - Added Rate Card field on Rule - Mike
+  =====================================================================
+*/
+-->
+<apex:page standardController="Rule_Set__c" extensions="RUL_RuleSetManagementExt" showHeader="false" sidebar="false">
+                
+        <apex:form id="mainform">
+            <apex:actionFunction name="changeSelectList" id="changeFunc" rerender="mainform" status="updateStatus"/>
+              
+            <!-- Deleting Condition -->
+            <apex:actionFunction name="delCondition" id="delFunc" action="{!deleteCondition}" rerender="mainform" status="deleteStatus">
+              <apex:param name="delParam" value="" assignTo="{!selectedCondition}"/>             
+            </apex:actionFunction>
+
+            <!-- Adding Condition -->
+            <apex:actionFunction name="addCond" id="addFunc" action="{!addCondition}" rerender="mainform" status="updateStatus">
+                <apex:param name="addConParam" value="" assignTo="{!selectedCondition}"/>
+                <apex:param name="addConRuleParam" value="" assignTo="{!selectedRule}"/>             
+            </apex:actionFunction>
+
+            <!-- Updating Condition Order -->
+            <apex:actionFunction name="updCond" id="updCOnFunc" action="{!updateConditionOrder}" rerender="mainform" status="updateStatus">
+                <apex:param name="updParamCondID" value="" assignTo="{!selectedCondition}"/>
+                <apex:param name="updParamDondDir" value="" assignTo="{!ruleDirection}"/>
+                <apex:param name="updParamCondOrder" value="" assignTo="{!selectedConditionOrder}"/>
+            </apex:actionFunction>
+
+            <!-- Deleting Rule -->
+            <apex:actionFunction name="delRule" id="delRuleFunc" action="{!deleteRule}" rerender="mainform" status="deleteStatus">
+                <apex:param name="delRule" value="" assignTo="{!selectedRule}"/>             
+            </apex:actionFunction>
+
+            <!-- Adding Rule -->
+            <apex:actionFunction name="addRule" id="addRuleFunc" action="{!addRule}" rerender="mainform" status="addStatus">
+                <apex:param name="addRule" value="" assignTo="{!selectedRule}"/>             
+            </apex:actionFunction>
+
+            <!-- Updating Rule Order -->
+            <apex:actionFunction name="updRule" id="updFunc" action="{!updateRuleOrder}" rerender="mainform" status="updateStatus">
+                <apex:param name="updParamID" value="" assignTo="{!selectedRule}"/>
+                <apex:param name="updParamDir" value="" assignTo="{!ruleDirection}"/>
+                <apex:param name="updParamOrder" value="" assignTo="{!selectedRuleOrder}"/>
+            </apex:actionFunction>
+
+            <apex:actionStatus id="updateStatus">
+                <apex:facet name="start">
+                    <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px" ImageUrl="{!$Resource.LoadingDialog}" Message="Updating..." messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:actionStatus id="deleteStatus">
+                <apex:facet name="start">
+                    <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px" ImageUrl="{!$Resource.LoadingDialog}" Message="Deleting..." messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:actionStatus id="addStatus">
+                <apex:facet name="start">
+                    <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px" ImageUrl="{!$Resource.LoadingDialog}" Message="Adding..." messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>
+                </apex:facet>
+            </apex:actionStatus>
+             <apex:inputHidden value="{!deleteId}" id="deleteId"/>
+       
+                <apex:pageMessages id="error"/>
+                
+                <apex:pageBlock >
+                    <apex:pageBlockButtons location="both">
+                        <apex:commandButton action="{!saveCondition}" value="Save" status="updateStatus" rerender="mainform" rendered="{!IF(ruleWrapperList.size != 0, true, false)}"/>
+                        <apex:commandButton action="{!addRule}" value="Add Rule" status="updateStatus" rerender="mainform"/>
+                    </apex:pageBlockButtons>
+
+                    <apex:pageBlockTable value="{!ruleWrapperList }" var="ruleWrapper">   
+                       <apex:column >
+                            <apex:outputPanel rendered="{!IF(ruleWrapper.rule.Order__c = 1, false, true)}">
+                                <a href="javascript:if (window.confirm('Are you sure?')) updRule('{!ruleWrapper.rule.Id}', 'Up', '{!ruleWrapper.rule.Order__c}');" style="font-weight:bold"> <img src="{!$Resource.ArrowUp}" alt="Move Up" width="27" height="27"/></a>
+                            </apex:outputPanel> 
+                            <br/>
+                            <apex:outputPanel rendered="{!IF(ruleWrapper.rule.Order__c = rulesize, false, true)}">
+                                <a href="javascript:if (window.confirm('Are you sure?')) updRule('{!ruleWrapper.rule.Id}', 'Down', '{!ruleWrapper.rule.Order__c}');" style="font-weight:bold"> <img src="{!$Resource.ArrowDown}" alt="Move Down" width="27" height="27"/></a>
+                            </apex:outputPanel>
+                            <br/>
+                            <apex:outputPanel >
+                                <a href="javascript:if (window.confirm('Are you sure?')) delRule('{!ruleWrapper.rule.Id}');" style="font-weight:bold"> <img src="{!$Resource.Trash}" alt="Delete" width="27" height="27"/></a>
+                            </apex:outputPanel>
+<!--
+                            <a href="javascript:if (window.confirm('Are you sure?')) addRule('{!ruleWrapper.rule.Id}');" style="font-weight:bold"><img src="{!$Resource.AddIcon}" alt="Add" width="27" height="27"/></a>
+-->
+                         </apex:column>
+                                        
+                         <apex:column >
+                            <table>
+                                <tr>
+                                    <td><apex:outputText value="Rule Name"/></td>
+                                    <td><apex:inputField value="{!ruleWrapper.rule.name}"/></td>
+                                </tr>
+                                <tr>
+                                    <td><apex:outputText value="Offer"/></td>
+                                    <td><apex:inputField value="{!ruleWrapper.rule.Offer__c}"/></td>
+                                </tr>
+                                <!-- Added by Mike Lasala 03/18/15 for rate card change -->
+                                <tr>
+                                    <td><apex:outputText value="Rate Card"/></td>
+                                    <td>
+                                        <apex:selectList value="{!ruleWrapper.rule.Rate_Card__c}" size="1">
+                                            <apex:selectOptions value="{!rateCards}"/>
+                                        </apex:selectList>
+                                    </td>
+                                </tr>
+                                <!-- Added by Mike Lasala 03/18/15 for rate card change -->
+                                <tr>
+                                    <td><apex:outputText value="Active"/></td>
+                                    <td><apex:inputCheckbox value="{!ruleWrapper.rule.IsActive__c}"/></td>
+                                </tr>
+                                <tr>
+                                    <td><apex:outputText value="Skip Rest"/></td>
+                                    <td><apex:inputCheckbox value="{!ruleWrapper.rule.stopOtherRulesIfPass__c}"/></td>
+                                </tr>
+                            </table>
+                            
+                         </apex:column>
+             
+
+                            
+                         <apex:column >
+                            <apex:commandButton onClick="addCond(null, '{!ruleWrapper.rule.Id}');" value="Add Condition" status="updateStatus" rerender="mainform" rendered="{!IF(ruleWrapper.conditionSize != 0, false, true)}"/>
+                         </apex:column>
+
+                          <apex:column >
+                              <apex:pageBlockTable value="{!ruleWrapper.conditionList}" var="condition">
+
+                                    <!-- <apex:column value="{!condition.name}"/> -->
+                                    <!-- <apex:column value="{!condition.LHS_Object_Name__c}"/>
+                                    <apex:column value="{!condition.LHS_Field_Name__c}"/>
+                                    <apex:column value="{!condition.Operation__c}"/>
+                                    <apex:column value="{!condition.RHS_Object_Name__c}"/>
+                                    <apex:column value="{!condition.RHS_Field_Name__c}"/> -->
+                                 
+
+                                 <apex:column >
+                                 <!--
+                                    <apex:facet name="header">Conjunction to<br/> Previous</apex:facet>
+                                 -->                                       
+                                    <apex:selectList id="conditionConj" size="1" value="{!condition.Conjunction_to_Previous__c}" rendered="{!IF(condition.Order__c = 1, false, true)}">
+                                        <apex:selectOptions value="{!conjunctionToPrevious}"/>
+                                    </apex:selectList>
+                                    <apex:outputPanel rendered="{!!IF(condition.Order__c = 1, false, true)}">
+                                     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+                                    </apex:outputPanel>
+                                 </apex:column>
+
+                             
+                             <apex:column headerValue="Type">                                
+                                <apex:selectList id="conditionType" size="1" value="{!condition.Type__c}" onchange="changeSelectList();">
+                                    <apex:selectOptions value="{!conditionType}"/>                                    
+                                </apex:selectList>                                
+                             </apex:column>
+                             
+
+                             <apex:column headerValue="Left Side Object Name">
+                                <apex:selectList id="condLHSObject" size="1" value="{!condition.LHS_Object_Name__c}">
+                                <apex:selectOptions value="{!conditionLHSObject}"/>
+                                </apex:selectList>
+                             </apex:column>
+
+                             
+                             <apex:column headerValue="Left Side Field Name">
+                                <apex:selectList id="condLHSFields" size="1" value="{!condition.LHS_Field_Name__c}">
+                                <apex:selectOptions value="{!conditionLHSFields}"/>
+                                </apex:selectList>
+                             </apex:column>
+
+                             <apex:column headerValue="Operator">
+                             <apex:selectList id="condOperation" size="1" value="{!condition.Operation__c}">
+                                <apex:selectOptions value="{!conditionOperation}"/>
+                            </apex:selectList>
+                            </apex:column>
+
+                             <apex:column headerValue="Right Side Object Name">
+                                <apex:selectList id="condRHSObject" size="1" value="{!condition.RHS_Object_Name__c}" rendered="{!IF(condition.Type__c = 'Free Text', false, true)}">
+                                <apex:selectOptions value="{!conditionRHSObject}"/>                                                
+                                </apex:selectList>
+                                <apex:inputField value="{!condition.Free_Text__c}" id="freeId" rendered="{!IF(condition.Type__c = 'Free Text', true, false)}"/>
+                             </apex:column>
+
+                             <apex:actionStatus startText="Updating ..." id="StatusChange1"/>
+
+                             
+                             <apex:column headerValue="Right Side Field Name">
+                                <apex:selectList id="condRHSFields" size="1" value="{!condition.RHS_Field_Name__c}" rendered="{!IF(condition.Type__c = 'Free Text', false, true)}">
+                                <apex:selectOptions value="{!conditionRHSFields}"/>
+                                </apex:selectList>
+                             </apex:column>                                 
+                                       
+                            <apex:column >
+                                <a href="javascript:if (window.confirm('Are you sure?')) addCond('{!condition.Rule__c}', '{!ruleWrapper.rule.Id}');" style="font-weight:bold"><img src="{!$Resource.AddIcon}" alt="Add" width="20" height="20"/></a>
+                             </apex:column>
+                             
+                             <apex:column >
+                                <a href="javascript:if (window.confirm('Are you sure?')) delCondition('{!condition.id}');" style="font-weight:bold"><img src="{!$Resource.Trash}" alt="Delete" width="20" height="20"/></a>                                     
+                             </apex:column>
+
+                             <apex:column >
+                                <apex:outputPanel rendered="{!IF(condition.Order__c = 1, false, true)}">
+                                    <a href="javascript:if (window.confirm('Are you sure?')) updCond('{!condition.Id}', 'Up', '{!condition.Order__c}');" style="font-weight:bold"> <img src="{!$Resource.ArrowUp}" alt="Move Up" width="27" height="27"/></a>   
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!!IF(condition.Order__c = 1, false, true)}">
+                                     &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+                                </apex:outputPanel>  
+                            </apex:column>
+
+                            <apex:column >
+                                <apex:outputPanel rendered="{!IF(condition.Order__c = ruleWrapper.conditionSize, false, true)}">
+                                    <a href="javascript:if (window.confirm('Are you sure?')) updCond('{!condition.Id}', 'Down', '{!condition.Order__c}');" style="font-weight:bold"> <img src="{!$Resource.ArrowDown}" alt="Move Down" width="27" height="27"/></a>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!!IF(condition.Order__c = ruleWrapper.conditionSize, false, true)}">
+                                    &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+                                </apex:outputPanel>
+                             </apex:column>
+                                 
+                              </apex:pageBlockTable>
+                          </apex:column>
+                           
+                    </apex:pageBlockTable>
+                </apex:pageBlock>
+   
+        </apex:form>
+</apex:page>

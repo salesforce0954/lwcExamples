@@ -1,0 +1,70 @@
+<!-- 
+/**
+* @author Original: Adrian Recio Cloud Sherpas
+* @date Original: 05 Feb 2013
+* @description Branch Configuration Page
+*/
+-->
+<apex:page controller="BranchSetupController" showheader="false">
+
+<apex:includeScript value="{!$Resource.jquery}"/>
+<apex:includeScript value="{!$Resource.jquery_ui}"/>
+<script>
+    function checkAllAtts(cbs){
+       var inputElems = document.getElementsByTagName("input");
+       for(var i=0;i<inputElems.length;i++){
+          if(inputElems[i].id.indexOf("aChecked")!=-1)
+            inputElems[i].checked = cbs.checked;
+       }
+    }
+</script>
+
+    <apex:form >
+
+        <apex:actionFunction action="{!setBranchList}" name="refreshBranch" rerender="branchTableId"/>
+        <!--apex:actionFunction action="{!setupCheckAll}" name="setupCheckAll"  rerender="checkAllId"/-->  
+        
+        <apex:pageBlock Id="branchBlkId">
+            <apex:pageMessages />
+         
+            <apex:panelGrid columns="2">
+                <apex:panelGroup >
+                    <apex:outputLabel for="districtFld" value="District:"/> 
+                    <apex:selectList id="districtFld" value="{!districtId}" size="1" onchange="refreshBranch()">
+                        <apex:selectOptions value="{!Districts}"/>
+                    </apex:selectList>
+                </apex:panelGroup>
+                <!--
+                <apex:panelGroup >
+                    <apex:inputCheckbox value="{!selectAllBranch}"/>
+                    <apex:outputText value="Select All Branches"/>
+                </apex:panelGroup>
+                -->
+            </apex:panelGrid>
+            <br/>
+        
+            <apex:outPutPanel id="mainPanelId">
+            <apex:pageBlockTable id="branchTableId" value="{!branchWrapperList}" var="b" width="50%" >
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:inputCheckbox id="checkAllIds" onclick="checkAllAtts(this)" /> <!-- selected="{!isSelectAll}" -->
+                    </apex:facet>
+                    <apex:inputCheckbox selected="{!b.IsSelected}" id="aChecked"  /> <!-- onclick="setupCheckAll();"-->
+                    <!-- apex:inputCheckbox selected="{!b.IsSelected}" id="attCheck"/ -->
+                </apex:column>              
+                <apex:column headerValue="Branch Name">
+                    {!b.branchVar.Name}
+                </apex:column>
+            </apex:pageBlockTable>
+            </apex:outPutPanel>
+            
+            <apex:pageBlockButtons location="bottom" >
+                <apex:commandButton action="{!saveBranchAssignment}" value="Save" id="saveButton" 
+                onComplete="$('[id$=modalBranch]').dialog('close');"/>
+                <apex:commandButton value="Cancel" id="cancelButton" 
+                onComplete="$('[id$=modalBranch]').dialog('close');"/>
+            </apex:pageBlockButtons>
+        
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

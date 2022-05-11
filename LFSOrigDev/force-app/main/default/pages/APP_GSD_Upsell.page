@@ -1,0 +1,1725 @@
+<!--
+  * @Description: Upsell offers page
+  * @Author: Mike Lasala
+  * @Date Created: 17-MAY-2016
+  * @History:
+  =====================================================================
+      17-MAY-16: Created -Mike
+  =====================================================================
+-->
+<apex:page controller="APP_GSD_Insurance_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+    
+    <style>
+        .error{
+            font-family: Lexia;
+        }
+        /*input[type="text"]:focus{*/
+        /*    border:1px solid #006ac6;*/
+        /*}*/
+        .ui-slider {
+            height: 7px;
+            background: #b0b9c0;
+        }
+        .ui-slider-handle {
+            background-color: #ebf0f3;
+            box-shadow: 0 0.5px 0.5px 0 rgba(0, 0, 0, 0.16);
+            border-radius: 8px;
+            top: -0.4em !important;
+        }
+        .ui-slider-line {
+            display: none;
+        }
+        #sliderTerm .ui-slider-pip .ui-slider-label {
+            top: -8px;
+        }
+        .ui-slider-pip-selected {
+            color: #999 !important;
+            font-weight: normal !important;
+        }
+        .ui-slider-pip-inrange {
+            color: #999 !important;
+            font-weight: normal !important;
+        }
+        .no-close .ui-dialog-titlebar-close {
+            display: none;
+        }
+        .fieldLabel:after {
+            color: #da291c;
+            content: ' *';
+            display:inline;
+        }
+        .vertical-padding {
+            padding-top: 20px;
+        }
+        .vertical-center {
+            height: 71px; 
+            vertical-align: middle !important;
+            margin-left: 21px;
+            margin-right: 21px;
+        }
+        .bold {
+            font-weight: bold;
+        }
+        .large-font {
+            font-size: 20px !important;
+        }
+        .desktop-padding {
+            padding-top: 20px;
+        }
+        
+        /*For Iphone 4 and 5*/
+        @media screen and (max-width: 320px) and (orientation: portrait) {
+            .vertical-padding {
+                padding-top: 9px;
+            }
+            .vertical-center {
+                height: 41px;
+                margin-left: 0px;
+                margin-right: 0px;
+            }
+            .desktop-padding {
+                display:none;
+            }
+        }
+        
+        /*For Iphone 6*/
+        @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+            .vertical-padding {
+                padding-top: 9px;
+            }
+            .vertical-center {
+                height: 41px;
+                margin-left: 0px;
+                margin-right: 0px;
+            }
+            .desktop-padding {
+                display:none;
+            }
+        }
+        
+        /*For Iphone 6+*/
+        @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+            .vertical-padding {
+                padding-top: 9px;
+            }
+            .vertical-center {
+                height: 41px;
+                margin-left: 0px;
+                margin-right: 0px;
+            }
+            .desktop-padding {
+                display:none;
+            }
+        }
+    </style>
+    
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+        <style>
+            .brand-color {
+                background-color: #006ac6;
+            }
+            .ui-slider-range {
+                background: #5298fd;
+            }
+            .mobile-padding {
+                padding-top: 101px;
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <apex:outputPanel rendered="{!$Site.Name!='Latitude'}">
+        <style>
+            .mobile-padding {
+                padding-top: 4px;
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <!--<apex:outputPanel rendered="{!$Site.Name=='Aussie'}">-->
+    <!--    <style>-->
+    <!--        .brand-color {-->
+    <!--            background-color: #512D6D;-->
+    <!--        }-->
+    <!--        .ui-slider-range {-->
+    <!--            background: #512D6D;-->
+    <!--        }-->
+    <!--    </style>-->
+    <!--</apex:outputPanel>-->
+    
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <style>
+            .brand-color {
+                background-color: #4465ad;
+            }
+            .ui-slider-range {
+                background: #4465ad;
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <style>
+            .brand-color {
+                background-color: #528224 !important;
+            }
+            .border-color {
+                border: 2px solid #528224 !important;
+            }
+            .ui-slider-range {
+                background: #88c83d;
+            }
+            .kiwi-green {
+                color: #528224 !important;
+            }
+            .kiwi-lightgreen {
+                background-color: #88c83d !important;
+            }
+            .disabled {
+                background-color: #75787b !important;
+                border: 2px solid #75787b !important;
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <html lang="en">
+        
+        <form id="loanPurposeForm" action="#">
+            
+            <!-- PAGE TITLE -->
+            <title>Offers</title>
+            
+            <input id="newLoanPurpose" type="hidden"/>
+            
+            <div class="container">
+                <div class="row" id="thumbsRow">
+                    
+                    <div class="thumbsup_margin middle-content-margin">
+                        <!-- ICON CONTAINER-->
+                        <span id="thumbsUp" class="icon_approved_mono icon_middle_width_size center-block img-responsive"/>
+                    </div>
+                    
+                    <div class="secondary-margin text-center center-block">
+                        <!-- HEADER -->
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}">{!$Label.APP_GSD_Upsell_Congrats}</span>
+                        <br/>
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}">{!$Label.APP_GSD_Upsell_Header}</span>
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}" style="padding-left: 5px">{!$Label.APP_GSD_Upsell_Header2}</span>
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}" style="padding-left: 5px" id="maxOfferAmount"/>
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} hidden subjectTo" id="subjectTo"/>
+                    </div>
+                    
+                    <div class="center-block mid-content">
+                        <!-- SUBHEADER -->
+                        <span id="subHeader" class="intro-label lat-dark-grey"/>
+                        <span id="maxOfferAmount2" class="intro-label lat-dark-grey"/>
+                        <span id="subjectTo" class="intro-label lat-dark-grey hidden subjectTo"/>
+                        <span id="intro" class="intro-label lat-dark-grey">{!$Label.APP_GSD_Upsell_Subheader2}</span>
+                    </div>
+                    
+                </div>
+                
+                <div class="text-center">
+                    
+                    <div class="middle-content-margin">
+                         <!--CONFIRM LOAN DETAILS -->
+                        <span class="module1-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}">{!$Label.APP_GSD_Upsell_LoanDetails}</span>
+                     
+                        <div class="padding-top"/>
+                        
+                         <!--DOWN ARROW -->
+                        <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive"/>
+                    </div>
+                    
+                    <div class="gap-content"/>
+                    
+                    <!--<div class="middle-content-margin">-->
+                        <!-- DOWN ARROW -->
+                    <!--    <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive"/>-->
+                    <!--</div>-->
+                    
+                    <!--<div class="gap-content">-->
+                        <!-- CONFIRM LOAN DETAILS -->
+                    <!--    <span class="module2-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')}">{!$Label.APP_GSD_Upsell_LoanDetails}</span>-->
+                    <!--</div>-->
+                    
+                </div>
+            </div>
+            
+            
+            <div class="padding-top"/>
+            
+            <div class="vertical-center vertical-padding {!IF($Site.Name != 'Kiwibank', 'brand-color', 'kiwi-lightgreen')}">
+                <div class="container">
+                    <div class="container">
+                    
+                         <!--LOAN AMOUNT LABEL -->
+                        <div class="intro-label GAccordion-status lat-white large-font {!IF($Site.Name == 'Latitude', 'bold', '')}">{!$Label.APP_GSD_Upsell_LoanAmount}
+                            <span class="intro-label pull-right GAccordion-status gap-right-text large-font" id="amount"/>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="padding-top"/>
+            <div class="desktop-padding"/>
+            
+            <div class="container">
+                <div class="container">    
+                
+                    <!-- LOAN AMOUNT SLIDER -->
+                    <div id="sliderAmount"/>
+                    
+                    <div class="body-label GAccordion-status lat-dark-grey" style="padding-top: 6px;">
+                        <span id="sliderAmountMin"/>
+                        <span class="body-label uppercase pull-right GAccordion-status gap-right-text lat-dark-grey" id="sliderAmountMax"/>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <div class="padding-top"/>
+            
+            <div class="vertical-center vertical-padding {!IF($Site.Name != 'Kiwibank', 'brand-color', 'kiwi-lightgreen')}" id="loanTermLabelContainer">
+                <div class="container">
+                    <div class="container">
+                    
+                        <!-- LOAN TERM LABEL -->
+                        <div class="intro-label GAccordion-status lat-white large-font {!IF($Site.Name == 'Latitude', 'bold', '')}">{!$Label.APP_GSD_Upsell_LoanTerm}
+                            <span class="intro-label pull-right GAccordion-status gap-right-text large-font" id="term"/>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="padding-top" id="loanTermPadding"/>
+            
+            <div class="container"  id="loanTermSliderContainer">
+                <div class="container vertical-padding">
+                    
+                    <!-- LOAN TERM SLIDER -->
+                    <div id="sliderTerm"/>
+                    
+                </div>
+                
+                <div class="padding-top"/>
+                <div class="vertical-padding"/>
+            </div>
+            
+            <!-- BEGIN DESKTOP DYNAMIC LOAN DETAILS -->
+             <header class="drop-shadow-header"> 
+                <div class="container hidden-xs">
+                    <div class="row vertical-align" id="loanRow">
+                        <!-- CENTERS LOAN DETAILS -->
+                        <div class="col-xs-12 loanDetails pull-left" id="loanCol" style="{!IF($Site.Name != 'Latitude', 'width: 25%', '')};"/>
+                        
+                        <!-- LATITUDE -->
+                        <apex:panelGroup rendered="{!$Site.Name == 'Latitude'}">
+                            <!-- Below Line Commented by Suneel - Align the upsell Rate Bubbles in Center -->
+                            <!--<div class="col-xs-12 vertical-align-left"> -->
+                            <!-- Added Style attribute - by Suneel -->
+                            <div class="vertical-align-left" style="margin-right:310px;">
+                                <div class="icon-gaps">
+                                    <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                        <style type="text/css">
+                                            .lat-dark-grey {
+                                                fill: #75787b;
+                                            }
+                                        </style>
+                                        <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50"/>
+                                        <text x="10" y="50" text-anchor="middle">
+                                            <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey"><!--$--></tspan>
+                                        </text>
+                                        <!-- LOAN AMOUNT X Y AXIS -->
+                                        <text x="48" y="55" text-anchor="middle" class="loanamtText">
+                                            <!-- LOAN AMOUNT -->
+                                            <tspan class="dynamic_LoanAmount module4-label lat-dark-grey"/>
+                                        </text>
+                                         <text x="90" y="51" text-anchor="middle">
+                                            <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey"/>
+                                        </text>
+                                        <text x="50" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Loan Amount</text>
+                                    </svg>
+                                </div>
+                                <!-- Removing Interest Rate and Monthly Repayment Bubbles for Beat the Banks - Added by Suneel 07/02/2018 -->
+                                <apex:outputPanel rendered="{!isLPUpsell}">
+                                <div class="icon-gaps">
+                                    <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                        <style type="text/css">
+                                            .lat-dark-grey {
+                                                fill: #75787b;
+                                            }
+                                        </style>
+                                     <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50"/>
+                                        <text x="40" y="55" text-anchor="middle">
+                                            <!-- INTEREST RATE -->
+                                     <tspan class="dynamic_InterestRate module4-label lat-dark-grey"/>
+                                        </text> 
+                                        <text x="73" y="50" text-anchor="middle">
+                                            <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey">%</tspan>
+                                        </text>
+                                        <text x="88" y="50" text-anchor="middle">
+                                            <tspan class="small-text2 lat-dark-grey">p.a.</tspan>
+                                        </text>
+                                        <text x="55" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Interest rate</text>
+                                    </svg>
+                                </div>                                
+                                <div class="icon-gaps">
+                                    <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                        <style type="text/css">
+                                            .lat-dark-grey {
+                                                fill: #75787b;
+                                            }
+                                        </style>
+                                        <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50"/>
+                                       <!-- MMP VALUE X Y AXIS -->
+                                        <text x="10" y="50" text-anchor="middle" class="minmonrepayText">
+                                            <!-- $ -->
+                                            <tspan style="baseline-shift: super;" class="minmonrepayDollar small-text lat-dark-grey"><!--$--></tspan>
+                                        </text>
+                                        <text x="48" y="55" text-anchor="middle">
+                                             <!-- MMP VALUE -->
+                                            <tspan class="dynamic_MmpValue module4-label lat-dark-grey"/>
+                                        </text>
+                                        <!-- MMP CENTS X Y AXIS -->
+                                        <text x="85" y="51" text-anchor="middle" class="minmonrepaycentsText">
+                                            <!-- MMP CENTS -->
+                                            <tspan style="baseline-shift: super;" class="dynamic_MmpCents small-text2 lat-dark-grey"/>
+                                        </text>
+                                        <text x="55" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Min. monthly</text>
+                                        <text x="52" y="85" text-anchor="middle" class="small-text2 lat-dark-grey">repayment</text>
+                                    </svg>
+                                </div>
+                                </apex:outputPanel> 
+                                <div>
+                                    <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                        <style type="text/css">
+                                            .lat-dark-grey {
+                                                fill: #75787b;
+                                            }
+                                        </style>
+                                        <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50" />
+                                        <text x="51" y="55" text-anchor="middle">
+                                            <!-- LOAN TERM -->
+                                            <tspan class="dynamic_Term module4-label lat-dark-grey"/>
+                                        </text>
+                                        <text x="52" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Loan term</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </apex:panelGroup>
+                        
+                        <!-- AUSSIE, GEM, KIWIBANK -->
+                        <apex:panelGroup rendered="{!$Site.Name != 'Latitude'}">
+                            <div class="col-xs-12 vertical-align-left">
+                                <div class="">
+                                    <div class="GEMLoanSummary">
+                                        <span class="small-text lat-white" style="font-size: 24px;"><!--$--></span>
+                                        <!-- LOAM AMOUNT -->
+                                        <span class="dynamic_LoanAmount module4-label lat-white"/>
+                                        <div class="small-text lat-white">Loan Amount</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="">
+                                    <div class="GEMLoanSummary"> 
+                                        <!-- INTEREST RATE -->
+                                        <span class="dynamic_InterestRate module4-label lat-white"/>
+                                        <span style="baseline-shift: super;" class="small-text2 lat-white">%</span>
+                                        <text x="88" y="50" text-anchor="middle">
+                                            <tspan class="small-text2 lat-white" style="font-family:Calibri">p.a.</tspan>
+                                        </text>
+                                        <div class="small-text lat-white">Interest rate</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="">
+                                    <div class="GEMLoanSummary">
+                                        <!-- $ -->
+                                        <span style="baseline-shift: super;" class="minmonrepayDollar module4-label lat-white"/>
+                                        <!-- MMP VALUE -->
+                                        <span class="dynamic_MmpValue module4-label lat-white"/>
+                                        <!-- MMP CENTS -->
+                                        <span class="dynamic_MmpCents module4-label lat-white"/>
+                                        <div class="small-text lat-white">Min. monthly</div>
+                                        <div class="small-text lat-white">repayment</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="">
+                                    <div class="GEMLoanSummary">
+                                        <!-- LOAN TERM -->
+                                        <span class="dynamic_Term module4-label lat-white"/>
+                                        <div class="small-text lat-white">Loan term</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:panelGroup>
+                    </div>
+                </div>
+            </header>
+            <!-- END DESKTOP DYNAMIC LOAN DETAILS -->
+        
+            <!-- BEGIN MOBILE DYNAMIC LOAN DETAILS -->
+            <!-- LATITUDE -->
+            <apex:panelGroup rendered="{!$Site.Name == 'Latitude'}">
+                <div class="col-xs-12 dotted_border visible-xs">
+                    
+                    <div id="hiddenL1" class="col-xs-3 img-responsive text-center">
+                        <span id="hL1a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                            <sup id="hL1b" class="small-text lat-dark-grey" style="font-size: 18px;"><!--$--></sup>
+                            <!-- LOAN AMOUNT -->
+                            <span class="dynamic_LoanAmountMobile"/>
+                            <div class="GNo-Line-height">
+                                <span id="hL1c" class="small-text lat-dark-grey">Loan Amount</span>
+                            </div>
+                        </span>
+                    </div>
+                    
+                    <div id="hiddenL2" class="col-xs-3 img-responsive text-center">
+                        <span id="hL2a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                            <!-- INTEREST RATE -->
+                            <span class="dynamic_InterestRate"/>
+                            <sup id="hL2b" class="small-text lat-dark-grey">%</sup>
+                            <span id="hL2d" class="small-text lat-dark-grey">p.a.</span>
+                            <span id="hL2c" class="small-text lat-dark-grey">Interest rate</span>
+                        </span>
+                    </div>
+                    
+                    <div id="hiddenL3" class="col-xs-3 responsive text-center">
+                        <span id="hL3a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                            <!-- MMP VALUE -->
+                            <span class="dynamic_MmpValueMobile"/>
+                            <sup id="hL3b" class="small-text lat-dark-grey">
+                                <!-- MMP CENTS dynamic_MmpCents-->
+                                <span class=""/>
+                            </sup>
+                            <div class="GNo-Line-height">
+                                <span id="hL3c" class="small-text lat-dark-grey">Min. monthly repayment</span>
+                            </div>
+                        </span>
+                    </div>
+                    
+                    <div id="hiddenL4" class="col-xs-3 img-responsive text-center vertical-align2">
+                        <span id="hL4a" class="module4-label lat-dark-grey">
+                            <!-- LOAN TERM -->
+                            <span class="dynamic_Term"/>
+                            <span id="hL4b" class="small-text lat-dark-grey">Loan term</span>
+                        </span>
+                    </div>
+                    
+                </div>
+            </apex:panelGroup>
+            
+            <!-- AUSSIE, GEM, KIWIBANK -->
+            <header class="drop-shadow-header">
+                <apex:panelGroup rendered="{!$Site.Name != 'Latitude'}">
+                    <div class="container visible-xs">
+                        <div class="col-xs-12">
+                            <div class="vertical-align2">
+                                <div class="row">
+                                    <div class="col-xs-12 pull-left">
+                                        <span class="col-xs-12 small-text lat-white" style="visibility: hidden;">Application No:</span>
+                                    </div>
+                                    <span>
+                                        <div class="col-xs-3 GEMLoanSummaryMobile">
+                                            <span class="small-text lat-white" style="font-size: 18px;"><!--$--></span>
+                                            <!-- LOAN AMOUNT -->
+                                            <span class="dynamic_LoanAmountMobile module4-label lat-white dynamic_LoanAmount"/>
+                                            <div class="GNo-Line-height">
+                                                <span class="small-text lat-white">Loan Amount</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-xs-3 GEMLoanSummaryMobile">
+                                            <!-- INTEREST RATE -->
+                                            <span class="dynamic_InterestRate module4-label lat-white"/>
+                                            <span style="baseline-shift: super;" class="small-text2 lat-white">%</span>
+                                            <div class="small-text lat-white" >Interest rate</div>
+                                        </div>
+                                        
+                                        <div class="col-xs-3 GEMLoanSummaryMobile">
+                                            <span style="baseline-shift: super; font-size: 18px;" class="minmonrepayDollarOtherBrand module4-label lat-white"/>
+                                            <!-- MMP VALUE -->
+                                            <span class="dynamic_MmpValueMobile module4-label lat-white"/>
+                                            <!-- MMP CENTS dynamic_MmpCents-->
+                                            <span class="module4-label lat-white"/>
+                                            <div class="small-text lat-white">Min. monthly</div>
+                                            <div class="small-text lat-white">repayment</div>
+                                        </div>
+                                        
+                                        <div class="col-xs-3 GEMLoanSummaryMobile">
+                                            <!-- LOAN TERM -->
+                                            <span class="dynamic_Term module4-label lat-white"/>
+                                            <div class="small-text lat-white">Loan term</div>
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:panelGroup>
+            </header>
+            <!-- END MOBILE DYNAMIC LOAN DETAILS -->
+            
+            <div class="padding-top"/>
+            
+            <!-- UPDATE/REVERT BUTTONS CONTAINER -->
+            <div class="container">
+                
+                <!-- PLEASE SELECT LABEL -->
+                <!--<div class="body-label lat-dark-grey">{!$Label.APP_GSD_Upsell_PleaseSelect}</div>-->
+                
+                <!-- DESKTOP -->
+                <div class="hidden-xs">
+                    <div class="confirmMarginB btnLRMargin vertical-align btnAlign">
+                        
+                        <!-- REVERT BUTTON -->
+                        <button class="GSecondary-button {!IF($Site.Name == 'Kiwibank', 'border-color', '')} module5-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} noOutline btnText" onclick="revertOriginalAmount(); return false;" style="line-height:30px; width: 50%">
+                            <!--<i class="icon_arrow_left icon_size pull-left btnChevGap"/>-->
+                            {!$Label.APP_GSD_Upsell_RevertLabel}
+                        </button>
+                        <!--confirmLoanPurpose();-->
+                        <!-- UPDATE BUTTON -->
+                        <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} module5-label lat-white noOutline gapBetweenBtn js-modal updateAmount" onclick="return false;" style="line-height:30px; width: 50%">
+                            {!$Label.APP_GSD_Upsell_UpdateLabel}
+                            <!--<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"/>-->
+                        </button>
+                        
+                        <!--RESPONSIBLE LENDING MODAL-->
+                        <div class="modal-proceed modal__content js-modal__content">
+                            <button class="btn-modal-close" role="button">
+                                <span class="icon-close-modal"></span>
+                            </button>
+                            
+                            <div class="modal-heading text--primary {!IF($Site.Name == 'Kiwibank', 'kiwi-green', '')}">{!$Label.APP_GSD_Upsell_Title_ResponsibleLending}</div>
+                            
+                            <div class="center-block mid-content">
+                                <span class="body-label lat-dark-grey">
+                                    <span>{!$Label.APP_GSD_Upsell_ResponsibleLending}</span>
+                                </span>
+                            </div>
+                            <div class="gap-content"></div>
+                            
+                            <div class="btn-proceed-container">
+                                <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} body-label lat-white noOutline btn-proceed" onclick="addNewLoan();">{!$Label.APP_GSD_Upsell_Button_AddLoanPurpose}</button>
+                                
+                                <div class="gap-content"></div>
+                                
+                                <button class="GSecondary-button {!IF($Site.Name == 'Kiwibank', 'border-color', '')} body-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} noOutline btnText" onclick="amendLoan();">{!$Label.APP_GSD_Upsell_Button_AmendLoanPurpose}</button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <!-- MOBILE -->
+                <div class="hiddenDiv visible-xs mobile-padding">
+                    
+                    <!-- UPDATE BUTTON -->
+                    <div>
+                        <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} module5-label lat-white btnBMargin js-modal {!IF($Site.Name == 'Latitude', 'bold', '')} updateAmount" onclick="return false;" style="line-height:30px;width:100%;display:inline !important">
+                            {!$Label.APP_GSD_Upsell_UpdateLabel}
+                        </button>
+                        
+                        <!--RESPONSIBLE LENDING MODAL-->
+                        <div class="modal-proceed modal__content js-modal__content">
+                            <button class="btn-modal-close" role="button">
+                                <span class="icon-close-modal"></span>
+                            </button>
+                            
+                            <div class="modal-heading text--primary {!IF($Site.Name == 'Kiwibank', 'kiwi-green', '')}">{!$Label.APP_GSD_Upsell_Title_ResponsibleLending}</div>
+                            
+                            <div class="center-block mid-content">
+                                <span class="body-label lat-dark-grey">
+                                    <span>{!$Label.APP_GSD_Upsell_ResponsibleLending}</span>
+                                </span>
+                            </div>
+                            <div class="gap-content"></div>
+                            
+                            <div class="btn-proceed-container">
+                                <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} body-label lat-white noOutline btn-proceed" onclick="addNewLoan();">{!$Label.APP_GSD_Upsell_Button_AddLoanPurpose}</button>
+                                
+                                <div class="gap-content"></div>
+                                
+                                <button class="GSecondary-button {!IF($Site.Name == 'Kiwibank', 'border-color', '')} body-label {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} noOutline btnText" onclick="amendLoan();">{!$Label.APP_GSD_Upsell_Button_AmendLoanPurpose}</button>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <!-- REVERT BUTTON -->
+                    <div>
+                        <button class="GTertiary-button module5-label lat-white {!IF($Site.Name == 'Latitude', 'bold', '')}" onclick="revertOriginalAmount(); return false;" style="line-height:30px;width:100%;display:inline !important">
+                            {!$Label.APP_GSD_Upsell_RevertLabel}
+                        </button>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+            <div class="padding-top"/>
+            
+            <!-- NEW LOAN PURPOSE -->
+            <div id="loanPurposeSection" class="container hidden">
+                
+                <div class="paddingLR80 GDepad">
+                    <div class="aligncenter">
+                            
+                        <div class="GForm-group leftAlignText">
+                            <!-- NEW LOAN PURPOSE LABEL -->
+                            <!--<div class="body-label lat-dark-grey fieldLabel">{!$Label.APP_GSD_Upsell_Purpose}</div>-->
+                            
+                            <!-- LOAN PURPOSE PICKLIST -->
+                            <select id="loanPurposeValue" onchange="showOther(this.value); return false;" class="GForm-field body-label GForm-half icon_dropdown noOutline forms_lbl_margin isPicklist"/>
+                        </div>
+                        
+                        <br/>
+                        
+                        <!-- OTHER LOAN PURPOSE -->
+                        <div id="otherLoanPurposeSection" class="GForm-group leftAlignText hidden">
+                            <!--<div class="body-label lat-dark-grey fieldLabel">{!$Label.APP_GSD_Upsell_OtherLoanPurpose}</div>-->
+                            <input id="otherLoanPurpose" name="otherLoanPurpose" type="text" maxlength="20" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal" placeholder="{!$Label.APP_GSD_Upsell_OtherLoanPurpose}"/>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!--<div class="container">-->
+            <!--    <div class="aligncenter body-label" style="vertical-align: middle !important;">-->
+            <!--        <span>-->
+            <!--            <input type="checkbox" name="termsConditions" style="width: 18px; height: 18px;"/>-->
+            <!--        </span>-->
+            <!--        <span style="padding-left: 5px">{!$Label.APP_GSD_Upsell_AgreeTo}</span>-->
+            <!--        <a id="termsConditions" target="_blank" href="" style="border-bottom: 1px dotted;">{!$Label.APP_GSD_Upsell_TermsAndConditions}</a>-->
+            <!--    </div>-->
+            <!--</div>-->
+            
+            <div class="padding-top"/>
+            
+            <!-- NEXT BUTTON CONTAINER -->
+            <div class="container" id="toprow">
+                
+                <!-- DESKTOP -->
+                <div class="hidden-xs">
+                    <div class="pull-right confirmMarginB btnLRMargin vertical-align btnAlign">
+                        <button id="upsellNext" class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'disabled', '')} module5-label lat-white noOutline gapBetweenBtn upsellNext" onclick="confirmOffer(); return false;" style="line-height:30px;" disabled="true">
+                            <i class="{!IF($Site.Name == 'Kiwibank', 'icon_arrow_right', 'icon_arrow_right_blue')} icon_size pull-right loan-margin-left"/>
+                            {!$Label.APP_GSD_Upsell_Next}
+                        </button>
+                        <button id="upsellExit" class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'disabled', '')} module5-label lat-white noOutline gapBetweenBtn js-modal upsellExit" onclick="return false;" style="line-height:30px;" disabled="true">
+                            <i class="{!IF($Site.Name == 'Kiwibank', 'icon_arrow_right', 'icon_arrow_right_blue')} icon_size pull-right loan-margin-left"/>
+                            {!$Label.APP_GSD_Upsell_Next}
+                        </button>
+                        
+                        <div class="modal-proceed modal__content js-modal__content">
+                            <button class="btn-modal-close" role="button">
+                                <span class="icon-close-modal"></span>
+                            </button>
+                            
+                            <div class="modal-heading text--primary {!IF($Site.Name == 'Kiwibank', 'kiwi-green', '')}">All good?</div>
+                            
+                            <div class="center-block mid-content">
+                                <span class="body-label lat-dark-grey">
+                                    <span id="insConfirmationSubMessageMobile"/>
+                                </span>
+                            </div>
+                            
+                            <div class="gap-content"></div>
+                            
+                            <div id="upsellOffer">
+                                <div> 
+                                    <span class="body-label"> Loan amount: 
+                                        <span>
+                                            <div id="upsellLoanAmount" class="lat-dark-grey upsellLoanAmount"/>
+                                        </span> 
+                                    </span> 
+                                </div>
+                                
+                                <div> 
+                                    <span class="body-label"> Total loan amount: 
+                                        <span>
+                                            <div id="upsellLoanAmountWithFees" class="lat-dark-grey upsellLoanAmountWithFees"/>
+                                        </span> 
+                                    </span> 
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Term of loan: 
+                                        <span>
+                                            <div id="upsellLoanTerm" class="lat-dark-grey upsellLoanTerm"/>
+                                        </span>
+                                    </span> 
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Interest rate: 
+                                        <span>
+                                            <div id="upsellInterestRate" class="lat-dark-grey upsellInterestRate"/>
+                                        </span>
+                                    </span>
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Minimum monthly repayments: 
+                                        <span>
+                                            <div id="upsellMMP" class="lat-dark-grey upsellMMP"/>
+                                        </span>
+                                    </span> 
+                                </div>
+                                
+                                <a id="changeUpsell" class="docLink {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} body-label btn-proceed-close" onClick="closeModal();">Change</a> 
+                            </div>
+                            
+                            <div class="gap-content"></div>
+                            
+                            <div class="btn-proceed-container">
+                                <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} body-label lat-white noOutline btn-proceed" onclick="saveUpsell();">I'm happy to proceed!
+                                    <i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MOBILE -->
+                <div class="hiddenDiv visible-xs">
+                    <div>
+                        <button id="upsellNext" class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'disabled', '')} module5-label lat-white btnBMargin upsellNext" onclick="confirmOffer(); return false;" style="line-height:30px;width:100%;" disabled="true">
+                            {!$Label.APP_GSD_Upsell_Next}
+                        </button>
+                        <button id="upsellExit" class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'disabled', '')} module5-label lat-white btnBMargin js-modal upsellExit" onclick="return false;" style="line-height:30px;width:100%;" disabled="true">
+                            {!$Label.APP_GSD_Upsell_Next}
+                        </button>
+                        
+                        <div class="modal-proceed modal__content js-modal__content">
+                            <button class="btn-modal-close" role="button">
+                                <span class="icon-close-modal"></span>
+                            </button>
+                            
+                            <div class="modal-heading text--primary {!IF($Site.Name == 'Kiwibank', 'kiwi-green', '')}">All good?</div>
+                            
+                            <div class="center-block mid-content">
+                                <span class="body-label lat-dark-grey">
+                                    <span id="insConfirmationSubMessageMobile"/>
+                                </span>
+                            </div>
+                            
+                            <div class="gap-content"></div>
+                            
+                            <div id="upsellOffer">
+                                <div> 
+                                    <span class="body-label"> Loan amount: 
+                                        <span>
+                                            <div id="upsellLoanAmount" class="lat-dark-grey upsellLoanAmount"/>
+                                        </span> 
+                                    </span> 
+                                </div>
+                                
+                                <div> 
+                                    <span class="body-label"> Total loan amount: 
+                                        <span>
+                                            <div id="upsellLoanAmountWithFees" class="lat-dark-grey upsellLoanAmountWithFees"/>
+                                        </span> 
+                                    </span> 
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Term of loan: 
+                                        <span>
+                                            <div id="upsellLoanTerm" class="lat-dark-grey upsellLoanTerm"/>
+                                        </span>
+                                    </span> 
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Interest rate: 
+                                        <span>
+                                            <div id="upsellInterestRate" class="lat-dark-grey upsellInterestRate"/>
+                                        </span>
+                                    </span>
+                                </div>
+                                
+                                <div>
+                                    <span class="body-label"> Minimum monthly repayments: 
+                                        <span>
+                                            <div id="upsellMMP" class="lat-dark-grey upsellMMP"/>
+                                        </span>
+                                    </span> 
+                                </div>
+                                
+                                <a id="changeUpsell" class="docLink {!IF($Site.Name != 'Kiwibank', 'lat-blue', 'kiwi-green')} body-label btn-proceed-close" onClick="closeModal();">Change</a> 
+                            </div>
+                            
+                            <div class="gap-content"></div>
+                            
+                            <div class="btn-proceed-container">
+                                <button class="GPrimary-button {!IF($Site.Name == 'Kiwibank', 'brand-color border-color', '')} body-label lat-white noOutline btn-proceed" onclick="saveUpsell();">I'm happy to proceed!
+                                    <i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- RESPONSIBLE LENDING DIALOG -->
+            <!--<div id="responsibleLendingDialog">-->
+            <!--    <p>-->
+            <!--        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"/>-->
+            <!--        {!$Label.APP_GSD_Upsell_ResponsibleLending}-->
+            <!--    </p>-->
+            <!--</div>-->
+            
+        </form>
+        
+    </html>
+    
+    <script>
+        //Global variables
+        var country;    //region
+        var originalAmount //original loan amount
+        var amount;     //loan amount
+        var interest;   //interest rate
+        var term;       //loan term
+        var mmp;        //minimum monthly repayment
+        var maxOffer;   //maximum offer amount
+        var establishmentFee; 
+        
+        /*  Description: Create sliders
+         *  Author: Mike Lasala
+         *  Date Created: 02-JUN-2016
+         */
+        function initializeSliders(){
+            Visualforce.remoting.Manager.invokeAction(className+'.retrieveApplicationUpsell',
+                applicationId,
+                function(result, event){
+                    if(event.status){
+                        console.log('application: '+JSON.stringify(result));
+                        
+                        //Assign variables
+                        country = result.Brand_Lookup__r.Country__c;
+                        
+                        loadLoanPurposeValues();    //Populate loan purpose values
+                        
+                        originalAmount = Math.floor(result.Initial_Requested_Amount__c)
+                        amount = result.Max_Offer_Amount__c;
+                        interest = result.Offered_Interest_Rate__c;
+                        term = result.Loan_Term__c;
+                        mmp = result.EMI_with_Service_Fee__c;
+                        maxOffer = result.Max_Offer_Amount__c;
+                        establishmentFee = result.Offered_Establishment_Fee__c;
+                        
+                        if(country == 'NZ'){
+                            amount = originalAmount;
+                            
+                            //Disable update amount button
+                            $('.updateAmount').each(function(){
+                                $(this).prop("disabled", true);
+                                
+                                if('{!$Site.Name}' == 'Kiwibank'){
+                                    $(this).removeClass('brand-color border-color').addClass('disabled');
+                                }
+                            });
+                            
+                            //Enable next button
+                            $('.upsellNext').each(function(){
+                                $(this).prop("disabled", false);
+                                
+                                if('{!$Site.Name}' == 'Kiwibank'){
+                                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                                }
+                            });
+                            $('.upsellExit').each(function(){
+                                $(this).prop("disabled", false);
+                                
+                                if('{!$Site.Name}' == 'Kiwibank'){
+                                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                                }
+                            });
+                            
+                            $('#subHeader').text('{!$Label.APP_GSD_Upsell_SubheaderNZ}');
+                            
+                            setElement('.subjectTo', '{!$Label.APP_GSD_Upsell_SubjectToDocumentation}');
+                            
+                            //MLASALA 17-OCT-16 Promo messages
+                            if(result.Promo_Online_Message__c != null){
+                                $('#intro').html($('#intro').text()+'<br/><br/>'+result.Promo_Online_Message__c);
+                            }
+                            
+                        } else {
+                            $('#subHeader').text('{!$Label.APP_GSD_Upsell_Subheader}');
+                            setElement('.subjectTo', '{!$Label.APP_GSD_Upsell_SubjectToVerification}');
+                        }
+                        
+                        //Update term value in years
+                        if(term == '6 months'){
+                            term = 0.5;
+                        } else {
+                            term = parseFloat(result.Loan_Term__c.split(' ')[0])
+                        }
+                        
+                        //Set minimum and maximum value text for amount and term slider
+                        $('#sliderAmountMin').text('$'+addCommas(originalAmount));
+                        $('#sliderAmountMax').text('$'+addCommas(maxOffer));
+                        
+                        
+                        var maxOfferAmoutText = '$'+addCommas(result.Max_Offer_Amount__c);
+                        var maxOfferAmout2Text = '$'+addCommas(result.Max_Offer_Amount__c);
+                        
+                        //Add disclaimer text for NZ when status is conditionally approved
+                        if(country == 'NZ' || 
+                           (country == 'AU' && 
+                            result.Response_Code__c != 'PCO')){
+                           
+                           maxOfferAmoutText += ' ';
+                           maxOfferAmout2Text += ', ';
+                           $('.subjectTo').each(function(){
+                                $(this).removeClass('hidden');
+                            });
+                            
+                        } else {
+                            maxOfferAmoutText += '!';
+                            maxOfferAmout2Text += '. ';
+                        }
+                        
+                        $('#maxOfferAmount').text(maxOfferAmoutText);
+                        $('#maxOfferAmount2').text(maxOfferAmout2Text);
+                        
+                        /*  Description: Slider initialization refer to: http://api.jqueryui.com/slider/
+                         *  Input: range:  Range type,
+                                   value:  Default value,
+                                   min:    Minimum value,
+                                   max:    Maximum value
+                                   step:   Increments of slider
+                                   change: On change method to be called
+                                   slide:  Method to be called on drag of slider
+                         */
+                        //Amount slider
+                        $('#sliderAmount').slider({
+                            range:  "min",
+                            value:  country == 'AU' ? maxOffer : originalAmount,    //Set slider to minimum amount for NZ
+                            min:    originalAmount,
+                            max:    maxOffer,
+                            step:   parseFloat('{!JSENCODE(TEXT($Setup.Upsell_Variables__c.Increments__c))}'),  //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                            change: function(event, ui){
+                                
+                                //Add opacity to existing loader
+                                $('.loading').css('opacity', '0.6');
+                                
+                                //Display loader
+                                $('.loading').show();
+                                
+                                amount = ui.value;
+                        
+                                //Iinitial amount is the same as requested amount, hide new loan purpose
+                                if(originalAmount == amount){
+                                    hideLoanPurpose();
+                                    
+                                    //Disable update amount button
+                                    $('.updateAmount').each(function(){
+                                        $(this).prop("disabled", true);
+                                        
+                                        if('{!$Site.Name}' == 'Kiwibank'){
+                                            $(this).removeClass('brand-color border-color').addClass('disabled');
+                                        }
+                                    });
+                                    
+                                } else {
+                                    
+                                    //Enable update amount button
+                                    $('.updateAmount').each(function(){
+                                        $(this).prop("disabled", false);
+                                        
+                                        if('{!$Site.Name}' == 'Kiwibank'){
+                                            $(this).removeClass('disabled').addClass('brand-color border-color');
+                                        }
+                                    });
+                                    
+                                    //Disable next button
+                                    $('.upsellNext').each(function(){
+                                        $(this).prop("disabled", true);
+                                        if('{!$Site.Name}' == 'Kiwibank'){
+                                            $(this).removeClass('brand-color border-color').addClass('disabled');
+                                        }
+                                    });
+                                    $('.upsellExit').each(function(){
+                                        $(this).prop("disabled", true);
+                                        if('{!$Site.Name}' == 'Kiwibank'){
+                                            $(this).removeClass('brand-color border-color').addClass('disabled');
+                                        }
+                                    });
+                                }
+
+                                //Recalculate
+                                calculateMMP();
+                            },
+                            slide: function(event, ui){
+                        
+                                //Set slider value (on slide)
+                                $('#amount').text('$'+addCommas(ui.value));
+                            }
+                        });
+                        
+                        //Set slider value (on load)
+                        $('#amount').text('$'+addCommas($('#sliderAmount').slider('value')));
+                        
+                        //Only create slider if loan term is not maximum
+                        //LM-2121 Fix
+                        if(term < 8){
+                            
+                            //Term slider                            
+                            $('#sliderTerm').slider({
+                                range:  "min",
+                                value:  term,
+                                min:    term,
+                                max:    7,
+                                step:   country == 'AU' ? 1 : 0.5,
+                                change: function(event, ui){
+                                    //Add opacity to existing loader
+                                    $('.loading').css('opacity', '0.6');
+                                    
+                                    //Display loader
+                                    $('.loading').show();
+                                    
+                                    term = ui.value;
+                                    
+                                    //Recalculate
+                                    calculateMMP();
+                                },
+                                slide: function(event, ui){
+                                    
+                                    //Set slider value (on slide)
+                                    $('#term').text(populateTerm(ui.value));
+                                }
+                            }).slider('pips', {
+                                rest: 'label'   //Display steps on slider
+                            });
+                            
+                            //Add class to update font properties
+                            $('.ui-slider-label').addClass('body-label');
+                            
+                            //Set slider value (on load)
+                            $('#term').text(populateTerm(term));
+                            
+                        } else {
+                            
+                            //hide loan term slider elements
+                            $('#loanTermSliderContainer').addClass('hidden');
+                            $('#loanTermPadding').addClass('hidden');
+                            $('#loanTermLabelContainer').addClass('hidden');
+                        }
+                        
+                        //Recalculate values based on max offer (on load only)
+                        calculateMMP();
+                        
+                        // $('#termsConditions').attr('href', result.Brand_Lookup__r.URL_PDS_FSG__c);
+                        
+                    } else if(event.type === 'exception'){
+                        console.log('getApplicationData exception: '+event.message+', '+event.where);
+                    } else {
+                        console.log('getApplicationData: '+event.messge);
+                    }
+                },
+                {escape: false}
+            );
+        }
+        
+        /*  Description: Create dialogs
+         *  Author: Mike Lasala
+         *  Date Created: 02-JUN-2016
+         *  Input: None
+         */
+        function initializeDialogs(){
+            /*  Description: Dialog initialization refer to: http://api.jqueryui.com/dialog/
+             *  Input: title:       Title of dialog
+                      resizable:   If resizable
+                      height:      Dialog height
+                      modal:       Modal behavior
+                      autoOpen:    If dialog should be displayed on load
+                      dialogClass: Class of dialog
+                      position:    Position of dialog on screen
+                      buttons:     Buttons available
+             */
+            //Responsible lending dialog
+            // $('#responsibleLendingDialog').dialog({
+            //     title:      '{!$Label.APP_GSD_Upsell_Title_ResponsibleLending}',
+            //     resizable:  false,
+            //     height:     'auto',
+            //     modal:      true,
+            //     autoOpen:   false,
+            //     dialogClass: "no-close",
+            //     position:{
+            //         my: 'center',
+            //         at: 'center,'
+            //     },
+            //     buttons:{
+            //         '{!$Label.APP_GSD_Upsell_Button_AddLoanPurpose}': function(){
+            //             $('#newLoanPurpose').val('true');
+            //             $('#loanPurposeSection').removeClass('hidden');
+            //             $(this).dialog('close');
+            //         },
+            //         '{!$Label.APP_GSD_Upsell_Button_AmendLoanPurpose}': function(){
+            //             hideLoanPurpose();
+            //             $(this).dialog('close');
+            //         }
+            //     }
+            // });
+        }
+        
+        /*  Description: Calculate minimum monthly repayments
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        function calculateMMP(){
+            Visualforce.remoting.Manager.invokeAction(className+'.recalculateApplication',
+                applicationId, 
+                amount, 
+                populateTerm(term),
+                function(result, event){
+                    if(event.status){
+                        // console.log('application: '+JSON.stringify(result));
+                        console.log('recalculate Total_Loan_Amount__c: '+result.Total_Loan_Amount__c+', Loan_Term_Months__c: '+result.Loan_Term_Months__c);
+                        console.log('recalculate Offered_Interest_Rate__c: '+result.Offered_Interest_Rate__c+', EMI_with_Service_Fee__c: '+result.EMI_with_Service_Fee__c);
+                        console.log('recalculate Offered_Repayments__c: '+result.Offered_Repayments__c+' Offered_Frequency_Repayments__c: '+result.Offered_Frequency_Repayments__c);
+                        //console.log('recalculate Offered_Establishment_Fee__c: '+result.Offered_Establishment_Fee__c);
+                        //Update variables to new values
+                        interest = result.Offered_Interest_Rate__c;
+                        mmp = result.EMI_with_Service_Fee__c;
+                        
+                        //Added by MLASALA 17-OCT-16 Promo engine fix
+                        establishmentFee = result.Offered_Establishment_Fee__c;
+                        
+                        //Set values
+                        populateLoanSummary();
+            
+                    } else if(event.type === 'exception'){
+                        console.log('getApplicationData exception: '+event.message+', '+event.where);
+                    } else {
+                        console.log('getApplicationData: '+event.messge);
+                    }
+                    
+                    //Hide loader
+                    $('.loading').hide();
+                },
+                {escape: false}
+            );
+        }
+        
+        /*  Description: Set values to dynamic loan summary
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        function populateLoanSummary(){
+            
+            //Loan amount
+            if(amount != null){
+                //Update x axis for spacing on element depending on amount
+                if(amount > 99999.99 &&         //More than 100,000 without decimal
+                   amount % 1 == 0){
+                    $('.loanamtText').attr('x', '53');
+                } else if(amount > 99999.99 &&  //More than 100,000 with decimal
+                          amount % 1 != 0){
+                    // $('.loanamtText').attr('x', '30');
+                } else if(amount < 99999.99 &&  //Less than 100,000 and more than 10,000 without decimal
+                          amount > 9999.99 && 
+                          amount % 1 == 0){
+                    $('.loanamtText').attr('x', '52');
+                } else if(amount < 99999.99 &&  //Less than 100,000 and more than 10,000 with decimal
+                          amount > 9999.99 && 
+                          amount % 1 != 0){
+                    $('.loanamtText').attr('x', '48');
+                } else if(amount < 9999.99 &&   //Less than 10,000 without decimal
+                          amount % 1 == 0){
+                    $('.loanamtText').attr('x', '50');
+                } else if(amount < 9999.99 &&   //Less than 10,000 with decimal
+                          amount % 1 != 0){
+                    $('.loanamtText').attr('x', '52');
+                }
+                
+                // if(amount % 1 != 0){
+                    
+                //     //With decimal, parse to 2 decimal places
+                //     setElement('.dynamic_LoanAmount', '$'+addCommas(parseFloat(amount)));        //desktop
+                //     setElement('.dynamic_LoanAmountMobile', '$'+addCommas(parseFloat(amount)));  //mobile
+                // } else {
+                    
+                //     //Whole number
+                //     setElement('.dynamic_LoanAmount', '$'+addCommas(amount));       //desktop
+                //     setElement('.dynamic_LoanAmountMobile', '$'+addCommas(amount)); //mobile
+                // }
+                
+                setElement('.dynamic_LoanAmount', '$'+addCommas(parseFloat(amount)));        //desktop
+                setElement('.dynamic_LoanAmountMobile', '$'+addCommas(parseFloat(amount)));  //mobile
+                    
+            } else {
+                setElement('.dynamic_LoanAmount', '0.00');
+                setElement('.dynamic_LoanAmountMobile', '0.00');
+            }
+            
+            //Interest rate
+            setElement('.dynamic_InterestRate', parseFloat(interest).toFixed(2));
+            
+            //MMP whole amount and cents
+            if(mmp != null){
+                
+                var emiAmount = parseFloat(mmp).toFixed(2).toString().split(".");
+                
+                if(mmp < 999.99){   //Less than 1,000
+                    
+                    //Update x & y axis for spacing on element depending on amount
+                    
+                    // if(mmp % 1 == 0){
+                    
+                    //     //Without decimal
+                    //     $('.minmonrepayText').attr('x', '23');
+                    //     $('.minmonrepayText').attr('y', '68');
+                    // } else {
+                    
+                    //     //With decimal
+                    //     $('.minmonrepaycentsText').attr('x', '85');
+                    //     $('.minmonrepaycentsText').attr('y', '51');
+                    // }
+                    
+                    //Remove $
+                    $('.minmonrepayDollar').text('');
+                    $('.minmonrepayDollarOtherBrand').text('');
+                    
+                    setElement('.dynamic_MmpValue', '$'+addCommas(emiAmount[0]));
+                    
+                } else {    //More than 1,000
+                    
+                    // $('.minmonrepayText').attr('x', '10');
+                    // $('.minmonrepayText').attr('y', '50');
+                    
+                    // $('.minmonrepaycentsText').attr('x', '90');
+                    // $('.minmonrepaycentsText').attr('y', '51');
+                    
+                    $('.minmonrepayDollar').text('$');
+                    $('.minmonrepayDollarOtherBrand').text('$');
+                    
+                    setElement('.dynamic_MmpValue', addCommas(emiAmount[0]));
+                }
+                
+                setElement('.dynamic_MmpValueMobile', '$'+addCommas(emiAmount[0]));
+                    
+                if(emiAmount[1] != 00){
+                // if(emiAmount[1] < 10){
+                    setElement('.dynamic_MmpCents', '.'+emiAmount[1]);
+                // } else if(emiAmount[1] > 10){
+                    // setElement('.dynamic_MmpCents', '.'+emiAmount[1]);
+                } else {
+                    setElement('.dynamic_MmpCents', '.00');
+                }
+                
+                if(emiAmount[1] === undefined){
+                    setElement('.dynamic_MmpCents', '.00');
+                }
+                
+            } else {
+                setElement('.dynamic_MmpValue', '$ 0.00');
+                setElement('.dynamic_MmpCents', '.00');
+            }
+            
+            //Loan term
+            setElement('.dynamic_Term', populateTerm(term));
+            
+            setElement('.upsellLoanAmount', '$'+addCommas(parseFloat(amount)));
+            setElement('.upsellLoanAmountWithFees', '$'+addCommas(parseFloat(amount+establishmentFee))+' (including establishment fee)');
+            //Added p.a. as part of NZ Insurance upsell changes 
+            setElement('.upsellInterestRate', parseFloat(interest).toFixed(2)+'% p.a.');
+            setElement('.upsellMMP', '$'+addCommas(emiAmount[0]));
+            setElement('.upsellLoanTerm', populateTerm(term));
+        }
+        
+        /*  Description: Show dialog on update of loan amount
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        // function confirmLoanPurpose(){
+            
+            //Only show dialog when there is an increase in loan amount
+            // if(originalAmount != amount){
+            //     $('#responsibleLendingDialog').dialog('open');
+            // }
+            // $('#loanPurposeSection').removeClass('hidden');
+        // }
+        
+        function addNewLoan(){
+            $('#newLoanPurpose').val('true');
+            $('#loanPurposeSection').removeClass('hidden');
+            
+            //Enable next button
+            $('.upsellNext').each(function(){
+                $(this).prop("disabled", false);
+                
+                if('{!$Site.Name}' == 'Kiwibank'){
+                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                }
+            });
+            $('.upsellExit').each(function(){
+                $(this).prop("disabled", false);
+                
+                if('{!$Site.Name}' == 'Kiwibank'){
+                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                }
+            });
+            
+            //Hide modal
+            closeModal();
+        }
+        
+        function amendLoan(){
+            hideLoanPurpose();
+            
+            //Hide modal
+            closeModal();
+        }
+        
+        /*  Description: Hide loan purpose section
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        function hideLoanPurpose(){
+            
+            $('#newLoanPurpose').val('false');
+            
+            //Set loan purpose value picklist to initial value
+            $('#loanPurposeValue').val('');
+            $('#loanPurposeSection').addClass('hidden');
+            
+            //Hide other loan purpose field if displayed
+            showOther('');
+            
+            //Enable next button
+            $('.upsellNext').each(function(){
+                $(this).prop("disabled", false);
+                if('{!$Site.Name}' == 'Kiwibank'){
+                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                }
+            });
+            $('.upsellExit').each(function(){
+                $(this).prop("disabled", false);
+                if('{!$Site.Name}' == 'Kiwibank'){
+                    $(this).removeClass('disabled').addClass('brand-color border-color');
+                }
+            });
+        }
+        
+        /*  Description: Set dynamic loan summary to original values
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        function revertOriginalAmount(){
+            
+            //Get and set slider minimum value
+            //Amount slider
+            var originalAmount = $('#sliderAmount').slider('option', 'min');
+            $('#sliderAmount').slider('value', originalAmount);
+            $('#amount').text('$'+addCommas(originalAmount));
+            
+            //Term slider
+            var originalTerm = $('#sliderTerm').slider('option', 'min');
+            $('#sliderTerm').slider('value', originalTerm);
+            $('#term').text(populateTerm(originalTerm));
+            
+            //Get values from fixed loan summary header
+            interest = $('#interestrate').text();
+            mmp = parseFloat($('#minmonrepay').text().replace(/,/g, '')+''+$('#minmonrepaycents').text());
+            
+            //Set original values for calculation
+            amount = originalAmount; 
+            term = originalTerm;
+            
+            //Hide loan purpose section
+            hideLoanPurpose();
+        }
+        
+        /*  Description: Show other loan purpose field
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         *  Input: Loan purpose value
+         */
+        function showOther(value){
+            if(value == 'Other'){
+                $('#otherLoanPurposeSection').removeClass('hidden');
+            } else {
+                $('#otherLoanPurposeSection').addClass('hidden');
+                
+                //Set other loan purpose value to null
+                $('#otherLoanPurpose').val('');
+            }
+        }
+        
+        /*  Description: Close modal popup on select of change
+         *  Author: Mike Lasala
+         *  Date Created: 05-JUN-2016
+         *  Input: None
+         */
+        function closeModal(){
+            $(".qtip").hide();
+            $("body").removeClass("scroll-locked");
+        }
+        
+        /*  Description: Redirect to offers page
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         */
+        function confirmOffer(){
+            //Validate form
+            if($('#loanPurposeForm').valid()){
+                
+                //If update loan amount was not selected, set value to false
+                if($('#newLoanPurpose').val() == ''){
+                    $('#newLoanPurpose').val('false');
+                }
+                
+                //Add opacity to existing loader
+                $('.loading').css('opacity', '1');
+                
+                //Display loader
+                $('.loading').show();
+                
+                $('.icon_logo_upsell').removeClass('icon_logo_upsell').addClass('icon_logo');
+                $('#insuranceForm').removeClass('hidden');
+                $('#loanPurposeForm').addClass('hidden');
+                
+                //Display back to loan status link
+                $('#aBack').css('display', 'block');
+                $('#aBackIcon').css('display', 'block');
+                $('#aBack').attr("onclick","displaySection('insurance')");
+                $('#backDesktopBtn').css('visibility', 'visible');
+                $('#backMobileBtn').css('display', 'block');
+                $('#changeupselld').css('display', 'block');
+                $('#changeupsellm').css('display', 'block');
+                setCustomerSelection();
+                getInsuranceBundles(applicationId);
+                
+            }
+        }
+        
+        /*  Description: Save upsell and redirect to reponse page
+         *  Author: Mike Lasala
+         *  Date Created: 05-JUL-2016
+         *  Input: None
+         */
+        function saveUpsell(){
+            
+            //Validate form
+            if($('#loanPurposeForm').valid()){
+                
+                //If update loan amount was not selected, set value to false
+                if($('#newLoanPurpose').val() == ''){
+                    $('#newLoanPurpose').val('false');
+                }
+                
+                $('.loading').css('opacity', '1');
+                
+                //Display loader
+                $('.loading').show();
+                
+                //Retrieve no cover data
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.APP_GSD_Insurance_Ext.retrieveBundles}',
+                    applicationId,
+                    $('#sliderAmount').slider('value'), 
+                    populateTerm($('#sliderTerm').slider('value')), 
+                    function(result, event){
+                        if(event.status){
+                            if(result.length > 0){
+                                
+                                var selectedBundle;
+                                
+                                for(var i=0; i< result.length; i++){
+                                    if(result[i].insuranceBundleName == "No Cover"){
+                                        selectedBundle = JSON.stringify(result[i]);
+                                    }
+                                }
+                                
+                                selectedBundle = JSON.parse(selectedBundle);
+                                
+                                //Update application and/or create loan purpose
+                                Visualforce.remoting.Manager.invokeAction(
+                                    '{!$RemoteAction.APP_GSD_Insurance_Ext.createAndSaveInsurance}',
+                                    applicationId, 
+                                    selectedBundle,
+                                    $('#sliderAmount').slider('value'), 
+                                    populateTerm($('#sliderTerm').slider('value')), 
+                                    $('#newLoanPurpose').val(),
+                                    $('#loanPurposeValue').val(), 
+                                    $('#otherLoanPurpose').val(),
+                                    function(result, event){
+                                        if(event.status){
+                                            console.log("save success: " + JSON.stringify(result));
+                                            if(result.isSuccessful){
+                                                 if(result.displayMessage){
+                                                    alert(result.resultMessage);
+                                                }
+                                                
+                                                redirect('APP_GSD_Response');
+                                            }
+                                            else{
+                                                alert(result.resultMessage + " Please contact us.");
+                                            }
+                                        } else if(event.type === 'exception'){
+                                            console.log('exception: '+event.message+', '+event.where);
+                                        } else {
+                                            console.log(event.message);
+                                        }
+                                    },
+                                    {escape: true}
+                                );
+                            }
+                        } else if(event.type === 'exception'){
+                            console.log('exception: '+event.message+', '+event.where);
+                        } else {
+                            console.log(event.message);
+                        }
+                    },
+                    {escape: true}
+                );
+                
+            }
+            
+            //Hide modal
+            closeModal();
+        }
+        
+        /*  Description: Populate loan purpose value picklist
+         *  Author: Mike Lasala
+         *  Date Created: 31-MAY-2016
+         *  Input: None
+         */
+        function loadLoanPurposeValues(){
+            
+            //Array of loan purpose values for AU
+            var loanValuesAU = ["Car purchase", "Car repairs", "Educational expenses", "Medical / Dental", "Other vehicle purchase", "Small debts", "Travel"];
+            
+            //Array of loan purpose values for NZ
+            var loanValuesNZ = ["Auto Repairs", "Caravan/Boat/Recreational", "Education", "Medical & Dental", "Travel/Holiday"];
+            
+            var loanValuesBoth = ["Home improvements", "Household furnishings"];     //Array of loan purpose values for Both
+            var loanValues;     //Array to combine region's values and for both
+            
+            if(country == 'AU'){    //Identify country
+                
+                loanValues = $.merge(loanValuesAU, loanValuesBoth);     //Merge AU and Both loan purpose values
+                
+            } else {
+                
+                loanValues = $.merge(loanValuesNZ, loanValuesBoth);     //Merge NZ and Both loan purpose values
+            }
+            
+            loanValues.sort();      //Sort alphabetically
+            
+            loanValues.push("Other");       //Add Other as last option (as per current Staff UI)
+            
+            //$('#loanPurposeValue').append($('<option>').val('').html('Select'));    //Set initial blank value
+            $('#loanPurposeValue').append($('<option>').val('').html('{!$Label.APP_GSD_Upsell_Purpose}'));
+            
+            //Append values to select
+            for(var i=0; i<loanValues.length; i++){
+                $('#loanPurposeValue').append($('<option>').val(loanValues[i]).html(loanValues[i]));
+            }
+        }
+        
+        /*  Description: Populate element with value
+         *  Author: Mike Lasala
+         *  Date Created: 02-JUN-2016
+         *  Input: Element class
+                   Value
+         */
+        function setElement(className, value){
+            $(className).each(function(){
+                $(this).text(value);
+            });
+        }
+        
+        /*  Description: Populate correct term text
+         *  Author: Mike Lasala
+         *  Date Created: 02-JUN-2016
+         *  Input: Loan term
+         */
+        function populateTerm(loanTerm){
+            
+            if(loanTerm>1){
+                return  loanTerm+' years';
+            } else {
+                if(loanTerm == 1){
+                    return '1 year';
+                } else {
+                    return '6 months';
+                }
+            }
+        }
+        
+        /*  Description: On load functions
+         *  Author: Mike Lasala
+         *  Date Created: 02-JUN-2016
+         *  Input: None
+         */
+        $(document).ready(function(){
+            initializeSliders();        //Create sliders
+            // initializeDialogs();        //Create dialogs
+            
+            //Initialize client side validation
+            $('#loanPurposeForm').validate({
+                onchange:function(element) {
+                    this.element(element);
+                }
+            });
+            
+            //Method to validate whether to show insurance or redirect to response page
+            Visualforce.remoting.Manager.invokeAction(className+'.goToInsurance',
+                applicationId,
+                function(result, event){
+                    if(event.status){
+                        
+                        if(result){
+                            $(".upsellExit").each(function(){
+                                $(this).addClass('hidden');
+                            });
+                        } else {
+                            $(".upsellNext").each(function(){
+                                $(this).addClass('hidden');
+                            });
+                        }
+                        
+                    } else if(event.type === 'exception'){
+                        console.log('getApplicationData exception: '+event.message+', '+event.where);
+                    } else {
+                        console.log('getApplicationData: '+event.messge);
+                    }
+                },
+                {escape: false}
+            );
+        });
+        
+//      $("#upsellExit").each(function(){
+//          $(".qtip").hide();
+//          $("body").removeClass("scroll-locked");
+//         });
+        
+        /****************************** SLIDER METHODS ******************************/
+        /*  Description: Get slider value
+         *  Author: Mike Lasala
+         *  Date Created: 18-MAY-2016
+         *  Input: Value
+         */
+        function getValue(val){
+            //Get value of slider
+            var value = $('#sliderAmount').slider('value');
+            console.log('val: '+val+', value: '+value);
+        }
+    </script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/>
+    
+    <c:APP_GSD_MobileStyles />
+    
+</apex:page>

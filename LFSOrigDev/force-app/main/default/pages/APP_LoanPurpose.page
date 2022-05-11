@@ -1,0 +1,205 @@
+<apex:page standardController="Application__c" extensions="APP_MainExt" showHeader="false" id="GETheme" 
+standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false">
+
+<apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+     
+        <style>
+        input[type="submit"].plusfield {
+            background: url({!URLFOR($Resource.getheme, 'images/add_icon.png')}) no-repeat;
+            border: 0;
+            width: 25px;
+            height: 25px;
+            }
+         input[type="submit"].minusfield {
+            background: url({!URLFOR($Resource.getheme, 'images/minus_icon.png')}) no-repeat;
+            border: 0;
+            width: 25px;
+            height: 25px;
+            }
+            .buttonblock {word-wrap:break-word;}
+        </style>
+        
+        <script type="text/javascript">
+            function isNumberKey(evt, field) {
+                var charCode = (evt.which) ? evt.which : event.keyCode;
+                if (charCode > 31
+                  && (charCode < 48 || charCode > 57))
+                    return false;
+                if(charCode == 118) return false;
+                //if(field.value.length >= maxlimit) return false;
+                if(charCode == 46) return false;
+                if(charCode == 32) return false;
+                return true;        
+            }
+            
+            function trimField(element){
+                element.value = element.value.replace(/,/g,"");
+            }
+            
+            function calculateTotalLoanAmount(elem){
+                if(isNaN(elem.value)){
+                    elem.value = '';
+                }
+                UpdateAmount();
+            }
+            
+            function calculateLoan(action){
+                document.getElementById('GETemplate:GETemplate:loanPurpose:GETheme:mainForm:redirectTxt').value = action;
+                UpdateAmount();
+                validateLoan();
+            }
+            
+            function setFlagFalse(action){
+                document.getElementById('GETheme:mainForm:flag').value = false;
+                document.getElementById('GETheme:mainForm:redirectTxt').value = action;
+                validateLoan();
+            }
+            function isAlNumericWithHyphen(evt, field) {
+                var charCode = (evt.which) ? evt.which : event.keyCode;
+                if ((charCode == 08 || charCode == 45 || charCode == 8 || charCode == 189 || charCode == 39 ||
+                ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                    return true;
+                return false;
+            }
+        </script>
+        
+   
+
+        <body>
+            <div class="mainwrapper">
+     
+                <apex:form id="mainForm" >
+                    <!--new header for appmain-->
+                   
+                    
+                    <section>               
+                       
+                        <div class="maincontent ovrpme">
+                            <div class="row-fluid">
+                                <div class="mainalert span12">
+                                    <apex:pageMessages id="error"/>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <apex:inputHidden id="flag"/>
+                        <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+                        <apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}"/>
+                        
+                        <apex:actionFunction name="validateLoan" action="{!pageRedirect}" rerender="mainForm,loanValid" 
+                        status="pleasewait" oncomplete="showOtherLoanPurpose();"/>
+                        <apex:actionFunction name="UpdateAmount"  action="{!calculateLoanAmountTotal}" 
+                        reRender="Exp_total" oncomplete="showOtherLoanPurpose();"/>
+                        <div class="divider10"></div>
+                        <apex:pageBlock id="loanPPageBlock">
+                        <div class="maincontent lp_area">
+                            <div class="row-fluid">
+                            
+                                <!-- Start of Content Here -->
+                                
+                                <div class="row-fluid span12 loanfields">
+                                    <div id="addfields" class="tablemainlist llfields">
+
+                                        
+                                            
+                                            <!-- Start Loop-->
+                                            <apex:repeat value="{!loanWrapList}" var="l" id="lw">
+                                                <!-- <apex:pageBlockSection id="Loan_Purpose__c-1"> -->
+                                                    <c:APP_Main l="{!l}" country="" id="component-1"/>
+                                                <!-- </apex:pageBlockSection> -->
+                                            </apex:repeat>
+                                            <div class="clearfix"></div>
+                                            <div class="span12">
+
+                                                <div class="minusplusicon miconad"><!-- container for minus icon -->
+                                                    <apex:commandButton value=" " 
+                                                    styleClass="minusfield" action="{!removeLoanPurpose}" 
+                                                    rerender="loanPPageBlock,loanPurposeSize" 
+                                                    rendered="{!if(loanPurposeSize >=2, true, false)}" 
+                                                    status="removeStatus" onComplete="showOtherLoanPurpose();"/>
+                                                </div>
+
+                                                <div class="minusplusicon adconad">
+                                                    <apex:commandButton value=" " styleClass="plusfield" 
+                                                    action="{!addLoanPurpose}" rerender="loanPPageBlock,loanPurposeSize" 
+                                                    rendered="{!loanPurposeSize <=9}" status="addStatus" 
+                                                    onComplete="showOtherLoanPurpose();"/>
+                                                </div>
+                                            </div>
+                                            <div class="clearfix"></div>
+                                            <div class="divider5"></div>
+                                            
+                            <div class="span12">
+                                <apex:actionStatus id="saveStatus" style="display: 'none';">
+                                    <apex:facet name="stop">
+                                         <apex:commandButton value="Save" id="loanSave" 
+                                         status="saveStatus" 
+                                         styleClass="btn btn-large btn-reset-m btn-activec fright buttonarrowimg" 
+                                         onComplete="calculateLoan('Save');" rerender="false" style="display: 'none';"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandButton value="Saving..." disabled="true" 
+                                        status="saveStatus" rerender="loanPPageBlock, fldFlag" 
+                                        styleClass="btn btn-large btn-reset-m btn-activec fright buttonarrowimg" 
+                                        style="display: 'none';"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                                 
+                            </div>
+                                            
+                                     </div><!-- addfields -->
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                
+                                <div class=".continer-fluid loanamountdiv">
+                                <div class="maincontent">
+                                <div class="row-fluid">
+                                    <div class="computation">
+                                        <div class="span5 dbtotal">
+                                            <span class="totalname">Total loan amount:</span>
+                                            <span class="total">
+                                                <apex:outputText value="${0, number, ###,###,###,##0.00}" id="Exp_total">
+                                                    <apex:param value="{!totAmount}"/>
+                                                </apex:outputText>
+                                                <apex:outputText styleClass="warningMessage" escape="false" 
+                                                rendered="{!loanAmountNotValid}" 
+                                                value="<br/>Error: Your preferred loan amount must be at least $3000."/>
+                                            </span>
+                                        </div>
+                                        <div class="span5 overfield">
+                                            <div class="span5" style="width: 120px">
+                                                    <apex:outputLabel >{!$Label.Over} * <a href="#" 
+                                                    class="txtooltip" title="Select the loan term that you prefer.">
+                                                    <span class="fui-question"></span></a></apex:outputLabel>
+                                            </div>
+                                            <div class="span6" style="width: 250px">
+                                                    <apex:selectList styleClass="input-block-level" id="loanterm" 
+                                                    size="1" value="{!loanTermSelected}" >
+                                                        <apex:selectOptions value="{!loanTermOptions}"/>
+                                                    </apex:selectList>
+                                                    <apex:outputText styleClass="warningMessage" escape="false" 
+                                                    rendered="{!loanTermNotValid}" value="Error: You must select a loan term."/>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div><!-- computation -->
+                                    
+                                </div><!-- span12 -->
+                                </div>
+                                </div>
+                                <div class="divider30"></div>
+
+                            </div>
+                        </div><!-- end maincontent -->
+                        
+                    </apex:pageBlock>      
+                    </section>
+                    
+                </apex:form>
+     
+            
+            </div><!-- end mainwrapper -->
+        </body>
+
+</apex:page>

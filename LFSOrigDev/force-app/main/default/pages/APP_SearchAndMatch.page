@@ -1,0 +1,756 @@
+<!--
+/*
+  =====================================================================
+      04-16-15: Updated Defect 599 - Added town in residential search results for NZ - DYU
+  =====================================================================
+ */ 
+-->
+<apex:page id="pSearchAndMatch" standardController="Application__c" extensions="APP_SearchAndMatchCC,APP_SearchAndMatchRemote" title="Customer Search & Match" showHeader="false" sidebar="false" docType="html-5.0">
+    
+    <!--  apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/searchmatch.css')}"/>    -->
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapstaffui, '/bootstrap/css/bootstrap.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapstaffui, '/bootstrap/css/bootstrap-theme.min.cs')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapstaffui, '/custom_searchmatch.css')}" />
+    
+
+    <apex:includeScript value="{!$Resource.streaming_cometd}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery}"/>
+    <apex:includeScript value="{!$Resource.streaming_json2}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery_cometd}"/>
+    <apex:includeScript value="{!URLFOR($Resource.dragdrop, '/dragdrop/jquery.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.dragdrop, '/dragdrop/jquery-ui.min.js')}"/>
+    
+    
+
+    
+
+       <script type="text/javascript">
+         
+       $.noConflict();        
+       jQuery( document ).ready(function( $ ) {
+            $(document).ready(function() {
+                   $('.sortable1 tbody, .sortable1 table tr, .sortable2 tbody, .sortable3 tbody, .sortable3 tbody.ui-sortable').sortable({
+                      connectWith: 'tbody',
+                      disabled: {!NOT(searchMatchEditControl)},
+                      start: function(event, ui) {
+                            ui.item.startPos = ui.item.index();
+                        },
+                        stop: function(event, ui) {
+                            //console.log("Start position: " + ui.item.startPos);
+                            //console.log("New position: " + ui.item.index());
+                        },
+                      update: function(event, ui) {
+                        //console.log("first Initialize");
+                        var changedList = this.id;
+                        var order = $(this).sortable('toArray');
+                        var positions = order.join(';');
+                        console.log({
+                          id: changedList,
+                          positions: positions
+                        });
+                      }   
+                    });
+                });        
+        });
+        var counter;
+        // Initialize Search        
+        function initializeSearchListen() {      
+            $.cometd.init({
+               url: window.location.protocol+'//'+window.location.hostname+'/cometd/24.0/',
+               requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'},
+               appendMessageTypeToURL : false
+            });
+
+               // Subscribe to a topic. JSON-encoded update will be returned in the callback
+               var responseReceived = false;
+               $('.searchButtonClass').attr("disabled", "disabled").removeClass("btn").addClass("btnDisabled");
+               $('.searchInputClass').attr('disabled', true);
+               $.cometd.subscribe('/topic/{!name}', function(message) {
+
+                    var statusResponse = JSON.stringify(message.data, null, '\t');
+                    var applicantSearchIdToLookFor = $('.appSearchId').html();
+                    //console.log("Status Response");
+                    //alert('Status Response ' + statusResponse);
+                    if(statusResponse != null){
+
+                        var applicantSearchIdReturned = JSON.stringify(message.data.sobject.Applicant_Search__c);
+                        var applicantSearchId = applicantSearchIdReturned.replace(/\"/g,'');
+                        //console.log("Low: "+applicantSearchId+" : "+applicantSearchIdToLookFor+" : "+responseReceived);
+                        //alert('responseReceived ' + responseReceived);
+                        if(applicantSearchId==applicantSearchIdToLookFor && responseReceived==false) {
+                            //results we are waiting for have been returned
+
+                            //disconnect from streaming api - this call is asynchronous so use the "responseReceived" variable to stop this running multiple times                          
+                            $.cometd.disconnect();
+                            responseReceived = true;                                                    
+                            repopulateCLVList();
+                            clearInterval(counter);
+                        }
+                    }                     
+                });     
+        }
+    
+        function reInitializeSortable(){
+        
+            $('.sortable1 tbody, .sortable1 table tr, .sortable2 tbody, .sortable3 tbody, .sortable3 tbody.ui-sortable').sortable({
+                          connectWith: 'tbody',
+                          disabled: {!NOT(searchMatchEditControl)},
+                          start: function(event, ui) {
+                                ui.item.startPos = ui.item.index();
+                            },
+                            stop: function(event, ui) {
+                                //console.log("Start position: " + ui.item.startPos);
+                                //console.log("New position: " + ui.item.index());
+                            },
+                          update: function(event, ui) {
+                            //console.log("Sortable Initialize");
+                            var changedList = this.id;
+                            var order = $(this).sortable('toArray');
+                            var positions = order.join(';');
+                            console.log({
+                              id: changedList,
+                              positions: positions
+                            });
+                          }
+                        });
+        }
+
+       function closeLoadDialog (){            
+            closeDiag();
+            reInitializeSortable();
+       }      
+          
+      var count="{!JSENCODE(timeoutSettings)}";     
+        function timer(){                
+          count=count-1;   
+
+          // AM: This is to initiate the javascript polling instead of
+          // the streaming api becasue PerspecSys does not support it
+          if(count%5==0) {
+            checkSearchResultsNonStreaming();                       
+          }
+          
+          if(count <= 0){
+
+            // AM: This function commented out because PerspecSys does not support Streaming API
+            //$.cometd.disconnect();
+
+            clearInterval(counter);                                                       
+            timedOut();                                    
+          }
+        }
+       
+       function pollCLVRecords(){          
+            if($('.showWaitDialogClass').html()=='true') {                        
+                counter=setInterval(timer, 1000); //1000 will  run it every 1 second   
+                timer();
+
+                // AM: This function commented out because PerspecSys does not support Streaming API
+                //initializeSearchListen();  
+                                               
+            }
+       }
+       
+       function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 46) {
+                return false
+            }
+            else{
+                return true;
+            }
+        }
+       
+       function dateOfBirthChange() {
+        
+      var baseId='pSearchAndMatch:mainForm:pbSearch:';      
+          var birthDay = document.getElementById(baseId+'dd').value;
+          var birthMonth = document.getElementById(baseId+'mm').value;
+          var birthYear = document.getElementById(baseId+'yyyy').value;
+          
+          if(birthDay != 'Select' && birthMonth != 'Select' && birthYear != 'Select'){
+            document.getElementById(baseId+'Applicant_Search__c___Date_of_Birth__c').value = birthYear + "-" + birthMonth + "-" + birthDay;
+            document.getElementById(baseId+'Applicant_Search__c___Date_of_Birth_WS__c').value = birthDay + "-" + birthMonth + "-" + birthYear;
+            setDate();
+            
+          } else {
+            
+            document.getElementById(baseId+'Applicant_Search__c___Date_of_Birth__c').value = null;
+            document.getElementById(baseId+'Applicant_Search__c___Date_of_Birth_WS__c').value = null;
+          }
+       }
+         // AM: This function is to initiate the javascript polling instead of
+       // the streaming api becasue PerspecSys does not support it
+       function checkSearchResultsNonStreaming() {
+            var applicantSearchIdToLookFor = $('.appSearchId').html();
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_SearchAndMatchRemote.checkForResultsNonStreaming}',
+                applicantSearchIdToLookFor, 
+                function(result, event) {
+                    if (event.status) {
+                       if(result > 0) {
+                            repopulateCLVList();
+                            clearInterval(counter);
+                       }
+                    } 
+                }, 
+                {escape: true}
+            );
+        }
+    
+
+        function noenterAndNumericOnly(ev)  {
+
+          if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            doSearchAF();
+              return false;
+           } else {
+
+                   return onlyNumeric(ev);
+
+                    }
+       }
+
+ <!-- Added by Sandeep - Search and Match Start -->
+         function noenterAndAlphaOnly(ev)  {
+
+          if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            doSearchAF();
+              return false;
+           } else {
+
+                   return onlyAlpha(ev);
+
+                    }
+       }
+
+       function noenterAndAlphanumericOnly(ev)  {
+
+          if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            doSearchAF();
+              return false;
+           } else {
+
+                   return onlyAlphanumeric(ev);
+
+                    }
+       }
+
+<!-- Added by Sandeep - Search and Match End -->
+       
+       function limitlength(ev,obj, length){
+            var maxlength=length;
+            
+            if (obj.value.length>maxlength )
+              { 
+                
+                
+                if (ev.which == 9 || ev.which == 8 || ev.which == 46 ) {return true;}
+                return false;
+
+              } 
+              
+                return true;
+        }
+
+        function onlyNumeric(ev){
+           
+        
+            var keyCode = ev.which ? ev.which : ev.keyCode;
+            
+            if (keyCode >= 48 && keyCode <= 57) {
+
+              return true;
+            }
+            if (keyCode == 46 || keyCode == 8 || keyCode == 9 || ev.which == 8 || ev.which == 46 ) {return true;}
+            
+            return false;
+
+        }
+
+<!-- Added by Sandeep - Search and Match Start -->
+        function onlyAlpha(ev){
+           
+        
+            var keyCode = ev.which ? ev.which : ev.keyCode;
+            
+            if ((keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122))  {
+
+              return true;
+            }
+            if (keyCode == 46 || keyCode == 8 || keyCode == 9 || ev.which == 8 || ev.which == 46 ) {return true;}
+            
+            return false;
+
+        }
+
+        function onlyAlphanumeric(ev){
+           
+        
+            var keyCode = ev.which ? ev.which : ev.keyCode;
+            
+            if ((keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122) || (keyCode >= 48 && keyCode <= 57))  {
+
+              return true;
+            }
+            if (keyCode == 46 || keyCode == 8 || keyCode == 9 || ev.which == 8 || ev.which == 46 ) {return true;}
+            
+            return false;
+
+        }
+        
+<!-- Added by Sandeep - Search and Match End -->        
+      
+      
+      function OnlyNumericText(obj,length,flag){
+          var sMatch = /^[0-9]*$/;
+          
+          var rtn = false;
+
+          if(obj.value.match(sMatch)){
+            rtn= true;
+           if(flag == 1){
+            if (obj.value.length <= length || obj.value.length == 0 ) {
+                   rtn= true;
+                } 
+                else {
+                  rtn= false;}
+                }//end
+            else{
+            if (obj.value.length == length || obj.value.length == 0 ) {
+                   rtn= true;
+                } 
+                else {
+                  rtn= false;}
+                }//end
+          } 
+          else 
+          {rtn= false;}
+          
+          
+          if (!rtn) {obj.value = '';}
+         return rtn;
+      }
+
+<!-- Added by Sandeep - Search and Match Start -->
+      function OnlyAlphaText(obj,length,flag){
+          var sMatch = /^[A-Za-z]*$/;
+          
+          var rtn = false;
+
+          if(obj.value.match(sMatch)){
+           // alert("Inside sMatch");
+            rtn= true;
+           if(flag == 1){
+            if (obj.value.length <= length || obj.value.length == 0 ) {
+                   rtn= true;
+                } 
+                else {
+                  rtn= false;}
+                }//end
+            else{
+            if (obj.value.length == length || obj.value.length == 0 ) {
+                   rtn= true;
+                } 
+                else {
+                  rtn= false;}
+                }//end
+          } 
+          else 
+          {rtn= false;}
+          
+          
+          if (!rtn) {obj.value = '';}
+         return rtn;
+      }
+<!-- Added by Sandeep - Search and Match end -->      
+
+      function changeImage(obj,flag){
+       if(flag == 1){
+      obj.src='{!$Resource.SearchMatch_ProceedToDetailsEnabled}'
+       }
+       else{
+       obj.src='{!$Resource.SearchMatch_ProceedToDetailsDisabled}'
+       }
+      }
+    </script>
+  
+  <apex:form id="mainForm" rendered="{!searchMatchViewControl == true || searchMatchEditControl == true}" styleClass="mainSMb" >
+  
+    <div class="row">
+      <div class="col-xs-12">
+        <Apex:PageMessages />
+
+        <apex:outputText styleClass="appSearchId" style="display:none;" value="{!appSearch.id}" id="appSearchId" />
+        <apex:outputText styleClass="showWaitDialogClass" style="display:none;" value="{!showWaitDialog}"/>        
+        <apex:actionFunction name="closeDiag" id="cDiag" action="{!closePopup}" reRender="mainForm"/>
+        <apex:actionFunction name="repopulateCLVList" id="populateCLVs" action="{!getApplicantCLVRecords}"  oncomplete="closeLoadDialog();"/>
+        <apex:actionFunction name="timedOut" id="tO" action="{!displayTimeoutMessage}" reRender="mainForm" oncomplete="closeLoadDialog();"/>
+        <apex:actionFunction name="doSearchAF" action="{!Search}" reRender="mainForm"  oncomplete="document.getElementById('pSearchAndMatch:mainForm:pbSearch:loadingGif2').style.visible='true' ; pollCLVRecords();" /> 
+        
+        <!-- Added by: Adrian Recio -->
+        <!-- Description: Async to Sync Fix for Search and Match. Additional action function to layer dml and callout.-->
+        <!-- Date: 23/09/2015 -->
+        <apex:actionFunction name="serverSearchCall" action="{!serverSearchCall}" oncomplete="pollCLVRecords();"/>
+        
+      </div>
+    </div>
+    <!-- E0E0EB -->
+    <div class="row" style="background-color: #EBEBEB;">
+      <!--May-12-2015 - Afreen - Added below div to insert the Application restart message -->
+      <div style="display: block;" >
+        <br/>
+        <apex:outputPanel id="banerPanel">
+          <apex:outputPanel style="background-color:red;width:100%;padding:10px; margin-left: 30px; color: white" rendered="{!isSearchAndMatchFlag}">{!$Label.Application_restart_message} &nbsp;<apex:commandButton value="OK" rerender="banerPanel" action="{!updateSearchFlag}"/></apex:outputPanel>
+        </apex:outputPanel>
+      </div>
+    </div>
+    <div class="row" style="background-color: #EBEBEB;">
+    <div class="form-group form-group-sm">
+      <div class="col-xs-12 ">
+          
+          <apex:image url="{!$Resource.search}"  style="vertical-align:middle" /><apex:outputText ><H4 class="fieldHdr">SEARCH CUSTOMER</H4></apex:outputText>
+          
+          <apex:outputPanel id="pArrow1" rendered="false">
+            <div id="point1" class="pointerArrow"  ></div>
+          </apex:outputPanel>
+       
+        <span>&nbsp;&nbsp;&nbsp;</span>
+
+        <apex:outputPanel id="custHeading" >
+        <!-- <div>"PrevSelectionExists= {!PrevSelectionExists}  showResults= {!showResults} ProceedToNext= {!ProceedToNext}  showProceedToCustomerDetails={!showProceedToCustomerDetails}"</div> -->
+          <apex:outputText rendered="{!ProceedToNext && !(showProceedToCustomerDetails && showResults) && !(PrevSelectionExists)   }" >
+            <apex:image id="ProceedCustDtlGifDis" url="{!$Resource.SearchMatch_CustomerDtlDisabled}" />
+            <apex:outputText ><h4 class="fieldHdr" style="color: #ccc !important;">CUSTOMER DETAILS</h4></apex:outputText>
+          </apex:outputText>
+          <apex:outputText rendered="{!((ProceedToNext && showProceedToCustomerDetails && showResults) ||  PrevSelectionExists)}">
+            <apex:commandlink id="proceedCustomerDetails"  reRender="mainForm"     action="{!saveAndNext}"    >
+              <apex:image id="ProceedCustDtlGifEnbl" url="{!$Resource.SearchMatch_CustomerDtlEnabled}" />
+              <apex:outputText id="customerdetailslbl" style="color:#555 !important;"  ><h4 class="fieldHdr" style="color:#555 !important;" >CUSTOMER DETAILS</h4></apex:outputText>
+            </apex:commandlink>
+          </apex:outputText>
+        </apex:outputPanel>
+
+        
+        <apex:outputPanel id="pArrow2" rendered="false">
+          <div id="point2" class="pointerArrow"  ></div>
+        </apex:outputPanel>
+
+        <div id="point1" class="pointerArrow"  ></div>
+
+      </div>
+  
+    </div>  
+    </div> <!-- row -->
+    
+    
+    <apex:pageBlock id="pbSearch">
+
+      <!-- <apex:outputPanel id="pnlSearch"> -->
+        <apex:outputPanel id="pnlSelection">
+          <br/>
+          <!-- <form  role="form"> -->
+            <div class="form-group">
+              <div class="row">
+              <div class="form-group form-group-sm">
+                <div class="col-xs-3">
+                  <apex:selectList id="searchCritera" size="1" value="{!selectedCriteria}"  styleClass="form-control" >
+                    <apex:actionSupport event="onchange" action="{!renderCriteria}" rerender="custHeading,pnlCriteria,customerSearchBlock"/>
+                      <apex:selectOptions value="{!SearchCriteriaOptions}"/>
+                  </apex:selectList>
+                  
+                </div>
+                <div class="col-xs-9">
+                </div>
+              </div>
+              </div>
+              <hr/>
+            </div>
+          <!-- </form> -->
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="pnlCriteria">
+        <div class="row">
+          <div class="col-xs-4">
+            <apex:outputPanel id="pnlCriteria1" rendered="{!isAcctNumSelected}">
+                <!-- <form class="form-inline" role="form"> -->
+                  <div class="form-group form-group-sm">
+                    <label  class="fieldHdr" for="AccountNumber">ACCOUNT NUMBER*</label>
+                    <div class="row">
+                      <div class="col-xs-6">
+                        <apex:inputField styleClass="form-control" id="AccountNumber" value="{!appSearch.Account_Number__c} "  onkeypress=" return noenterAndNumericOnly(event);" onkeydown="return limitlength(event,this, 18); "  onblur="return OnlyNumericText(this,19,1)" />
+                      </div>
+                      <div class="col-xs-6">
+                      </div>
+                    </div>
+                  </div>
+                <!-- </form> -->
+            </apex:outputPanel>
+          </div>
+          <div class="col-xs-8">
+          </div>
+        </div> <!-- row -->
+        <div class="row">  
+        <div class="col-xs-12">  
+          <apex:outputPanel id="pnlCriteria2" rendered="{!isPersonalInfoSelected}" >
+              <div class="form-group form-group-sm">
+                <div class="row">
+                  <div class="col-xs-4">
+                    <label class="fieldHdr"  for="dd">DATE OF BIRTH*</label>
+                    <div class="row">
+                      <div class="col-xs-4">
+                            <apex:selectList id="dd" size="1"  value="{!birthDate}" onChange="dateOfBirthChange();" styleClass="form-control" >
+                                <apex:selectOptions value="{!DateOptions}"/>
+                            </apex:selectList>
+                        </div> <!--  End of col 4 -->
+                        <div class="col-xs-4">
+                            <apex:selectList id="mm" size="1"  value="{!birthMonth}" onChange="dateOfBirthChange();" styleClass="form-control">
+                                <apex:actionFunction id="setDate" name="setDate" action="{!setDate}" rerender="dd"/>
+                                <apex:selectOptions value="{!monthOptions}"/>
+                            </apex:selectList>
+                        </div> <!--  End of Col 4 -->
+                        <div class="col-xs-4">
+                            <apex:selectList id="yyyy" size="1"  value="{!birthYear}" onChange="dateOfBirthChange();" styleClass="form-control">
+                                <apex:selectOptions value="{!YearOptions}"/>
+                            </apex:selectList>  
+                        </div>   <!--  End of Col 4 -->
+                    </div> <!--  End of Row  -->
+                  </div> <!--  End of Col 4 -->
+                  <div class="col-xs-2"> 
+                     <label class="fieldHdr"  for="PostCode">POST CODE*</label>
+                      <apex:inputField id="PostCode"   value="{!appSearch.Post_Code__c}" styleClass="form-control"  onkeypress="return noenterAndNumericOnly(event); " onblur="return OnlyNumericText(this,4,0)" />
+                  </div> <!--  End of Col 2 -->
+                  <div class="col-xs-2">
+                     <label class="fieldHdr"  for="PrevPostCode">PREVIOUS POST CODE</label>
+                     <apex:inputField styleClass="form-control" value="{!appSearch.Previous_Postcode__c}"  id="PrevPostCode" onkeypress="return noenterAndNumericOnly(event);" onblur="return OnlyNumericText(this,4)"  /> 
+                  </div> <!--  End of col 2 -->
+               </div> <!--  End of Row -->
+               </div>
+               <div class="form-group form-group-sm">
+              <div class="row">       
+          <!-- Added by Sandeep - Search and Match Start -->
+                 <div class="col-xs-2">
+                    <label class="fieldHdr" for="FirstName">FIRST NAME*</label>
+                    <apex:inputfield styleClass="form-control tel-mask"  value="{!appSearch.First_Name__c}" id="FirstName" onkeypress="return noenterAndAlphaOnly(event);" onkeydown="return limitlength(event,this,19); "  /> 
+                 </div> <!--  End of col 2 -->
+                 <div class="col-xs-2">
+                    <label class="fieldHdr" for="LastName">LAST NAME*</label>
+                     <apex:inputfield styleClass="form-control tel-mask"  value="{!appSearch.Last_Name__c}" id="LastName" onkeypress="return noenterAndAlphaOnly(event);" onkeydown="return limitlength(event,this,19); "  /> 
+                 </div> <!--  End of col 2 -->
+                  <!-- Added by Sandeep - Search and Match End -->
+                 <div class="col-xs-2">
+                    <label class="fieldHdr" for="MobilePhone">MOBILE PHONE</label>
+                    <apex:inputfield styleClass="form-control tel-mask"  value="{!appSearch.Mobile_Phone__c}" id="MobilePhone" onkeypress="return noenterAndNumericOnly(event);" onkeydown="return limitlength(event,this, 9); "    /> 
+                 </div> <!--  End of col 2 -->
+                  <!-- Added by Sandeep - Search and Match Start -->
+                 <div class="col-xs-2">
+                     <label class="fieldHdr" for="DriversLicense">DRIVERS LICENSE</label>
+                     <apex:inputfield styleClass="form-control tel-mask"  value="{!appSearch.Drivers_License__c}" id="DriversLicense" onkeypress="return noenterAndAlphanumericOnly(event);" onkeydown="return limitlength(event,this, 9); " /> 
+                  </div> <!--  End of col 2 -->
+                  <!-- Added by Sandeep - Search and Match End-->
+               
+                </div> <!--  End of Row -->
+              </div>  <!--  End of Form Group -->
+            <!-- </form>   -->       
+            <apex:inputHidden value="{!appSearch.Date_of_Birth__c}" id="Applicant_Search__c___Date_of_Birth__c"/>
+            <apex:inputHidden value="{!appSearch.Date_of_Birth_WS__c}" id="Applicant_Search__c___Date_of_Birth_WS__c"/>    
+          </apex:outputPanel>
+        </div> 
+        </div> <!-- row -->
+        <div class="row"> 
+        <div class="col-xs-12">
+          <apex:outputPanel id="pnlSearchbutton" rendered="{!OR(isAcctNumSelected,isPersonalInfoSelected)}">
+            <div class="row">
+              
+                
+                <div class="input-append">
+                  <div class="col-xs-2">
+                  
+                  <!-- Updated by: Adrian Recio -->
+                  <!-- Description: Async to Sync Fix for Search and Match-->
+                  <!-- Date: 23/09/2015 -->
+
+                  <!--
+                  <apex:commandlink id="search"   action="{!search}" reRender="mainForm" status="status2"  onclick="document.getElementById('pSearchAndMatch:mainForm:pbSearch:loadingGif2').style.visibility='true' " oncomplete="pollCLVRecords();" rendered="{!NOT(searchMatchViewControl == true && searchMatchEditControl == false)}"  ><apex:image id="searchImg" url="{!$Resource.SearchMatch_SearchBtn}"/></apex:commandlink>
+                  -->
+
+                    <apex:commandlink id="search"   action="{!search}" reRender="mainForm" status="status2"  onclick="document.getElementById('pSearchAndMatch:mainForm:pbSearch:loadingGif2').style.visibility='true' " oncomplete="serverSearchCall();" rendered="{!NOT(searchMatchViewControl == true && searchMatchEditControl == false)}"  ><apex:image id="searchImg" url="{!$Resource.SearchMatch_SearchBtn}"/></apex:commandlink>
+                  
+
+
+                  </div>
+                  <div class="col-xs-1">
+                        
+                </div>
+                  <div class="col-xs-2">
+                    <span class="span2">
+                          <apex:image id="loadingGif2" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"  style="visibility:hidden;"  /> 
+                      
+                    </span>
+                  </div>
+                </div>
+                
+                
+              
+              <div class="col-xs-6">
+              </div>       
+            </div> <!--- row -->
+
+          </apex:outputPanel>
+        </div>
+        </div>
+        </apex:outputPanel>
+          
+
+      
+    </apex:pageBlock>
+    
+     <!-- row  block-->
+    <!-- results -->
+    <apex:pageBlock id="customerSearchBlock" rendered="{!NOT(searchMatchViewControl == true && searchMatchEditControl == false)}">
+    <apex:outputPanel id="pbResults"> 
+      <div class="row">
+        <div class="col-xs-4" style=" padding-left:14px !important; ">
+          <h3><apex:outputLabel rendered="{!showResults && !hasResultError}" styleclass="label" STYLE="padding:none; ">{!appCLVList.size}&nbsp;SEARCH RESULTS</apex:outputLabel>
+              <apex:outputLabel rendered="{! !(showResults && !hasResultError)}" styleclass="label" STYLE="padding-right:6em; ">SEARCH RESULTS</apex:outputLabel>
+          </h3>
+        </div>
+        <div class="col-xs-2">
+          <apex:outputPanel id="diagWait" rendered="{!showWaitDialog}" style="text-align:left !important">        
+               
+               <apex:image id="loadingGif3" height="20" width="20" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"/>
+          </apex:outputPanel>
+        </div>
+        <div class="col-xs-6">
+          <apex:outputPanel rendered="{!showTimeOut}">
+            <apex:outputText value="{!timeOutMessage}"/>                    
+          </apex:outputPanel>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12">
+          <apex:outputtext rendered="{!showResults && hasResultError}" >
+
+              <div class="row" >
+                  <div class="col-xs-4  "   ><div class="TblHdr" >MESSAGE CODE</div></div>
+                  <div class="col-xs-8  "   ><div class="TblHdr" >MESSAGE DESCRIPTION</div></div>
+              </div>
+              <apex:repeat value="{!appCLVList}" var="appList">
+                <div class="row" >
+                    <div class="col-xs-4 "   ><div style=" margin-left:2px; margin-right:2px;">{!appList.Message_Code__c}</div></div>
+                    <div class="col-xs-8 "   ><div style=" margin-left:2px; margin-right:2px;">{!appList.Message_Description__c}</div></div>
+                </div>
+              </apex:repeat>
+          </apex:outputtext> 
+        </div>
+      </div>
+      <div class="row">
+      <div class="col-xs-12" >
+      <apex:outputPanel rendered="{!showResults && !hasResultError}" >
+        <div class="container-fluid">
+            <table class="table table-hover" style="border-collapse:separate;     border-spacing: 0px 6px; " >
+                <thead style=" ">
+                    <th class="tblHdrTh" style=" width:2% !important;"><div class="TblHdr" style="border-bottom:none !important; " >&nbsp;</div></th>
+                    <th class="tblHdrTh"><div class="TblHdr"  >NAME</div></th>
+                     <th class="tblHdrTh"><div class="TblHdr" >DATE OF BIRTH</div></th>
+                    <th class="tblHdrTh"><div class="TblHdr"  >RESIDENTIAL ADDRESS</div></th>
+                    <th class="tblHdrTh"><div class="TblHdr"  >MOBILE NUMBER</div></th>
+                     <th class="tblHdrTh"><div class="TblHdr"  >CLV NUMBER</div></th>
+                    <th class="tblHdrTh"><div class="TblHdr" >ADD AS APPLICANT</div></th>
+                </thead> 
+              <tbody>
+                  <apex:repeat value="{!appCLVList}" var="app">
+                    <tr class="{!InRowStyle[app.id]} ">
+                        <td class="col1" ><div class="tblBlkNo">{!InAppCLVListNo[app.id]}</div></td>
+                        <td class="tblRowTd" ><div>{!app.Title__c}. {!app.First_Name__c} {!app.Middle_Name__c} {!app.Surname__c}</div></td>
+                        <td class="tblRowTd" ><div>{!app.Date_of_Birth__c}</div></td>
+                        <td class="tblRowTd" ><div>{!app.Street_Address__c}<br/>{!app.Suburb__c}<br/>{!app.State__c}{!app.Town__c}-{!app.Post_Code__c}</div></td>
+                        <td class="tblRowTd" ><div>{!app.Mobile__c}</div></td>
+                        <td class="tblRowTd" ><div>{!app.CLV__c}</div></td>
+                        <td class="tblRowTd vcenterParent"  >
+                            <div class="vcenterParent" >
+                            <!-- BTNS START-->
+                                  
+                                    <apex:commandlink rendered="{!InAppCLVList[app.id]}"   Value=" "  action="{!move}" style="padding:none; margin:0 auto;" >
+                                        <apex:image id="Applicant1Grey" value="{!$Resource.SearchMatch_Applicant1Grey}"  />
+                                        <!-- <img src="{!$Resource.Number1}" alt="Move To Applicant 1" height="40" width="40" /> -->
+                                        <apex:param name="rowId" value="{!app.id}" assignTo="{!rowId}"/>
+                                        <apex:param name="dest" value="1" />
+                                        <apex:param name="useGrid" value="0" assignTo="{!useGrid}"/>
+                                        
+                                    </apex:commandLink>
+                                     
+                                    <apex:commandLink rendered="{!InAppCLVList[app.id]}"   value=" " action="{!move}"  style="padding:none;  margin:0 auto;"  >
+                                    <apex:image id="Applicant2Grey" value="{!$Resource.SearchMatch_Applicant2Grey}"    />
+                                      <!--   <img src="{!$Resource.Number2}" alt="Move To Applicant 2" height="40" width="40" /> -->
+                                        <apex:param name="rowId" value="{!app.id}" assignTo="{!rowId}"/>
+                                        <apex:param name="dest" value="2" />
+                                        <apex:param name="useGrid" value="0" assignTo="{!useGrid}"/>
+                                    </apex:commandLink>
+                                 <!--  </DIV> -->
+                                    <!-- APPLICANT BTN -->
+                                    <apex:commandLink rendered="{!InAppClv1[app.id]}"   action="{!move}"  >
+                                              <apex:image id="Applicant1Green" value="{!$Resource.SearchMatch_Applicant1Green}"   /> 
+                                              
+                                              <apex:param name="rowId" value="{!app.id}" assignTo="{!rowId}"/>
+                                              <apex:param name="dest" value="X" />
+                                              <apex:param name="useGrid" value="1" assignTo="{!useGrid}" />
+                                  </apex:commandLink>
+                                  <apex:commandLink rendered="{!InAppClv2[app.id]}"   action="{!move}"  >
+                                              <apex:image id="Applicant2Green" value="{!$Resource.SearchMatch_Applicant2Green}"  /> 
+                                              <apex:param name="rowId" value="{!app.id}" assignTo="{!rowId}"/>
+                                              <apex:param name="dest" value="X" />
+                                              <apex:param name="useGrid" value="2" assignTo="{!useGrid}" />
+                                  </apex:commandLink>
+                            <!-- BTN END -->
+                            </div>
+                        </td>
+                    </tr>  
+                  </apex:repeat>  
+                       
+                </tbody>    
+            </table>    
+        </div>
+      </apex:outputPanel>   
+      </div>
+      </div>
+      
+
+      <div class="row"  style="padding: 5px; margin-top: 5px;">
+      <div class="col-xs-6">
+        <!-- <apex:outputText id="notifText" value="Changes have been made but not yet saved." rendered="{!showUnsavedNotification}"/> -->
+      </div>
+      <div class="col-xs-2">
+      <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+      </div>
+        <div class="col-xs-4 " style="float:right; padding-right:25px; text-align:right !important;  ">
+        
+        <apex:outputText rendered="{!ProceedToNext}" styleclass="pull-right" style="float:right !important; text-align:right !important;">
+        
+          <apex:outputText rendered="{!showProceedToCustomerDetails && showResults}"  >
+                <h4 class="fieldHdr ">PROCEED TO CUSTOMER DETAILS&nbsp;&nbsp;</h4>
+            </apex:outputText>
+            <apex:outputText rendered="{! not(showProceedToCustomerDetails && showResults)}"  >
+                
+                <!-- MLASALA: 14-JAN-16 CAPINC0768525 Search Tab directing users to create new application -->
+                <!-- Toggle text based on application if it is already existing -->
+                <h4 class="fieldHdr"> {!IF(applicationId == null, 'PROCEED TO APPLICATION', 'SAVE')}&nbsp;&nbsp;</h4>
+            </apex:outputText>
+            
+          <apex:commandlink id="proceedCustDetail"  reRender="mainForm,notifText"     action="{!saveAndNext}"    >
+            <apex:image id="ProceedCustDtlGif" url="{!$Resource.SearchMatch_ProceedToDetailsDisabled}" onmouseover="changeImage(this,1);" onmouseout="changeImage(this,0);"  width="40" height="40"/>
+          </apex:commandlink>    
+
+          </apex:outputText>  
+        </div> 
+      </div>
+    </apex:outputPanel>
+
+    </apex:pageBlock>
+
+  </apex:form>
+</apex:page>

@@ -1,0 +1,11 @@
+<!-- showHeader is turned off so we won't see any Salesforce standard tabs or sidebar -->
+<apex:page showHeader="false" id="GETemplate" standardStylesheets="false">
+<!-- CSS and JS files -->
+<c:GEDDScripts />
+<!-- A section is reserved for header of the site -->
+<c:GENZDDHeader id="GEHeader" />
+<!-- This section is where you can include the content of each page of your site-->
+<apex:insert name="GEDDBody"/>
+<!-- A section is reserved for footer of the site -->
+<c:GENZDDFooter />
+</apex:page>

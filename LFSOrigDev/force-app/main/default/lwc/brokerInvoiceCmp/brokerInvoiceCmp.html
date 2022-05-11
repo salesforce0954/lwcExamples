@@ -1,0 +1,84 @@
+<template>
+    <template if:true={showSpinner}>
+        <c-application-spinner></c-application-spinner>
+    </template>
+
+    <template if:true={finishLoad}>
+        <article class="slds-card">
+            <div class="slds-grid slds-var-m-around_small">
+                <div class="slds-col slds-no-flex">
+                    <lightning-icon icon-name="action:add_file">
+                        alternative-text="Broker Invoice" title="Broker Invoice" size="x-small">
+                    </lightning-icon>
+                </div>
+                <div class="slds-col slds-align-middle slds-text-heading_medium slds-text-title_bold slds-m-left_medium">
+                    <p>Upload Broker Invoice</p>
+                </div>
+            </div>            
+            <div class="slds-box slds-var-m-around_small">
+                <div id="broker_invoice_header" class="slds-p-bottom_small slds-border_bottom">
+                    <div class="slds-text-heading_medium slds-text-title_bold">
+                        <p>Application Details</p>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Applicant Name:&nbsp;</b>
+                            <lightning-formatted-text value={fullName}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Loan Number:&nbsp;</b>
+                            <lightning-formatted-text value={loanNumber}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                        <div class="slds-col slds-small-size_12-of-12 slds-medium-size_3-of-12 slds-large-size_3-of-12 slds-var-m-top_xx-small">
+                            <b>Application Status:&nbsp;</b>
+                            <lightning-formatted-text value={applicationStatus}>
+                            </lightning-formatted-text>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="broker_invoice_body" class="slds-m-around_medium">
+                    <div class="UD_xlarge-text slds-text-title_bold slds-var-m-bottom_medium slds-m-top_small">
+                        <p>Upload your Broker invoice</p>
+                    </div>
+                    <div class="slds-m-vertical_medium">
+                        <p>Please upload your invoice (if applicable) so that we can pay your brokerage fee.</p>
+                        <p>Invoices are not required for Brokers of certain aggregators where payments are centralised.</p>
+                        <p>If you are unsure please speak
+                             with one of our specialists on <b>1800 035 902</b> or <b><lightning-formatted-email
+                                hide-icon label="brokerpersonalloans@latitudefinancial.com" value="brokerpersonalloans@latitudefinancial.com"></lightning-formatted-email></b>.</p>
+                    </div>
+                    <!--<div class="file_upload_title slds-text-title_bold">
+                        <div class="slds-grid">
+                            <div class="slds-icon slds-icon--small slds-m-right--small slds-col slds-no-flex">
+                                <lightning-icon icon-name="action:upload"
+                                    alternative-text="Upload" title="Upload" size="x-small">
+                                </lightning-icon>
+                            </div>
+                            <div class="slds-col slds-align-middle">
+                                <p class="UD_large-text ">Document Uploader</p>
+                            </div>
+                        </div>
+                    </div>-->
+                    <div class="file-upload-component">
+                        <c-file-upload-cmp
+                        isbrokerinvoice = "true"
+                        applicationid={applicationId}
+                        applicantid={applicantId}
+                        ></c-file-upload-cmp>
+                    </div>                    
+                </div>
+                <div class="slds-grid">
+                    <div class="slds-col slds-var-m-top_small slds-text-align_right">
+                        <button class="slds-button slds-button_neutral" onclick={handleFinish}>Finish</button>
+                    </div>
+                </div>                
+            </div>            
+        </article>
+    </template>
+</template>

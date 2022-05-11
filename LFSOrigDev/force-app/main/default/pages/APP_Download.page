@@ -1,0 +1,156 @@
+<!--
+/*
+ * @Description: Download page (Customer UI)
+ * @Author: Mike Lasala
+ * @Date Created: 04.APR.2014
+ * @History:
+  =====================================================================
+      04-04-14: Created - Mike
+  =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_Main_PostSubmitExt" action="{!validateApplicationStatus}" 
+id="pageId" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" 
+docType="html-5.0" cache="false">
+    
+    <apex:composition template="{!$Site.Template}">
+        
+        <apex:define name="GEDDBody">            
+            <style>
+                .loanfields {height:150px;}
+                @media (min-width: 1200px) {
+                }
+            </style>
+            
+            <section>
+                <!--header-->
+                <header>
+                    <div id="header" class="header">
+                        <div class="row-fluid header-inner headerlogovr">
+                            <div class="mobilell">
+                                <div class="loginlogout span4 fright removelmargin helplogindesk">
+                                    <apex:pageBlock id="pageBlockId">
+                                        <div class="span5 fright">
+                                            <apex:form id="headerform">
+                                                <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+                                                <apex:actionFunction name="redirectMethod" action="{!pageRedirect}"/>
+                                                <apex:actionFunction name="headerLogout" action="{!logout}"/>
+                                                <apex:commandButton value="{!$Label.CUI_header_logout}" 
+                                                styleClass="btn btn-block btn-normalc buttonarrowimg" 
+                                                onClick="headerButtons('logout')" rendered="{!isRegistered}" 
+                                                rerender="false"/>
+                                            </apex:form>
+                                        </div>
+                                    </apex:pageBlock>
+                                </div>
+                            </div>
+                        </div><!-- header-inner -->
+                    </div><!-- row-fluid -->
+                    <div class="divider10"></div>
+                </header>
+                <!--header end-->
+                
+                <div class="maincontent">
+                    <div class="row-fluid">
+                        <div class="row-fluid span12 loanfields">
+                            <div class="tablemainlist llfields" id="addfields">
+                            
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>   
+                    </div>
+                </div>
+                
+                <div class="maincontent sidebar-left mobileCon responsepages">
+                    <div class="row-fluid">
+
+                        <!-- SIDEBAR -->
+                        <div class="span4 earlyfull sidebar dashboardarea dbshow">
+                            <apex:form >
+                                <c:GEDDSidebar id="componentId" responseCode="{!responseCodeControlType}"/>
+                            </apex:form>
+                        </div>
+                        <!-- SIDEBAR -->
+
+                        <div class="span8 earlyfull page-income">
+                            
+                            <h2>Downloads</h2>
+
+                            <div class="divider30 clearfix"></div>
+                            
+                            <apex:form >  
+                                <!-- DOWNLOAD FAX COVER SHEET BUTTON -->
+                                <apex:commandButton value="Download Cover Sheet" 
+                                onClick="window.open('{!$Site.Prefix}/APP_FaxCoverSheet?id={!application.Id}');" 
+                                styleClass="btn btn-large btn-reset-m btn-activec buttonarrowimg"/>
+                                <div class="divider30 clearfix"></div>   
+                                <!-- Display Adobe message--> 
+                                <apex:outputText >
+                                A PDF reader is required to download documents.
+                                <apex:outputLink value="http://get.adobe.com/uk/reader/" target="_blank" styleclass="clickhere">
+                                Click here</apex:outputLink> to download a PDF reader.
+                                </apex:outputText>  
+                            </apex:form>
+                        </div>
+
+                    </div><!-- row-fluid -->
+                </div><!-- end maincontent -->
+            </section>
+
+        </apex:define>
+
+    </apex:composition>
+
+    <script>
+        //Set input hidden value to identify which action to go
+        function setRedirectTxt(action){
+            document.getElementById('pageId:GETemplate:pageBlockId:headerform:redirectTxt').value = action;
+            redirectMethod();   //Extension pageReference method
+        }
+
+        var j$ = jQuery.noConflict();
+        var timeout = "{!TimeOut}";     //Timeout admin custom settings 
+        var warning = "{!Warning}";     //Warning admin custom settings 
+        var idleTime = 0;
+
+        j$(document).ready(function () {            
+            //Increment the idle time counter every minute.
+            var idleInterval = setInterval(timerIncrement, 1000); // 1second
+        
+            //Zero the idle timer on mouse movement.
+            j$(this).mousemove(function (e) {
+                idleTime = 0;   
+            });
+
+            j$(this).keypress(function (e) {
+                var evt = window.event ? window.event : e;
+                var keyCode = evt.keyCode ? evt.keyCode : e.which;
+                idleTime = 0;
+            });
+        });
+
+        function timerIncrement() {
+            idleTime = idleTime + 1;
+
+            if (idleTime > timeout) { // 15 minutes
+                setRedirectTxt('timeout');  //Redirect to timeout page once timeout limit has passed
+            }
+        }
+
+        /*  Description: Function used for the header buttons "Save Application" & "Logout"
+         *  Author: Jade Serrano
+         *  Date Created: 06-MAY-2014
+         *  Input: None
+         *  Return:
+         */
+        function headerButtons(action){
+            if(action == 'logout'){
+                //action function
+                headerLogout();
+            }
+        }
+    </script>
+
+</apex:page>

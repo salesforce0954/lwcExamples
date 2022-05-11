@@ -1,0 +1,866 @@
+<!--
+/*
+* @Description: Contract Acceptance File Upload Customer UI
+* @Author: Adrian Recio
+* @Date Created: Mar-25-2014
+* @History:
+=====================================================================
+03-25-14: Created - Adrian
+=====================================================================
+*/
+-->
+<apex:component allowDML="true" access="global"
+    controller="APP_ContractAcceptanceChannel"
+    id="APP_ContractAcceptanceUpload">
+
+ <style>
+ blockquote:before {
+  background-color: transparent;  !important
+}
+blockquote {
+  background: none; !important
+}
+ </style>
+    <apex:attribute name="application" type="String" required="true"
+        access="global" assignTo="{!applicationId}"
+        description="application Id" />
+
+    <apex:form enctype="multipart/form-data" id="APP_ContractAcceptance">
+        <!-- Insert Related Document to and perform upload of attachment to GE Webservice  -->
+        <apex:actionFunction name="insertRelatedDocument"
+            action="{!fileUploadClass.insertRelatedDocument}"
+            id="insertRelatedDocument" rerender="scriptPanel"
+            oncomplete="sendForm();">
+            <apex:param assignto="{!title}" name="title" value="" />
+        </apex:actionFunction>
+
+
+        <!--Display message when no related documents are found- Start  -->
+        <apex:outputText value="No Documents found."
+            rendered="{!IF(wrapperContract.size>0,false,true)}" />
+        <!--Display message when no related documents are found- End  -->
+        <!--AU Offline Single,Joint - BEGIN DBHZL-238 -->
+
+
+
+        <apex:outputPanel styleClass="ca_offline"
+            rendered="{!AND($Setup.Profile_Country__c.AU__c,wrapperContract.size>0)}">
+
+            <apex:outputPanel >
+                <apex:outputText >
+                    <h2>
+                        <strong>Print, sign, and upload your documents</strong>
+                    </h2>
+                    <p>
+                        Your loan has been approved. Simply print, read and sign your
+                        documents then send to us via the upload tool, and we'll transfer
+                        your money to your nominated account within 2 business days. The
+                        document formats we accept are: gif, png, jpg, jpeg, tif, tiff,
+                        bmp, doc, docx, pdf, and the maximum file size for each file is
+                        10MB each. <br /> <br /> You must review all of these documents
+                        before you can accept the loan contract. We highly recommend you
+                        print and/or save a copy of these documents for future reference.
+                        Once your loan contract has been accepted, should you require a
+                        copy of these documents after this time, please contact your local
+                        branch.
+                    </p>
+                    <div class="clearfix"></div>
+                    <div class="divider20"></div>
+                </apex:outputText>
+            </apex:outputPanel>
+
+            <apex:outputPanel styleClass="loan_summary">
+                <h3>Loan Summary</h3>
+                <apex:repeat value="{!App}" var="appVar">
+
+                    <apex:panelGrid columns="2">
+                        <apex:outputLabel value="Loan Amount:"></apex:outputLabel>
+                        <apex:outputText value="{!appVar.Total_Loan_Amount__c}"></apex:outputText>
+
+                        <apex:outputLabel value="Loan Insurance:"></apex:outputLabel>
+                        <apex:outputText value="{!appVar.Total_Insurance_Premium__c}"></apex:outputText>
+
+                        <apex:outputLabel value="Fee(s):"></apex:outputLabel>
+                        <apex:outputText value="{!appVar.Offered_Establishment_Fee__c + 
+                                                appVar.Offered_PPSR_Registration_Fee__c + 
+                                                appVar.Offered_PPSR_Search_Fee__c +
+                                                appVar.Brokerage_Fee__c}"></apex:outputText>
+
+                        <apex:outputLabel value="Total Loan Amount:"></apex:outputLabel>
+                        <apex:outputField value="{!appVar.Total_Loan_Amount_with_Insurance__c}"></apex:outputField>
+
+                        <apex:outputLabel value="Interest Rate:"></apex:outputLabel>
+                        <apex:outputField value="{!appVar.Offered_Interest_Rate__c}"></apex:outputField>
+
+                        <apex:outputLabel value="Term (in months):"></apex:outputLabel>
+                        <apex:outputField value="{!appVar.Loan_Term_Months__c}"></apex:outputField>
+                    </apex:panelGrid>
+                </apex:repeat>
+                <div class="clearfix"></div>
+                <div class="divider20"></div>
+            </apex:outputPanel>
+
+            <apex:outputPanel >
+                <apex:outputPanel layout="block" style="height:130px;">
+                    <apex:outputText >
+                        <h3>Print your loan documents</h3>
+                        You can login and view, save or print these documents any time for the next 30 days. 
+                        If you require a copy after this time, please contact your local branch.
+                        These documents are in Adobe pdf format. You can 
+                        <apex:outputLink value="https://get.adobe.com/reader/" target="_blank"> download Adobe Reader</apex:outputLink> for free.
+                        <div class="clearfix"></div>
+                        <div class="divider20"></div>
+                    </apex:outputText>
+                </apex:outputPanel>
+
+                <apex:repeat value="{!wrapperContract}" var="wc">
+                    <apex:repeat value="{!wc.relDoc}" var="relDoc">
+                        <apex:outputPanel layout="block">
+                            <apex:outputPanel layout="block" style="float:left;">
+                                <apex:image id="theImage" value="{!$Resource.fileUploadPDF}"
+                                    width="70" height="70" />
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block"
+                                style="float:left;padding-top:25px;padding-left:20px;">
+                                <apex:outputLink value="{!relDoc.AttachmentUrl__c}"
+                                    target="_blank">
+                                    <apex:outputText value="Objectives and Requirements"
+                                        rendered="{!relDoc.Title__c == 'O and Rs'}" />
+                                    <apex:outputText value="Loan Contract Schedule"
+                                        rendered="{!relDoc.Title__c == 'Contract'}" />
+                                    <apex:outputText value="{!relDoc.Title__c} Policy"
+                                        rendered="{!relDoc.Title__c == 'Privacy'}" />
+                                    <apex:outputText value="{!relDoc.Title__c} Request and Service Agreement"
+                                        rendered="{!relDoc.Title__c == 'Direct Debit'}" />
+                                    <apex:outputText value="Loan Protection Insurance Complaints Guide"
+                                        rendered="{!relDoc.Title__c == 'LPI Complaints Brochure'}" />
+                                    <apex:outputText value="Loan Protection Application Form"
+                                        rendered="{!relDoc.Title__c == 'LPI'}" />
+                                    <apex:outputText value="Direct Debit Request and Service Agreement"
+                                        rendered="{!relDoc.Title__c == 'Direct Debit Form'}" />
+                                    <apex:outputText value="SignUp Letter"
+                                        rendered="{!relDoc.Title__c == 'SignUp Letter'}" />
+                                    <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+            							 Change KiwiBank to Kiwibank -->
+                                    <apex:outputText value="SignUp Letter Kiwibank"
+                                        rendered="{!relDoc.Title__c == 'SignUp Letter Kiwibank'}" />
+                                    <apex:outputText value="Terms & Conditions"
+                                        rendered="{!relDoc.Title__c == JSENCODE('Terms & Conditions')}" />
+									
+                                    <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+            							 Change KiwiBank to Kiwibank -->
+                                    <apex:outputText value="{!relDoc.Title__c}"
+                                        rendered="{!AND(relDoc.Title__c != 'O and Rs', 
+                                                               relDoc.Title__c != 'Contract', 
+                                                               relDoc.Title__c != 'Privacy',
+                                                               relDoc.Title__c != 'Direct Debit',
+                                                               relDoc.Title__c != 'LPI Complaints Brochure',
+                                                               relDoc.Title__c != 'LPI',
+                                                               relDoc.Title__c != 'SignUp Letter Kiwibank',
+                                                               relDoc.Title__c != 'SignUp Letter',
+                                                               relDoc.Title__c != 'Direct Debit Form',
+                                                               relDoc.Title__c != JSENCODE('Terms & Conditions')
+                                                              
+                                                               )}" />
+                                </apex:outputLink>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <div class="clearfix"></div>
+                        <div class="divider20"></div>
+                        <apex:outputPanel rendered="{!relDoc.Title__c == 'LPI'}">
+                            <apex:outputPanel layout="block" style="float:left">
+                                <apex:image value="{!$Resource.fileUploadPDF}" width="70"
+                                    height="70" />
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block"
+                                style="float:left;padding-top:25px;padding-left:20px;">
+                                <apex:outputLink value="{!pdsFsgLink}" target="_blank">
+                                    <apex:outputText value="Financial Services Guide, Product Disclosure Statement and Policy Document" />
+                                </apex:outputLink>
+                            </apex:outputPanel>
+                            <div class="clearfix"></div>
+                            <div class="divider20"></div>
+                        </apex:outputPanel>
+                    </apex:repeat>
+                </apex:repeat>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <!--AU Offline Single,Joint END -->
+
+        <!--NZ Offline -Single  BEGIN DBHZL-238 -->
+        <apex:outputPanel styleClass="ca_offline"
+            rendered="{!AND($Setup.Profile_Country__c.NZ__c,wrapperContract.size>0)}" id="NZ-Offline-Single">
+
+            <apex:actionFunction name="isAllAccepted" action="{!isAllAccepted}"
+                reRender="accCreateAU,accCreateNZ,APP_ContractAcceptance" />
+
+            <apex:actionFunction name="enableCheckBox" action="{!enableCheckbox}"
+                reRender="accCreate,NZ-Offline-Single,NZ-Offline-Joint">
+                <apex:param name="isEnabledId" assignTo="{!isEnabledId}" value="" />
+            </apex:actionFunction>
+            <apex:actionFunction name="isInsuranceAcknowledgement"
+                action="{!isInsuranceAcknowledgement}" reRender="accCreate" />
+
+
+            <apex:outputPanel rendered="{!IF(app[0].Application_Type__c == 'Single',true,false)}">
+                <apex:outputText value="Application status must be PCO."
+                    rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c != 'PCO'),true,false)}" />
+                <apex:outputPanel rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO',$Setup.Profile_Country__c.AU__c),true,false)}">
+                    Your loan has been approved.  Simply accept your contract and we?ll transfer your money to your nominated account within 2 business days. 
+                    <br />
+                    <br />
+                    You must review all of these documents before you can accept the loan contract.  We highly recommend you print and/or save a copy of these documents for future reference. Once your loan contract has been accepted, should you require a copy of these documents after this time, please contact your local branch.
+                    <br />
+                </apex:outputPanel>
+                <!-- NZ Offline - Single  -->
+                <apex:outputpanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+
+                    <apex:outputPanel rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO'),true,false)}">
+                        <strong>Please open and carefully read</strong> the documents below that will make up your consumer credit contract and confirm aacceptance of the offer.
+                    <br />
+                        <br />
+                    We highly recommend you print and/or save a copy of these documents for future reference. Once your loan contract has been accepted, should you require a copy of these documents after this time, please contact us on 0800 32 10 10.
+                    <br />
+                    </apex:outputPanel>
+
+                    <br />
+
+                </apex:outputpanel>
+                <!-- NZ Offline - Single  -->
+
+                <!-- Display Adobe message-->
+                <br />
+                <apex:outputText >
+                   A PDF Reader is required to <strong>read</strong> the documents.
+                    <apex:outputLink value="http://get.adobe.com/uk/reader/" target="_blank">Click here</apex:outputLink> to download a PDF reader.
+                </apex:outputText>
+                <br />
+                <apex:repeat value="{!wrapperContract}" var="wc"
+                    rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO'),true,false)}">
+                    <br />
+                    <table>
+                        <tr>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                                    <strong>Objectives And Requirements</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                                    <strong>Contract</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                                    <strong>Privacy</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                                    <strong>Direct Debit</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                                    <strong>EFT Disbursement</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                                    <strong>Debt Consolidation</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                                    <strong>Insurance</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit Form',true,false)}">
+                                    <strong>Direct Debit Form</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'SignUp Letter',true,false)}">
+                                    <strong>SignUp Form</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+								 Change KiwiBank to Kiwibank -->
+                            <td><apex:outputPanel rendered="{!IF(wc.title == 'SignUp Letter Kiwibank',true,false)}">
+                                    <strong>SignUp Form Kiwibank</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            <td><apex:outputPanel rendered="{!IF(wc.title == JSENCODE('Terms & Conditions'),true,false)}">
+                                    <strong>Terms and Conditions</strong>
+                                    <br />
+                                </apex:outputPanel></td>
+                            
+                        </tr>
+                    </table>
+                    <apex:repeat value="{!wc.relDoc}" var="relDoc">
+
+                       <!--  <apex:inputCheckbox value="{!relDoc.isAccepted__c}"
+                            onchange="updateRD('{!relDoc.Id}',this);"
+                            rendered="{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}" />
+
+                        <apex:inputCheckbox value="{!relDoc.isAcceptedSec__c}"
+                            onchange="updateRD('{!relDoc.Id}',this);"
+                            rendered="{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}" /> -->
+
+                        <!-- <apex:inputCheckbox value="{!relDoc.isAccepted__c}"
+                            onchange="updateRD('{!relDoc.Id}',this);"
+                            rendered="{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}"
+                            disabled="{!NOT(relDoc.isEnabled__c)}" /> -->
+
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'O and Rs',true,false)}">
+                            <apex:outputText > I acknowledge and accept that the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">Objectives and Requirements</apex:outputLink>&nbsp; are complete and are an accurate representation in respect to this proposed loan contract.</apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(OR(relDoc.Title__c == 'Contract', relDoc.Title__c == 'Loan Contract Schedule'),true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">Loan Contract Schedule</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Disclosure Statement',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Complaints Brochure',true,false)}">
+                            <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Credit Guide',true,false)}">
+                            <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Loan Protect for Personal Loans',true,false)}">
+                            <apex:outputText > I acknowledge receipt of, and have read and understand, all the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>&nbsp;document.</apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Privacy',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} Policy</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Direct Debit',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} Request and Service Agreement</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Direct Debit Form',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">Direct Debit Request and Service Agreement</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'SignUp Letter',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} </apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+							 Change KiwiBank to Kiwibank -->
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'SignUp Letter Kiwibank',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} </apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(OR(relDoc.Title__c == JSENCODE('Terms & Conditions'), relDoc.Title__c == JSENCODE('GE Terms & Conditions')),true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} </apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Decrease Authority',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} </apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Repayment Protection Insurance Policy Document',true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c} </apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'LPI',true,false)}">
+                            <apex:outputText > I acknowledge receipt of, and have read and understand the combined <apex:outputLink value="{!pdsFsgLink}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');"> Financial Services Guide, Product Disclosure Statement and Policy Document.</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+
+                            <div class="alert alert-info"
+                                style="padding: 20px 50px !important;">
+                                <p style="margin-left: -20px;">I have decided to purchase
+                                    Loan Protection offered by {!brandName} and confirm that:</p>
+                                <br />
+                                <ol>
+                                    <li>I understand that Loan Protection is an optional
+                                        insurance and not a condition of obtaining the loan;</li>
+                                    <li>The loan repayments were quoted to me both with and
+                                        without insurance premiums;</li>
+                                    <li>I understand that, by adding Loan Protection to my
+                                        loan contract, I will be charged interest on the Total Amount
+                                        borrowed;</li>
+                                    <li>I have received the 'Combined Financial Services Guide
+                                        (FSG), Product Disclosure Statement (PDS) and Policy' for Loan
+                                        Protection and that any advice given to me in relation to this
+                                        product was general in nature, allowing me to decide whether
+                                        it meets my needs;</li>
+                                    <li>I consent to the matters described under the heading
+                                        'Privacy notice and consent? in the Combined FSG, PDS and
+                                        Policy;</li>
+                                    <li>I am aware that there are policy exclusions as set out
+                                        in the Combined FSG, PDS and Policy and that there is a 30 day
+                                        cooling-off period;</li>
+                                    <li>I confirm the appointment of the Credit Provider as my
+                                        agent as set out on page 4 of the Loan Contract Schedule (i.e.
+                                        for the purposes of cancellation of this insurance and the
+                                        recovery of any premium refunds due to me), and that this
+                                        appointment is effective from the time of my acceptance of the
+                                        loan offer; and</li>
+                                    <li>I wish to apply for the below Loan Protection:<br />
+                                        <br />
+                                        <ul style="list-style-type: none; margin-left: 10px;">
+                                            <apex:outputPanel rendered="{!hasLife}">
+                                                <li>Single Death Cover</li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!hasDisability}">
+                                                <li>Single Disability Plus Cover</li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!hasIUI}">
+                                                <li>Single Involuntary Unemployment Cover</li>
+                                            </apex:outputPanel>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+                            <p>
+                                <apex:inputField value="{!app[0].Insurance_Acknowledgement__c}"
+                                    onchange="updateApp('{!app[0].Id}',this);" />
+                                I have read and understood the information contained on
+                                the&nbsp;
+                                <apex:outputLink value="{!relDoc.AttachmentUrl__c}"
+                                    target="_blank">Application Form</apex:outputLink>
+                                under the heading 'PLEASE READ CAREFULLY THE INFORMATION
+                                DETAILED BELOW BEFORE SIGNING/ACKNOWLEDGING' and agree to
+                                include Loan Protection in my Loan.
+                            </p>
+                            <br />
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(relDoc.Title__c == 'LPI Complaints Brochure',true,false)}">
+                            <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">Loan Protection Insurance Complaints Guide.</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel>
+                        <!-- <apex:outputPanel rendered="{!if(AND(relDoc.Title__c != 'O and Rs',relDoc.Title__c != 'Contract',relDoc.Title__c != 'Complaints Brochure',relDoc.Title__c != 'Credit Guide',relDoc.Title__c != 'Loan Protect for Personal Loans',relDoc.Title__c != 'LPI',relDoc.Title__c != 'LPI Complaints Brochure',relDoc.Title__c != 'Privacy',relDoc.Title__c != 'Direct Debit' ,),true,false)}">
+                            <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                                    onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>
+                            </apex:outputText>
+                            <br />
+                        </apex:outputPanel> -->
+                    </apex:repeat>
+                    <br />
+                </apex:repeat>
+
+                <!-- <h4 style="color: #000;">YOUR ACCEPTANCE</h4> -->
+                <!--        <div class="alert alert-info span12">
+                    <p style="margin-left: -20px;">
+                        By clicking "<strong>I Accept</strong>" below:
+                    </p>
+                    <br />
+                    <ol>
+                        <li>I accept the offer on the Terms and Conditions in the <apex:outputLink value="{!contractUrl}" target="_blank"> Loan Contract Schedule</apex:outputLink>
+                            and the Loan Contract Terms and Conditions. I confirm the offer
+                            meets my objectives and requirements.
+                        </li>
+                        <li>I agree that all the information I have provided to
+                            {!brandName} about me, or about any other matters relating to my
+                            loan, is true and not misleading. I am also not aware of any
+                            impending adverse change to my financial situation which will
+                            impact on my ability to meet my obligations under the proposed
+                            loan contract. I acknowledge that {!brandName} may rely on this
+                            information when deciding whether to offer to lend to me.</li>
+                        <li>I acknowledge that I have been given an opportunity to
+                            read and retain a copy of:
+                            <ul>
+                                <li>The Credit Guide;</li>
+                                <li>The Loan Contract Schedule; and</li>
+                                <li>The Loan Contract terms and Conditions (including the
+                                    "Things you should know about your proposed credit contract") I
+                                    consent to {!brandName} giving the above document and any other
+                                    documents I request, such as a statement or a copy of a
+                                    document to me by electronic means. This may include giving the
+                                    documents by email or by notifying me by email or SMS that the
+                                    documents are available for retrieval from the {!brandName}
+                                    website.</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    <p>I acknowledge that {!brandName} has advised me that in
+                        consenting to the provision of such documents by electronic means:</p>
+                    <ol type="a">
+                        <li>Such documents will not be provided in paper form; and</li>
+                        <li>I should regularly check electronic communications for
+                            documents; and</li>
+                        <li>My consent to the giving of documents by electronic means
+                            may be withdrawn at any time.</li>
+                    </ol>
+                </div> -->
+
+                <br />
+                <!--                <div style="">
+                    <div
+                        class="alert alert-info fleft span6 removelmargin mp_width100per">
+                        <p style="font-weight: bold;">Before you accept:</p>
+                        <ul>
+                            <li>Read the contract document so that you know exactly what
+                                contract you are entering into and what you will have to do
+                                under the contract.</li>
+                            <li>You should also read the information statement: "Things
+                                you should know about your credit contract".</li>
+                            <li>Save a copy of the contract document.</li>
+                            <li>Do not click the "I accept" button if there is anything
+                                you do not understand.</li>
+                        </ul>
+                    </div>
+
+                    <div class="span6 mp_width100per">
+                        <div class="alert alert-info fright">
+                            <p style="font-weight: bold;">Things you must know:</p>
+                            <ul>
+                                <li>Once you click the "I accept" button this contract
+                                    document, you will be bound by it. However, you may end the
+                                    contract before you obtain any credit, or a card or other means
+                                    is used to obtain goods or services for which credit it to be
+                                    provided under the contract by telling the credit provider,
+                                    i.e. {!brandName}, in writing, but you will still be liable for
+                                    any fees or charges already incurred.</li>
+                                <li>You do not have to take out consumer credit insurance
+                                    unless you want to. However, if this contract document says so,
+                                    you must take out insurance over any mortgaged property that is
+                                    used as security, such as a house or car.</li>
+                                <li>If you are to take out insurance, the credit provider
+                                    cannot insist on any particular insurance company. If this
+                                    contract document says so, the credit provider can vary the
+                                    annual percentage rate (this interest rate), the repayments and
+                                    the fees and charges and can add new fees and charges without
+                                    your consent.</li>
+                                <li>If this contract document says so, the credit provider
+                                    can charge a fee if you pay out your contract early.</li>
+                            </ul>
+                        </div>
+                        <br />
+                        <div class="alert alert-info fright">
+                            <div>
+                                <p>By clicking "I Accept" I agree to the terms and
+                                    conditions outlined above.</p>
+                            </div>
+                        </div>
+                        <br />
+
+                    </div>
+                    <br style="clear: both;" />
+                </div> -->
+
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <!--NZ Offline END  -->
+
+        <!-- NZ Offline Joint  -->
+        <apex:outputPanel rendered="{!IF(AND(app[0].Application_Type__c == 'Joint',wrapperContract.size>0,$Setup.Profile_Country__c.NZ__c),true,false)}"
+            id="NZ-Offline-Joint">
+            <!-- NZ Offline - Joint  -->
+            <apex:outputpanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+
+                <apex:outputPanel rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO'),true,false)}">
+                    <strong>Please open and carefully read</strong> the documents below that will make up your consumer credit contract and confirm aacceptance of the offer.
+                    <br />
+                    <br />
+                    We highly recommend you print and/or save a copy of these documents for future reference. Once your loan contract has been accepted, should you require a copy of these documents after this time, please contact us on 0800 32 10 10.
+                    <br />
+                </apex:outputPanel>
+                <!-- Display Adobe message-->
+                <br /> 
+                <apex:outputText >
+                    A PDF Reader is required to <strong>read</strong> the documents.
+                    <apex:outputLink value="http://get.adobe.com/uk/reader/" target="_blank">Click here</apex:outputLink> to download a PDF reader.
+                </apex:outputText>
+                <br />
+            </apex:outputpanel>
+            <!-- NZ Offline - Joint  -->
+
+            <apex:repeat value="{!wrapperContract}" var="wc"
+                rendered="{!IF(wrapperContract.size>0,true,false)}">
+                <br />
+                <apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                    <strong>Contract </strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                    <strong>Objectives And Requirements</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                    <strong>Privacy</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                    <strong>Direct Debit</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                    <strong>EFT Disbursement</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                    <strong>Debt Consolidation</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                    <strong>Insurance</strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit Form',true,false)}">
+                    <strong>Direct Debit Form </strong>
+                    <br />
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!IF(wc.title == 'SignUp Letter',true,false)}">
+                    <strong>SignUp Letter</strong>
+                    <br />
+                </apex:outputPanel>
+				
+                <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+					 Change KiwiBank to Kiwibank -->
+                <apex:outputPanel rendered="{!IF(wc.title == 'SignUp Letter Kiwibank',true,false)}">
+                    <strong>SignUp Letter Kiwibank </strong>
+                    <br />
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!IF(wc.title == JSENCODE('Terms & Conditions'),true,false)}">
+                    <strong>Terms and Conditions</strong>
+                    <br />
+                </apex:outputPanel>
+
+
+                <apex:repeat value="{!wc.relDoc}" var="relDoc">
+                    <!-- 
+                    <apex:inputCheckbox value="{!relDoc.isAccepted__c}"
+                        onchange="updateRD('{!relDoc.Id}',this);"
+                        rendered="{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}" />
+
+                    <apex:inputCheckbox value="{!relDoc.isAcceptedSec__c}"
+                        onchange="updateRD('{!relDoc.Id}',this);"
+                        rendered="{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}" /> -->
+                    <!-- <apex:inputCheckbox value="{!relDoc.isAccepted__c}"
+                        onchange="updateRD('{!relDoc.Id}',this);"
+                        rendered="{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}"
+                        disabled="{!NOT(relDoc.isEnabled__c)}" /> -->
+
+                    <!-- <apex:inputCheckbox value="{!relDoc.isAcceptedSec__c}"
+                        onchange="updateRD('{!relDoc.Id}',this);"
+                        rendered="{!AND($Setup.Profile_Country__c.NZ__c,NOT(isPrimary))}"
+                        disabled="{!IF(isPrimary,NOT(relDoc.isEnabled__c),NOT(relDoc.isEnabled_Sec__c))}" /> -->
+
+                    <apex:outputText >&nbsp;&nbsp;I acknowledge and accept the &nbsp; &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank"
+                            onclick="enableCheckBox('{!relDoc.Id}');">{!relDoc.Title__c}</apex:outputLink>
+                    </apex:outputText>
+                    <br />
+                    <!--  DBHZL-238 -->
+                </apex:repeat>
+                <br />
+            </apex:repeat>
+        </apex:outputPanel>
+        <!--     
+{!allAccepted}-
+{!isInsuranceAcknowledmentRequired}-
+{!insuranceAcknowledgement}-
+{!wrapperContract.size} -
+{!$Setup.Profile_Country__c.NZ__c} -->
+
+        <!--I Accept button for AU and NZ -->
+        <apex:outputPanel rendered="{!NOT(app[0].Out_of_Sync__c)}">
+            <apex:actionStatus id="acceptContract">
+                <apex:facet name="stop">
+                    <!-- <apex:commandButton status="acceptContract" id="accCreateAU"
+                        reRender="acceptContract,messageId" value="I Accept"
+                        action="{!validateAppAndRD}"
+                        rendered="{!$Setup.Profile_Country__c.AU__c}"
+                        disabled="{!IF(AND(NOT(allAccepted), wrapperContract.size>0),IF(insuranceAcknowledgement == isInsuranceAcknowledmentRequired,false,true),true)}"
+                        styleClass="btn btn-large btn-activec fright" /> -->
+                    <!-- <apex:commandButton status="acceptContract" id="accCreateNZ"
+                        reRender="acceptContract,messageId" value="I Accept"
+                        action="{!validateAppAndRD}"
+                        rendered="{!$Setup.Profile_Country__c.NZ__c}"
+                        disabled="{!IF(AND(NOT(allAccepted), wrapperContract.size>0),IF(insuranceAcknowledgement == isInsuranceAcknowledmentRequired,false,true),true)}"
+                        styleClass="btn btn-large btn-normalc fright" /> -->
+                    <!--    style="background-color:#00A2E8" /> -->
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Processing..." disabled="true"
+                        styleClass="btn btn-large btn-normal " />
+                </apex:facet>
+            </apex:actionStatus>
+        </apex:outputPanel>
+        <br />
+        <br />
+        <br />
+        <!--NZ Offline  -->
+    </apex:form>
+    <!-- Upload functionality-Start -->
+    <apex:outputPanel rendered="{!IF(AND(wrapperContract.size>0,OR(app[0].Response_Code__c == 'PCO', app[0].Response_Code__c == 'PCO Applicant 1 Pending', app[0].Response_Code__c == 'PCO Applicant 2 Pending')),true,false)}">
+        <h3>Upload your signed loan documents</h3>
+        <!-- Displays status of uploaded document to the ge server -->
+        <apex:pageMessages id="message" />
+
+        <apex:outputPanel id="iframePanel">
+            <apex:iframe src="" scrolling="false" id="myframe" frameborder="0"
+                height="50px" />
+        </apex:outputPanel>
+        <apex:panelGrid columns="3">
+            <!-- File Upload Field -->
+            <apex:outputPanel styleClass="ca_offline_uploadbutton">
+                <form id="myform" action="{!fileUploadClass.uploadEndPoint}"
+                    method="post" target="myframe" enctype="multipart/form-data">
+                    <!-- Javascript variables binded to apex variables -->
+                    <apex:outputPanel id="scriptPanel">
+                        <input type="hidden" name="firstName"
+                            value="{!fileUploadClass.applicantFirstName}" />
+                        <input type="hidden" name="lastName"
+                            value="{!fileUploadClass.applicantLastName}" />
+                        <input type="hidden" name="appNum"
+                            value="{!fileUploadClass.applicationUniqueID}" />
+                        <input type="hidden" name="timestamp"
+                            value="{!fileUploadClass.getDateStamp}" />
+                        <input type="hidden" name="product"
+                            value="{!fileUploadClass.productId}" />
+                        <input type="hidden" name="sfDocId"
+                            value="{!fileUploadClass.recordIdSaved}" />
+                    </apex:outputPanel>
+                    <div class="fileUpload btn btn-activec">
+                        <span>Select File</span> <input id="fileupload1" type="file"
+                            name="files[]" class="upload" />
+                    </div>
+                </form>
+            </apex:outputPanel>
+            <apex:form >
+                <!-- Button that performs file name parsing , sfdc related document create and update, and upload document ot ge webserver using iframe file transfer -->
+                <apex:outputPanel >
+                    <apex:outputLabel value=""></apex:outputLabel>
+                    <!--DBHZL-238 -->
+                    <apex:commandButton onClick="getFileName(); return false;"
+                        value="Upload" id="theButton"
+                        styleClass="btn btn-large btn-reset-m btn-activec buttonarrowimg"
+                        rendered="{!$Setup.Profile_Country__c.AU__c}" />
+                    <apex:commandButton onClick="getFileName(); return false;"
+                        value="Upload" id="theButton1"
+                        styleClass="btn btn-large btn-reset-m btn-normalc buttonarrowimg"
+                        rendered="{!$Setup.Profile_Country__c.NZ__c}" />
+                    <!--DBHZL-238 -->
+                </apex:outputPanel>
+
+                <!-- Use as upload status loader -->
+                <apex:outputPanel layout="block">
+                    <div id="showLoading"
+                        style="display: none; padding-left: 20px; text-align: center; font-weight: bold;"> 
+                        <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                    </div>
+                </apex:outputPanel>
+            </apex:form>
+        </apex:panelGrid>
+
+        <div class="clearfix"></div>
+        <div class="divider20"></div> 
+    </apex:outputPanel>
+    <apex:form > 
+    
+        <apex:outputPanel layout="block" style="height:100px;" rendered="{!wrapperContract.size>0}">
+            <apex:outputText >
+                Alternatively, you can fax your signed loan documents along with the <apex:outputLink value="/{!siteName}/APP_FaxCoverSheet?id={!applicationId}"
+                    target="_blank"> fax cover sheet </apex:outputLink> to 
+                {!faxNumber}
+            </apex:outputText>
+        </apex:outputPanel>
+        <apex:outputPanel layout="block" style="height:50px;" rendered="{!wrapperContract.size>0}">
+            <apex:commandButton value="Finish Uploading"
+                action="{!redirectToCompletePage}"
+                styleClass="btn btn-large btn-reset-m btn-normalc fright buttonarrowimg"></apex:commandButton>
+        </apex:outputPanel>
+    </apex:form>
+    <!-- Upload functionality-End -->
+    <script>
+        // Set jquery no conflict   
+        $.noConflict();
+
+        // Get Related Document 
+        function getFileName() {
+            var upload = document.getElementById('fileupload1').value;
+            if (upload == '' || upload == null) {
+                alert('Please choose file to upload');
+            } else {
+                var fullPath = document.getElementById("fileupload1").value;
+                if (fullPath) {
+                    var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath
+                            .lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+                    var filename = fullPath.substring(startIndex);
+                    if (filename.indexOf('\\') === 0
+                            || filename.indexOf('/') === 0) {
+                        filename = filename.substring(1);
+                    }
+                }
+                // Show file upload loader and file insert    
+                showLoader();
+                insertRelatedDocument(filename);
+            }
+        }
+
+        // Make loader visible
+        function showLoader() {
+            document.getElementById('showLoading').style.display = "block";
+        }
+
+        // Makes loader hidden
+        function hideLoader() {
+            document.getElementById('showLoading').style.display = "none";
+        }
+        // Send form to the endpoint.
+        function sendForm() {
+            document.getElementById('myform').submit();
+            hideLoader();
+        }
+
+        function updateRD(Id, field) {
+            APP_ContractAcceptanceChannel.updateRelatedDocument(Id,
+                    field.checked, function(result, event) {
+
+                        isAllAccepted();
+                    });
+        }
+        function updateApp(Id, field) {
+            APP_ContractAcceptanceChannel.updateApplication(Id, field.checked,
+                    function(result, event) {
+                        isAllAccepted();
+                        isInsuranceAcknowledgement();
+                    });
+        }
+        window.onload = function() {
+            isAllAccepted();
+
+        }
+    </script>
+</apex:component>

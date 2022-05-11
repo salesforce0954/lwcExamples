@@ -1,0 +1,376 @@
+<apex:page standardController="Application__c" extensions="App_POIVerification" showHeader="false" id="verifyPOIPage">
+    
+    <script type="text/javascript" src="/canvas/sdk/js/publisher.js"/>
+    
+ <script>
+    function refreshFeed() {
+      Sfdc.canvas.publisher.publish({name:'publisher.refresh',payload:{feed:true}});
+    }
+    function validateApplicantOne(){
+    var sizeA1 = '{!sizeA1}';
+      var sizeA2 = '{!sizeA2}';
+       if(sizeA1 < 2){
+       var alert1 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection1:alert1:alert1");
+       var comments = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments");
+       if(alert1.value == '' || comments.value == ''){
+         document.getElementById('alert1').style.display = 'block';
+         return false;
+       }
+      }
+      if(sizeA1 >1 && sizeA1 <3){
+      var alert2 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection2:alert2:alert2");
+      var alert3 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection2:alert3:alert3");
+      var comments = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments");
+      if(alert2.value == '' || alert3.value == '' || comments.value == ''){
+         document.getElementById('alert2').style.display = 'block';
+         return false;
+      } else{
+          document.getElementById('alert2').style.display = 'none';
+
+      }
+      }
+      if(sizeA1 >2){
+      var alert4 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert4:alert4");
+      var alert5 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert5:alert5");
+      var alert6 = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert6:alert6");
+      var comments = document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments");
+      if(alert4.value == ''|| alert5.value == '' || alert6.value == '' || comments.value == ''){
+                 document.getElementById('alert3').style.display = 'block';
+                 return false;
+       } else{
+                 document.getElementById('alert3').style.display = 'none';
+       }  
+      }
+      
+    return true;
+    }
+    function validateApplicantTwo(){   
+      var sizeA2 = '{!sizeA2}';
+      console.log('sizeA2' +sizeA2);
+      
+      if(sizeA2 < 2){
+      alert7 = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection4:alert7:alert7");
+      comments = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection8:alert13:comments");
+      if(alert7.value == '' || comments.value == ''){
+           document.getElementById('alert4').style.display = 'block';
+           return false;
+       }else{
+       document.getElementById('alert4').style.display = 'none';      
+       }
+       }
+       
+       if(sizeA2 > 1 && sizeA2 < 3){
+          alert8= document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection5:alert8:alert8");
+          alert9= document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection5:alert9:alert9");
+          comments = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection8:alert13:comments");
+          if(alert8.value == '' || alert9.value == '' || comments.value == ''){
+          document.getElementById('alert5').style.display = 'block';
+               return false;
+          } else {
+          document.getElementById('alert5').style.display = 'none';
+          }    
+      }
+      if(sizeA2 > 2){
+         alert10 = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert10:alert10");
+         alert11 = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert11:alert11");
+         alert12 = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert12:alert12");
+         comments = document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection8:alert13:comments");
+         if(alert10.value == '' || alert11.value == '' || alert12.value == '' || comments.value == ''){
+            document.getElementById('alert6').style.display = 'block';
+            return false;
+         }else {
+            document.getElementById('alert6').style.display = 'none';
+         }    
+      }
+       
+    return true;
+    }
+    function clearFields(){
+     
+      var sizeA1 = '{!sizeA1}';
+      console.log('sizeA1' +sizeA1);
+      var sizeA2 = '{!sizeA2}';
+      console.log('sizeA2' +sizeA2);
+       if(sizeA1 < 2){
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection1:alert1:alert1").value = '';
+      }
+      if(sizeA1 >1 && sizeA1 <3){
+      console.log('Entered POISection2 section');
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection2:alert2:alert2").value = '';   
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection2:alert3:alert3").value =  '';  
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments").value='';     
+      }
+      if(sizeA1 >2){
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert4:alert4").value = '';
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert5:alert5").value = '';   
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection3:alert6:alert6").value =  ''; 
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments").value='';
+      
+      }
+      if(sizeA2 < 2){
+       document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection4:alert7:alert7").value = '';
+       }
+       if(sizeA2 > 1 && sizeA2 < 3){
+       console.log('Entered POISection5 section');
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection5:alert8:alert8").value = '';   
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection5:alert9:alert9").value =  ''; 
+      }
+      if(sizeA2 > 2){
+      console.log('Entered POISection6 section');
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert10:alert10").value = '';
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert11:alert11").value = '';   
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection6:alert12:alert12").value =  ''; 
+      }
+      document.getElementById("verifyPOIPage:verifyPOI:alertPOI:POISection7:alert13:comments").value='';
+      document.getElementById("verifyPOIPage:verifyPOI2:alertPOI2:POISection8:alert13:comments").value = '';
+    }
+    </script>
+    <style>
+    #alert1, #alert2, #alert3, #alert4, #alert5, #alert6{
+      color: #ff0000 ;
+      font-weight: bold;
+    }
+    </style>
+          <apex:pageMessages id="errormsg" />
+          <!-- Applicant 1 Error Messages -->
+         <div id="alert1" style="display:none">
+           Please confirm the Verifier alerts for Applicant 1 and document discussion in the comments field
+          </div>
+          <div id="alert2" style="display:none">
+           Please confirm the Verifier alerts for Applicant 1 and document discussion in the comments field
+          </div>
+          <div id="alert3" style="display:none">
+           Please confirm the Verifier alerts for Applicant 1 and document discussion in the comments field
+          </div>
+        
+<apex:form id="verifyPOI" onsubmit="return validateApplicantOne();" rendered="{!if(OR(applicationList.EVerifier_Alert_Applicant_1__c!=null,applicationList.EVerifier_Alert_Applicant_2__c!=null),true,false)}">
+<apex:pageBlock id="alertPOI">
+<apex:tabPanel switchType="client" selectedTab="Applicant 1" id="theListTabPanel">
+          <apex:tab label="Applicant 1" name="Applicant 1" id="tabListOne" styleClass="subtab"> 
+<apex:outputPanel rendered="{!if(applicationList.EVerifier_Alert_Applicant_1__c!=null,true,false)}">
+
+     <apex:pageBlockSection id="POISection1"  columns="1" rendered="{!if(AND(sizeA1!=null,sizeA1 < 2), true, false)}" >
+     <apex:pageBlockSectionItem >
+               <apex:outputLabel value="Application" />
+                <apex:inputField value="{!vpc[0].Application__c}"/> 
+     </apex:pageBlockSectionItem>
+      <apex:pageBlockSectionItem id="alert1" >
+
+          <apex:outputLabel value="AlertType 1" />
+          <apex:selectList size="1" value="{!vpc[0].Alert_Type_One__c}" id="alert1">
+                                <apex:selectOptions value="{!AlertTypeOne}"/>
+          </apex:selectList>
+       </apex:pageBlockSectionItem> 
+          
+        
+                            
+     </apex:pageBlockSection>
+          
+          
+          
+          
+          <apex:pageBlockSection id="POISection2"  columns="1" rendered="{!if(AND(sizeA1!=null,sizeA1 > 1,sizeA1 < 3), true, false)}">
+          
+          
+          <apex:pageBlockSectionItem >
+               <apex:outputLabel value="Application" />
+               <apex:inputField value="{!vpc[0].Application__c}"/>
+          </apex:pageBlockSectionItem>
+      
+      
+          <apex:pageBlockSectionItem id="alert2" >
+    
+              <apex:outputLabel value="AlertType 1" />
+              <apex:selectList size="1" value="{!vpc[0].Alert_Type_One__c}" id="alert2">
+                                    <apex:selectOptions value="{!AlertTypeOne}"/>
+              </apex:selectList>
+           </apex:pageBlockSectionItem> 
+        
+           <apex:pageBlockSectionItem id="alert3" >
+              <apex:outputLabel value="AlertType 2" />
+              <apex:selectList size="1" value="{!vpc[0].Alert_Type_Two__c}" id="alert3">
+                                    <apex:selectOptions value="{!AlertTypeOne}"/>
+              </apex:selectList>
+           </apex:pageBlockSectionItem> 
+       
+            
+                 
+         </apex:pageBlockSection>
+         
+         
+          <apex:pageBlockSection id="POISection3"  columns="1" rendered="{!if(AND(sizeA1!=null,sizeA1 > 2), true, false)}">
+          <apex:pageBlockSectionItem >
+               <apex:outputLabel value="Application" />
+                <apex:inputField value="{!vpc[0].Application__c}"/>
+          </apex:pageBlockSectionItem>
+      
+      
+          <apex:pageBlockSectionItem id="alert4" >
+    
+              <apex:outputLabel value="AlertType 1" />
+              <apex:selectList size="1" value="{!vpc[0].Alert_Type_One__c}" id="alert4">
+                                    <apex:selectOptions value="{!AlertTypeOne}"/>
+              </apex:selectList>
+           </apex:pageBlockSectionItem> 
+        
+           <apex:pageBlockSectionItem id="alert5" >
+              <apex:outputLabel value="AlertType 2" />
+              <apex:selectList size="1" value="{!vpc[0].Alert_Type_Two__c}" id="alert5">
+                                    <apex:selectOptions value="{!AlertTypeOne}"/>
+              </apex:selectList>
+           </apex:pageBlockSectionItem> 
+           
+             <apex:pageBlockSectionItem id="alert6">
+          <apex:outputLabel value="AlertType 3" />
+          <apex:selectList size="1" value="{!vpc[0].Alert_Type_Three__c}" id="alert6">
+                                <apex:selectOptions value="{!AlertTypeOne}"/>
+          </apex:selectList>
+        </apex:pageBlockSectionItem> 
+                                       
+         </apex:pageBlockSection>  
+         
+          <apex:pageBlockSection id="POISection7">
+     <apex:outputLabel >
+      <apex:pageBlockSectionItem id="alert13">
+          <apex:outputLabel value="Comments" />
+        <apex:inputTextarea value="{!vpc[0].Comments__c}" id="comments"/>
+        </apex:pageBlockSectionItem> 
+     </apex:outputLabel>     
+       </apex:pageBlockSection>
+       <apex:commandButton value="Save" action="{!saveSingle}" rerender="frm" oncomplete="refreshFeed();clearFields();" reRender="errormsg"/>
+  </apex:outputPanel>
+  
+  </apex:tab> 
+  </apex:tabPanel>
+  </apex:pageBlock>
+  </apex:form>
+    <!-- Applicant 2 Error Messages -->
+          <div id="alert4" style="display:none">
+           Please confirm the Verifier alerts for Applicant 2 and document discussion in the comments field
+          </div>
+          <div id="alert5" style="display:none">
+           Please confirm the Verifier alerts for Applicant 2 and document discussion in the comments field
+          </div>
+          <div id="alert6" style="display:none">
+           Please confirm the Verifier alerts for Applicant 1 and document discussion in the comments field
+          </div>
+          <!-- End -->
+  <!-- Applicant 2 -->
+  <apex:form id="verifyPOI2" onsubmit="return validateApplicantTwo();">
+  <apex:pageBlock id="alertPOI2">
+  <apex:tabPanel >
+  <apex:tab label="Applicant 2" name="name2" id="tabTwo" rendered="{!if(applicationList.EVerifier_Alert_Applicant_2__c !=null,true,false)}">
+  <apex:outputPanel rendered="{!if(applicationList.EVerifier_Alert_Applicant_2__c !=null,true,false)}">
+
+     <apex:pageBlockSection id="POISection4"  columns="1" rendered="{!if(AND(sizeA2!=null,sizeA2 < 2), true, false)}" >
+     <apex:pageBlockSectionItem rendered="{!if(applicationList.EVerifier_Alert_Applicant_2__c!=null,true,false)}" >
+               <apex:outputLabel value="Application" />
+                <apex:inputField value="{!vpc[1].Application__c}"/>
+     </apex:pageBlockSectionItem>
+     
+      <apex:pageBlockSectionItem id="alert7" >
+
+          <apex:outputLabel value="AlertType 1" />
+          <apex:selectList size="1" value="{!vpc[1].Alert_Type_One__c}" id="alert7">
+                                <apex:selectOptions value="{!AlertTypeOne}"/>
+          </apex:selectList>
+       </apex:pageBlockSectionItem> 
+                             
+     </apex:pageBlockSection>
+     
+     
+     
+      <apex:pageBlockSection id="POISection5"  columns="1" rendered="{!if(AND(sizeA2!=null,sizeA2 > 1,sizeA2 < 3), true, false)}" >
+             <apex:pageBlockSectionItem rendered="{!if(applicationList.EVerifier_Alert_Applicant_2__c !=null,true,false)}" >
+                       <apex:outputLabel value="Application" />
+               <apex:inputField value="{!vpc[1].Application__c}"/>
+             </apex:pageBlockSectionItem>
+             
+              <apex:pageBlockSectionItem id="alert8" >
+
+          <apex:outputLabel value="AlertType 1" />
+          <apex:selectList size="1" value="{!vpc[1].Alert_Type_One__c}" id="alert8">
+                                <apex:selectOptions value="{!AlertTypeOne}"/>
+          </apex:selectList>
+       </apex:pageBlockSectionItem> 
+       
+              <apex:pageBlockSectionItem id="alert9" >       
+                  <apex:outputLabel value="AlertType 2" />
+                  <apex:selectList size="1" value="{!vpc[1].Alert_Type_Two__c}" id="alert9">
+                                        <apex:selectOptions value="{!AlertTypeOne}"/>
+                  </apex:selectList>
+               </apex:pageBlockSectionItem>            
+     </apex:pageBlockSection>
+     
+    
+     
+       <apex:pageBlockSection id="POISection6"  columns="1" rendered="{!if(AND(sizeA2!=null,sizeA2 > 2), true, false)}" >
+             <apex:pageBlockSectionItem rendered="{!if(applicationList.EVerifier_Alert_Applicant_2__c != null,true,false)}" >
+                       <apex:outputLabel value="Application" /> 
+               <apex:inputField value="{!vpc[1].Application__c}"/>
+             </apex:pageBlockSectionItem>
+             
+              <apex:pageBlockSectionItem id="alert10" >
+
+          <apex:outputLabel value="AlertType 1" />
+          <apex:selectList size="1" value="{!vpc[1].Alert_Type_One__c}" id="alert10">
+                               <apex:selectOptions value="{!AlertTypeOne}"/>
+          </apex:selectList>
+       </apex:pageBlockSectionItem> 
+       
+              <apex:pageBlockSectionItem id="alert11" >       
+                  <apex:outputLabel value="AlertType 2" />
+                  <apex:selectList size="1" value="{!vpc[1].Alert_Type_Two__c}" id="alert11">
+                                <apex:selectOptions value="{!AlertTypeOne}"/>
+                  </apex:selectList>
+               </apex:pageBlockSectionItem>          
+              <apex:pageBlockSectionItem id="alert12" >
+        
+                  <apex:outputLabel value="AlertType 3" />
+                  <apex:selectList size="1" value="{!vpc[1].Alert_Type_Three__c}" id="alert12">
+                                 <apex:selectOptions value="{!AlertTypeOne}"/>
+                  </apex:selectList>
+               </apex:pageBlockSectionItem> 
+           
+     </apex:pageBlockSection>
+      <apex:pageBlockSection id="POISection8">
+     <apex:outputLabel >
+      <apex:pageBlockSectionItem id="alert13">
+          <apex:outputLabel value="Comments" />
+        <apex:inputTextarea value="{!vpc[1].Comments__c}" id="comments"/>
+        </apex:pageBlockSectionItem> 
+     </apex:outputLabel>     
+       </apex:pageBlockSection>
+             <apex:commandButton value="Save" action="{!saveJoint}" rerender="frm" oncomplete="refreshFeed();clearFields();" reRender="errormsg"/>
+          
+          </apex:outputPanel>
+      </apex:tab>
+     </apex:tabPanel>
+     </apex:pageBlock>
+     </apex:form>
+     
+   
+   <!--  <apex:outputPanel rendered="{!if(OR(applicationList.EVerifier_Alert_Applicant_1__c !=null,applicationList.EVerifier_Alert_Applicant_2__c !=null),true,false)}">
+      <apex:tabPanel switchType="client" selectedTab="Comments" id="theListTabPanel2">
+          <apex:tab label="Comments" name="Applicant 2" id="tabListOne2">
+     <apex:pageBlockSection id="POISection7">
+     <apex:outputLabel >
+      <apex:pageBlockSectionItem id="alert13">
+          <apex:outputLabel value="Comments" />
+        <apex:inputTextarea value="{!vpc[0].Comments__c}" id="comments"/>
+        </apex:pageBlockSectionItem> 
+     </apex:outputLabel>     
+       </apex:pageBlockSection>
+        </apex:tab>
+     </apex:tabPanel>
+     </apex:outputPanel> -->
+     
+      <!--  <apex:pageBlockButtons rendered="{!if(OR(applicationList.EVerifier_Alert_Applicant_1__c !=null,applicationList.EVerifier_Alert_Applicant_2__c !=null),true,false)}" >
+        <apex:commandButton value="Save" action="{!save}" rerender="frm" oncomplete="refreshFeed();clearFields();" reRender="errormsg"/>
+      </apex:pageBlockButtons>
+   </apex:pageBlock>-->
+  <!-- End 
+ 
+</apex:form> -->
+ 
+</apex:page>

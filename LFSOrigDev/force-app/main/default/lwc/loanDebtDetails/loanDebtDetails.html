@@ -1,0 +1,292 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Debts" icon-name="standard:lead_list" class="slds-var-p-bottom_xx-small">
+
+            <template if:true={isJointApplication}>
+                <div class="slds-card__body slds-card__body_inner slds-align_absolute-center">
+                    {label.BP_LBL_Debt_Information}
+                </div>
+            </template>
+
+            <div class="slds-grid slds-wrap slds-var-m-around_small">
+                <div class="slds-col slds-size_4-of-12">
+                    <strong>
+                        <lightning-input type="checkbox" disabled={isDisabled} label={noDebtsMsg} checked={debtDetailsObj.NoDebts} class="dont-have-debts" name="dontHaveDebts" onclick={handleDebtDetailsChange}></lightning-input>
+                    </strong>
+                </div>
+            </div>
+            <template if:false={isDisabled}>
+                <template if:true={showAddDebtButton}>
+                    <div class="slds-var-m-around_x-small">
+                        <lightning-button label="Add Debt" title="Add Debt" icon-name="utility:add" onclick={handleAddDebt} disabled={maxDebtsAdded}></lightning-button>
+                    </div>
+                </template>
+            </template>
+
+            <!-- TABLE SECTION -->
+            <template if:true={showAddDebtButton}>
+                <template if:false={tableHasData}>
+                    <div class="slds-align_absolute-center slds-var-m-around_x-small">
+                        <lightning-formatted-text value={label.BP_LBL_No_Debts} ></lightning-formatted-text>
+                    </div>
+                </template>
+            </template>
+            <template if:true={tableHasData}>
+                <div class="slds-box c-container slds-var-m-around_x-small ">
+                    <div class="slds-table--header-fixed_container" style="height:300px;">
+                        <div class="slds-scrollable_y clearBG" style="height:100%;">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered " aria-label="Debt Table">
+                                <thead>
+                                  <tr class="slds-line-height_reset">
+                                    <th class="" scope="col" width="22%">
+                                      <div class="slds-truncate" title="Debt Type">Debt Type</div>
+                                    </th>
+                                    <th class="" scope="col" width="23%">
+                                      <div class="slds-truncate" title="Financial Institution">Financial Institution</div>
+                                    </th>
+                                    <th class="" scope="col" width="22%">
+                                      <div class="slds-truncate" title="Repayment">Repayment</div>
+                                    </th>
+                                    <th class="" scope="col" width="23%">
+                                        <div class="slds-truncate" title="Balance Remaining">Balance Remaining</div>
+                                      </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col" >
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col">
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                  </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    <template for:each={debtDetailsList} for:item="currentItem">
+                                        
+                                    
+                                        <tr key={currentItem.id}>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-text value={currentItem.DebtType} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-text value={currentItem.FinInstitution} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-number value={currentItem.RepaymentAmount} data-name={currentItem.id} format-style="currency" currency-code="AUD"></lightning-formatted-number>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-number value={currentItem.BalanceRemaining} data-name={currentItem.id} format-style="currency" currency-code="AUD"></lightning-formatted-number>
+                                                </div>
+                                            </td>
+                                            <template if:false={isDisabled}>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:edit" data-name={currentItem.id} alternative-text="Edit" onclick={handleDebtEdit}></lightning-button-icon>
+                                                </td>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:delete" data-name={currentItem.id} alternative-text="Delete" onclick={handleDebtDelete}></lightning-button-icon>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                    </template>
+
+                                </tbody>
+                            
+                                
+                            </table>
+            
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleDebtDetailsPrev}></lightning-button>
+                        
+                                <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleDebtDetailsNext}></lightning-button>
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+
+        </lightning-card>
+    </div>
+
+    <!-- MODAL FOR ADD INCOME -->
+    <template if:true={showAddDebtForm}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container" style="width: 45%">
+            <header class="slds-modal__header">
+                <lightning-icon icon-name="standard:lead_list" alternative-text="Debt" title="Debt"></lightning-icon>
+                <span>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Add Debt</h2>
+                </span>
+            </header>
+            <div class="slds-modal__content" id="modal-content-id-1">
+            
+                <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-combobox
+                                                    name="debttype"
+                                                    label="Debt type"
+                                                    value={debtObj.DebtType}
+                                                    placeholder="Select"
+                                                    options={debtCategoryOptions}
+                                                    onchange={handleDebtDetailsChange}
+                                                    required
+                        ></lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-input type="text" label="Financial institution" max-length="20" name="financialInstitution" value={debtObj.FinInstitution} onblur={handleDebtDetailsChange} required></lightning-input>
+                    </div>
+                </div>
+
+                <!-- MORTGAGE, PERSONAL LOAN, CAR LOAN, HIRE PURCHASE  -->
+                <template if:true={showMortgageLoanForm}>
+                    <div class="slds-grid">
+                        <div class="slds-col slds-size_4-of-12 slds-var-m-around_x-small">
+                            <span>
+                                <lightning-input type="number" label={repaymentLabel} formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" name="repaymentAmount" value={debtObj.RepaymentAmount} onblur={handleDebtDetailsChange} required></lightning-input>
+                            </span>
+                        </div>
+                        <div class="slds-col slds-size_4-of-12 slds-var-p-top_x-small">
+                            <span>
+                                <lightning-combobox
+                                                        name="repaymentInterval"
+                                                        label="Repayment interval"
+                                                        value={debtObj.RepaymentInterval}
+                                                        placeholder="Select"
+                                                        options={repaymentIntervalOptions}
+                                                        onchange={handleDebtDetailsChange}
+                                                        required
+                            ></lightning-combobox>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Amount borrowed" name="amountBorrowed" value={debtObj.AmountBorrowed} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Balance remaining" name="balanceRemaining" value={debtObj.BalanceRemaining} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        
+                    </div>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="checkbox" label="Applicant wants to pay out this debt and consolidate" checked={debtObj.PayOutNConsolidate} name="wantToPayOutNConsolidate" onclick={handleDebtDetailsChange}></lightning-input>
+                        </div>
+                    </div>
+                </template>
+                <!-- END:  MORTGAGE, PERSONAL LOAN, CAR LOAN, HIRE PURCHASE  -->
+
+
+                <!-- CREDIT CARD, STORE CARD, CHARGE CARD -->
+                <template if:true={showCardsForm}>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Card limit" name="cardLimit" value={debtObj.CardLimit} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" placeholder="$" label="Balance remaining" name="balanceRemaining" value={debtObj.BalanceRemaining} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        
+                    </div>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="checkbox" label="Applicant wants to pay out this debt and consolidate" checked={debtObj.PayOutNConsolidate} name="wantToPayOutNConsolidate" onclick={handleDebtDetailsChange}></lightning-input>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- END:  CREDIT CARD, STORE CARD, CHARGE CARD -->
+                
+                <!-- OVERDRAFT -->
+                <template if:true={showOverdraftForm}>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Card limit" name="cardLimit" value={debtObj.CardLimit} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" placeholder="$" label="Balance remaining" name="balanceRemaining" value={debtObj.BalanceRemaining} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="percent-fixed" step="0.01" label="Interest rate" name="interestRate" value={debtObj.InterestRate} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="checkbox" label="Applicant wants to pay out this debt and consolidate" checked={debtObj.PayOutNConsolidate} name="wantToPayOutNConsolidate" onclick={handleDebtDetailsChange}></lightning-input>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- END:  OVERDRAFT -->
+
+                <!-- OTHER -->
+                <template if:true={showOtherForm}>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="number" formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Amount borrowed" name="amountBorrowed" value={debtObj.AmountBorrowed} onblur={handleDebtDetailsChange} required></lightning-input>
+                        </div>
+                    </div>
+                    <div class="slds-grid">
+                        <div class="slds-col slds-size_4-of-12 slds-var-m-around_x-small">
+                            <span>
+                                <lightning-input type="number" label={repaymentLabel} formatter="currency" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" name="repaymentAmount" value={debtObj.RepaymentAmount} onblur={handleDebtDetailsChange} required></lightning-input>
+                            </span>
+                        </div>
+                        <div class="slds-col slds-size_4-of-12 slds-var-p-top_x-small">
+                            <span>
+                                <lightning-combobox
+                                                        name="repaymentInterval"
+                                                        label="Repayment interval"
+                                                        value={debtObj.RepaymentInterval}
+                                                        placeholder="Select"
+                                                        options={repaymentIntervalOptions}
+                                                        onchange={handleDebtDetailsChange}
+                                                        required
+                            ></lightning-combobox>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="checkbox" label="Applicant wants to pay out this debt and consolidate" checked={debtObj.PayOutNConsolidate} name="wantToPayOutNConsolidate" onclick={handleDebtDetailsChange}></lightning-input>
+                        </div>
+                    </div>
+                </template>
+
+
+                <!-- END: OTHER -->
+                
+    
+            </div>
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick={handleAddDebtCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand" onclick={handleAddDebtSave}>Save</button>
+              </footer>
+            
+            </div>
+            
+            </section>
+        
+            <div class="slds-backdrop slds-backdrop_open"></div>                  
+        </template>
+
+</template>

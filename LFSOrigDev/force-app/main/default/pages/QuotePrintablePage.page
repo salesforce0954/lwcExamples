@@ -1,0 +1,222 @@
+<apex:page standardController="Quote_Print_Broker__c" renderAs="PDF" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" showHeader="false"> 
+
+    <head>
+        <style>
+            body {
+                font-family: 'Arial Unicode MS';
+            }
+            div{
+                page-break-inside: avoid;
+                border-top: 1px solid black;
+                padding-bottom: 10px;
+            }
+            .no-border-top {
+                border-top: none;
+            }
+            .labelText {
+                color:#525659;
+                text-align: left;
+                font-weight: bolder;
+                width: 20%;
+                vertical-align: baseline;
+            }
+            .valueText {
+                width: 30%;
+                vertical-align: baseline;
+            }
+            .tableDetails {
+                width:100%;
+            }
+            .tableDetails td {
+                height: 30px;
+            }
+            td {
+                font-size: 12px;
+            }
+            .header-section {
+                text-align: center;
+                border-top: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="header-section">
+            <apex:image url="{!$Resource.LatitudeLogo}" width="300" height="83"/>
+        </div>
+        <div class="no-border-top">
+            <h4>Quote Details</h4>
+            <table class="tableDetails">
+                <tr>
+                    <td class="labelText"><b>Quote:</b></td>
+                    <td class="valueText"><apex:outputField label="Loan Purpose" value="{!Quote_Print_Broker__c.Quote__r.Name}"/></td>
+                    <td class="labelText">Requested Loan Amount:</td>
+                    <td class="valueText"><apex:outputText value="${0, number, ###,###,##0.00}"><apex:param value="{!Quote_Print_Broker__c.Loan_Amount__c}"/></apex:outputText></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Loan Purpose:</td>
+                    <td class="valueText"><apex:outputField label="Loan Purpose" value="{!Quote_Print_Broker__c.Loan_Purpose__c}"/></td>
+                    <td class="labelText">Loan Term:</td>
+                    <td class="valueText"><apex:outputField label="Loan Term" value="{!Quote_Print_Broker__c.Loan_Term__c}"/></td>
+                </tr>        
+                <tr>
+                    <td class="labelText">Quote Rate:</td>
+                    <td class="valueText"><apex:outputField label="Quote Rate" value="{!Quote_Print_Broker__c.Quote_Rate__c}"/></td>
+                    <td class="labelText">Quote Secured Rate:</td>
+                    <td class="valueText"><apex:outputField label="Quote Secured Rate" value="{!Quote_Print_Broker__c.Quote_Secured_Rate__c}"/></td>                    
+                </tr>     
+                <tr>
+                    <td class="labelText">Monthly Repayment:</td>
+                    <td class="valueText"><apex:outputField label="Monthly Repayment" value="{!Quote_Print_Broker__c.Monthly_Repayment__c}"/></td>
+                    <td class="labelText">Quote Expires On:</td>
+                    <td class="valueText"><apex:outputField label="Quote Expires On" value="{!Quote_Print_Broker__c.Quote_Expires_On_Formula__c}"/></td>                    
+                </tr>                                                                             
+            </table>
+        </div>
+        <div>
+            <h4>Personal Details</h4>
+            <table class="tableDetails">
+                <tr>
+                    <td class="labelText">Title:</td>
+                    <td class="valueText"><apex:outputField label="Loan Purpose" value="{!Quote_Print_Broker__c.Title__c}"/></td>
+                    <td class="labelText">First Name:</td>
+                    <td class="valueText"><apex:outputField label="Loan Term" value="{!Quote_Print_Broker__c.First_Name__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Middle Name:</td>
+                    <td class="valueText"><apex:outputField label="Middle Name" value="{!Quote_Print_Broker__c.Middle_Name__c}"/></td>
+                    <td class="labelText">Last Name:</td>
+                    <td class="valueText"><apex:outputField label="Last Name" value="{!Quote_Print_Broker__c.Last_Name__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Gender:</td>
+                    <td class="valueText"><apex:outputField label="Gender" value="{!Quote_Print_Broker__c.Gender__c}"/></td>
+                    <td class="labelText">Date of Birth:</td>
+                    <td class="valueText"><apex:outputField label="Date of Birth" value="{!Quote_Print_Broker__c.Date_of_Birth__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Email:</td>
+                    <td class="valueText"><apex:outputField label="Email" value="{!Quote_Print_Broker__c.Email_ID__c}"/></td>
+                    <td class="labelText">Mobile Number:</td>
+                    <td class="valueText"><apex:outputField label="Mobile Number" value="{!Quote_Print_Broker__c.Mobile_Number__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Driver's License Number:</td>
+                    <td class="valueText"><apex:outputField label="Driver's License Number" value="{!Quote_Print_Broker__c.Drivers_Licence_Number__c}"/></td>
+                    <td class="labelText"></td>
+                    <td class="valueText"></td>
+                </tr>                                                                           
+            </table>
+        </div>    
+        <div>
+            <h4>Current Residence Details</h4>
+            <table class="tableDetails">
+                <tr>
+                    <td class="labelText">Residential Unit Number:</td>
+                    <td class="valueText"><apex:outputField label="Residential Unit Number" value="{!Quote_Print_Broker__c.Residential_Unit_Number__c}"/></td>
+                    <td class="labelText">Residential Street Number:</td>
+                    <td class="valueText"><apex:outputField label="Residential Street Number" value="{!Quote_Print_Broker__c.Residential_Street_Number__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Residential Street Name:</td>
+                    <td class="valueText"><apex:outputField label="Residential Street Name" value="{!Quote_Print_Broker__c.Residential_Street_Name__c}"/></td>
+                    <td class="labelText">Residential Street Type:</td>
+                    <td class="valueText"><apex:outputField label="Last Name" value="{!Quote_Print_Broker__c.Residential_Street_Type__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Residential Suburb:</td>
+                    <td class="valueText"><apex:outputField label="Residential Suburb" value="{!Quote_Print_Broker__c.Residential_Suburb__c}"/></td>
+                    <td class="labelText">Residential State:</td>
+                    <td class="valueText"><apex:outputField label="Date of Birth" value="{!Quote_Print_Broker__c.Residential_State__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Residential City:</td>
+                    <td class="valueText"><apex:outputField label="Residential City" value="{!Quote_Print_Broker__c.Residential_City__c}"/></td>
+                    <td class="labelText">Residential Country:</td>
+                    <td class="valueText"><apex:outputField label="Residential Country" value="{!Quote_Print_Broker__c.Residential_Country__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Residential Postcode:</td>
+                    <td class="valueText"><apex:outputField label="Residential Postcode" value="{!Quote_Print_Broker__c.Residential_Postcode__c}"/></td>
+                    <td class="labelText"></td>
+                    <td class="valueText"></td>
+                </tr> 
+                <tr>
+                    <td class="labelText">Years at Residential Address:</td>
+                    <td class="valueText"><apex:outputField label="Years at Residential Address" value="{!Quote_Print_Broker__c.Years_at_Residential_Address__c}"/></td>
+                    <td class="labelText">Months at Residential Address:</td>
+                    <td class="valueText"><apex:outputField label="Months at Residential Address" value="{!Quote_Print_Broker__c.Months_at_Residential_Address__c}"/></td>
+                </tr>                                                                                              
+            </table>
+        </div>       
+        <div>
+            <h4>Previous Residence Details</h4>
+            <table class="tableDetails">
+                <tr>
+                    <td class="labelText">Previous Unit Number:</td>
+                    <td class="valueText"><apex:outputField label="Previous Unit Number" value="{!Quote_Print_Broker__c.Previous_Unit_Number__c}"/></td>
+                    <td class="labelText">Previous Street Number:</td>
+                    <td class="valueText"><apex:outputField label="Previous Unit Number" value="{!Quote_Print_Broker__c.Previous_Unit_Number__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Previous Street Name:</td>
+                    <td class="valueText"><apex:outputField label="Previous Street Name" value="{!Quote_Print_Broker__c.Previous_Street_Name__c}"/></td>
+                    <td class="labelText">Previous Street Type:</td>
+                    <td class="valueText"><apex:outputField label="Last Name" value="{!Quote_Print_Broker__c.Previous_Street_Type__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Previous Suburb:</td>
+                    <td class="valueText"><apex:outputField label="Previous Suburb" value="{!Quote_Print_Broker__c.Previous_Suburb__c}"/></td>
+                    <td class="labelText">Previous State:</td>
+                    <td class="valueText"><apex:outputField label="Previous State" value="{!Quote_Print_Broker__c.Previous_State__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Previous City:</td>
+                    <td class="valueText"><apex:outputField label="Previous City" value="{!Quote_Print_Broker__c.Previous_City__c}"/></td>
+                    <td class="labelText">Previous Postcode:</td>
+                    <td class="valueText"><apex:outputField label="Previous Postcode" value="{!Quote_Print_Broker__c.Previous_Postcode__c}"/></td>
+                </tr>     
+                <tr>
+                    <td class="labelText">Previous Country:</td>
+                    <td class="valueText"><apex:outputField label="Previous Country" value="{!Quote_Print_Broker__c.Previous_Country__c}"/></td>
+                    <td class="labelText"></td>
+                    <td class="valueText"></td>
+                </tr>                                                                           
+            </table>
+        </div> 
+        <div>
+            <h4>Employement Details</h4>
+            <table class="tableDetails">
+                <tr>
+                    <td class="labelText">Income Source:</td>
+                    <td class="valueText"><apex:outputField label="Income Source" value="{!Quote_Print_Broker__c.Income_Source__c}"/></td>
+                    <td class="labelText">Occupation:</td>
+                    <td class="valueText"><apex:outputField label="Occupation" value="{!Quote_Print_Broker__c.Occupation__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Years at Current Employment:</td>
+                    <td class="valueText"><apex:outputField label="Years at Current Employment" value="{!Quote_Print_Broker__c.Years_at_Current_Employment__c}"/></td>
+                    <td class="labelText">Months at Current Employment:</td>
+                    <td class="valueText"><apex:outputField label="Months at Current Employment" value="{!Quote_Print_Broker__c.Months_at_Current_Employment__c}"/></td>
+                </tr>   
+                <tr>
+                    <td class="labelText">Residential Status:</td>
+                    <td class="valueText"><apex:outputField label="Residential Status" value="{!Quote_Print_Broker__c.Residential_Status__c}"/></td>
+                    <td class="labelText"></td>
+                    <td class="valueText"></td>
+                </tr>                                                                             
+            </table>
+        </div>
+        <div>
+            <h4>Broker Details</h4>
+            <table class="tableDetails">  
+                <tr>
+                    <td class="labelText">Broker ID:</td>
+                    <td class="valueText"><apex:outputField label="Broker First Name" value="{!Quote_Print_Broker__c.Broker_ID__c}"/></td>
+                    <td class="labelText">Brokerage Fee:</td>
+                    <td class="valueText"><apex:outputText value="${0, number, ###,###,##0.00}"><apex:param value="{!Quote_Print_Broker__c.Brokerage_Fee__c}"/></apex:outputText></td>
+                </tr>                                                                                                
+            </table>
+        </div>                                      
+    </body>
+</apex:page>

@@ -1,0 +1,52 @@
+<apex:component id="GEDDheader">
+    
+    <!-- start of header -->
+    <header>
+        <!--<div id="topheader" class="topheader">
+            <div class="row-fluid topheader-inner">
+                <div class="span8 topheader-left">
+                    <ul>
+                        <!-- BEGIN MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                        <!--<li><span><a href="https://www.latitudefinancial.com.au/contact-us/" target="_blank">Contact Us</a></span></li>
+                        <li><span><a href="https://www.latitudefinancial.com.au/recommended-reads/faqs/loans-faqs.html" target="_blank">FAQ's</a></span></li>
+                        <!--<li><span><a href="http://www.gemoney.com.au/loans/branch-locator.html" target="_blank">Find a Branch</a></span></li>--> <!--REMOVED BRANCH REFERENCES by RUSSELL CADAPAN @ 22/04/2016-->
+                        <!-- END MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                    <!--</ul>
+                </div>
+            </div><!-- topheader-inner -->
+        <!--</div><!-- topheader -->
+        
+        <div id="header" class="header headbborder">
+            <!--<div class="row-fluid header-inner">
+                <div id="header-logo" class="span3">
+                    <apex:outputLink value="/" styleClass="logodsk"><span class="themelogo"></span></apex:outputLink>
+                    <apex:outputLink id="backLink" styleClass="falmob" value="{!URLFOR($Page.APP_Main)}?id={!$CurrentPage.parameters.id}">
+                    <span class="fui-arrow-left" rerender="false"></span>
+                    </apex:outputLink>
+                </div><!-- span3 -->
+                <!-- Updated by MDAVID -4-27-2016 -->
+                <!--<apex:panelGroup rendered="{!if(($CurrentPage.Name = 'app_register'), true, false)}">
+                    <div class="span5 headertitle registerheadertitle">
+                    <h3 class="droid-normal center dark" style="padding-top: 20px">Personal<span class="clearright"></span> Loan Application</h3>
+                    </div>
+                </apex:panelGroup>
+
+            </div><!-- header-inner -->
+            <div class="row-fluid header-inner-two">
+                <div id="header-logo" class="span12">
+                    <apex:outputLink value="https://www.latitudefinancial.com.au/" styleClass="logodsk"><span class="themelogo"></span></apex:outputLink>
+                    <apex:outputLink id="backLink" styleClass="falmob" value="{!URLFOR($Page.APP_Main)}?id={!$CurrentPage.parameters.id}">
+                    <span class="fui-arrow-left" rerender="false"></span>
+                    </apex:outputLink>
+                    <apex:outputLink value="https://www.latitudefinancial.com.au/" styleClass="latHeading {!if(($CurrentPage.Name = 'APP_Eligibility'), 'beginpage', '')}" rendered="{!if($Site.Name='Latitude', true, false)}">
+                        <h3>Latitude Financial Services</h3>
+                    </apex:outputLink>
+                </div>
+            </div>
+        </div><!-- row-fluid -->
+        <apex:outputPanel rendered="OR($site.Name=='Gem', $site.Name=='Kiwibank')">
+            <div class="divider1 mv_hidetotally"></div>
+        </apex:outputPanel>
+    </header>
+    <!-- end of header -->
+</apex:component>

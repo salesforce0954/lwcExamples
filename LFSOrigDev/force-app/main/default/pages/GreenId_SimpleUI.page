@@ -1,0 +1,297 @@
+<!--
+ * @Description: Green Id simpleUI main component.
+ * @Author : Adrian Recio
+ * @Date : 21-JUNE-2016
+ * @History:
+   =========================================================================================================
+        21-JUNE-2016 : Created - Adrian Recio
+   =========================================================================================================
+ *
+-->
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false" controller="GreenId_SimpleUI">
+
+    <head>
+        <!-- SF console integration script -->
+        <apex:includeScript value="/support/console/28.0/integration.js"/>
+        
+        <!-- Green Id standard style -->
+        <link rel="stylesheet" type="text/css" media="screen" href="{!GreenId_CSS}"/>
+        
+        <!-- Green Id Style Override in salesforce-->
+        <apex:stylesheet value="{!$Resource.GreenId_Style}"/> 
+        
+        <!-- Config and API Scripts for Green Id -->
+        <script src="{!GreenId_Config}" type="text/javascript"></script>
+        <script src="{!GreenId_Js}" type="text/javascript"></script>
+        
+        <!-- IE 9 Compatibility script for Green Id --> 
+        <script src="{!GreenId_IEScript1}"></script>
+        <script src="{!GreenId_IEScript2}"></script>
+        
+        <!-- Script note: All green Id APIs and Styles are referenced externally as required by green Id. 
+             Endpoint is should be updated depending on the environment in custom settings. Endpoint is different
+             for test and production -->
+        
+        <script>
+           console.log("Init Error:" + "{!callScriptError}");
+           //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+           console.log("GreenId Token:" + "{!JSENCODE(tokenVar)}");
+           
+           // Set boolean checker if current user is standard user
+           var IsStandard =  true;
+           if("{!siteId}"!=""){
+                IsStandard = false;
+           }
+           
+           console.log("Site Id:" + "{!siteId}");
+           console.log("Is Standard User:" + IsStandard);
+           //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+           console.log("GreenId Access:" + '{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}');    
+        
+           $( document ).ready(function() {
+               // Make sure that controller initialize correctly before firing green Id
+                   if(("{!callScriptError}" == null || "{!callScriptError}" == "") &&
+                      ("{!JSENCODE(tokenVar)}" != null && "{!JSENCODE(tokenVar)}" != "") &&         //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+                      '{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}'=="true"){       //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix         
+                       try{
+                           greenidJQuery("document").ready(function() {
+                                   // Set green Id header values
+                                   greenidConfig.setOverrides({"intro_title" : "<h1></h1>"});
+                                   greenidConfig.setOverrides({"intro_introText0" : "<p class='lead'></p>"});
+                                    
+                                   // Initiate green Id setup for existing user
+                                    greenidUI.setup({
+                                        //RCADAPAN 28/07/2016 - Environment should reference to the credentials instead of hardcoded
+                                        environment: "{!webCreds.Environment__c}",
+                                        frameId: "greenid-div",
+                                        errorCallback: onError,
+                                        sessionCompleteCallback: onSessionComplete,
+                                        sourceAttemptCallback: onSourceAttempt,
+                                        sessionCancelledCallback: onSessionCancel,
+                                        preSubmitValidationCallback: myValidator,
+                                        enableBackButtonWarning: false
+                                    });
+                                
+                                   // Pull current green Id status
+                                   currentGreenIdStatus();
+                           });
+                       }catch(err){
+                            console.log('Green Id Render Failed:' + err.message);
+                            if(IsStandard==false){
+                                $("#greenIdSubHeader").hide(); // Hide Header message
+                            }
+                            $("#initErrMsgDiv").show();
+                            if('{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}'=="false" && IsStandard){       //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                                $("#initErrMsgDiv").addClass("hidden");
+                            }
+                       }
+                   // If failed, display an error message
+                   }else{
+                       console.log('Token/Script Failure');
+                       if(IsStandard==false){
+                           $("#greenIdSubHeader").hide(); // Hide Header message
+                       }
+                       $("#initErrMsgDiv").show();
+                       
+                       if('{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}'=="false" && IsStandard){        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                           $("#initErrMsgDiv").addClass("hidden");
+                       }
+                   }
+           });
+        
+            function onError(){
+                console.log('onError');
+                if(IsStandard==true){
+                    if (sforce.console.isInConsole()) {
+                        sforce.console.openPrimaryTab(null, "/APP_ApplicationMain_INT?Id={!applicationId}", true, "");
+                    }else {
+                        window.location="/apex/APP_ApplicationMain_INT?Id={!applicationId}";
+                    }
+                }else{
+                    window.location="{!$Site.Prefix}/app_gsd_response?Id={!applicationId}"; 
+                }
+                return true;
+            }
+
+            function onSessionComplete(verificationToken , overallState ){
+                console.log('verificationToken:' + verificationToken);
+                console.log('overallState:' + overallState);
+                
+                verifyGreenIdResult();
+                
+                return true;
+            }
+
+             function onSourceAttempt(){
+                console.log('onSourceAttempt');
+                return true;
+            }
+
+            function onSessionCancel(){
+                console.log('onSessionCancel');
+                return true;
+            }
+
+            function myValidator(){
+                console.log('myValidator');
+                return true;
+            }
+        
+            function currentGreenIdStatus(){ 
+                try{
+                //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+                Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.GreenId_SimpleUI.verifyGreenIdResult}","{!webCreds.Username__c}","{!webCreds.Password__c}", "{!applicationMain.Id}", "{!applicantMain.Id}", "{!JSENCODE(tokenVar)}",
+                                                           function(result, event){
+                                                               console.log('Step 1:' + result);
+                                                               // Green Id outcome doesn't exist
+                                                               if(result==null || result==''){
+                                                                   if(IsStandard==false){
+                                                                    $("#greenIdSubHeader").hide(); // Hide Header message
+                                                                   }
+                                                                   $("#statusMsgId").text("Online ID verification is currently unavailable.");
+                                                               // If status is IN_PROGRESS show green Id
+                                                               }else if(result=='IN_PROGRESS'){
+                                                                    //RCADAPAN 28/07/2016 - Use SimpleUI Key (API_Code__c) instead of Password (Password__c) field
+                                                                    //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+                                                                    greenidUI.show("{!webCreds.Username__c}", "{!webCreds.API_code__c}", "{!JSENCODE(tokenVar)}");
+                                                               // If status is fail status display error messages
+                                                               }else if(result=='PENDING'){
+                                                                   if(IsStandard==false){
+                                                                    $("#greenIdSubHeader").hide(); // Hide Header message
+                                                                   }
+                                                                   $("#statusMsgId").text("Online ID verification is pending.");
+                                                                   
+                                                               }else if(result=='LOCKED_OUT' ){
+                                                                   if(IsStandard==false){
+                                                                    $("#greenIdSubHeader").hide(); // Hide Header message
+                                                                    $("#statusMsgId").text("Online ID verification is currently unavailable. Please use alternative methods to verify your identity.");
+                                                                   }else{
+                                                                    $("#statusMsgId").text("Online ID verification is locked. Customer will need to use alternative methods to ID.");
+                                                                   }
+                                                               // If status is one of the VERIFIED statuses, display manual aml service retry 
+                                                               // option for saleUI and show contact admin message in sales UI
+                                                               }else  if(result=='VERIFIED' || result=='VERIFIED_WITH_CHANGES' || result=='VERIFIED_ADMIN'){
+                                                                   if(IsStandard==true){
+                                                                    $("#statusMsgId").text("Online Id verification successful. Click Verify AML button to update application status.");
+                                                                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:reverifyAML').style.display = "inline-block";
+                                                                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:reverifyAML').style.display = "inline-block";
+                                                                   }else{
+                                                                   //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                                                                    var appRCode = "{!JSENCODE(applicantMain.Response_Code__c)}";
+                                                                       
+                                                                    $("#greenIdSubHeader").hide(); // Hide Header message
+                                                                    if(appRCode == 'PAO' || appRCode == 'AMO' || 
+                                                                       appRCode == 'PDO' || appRCode == 'ADO'){
+                                                                       $("#statusMsgId").text("Online ID verification is in progress. Please contact us to complete your verification.");
+                                                                        // AML Hide
+                                                                        try{
+                                                                            $("#amlVerification").hide(); 
+                                                                            $("#amlDocuments").hide();
+                                                                        }catch(e){
+                                                                            console.log("AML Hide Failed:" + e);
+                                                                        }
+                                                                        // POA Hide
+                                                                        try{
+                                                                            $("#poaMethod").hide(); 
+                                                                            $("#poaDocuments").hide();
+                                                                        }catch(e){
+                                                                            console.log("POA Hide Failed:" + e);
+                                                                        }
+                                                                    }else{
+                                                                       $("#statusMsgId").text("Online Id verification successful.");
+                                                                    }
+                                                                   
+                                                                   } 
+                                                               }
+                                                           },{escape: false});
+                    }catch(e){
+                        console.log('Initial greenId call failed:' + e);
+                    }
+                
+                    
+                                                                
+            }
+        
+            function verifyGreenIdResult(){
+                $(".loading").show(); // Show loader
+                //MLASALA 08-SEPT-2016 Reflected XSS Code Scan fix
+                Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.GreenId_SimpleUI.verifyGreenIdResult}","{!webCreds.Username__c}","{!webCreds.Password__c}","{!applicationMain.Id}", "{!applicantMain.Id}", "{!JSENCODE(tokenVar)}",
+                                                           function(result, event){
+                                                               console.log('Step 1:' + result);
+                                                               if(result=='VERIFIED' || result=='VERIFIED_WITH_CHANGES' || result=='VERIFIED_ADMIN'){
+                                                                   Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.GreenId_SimpleUI.verifyAmlServiceCall}","{!applicationMain.Id}", 
+                                                                    function(result, event){
+                                                                      console.log('Step 2:' + result); 
+                                                                        
+                                                                      try{
+                                                                        if(result=='AML VERIFIED'){
+                                                                            $("#statusMsgId").text("Online Id verification successful.");
+                                                                            
+                                                                            if(IsStandard==true){
+                                                                                window.location="/apex/APP_ApplicationMain_INT?Id={!applicationId}";
+                                                                            }else{
+                                                                                
+                                                                                counter=setInterval(timer, 1000); //1000 will  run it every 1 second   
+                                                                                timer(); 
+                                                                            }
+                                                                        }
+                                                                        
+                                                                      // Special messaging for Staff UI. Div is placed in AML page which is including this page.
+                                                                      // Work around to allow messaging even if this page is set to hidden in the parent page.
+                                                                          
+                                                                      }catch(e){
+                                                                        console.log(e);
+                                                                      }
+                                                                        
+                                                                   },{escape: false});  
+                                                               }else{
+                                                                    window.location.reload(true);
+                                                               }
+                                                               
+                                                           },{escape: false});
+            }
+            
+            var count="{!timeoutSettings}";
+            var counter;
+    
+            function timer(){
+              count=count-1;      
+              if(count <= 0){      
+                clearInterval(counter);          
+                window.location="{!$Site.Prefix}/app_gsd_response?Id={!applicationId}";        
+              } 
+              if(count %5 == 0){
+               amlVerificationResponse();
+              }
+            }      
+    
+            function amlVerificationResponse() {
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.GreenId_SimpleUI.amlVerificationResponse}',
+                    '{!applicationId}', 
+                    function(result, event) {
+                        if (event.status) {
+                           if(result !=null) {
+                                window.location="{!$Site.Prefix}/app_gsd_response?Id={!applicationId}";
+                                clearInterval(counter);
+                           }
+                        } 
+                    }, 
+                    {escape: true}
+                );
+            }
+        </script>
+    </head>
+    <div>
+        <div Id="greenid-div">
+        </div>
+    </div>
+    
+    <div Id="statusMsgDiv" style="padding-top:30px;">
+        <span Id="statusMsgId" class="intro-label lat-dark-grey"> </span>
+    </div>
+    <div Id="initErrMsgDiv" style="padding-top:30px;display:none;" >
+        <span class="intro-label lat-dark-grey"> Online ID verification is currently unavailable.</span>
+    </div>
+    
+</apex:page>

@@ -1,0 +1,1217 @@
+<!--
+  * @Description: Post submit landing page for Customer UI applications
+  * @Author: Mike Lasala
+  * @Date Created: 22-JAN-2016
+  * @History:
+  =====================================================================
+      22-JAN-16: Created - Mike
+      15-JUN-16: Updated - Adrian - Added DNB messaging for Latitude and Aussie
+  =====================================================================
+  -->
+  <apex:page docType="html-5.0" controller="APP_GSD_Response_Ext" id="pageId" showHeader="false" sidebar="false" standardStylesheets="false" action="{!validateBrokerApplication}">
+
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+    
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <script src="//c.supert.ag/aussie/aussie/supertag.js"></script>
+    </apex:outputPanel>
+  
+    <script>
+    
+    //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+    var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+    var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+    var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+    var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+    var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+
+    //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+    var className = 'APP_GSD_Response_Ext';                         //Used for calling remote action for base controller
+
+    var siteName = "{!$Site.Name}";
+
+    // Green Id Access Flag
+    //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+    var greenIdSetup = '{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}';
+        
+    //Call method in static resource which will retrieve application data and determine access control
+    getApplicationData(applicationId);
+  </script>
+    <style>
+        .gap-text{
+            padding-left:20px;
+        }
+        .gap-right-text{
+            padding-right:20px;
+        }
+        a:hover, a:visited, a:link, a:active{
+            text-decoration: none !important;
+        }
+        a.disabled {
+           pointer-events: none;
+           cursor: default;
+        }
+        .iconSize {
+            width: 80px;
+            height: 80px !important;
+        }
+        .arrowSize {
+            width: 50px;
+            height: 50px !important;
+        }
+        .insurance-accordion-inner {
+            padding: 20px 30px;
+        }
+        .borderLine {
+            border-top: 1px solid #c4bfb6;
+        }
+        ul li {
+            color: #75787b !important;
+        }
+        /*For Iphone 4 and 5*/
+        @media screen and (max-width: 320px) and (orientation: portrait) {
+            .iconSize {
+                width: 60px;
+                height: 60px !important;
+            }
+            .arrowSize {
+                width: 30px;
+                height: 30px !important;
+            }
+            .insurance-accordion-inner {
+                padding: 5px 0px;
+            }
+            .borderLine {
+                border-top: 0px;
+            }
+        }
+        
+        /*For Iphone 6*/
+        @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+            .iconSize {
+                width: 60px;
+                height: 60px !important;
+            }
+            .arrowSize {
+                width: 30px;
+                height: 30px !important;
+            }
+            .insurance-accordion-inner {
+                padding: 5px 0px;
+            }
+            .borderLine {
+                border-top: 0px;
+            }
+        }
+        
+        /*For Iphone 6+*/
+        @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+            .iconSize {
+                width: 60px;
+                height: 60px !important;
+            }
+            .arrowSize {
+                width: 30px;
+                height: 30px !important;
+            }
+            .insurance-accordion-inner {
+                padding: 5px 0px;
+            }
+            .borderLine {
+                border-top: 0px;
+            }
+        }
+    </style>
+    <!--c:App_GEHeader /-->
+    <!--c:APP_GSD_Clone /-->
+    <html lang="en">
+        <c:APP_GSD_LoanDetailComponent />
+        <!-- Middle Content  -->
+        <form>
+            <div class="container">
+                <div class="row" id="thumbsRow">
+                    <div class="thumbsup_margin middle-content-margin">
+                        <span id="thumbsUp" class="icon_approved_thumbsup icon_middle_width_size center-block img-responsive"></span>
+                    </div>
+                    <div class="secondary-margin text-center center-block">
+                        <span id="applicantName" class="module1-label lat-blue"></span>
+                        <span class="module1-label lat-blue"/>
+                    </div>
+                    <div class="center-block mid-content">
+                        <!-- RESPONSE MESSAGE CONTENT -->
+                        <span id="intro" class="intro-label lat-dark-grey">
+                            <div id="meta_Response_Message__c"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container">
+                
+                <div class="text-center" id="nextStatic">
+                    <div class="middle-content-margin">
+                        <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive"></span>
+                    </div>
+                    <div class="gap-content">
+                        <span id="module2" class="module2-label lat-blue">What's Next</span>
+                    </div>
+                </div>
+              
+            </div>
+            
+           
+            <!--end Middle Content  -->
+            <!-- Loan Panel Section -->
+            <div class="container accordion" id="accordPanel">
+                
+                <!-- APPLY -->
+                <div class="accordion-heading hidden" id="apply">
+                    <div class="accordion-spacing">
+                        <a class="accordion-toggle down up completed disabled" data-parent="#accordion" href="#collapseOne" tabindex="-1">
+                            <i id="icnEdit" class="icon_edit icon_size pull-left"></i>
+                        
+                            <div class="accordion-header-text1 gap-text">
+                                <span id="accord1Lbla1" class="module5-label {!IF($Site.Name=='Aussie', 'lat-dark-grey', '')}">Apply</span>
+                            </div>
+                            <div class="accordion-header-text1a">
+                             <i id="iconApp" class="icon_approved icon_size pull-right"></i>
+                             <span id="accord1Lbla2" class="small-text-bold uppercase pull-right GAccordion-status gap-right-text {!IF($Site.Name=='Aussie', 'lat-dark-grey', '')}">Done</span>
+                            
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- UPSELL -->
+                <div class="accordion-heading hidden" id="upsellDiv">
+                    <div class="accordion-spacing">
+                        <a class="accordion-toggle down up completed response collapsed" data-toggle="collapse" href="#collapseTwo" tabindex="-1" id="accord2Lbla211" onclick="changeIcon(this.id, 'icona1', 'accord2Lbla21');">
+                            <i id="icnEditUpsell" class="icon_edit icon_size pull-left"></i>
+                          
+                            <div class="accordion-header-text2 gap-text">
+                                <span id="accord2Lbla1" class="module5-label">Loan details</span>
+                            </div>
+                             <div class="accordion-header-text2a">
+                                <i id="icona1" class="indicator icon_arrowDown icon_size pull-right" ></i>
+                            <span id="accord2Lbla21" class="space small-text-bold uppercase pull-right GAccordion-status gap-right-text {!IF($Site.Name=='Aussie', 'lat-dark-grey', '')}"></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseTwo">
+                    <div class="accordion-inner body-label lat-dark-grey" style="{!IF($Site.Name!='Latitude', 'padding-bottom: 30px;', '')}">
+                        <div><b>Loan amount:</b>
+                            <span id="upsellAmount"/>
+                        </div>
+                        <div><b>Total loan amount:</b>
+                            <span id="totalLoanAmountWithFees"/>
+                        </div>
+                        <div><b>Term of loan:</b>
+                            <span id="upsellTerm"/>
+                        </div>
+                        <div><b>Interest rate:</b>
+                            <span id="upsellRate"/>
+                        </div>
+                        <div><b>Minimum monthly repayments:</b>
+                            <span id="upsellMMP"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- INSURANCE -->
+                <div class="accordion-heading hidden" id="insuranceDiv">
+                    <div class="accordion-spacing">
+                        <a class="accordion-toggle down up completed response collapsed" data-toggle="collapse" href="#collapseEight" tabindex="-1" id="accord2Lbla212" onclick="changeIcon(this.id, 'icona2', 'accord2Lbla22');">
+                            <i id="icnEditInsurance" class="icon_edit icon_size pull-left"></i>
+                          
+                            <div class="accordion-header-text2 gap-text">
+                                <span id="accord2Lbla1" class="module5-label">Insurance cover</span>
+                            </div>
+                             <div class="accordion-header-text2a">
+                                <i id="icona2" class="indicator icon_arrowDown icon_size pull-right"></i>
+                                <span id="accord2Lbla22" class="space small-text-bold uppercase pull-right GAccordion-status gap-right-text {!IF($Site.Name=='Aussie', 'lat-dark-grey', '')}"></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseEight">
+                    <div class="insurance-accordion-inner body-label lat-dark-grey">
+                        <div> <!--style="margin-right: 50px; margin-left: 50px;"-->
+                            <div class="">
+                                <span id="insuranceIcon" class="icon_close icon_middle_width_size center-block img-responsive iconSize"></span>
+                            </div>
+                            <div class="secondary-margin text-center center-block"> <!--style="margin-left: 100px; margin-right: 100px;"-->
+                                <div class="hidden-xs">
+                                    <span class="module1-label lat-blue insuranceHeading" style="line-height: 29px; font-size: 27px;"/>
+                                    <div class="clearfix"/>
+                                    <span class="body-label lat-dark-grey insuranceSubHeading"></span>
+                                    <div class="clearfix"/>
+                                    <span class="body-label lat-blue insuranceCheckHeading"></span>
+                                </div>
+                                
+                                <div class="col-xs-12 visible-xs">
+                                    <div class="module1-label lat-blue insuranceHeadingMobile" style="line-height: normal; font-size: 19px;"/>
+                                    <div style="height: 10px;"></div>
+                                    <span class="body-label lat-dark-grey insuranceSubHeadingMobile"></span>
+                                    <div style="height: 10px;"></div>
+                                    <span class="body-label lat-blue insuranceCheckHeadingMobile"></span>
+                                </div>
+                            </div>
+                            
+                            <div id="insuranceSummary">
+                                <div class="clearfix"/>
+                            
+                                <div class="text-center" id="nextStatic">
+                                    <div class="padding-top">
+                                        <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive arrowSize"/>
+                                    </div>
+                                </div>
+                                
+                                <!-- IUI -->
+                                <div class="accordion-heading hidden" id="iuiDiv" style="{!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'padding-left:33%', '')}">
+                                    <div class="accordion-spacing">
+                                        <a class="accordion-toggle down up completed response collapsed" data-toggle="collapse" tabindex="-1" id="iuiAccordion" style="background-color:#fff; padding: 7px 0px;" href="#collapseIUI" onclick="changeArrow(this.id, 'iuiArrow');">
+                                            <i id="icnEditUpsell" class="icon_iui logo_sm_size pull-left {!IF($Site.Name=='Kiwibank', 'hidden', '')}" style="height: 40px;"></i>
+                                          
+                                            <div class="accordion-header-text2 gap-text">
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'hidden', '')}">Involuntary Unemployment Cover</span>
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), '', 'hidden')}">Involuntary Unemployment Benefit</span>
+                                            </div>
+                                             <div class="accordion-header-text2a">
+                                                <i id="iuiArrow" class="indicator icon_blue_arrow_down icon_size pull-right"></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="collapse" id="collapseIUI">
+                                    <div class="accordion-inner body-label lat-dark-grey">
+                                        
+                                        <!-- INVOLUNTARY UNEMPLOYMENT INSURANCE CONTENT -->
+                                        <div class="hiddenDiv visible-xs">
+                                            <div id="iuidescm">
+                                            </div>
+                                            <div id="iuisumaum" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullIUISummarym'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullIUISummarym" class="hidden">
+                                                    <span>
+                                                        <div class="body-label indent" id="fullIUISummaryDescm"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullIUISummarym').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hidden-xs">
+                                            <div id="iuidescd">
+                                            </div>
+                                            <div id="iuisumaud" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullIUISummaryd'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullIUISummaryd" class="hidden">
+                                                    <span>
+                                                        <div class="body-label indent" id="fullIUISummaryDescd"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullIUISummaryd').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <apex:outputPanel rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                                    <div class="borderLine hidden" id="iuiBorder"/>
+                                </apex:outputPanel>
+                                
+                                <!-- DIS -->
+                                <div class="accordion-heading hidden" id="disDiv" style="{!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'padding-left:33%', '')}">
+                                    <div style="padding-top: 4px;">
+                                        <a class="accordion-toggle down up completed response collapsed" data-toggle="collapse" tabindex="-1" id="disAccordion" style="background-color:#fff; padding: 7px 0px;" href="#collapseDIS" onclick="changeArrow(this.id, 'disArrow');">
+                                            <i id="icnEditUpsell" class="icon_disability logo_sm_size pull-left {!IF($Site.Name=='Kiwibank', 'hidden', '')}" style="height: 40px;"></i>
+                                          
+                                            <div class="accordion-header-text2 gap-text">
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'hidden', '')}">Disability Plus Cover</span>
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), '', 'hidden')}">Disability Benefit</span>
+                                            </div>
+                                             <div class="accordion-header-text2a">
+                                                <i id="disArrow" class="indicator icon_blue_arrow_down icon_size pull-right"></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="collapse" id="collapseDIS">
+                                    <div class="accordion-inner body-label lat-dark-grey">
+                                        
+                                        <!-- DISABILITY INSURANCE CONTENT -->
+                                        <div class="hiddenDiv visible-xs">
+                                            <div id="disdescm">
+                                            </div>
+                                            <div id="dissumaum" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullDisSummarym'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullDisSummarym" class="hidden">
+                                                    <span>
+                                                        <div class="body-label" id="fullDisSummaryDescm"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullDisSummarym').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hidden-xs">
+                                            <div id="disdescd">
+                                            </div>
+                                            <div id="dissumaud" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullDisSummaryd'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullDisSummaryd" class="hidden">
+                                                    <span>
+                                                        <div class="body-label indent" id="fullDisSummaryDescd"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullDisSummaryd').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <apex:outputPanel rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                                    <div class="borderLine hidden" id="disBorder"/>
+                                </apex:outputPanel>
+                                <!-- LIFE -->
+                                <!-- Added rendered condition by Suneel NFLPI 23/03/2018 -->
+                                <apex:outputPanel rendered="{!if($Site.Name != 'Latitude', 'true', 'false')}">
+                                <div class="accordion-heading hidden" id="lifeDiv" style="{!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'padding-left:33%', '')}">
+                                    <div style="padding-top: 4px;">
+                                        <a class="accordion-toggle down up completed response collapsed" data-toggle="collapse" tabindex="-1" id="lifeAccordion" style="background-color:#fff; padding: 7px 0px;" href="#collapseLife" onclick="changeArrow(this.id, 'lifeArrow');">
+                                            <i id="icnEditUpsell" class="icon_life logo_sm_size pull-left {!IF($Site.Name=='Kiwibank', 'hidden', '')}" style="height: 40px;"></i>
+                                          
+                                            <div class="accordion-header-text2 gap-text">
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), 'hidden', '')}">Life Cover</span> 
+                                                <span id="" class="module5-label lat-blue {!IF(OR($Site.Name=='Kiwibank', $Site.Name=='Gem'), '', 'hidden')}">Life Benefit</span>
+                                            </div>
+                                             <div class="accordion-header-text2a">
+                                                <i id="lifeArrow" class="indicator icon_blue_arrow_down icon_size pull-right"></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                </apex:outputPanel>
+                                <div class="collapse" id="collapseLife">
+                                    <div class="accordion-inner body-label lat-dark-grey">
+                                        
+                                        <!-- LIFE INSURANCE CONTENT -->
+                                        <div class="hiddenDiv visible-xs">
+                                            <div id="lifedescm">                                           
+                                            </div>
+                                            <div id="lifesumaum" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullLifeSummarym'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullLifeSummarym" class="hidden">
+                                                    <span>
+                                                        <div class="body-label indent" id="fullLifeSummaryDescm"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullLifeSummarym').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hidden-xs">
+                                            <div id="lifedescd">                                            
+                                            </div>
+                                            <div id="lifesumaud" class="hidden">
+                                                <a class="lat-blue body-label" onClick="hideShowSummary(this, 'fullLifeSummaryd'); return false;">We don't pay if...</a>
+                                                <div style="height: 10px;"></div>
+                                                <div id="fullLifeSummaryd" class="hidden">
+                                                    <span>
+                                                        <div class="body-label indent" id="fullLifeSummaryDescd"></div>
+                                                        <a class="lat-blue body-label" onClick="$('#fullLifeSummaryd').addClass('hidden'); return false;" style="float: right !important;">Close</a>
+                                                    </span> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <apex:outputPanel rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                                    <div class="borderLine hidden" id="lifeBorder"/>
+                                </apex:outputPanel>
+                            </div>
+                            
+                            <div class="padding-top"/>
+                            
+                            <div class="center-block mid-content">
+                                <span id="intro" class="intro-label lat-dark-grey">
+                                    <div class="hidden-xs">
+                                        <span class="module1-label lat-blue" style="font-size: 27px;">Change of mind?</span>
+                                    </div>
+                                    
+                                    <div class="col-xs-12 visible-xs">
+                                        <span class="module1-label lat-blue" style="font-size: 19px;">Change of mind?</span>
+                                    </div>
+                                    <div id="insuranceCall">Just give us a call on</div>
+                                    <!--<div id="insuranceEmail" class="hidden">Just email us on</div>-->
+                                    <div id="insuranceContact" class="lat-blue"/>
+                                    <div>That's what we're here for!</div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PROOF OF INCOME-->
+                <div class="accordion-heading hidden" id="poi">
+                    <div class="accordion-spacing">
+                        <a onclick="redirect('APP_GSD_POI_Response');" class="accordion-toggle down up collapsed enabled" data-parent="#accordion" data-toggle="collapse" href="#collapseThree" tabindex="-1">
+                            <i id="icnEdit2" class="icon_edit_white icon_size pull-left"></i>
+                          
+                            <div class="accordion-header-text3 gap-text">
+                                <span id="accord3Lbla1" class="module5-label lat-white">Confirm</span>
+                                <span id="accord3Lbla1" class="module5-label lat-white name"></span>
+                                <span id="accord3Lbla1" class="module5-label lat-white">income</span>
+                            </div>
+                            
+                            <div class="accordion-header-text3a">
+                                <i id="icnArrRight" class="icon_arrow_right icon_size pull-right"></i>
+                                <span id="accord3Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">Required</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- PROOF OF IDENTITFY (AML) -->
+                <div class="accordion-heading hidden" id="aml">
+                    <div class="accordion-spacing">
+                        <a onclick="redirect('APP_GSD_AML_Response');" class="accordion-toggle down up collapsed enabled" data-parent="#accordion" data-toggle="collapse" href="#collapseFour" tabindex="-1">
+                            <i id="icnEdit3" class="icon_edit_white icon_size pull-left"></i>
+                         
+                            <div class="accordion-header-text4 gap-text">
+                                <span id="accord4Lbla1" class="module5-label lat-white">Confirm</span>
+                                <span id="accord3Lbla1" class="module5-label lat-white name"></span>
+                                <span id="accord3Lbla1" class="module5-label lat-white">identity</span>
+                            </div>
+                            
+                             <div class="accordion-header-text4a">
+                               <i id="icnArrRight1" class="icon_arrow_right icon_size pull-right"></i>
+                            <span id="accord4Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">Required</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!--PROOF OF ADDRESS -->
+                <div class="accordion-heading hidden" id="poa">
+                    <div class="accordion-spacing">
+                        <a onclick="redirect('APP_GSD_POA_Response');" class="accordion-toggle down up collapsed enabled" data-parent="#accordion" data-toggle="collapse" href="#collapseSeven" tabindex="-1">
+                            <i id="icnEdit7" class="icon_edit_white icon_size pull-left"></i>
+                           
+                            <div class="accordion-header-text5 gap-text">
+                                <span id="accord7Lbla1" class="module5-label lat-white">Confirm</span>
+                                <span id="accord3Lbla1" class="module5-label lat-white name"></span>
+                                <span id="accord7Lbla1" class="module5-label lat-white">address</span>
+                            </div>
+                            
+                             <div class="accordion-header-text5a">
+                             <i id="icnArrRight7" class="icon_arrow_right icon_size pull-right"></i>
+                            <span id="accord7Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">Required</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- REQUESTED DOCUMENTS-->
+                <div class="accordion-heading hidden" id="requestedDocumentDiv">
+                    <div class="accordion-spacing">
+                        <a onclick="redirect('APP_GSD_RequestedDoc');" class="accordion-toggle down up collapsed enabled" data-parent="#accordion" data-toggle="collapse" href="#collapseSeven" tabindex="-1">
+                            <i id="icnEdit7" class="icon_edit_white icon_size pull-left"></i>
+                          
+                            <div class="accordion-header-text3 gap-text">
+                                <span id="accord7Lbla1" class="module5-label lat-white">Provide other required documents</span>
+                            </div>
+                            
+                             <div class="accordion-header-text3a">
+                              <i id="icnArrRight7" class="icon_arrow_right icon_size pull-right"></i>
+                            <span id="accord7Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">Required</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- PAYMENT DETAILS -->
+                <div class="accordion-heading hidden" id="paymentDetailsDiv">
+                    <div class="accordion-spacing">
+                        <a onclick="redirect('APP_GSD_PaymentDetails');" class="accordion-toggle down up collapsed disabled" data-parent="#accordion" data-toggle="collapse" href="#collapseFive" tabindex="-1" id="paymentDetailsAccord">
+                            <i id="icnEdit4" class="icon_edit icon_size pull-left"></i>
+                           
+                            <div class="accordion-header-text6 gap-text">
+                                <span id="accord5Lbla1" class="module5-label lat-dark-grey">Set up payment details</span>
+                            </div>
+                            
+                            <div class="accordion-header-text6a">
+                            <i id="icnArrRight2" class="icon_arrow_right_gray icon_size pull-right"></i>
+                            <span id="accord8Lbla2" class="small-text-bold lat-dark-grey uppercase pull-right GAccordion-status gap-right-text">Done</span>
+                            </div>
+
+                          <!--  <div class="accordion-header-text007a">
+                            <i id="icnArrRightt2" class="icon_approved icon_size pull-right"></i>
+                            <span id="accord8Lblaa2" class="small-text-bold lat-dark-grey uppercase pull-right GAccordion-status gap-right-text">Done</span>
+                            </div>
+                          -->
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- CONTRACT ACCEPTANCE -->
+                <div class="accordion-heading hidden" id="acceptContractDiv">
+                    <div class="accordion-spacing">
+                        <a class="accordion-toggle down up collapsed disabled" data-parent="#accordion" href="#collapseSix" tabindex="-1" onclick="redirect('APP_GSD_ContractAcceptance');" id="accordContract">
+                            <i id="icnEdit5" class="icon_edit icon_size pull-left"></i>
+                         
+                            <div class="accordion-header-text7 gap-text">
+                                <span id="accord6Lbla1" class="module5-label lat-dark-grey contractText">Review offer &amp; accept contract</span>
+                                <span id="accord6Lbla2" class="body-label lat-dark-grey">(you each must login to complete)</span>
+                            </div>
+                            
+                              <div class="accordion-header-text7a">
+                                <i id="icnArrRight3" class="icon_arrow_right_gray icon_size pull-right gap-right-text"></i>
+                            <span id="accord9Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text"/>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                  <script>
+                    function DNBmsgClip(){
+                        if($('#dnbId').is(":visible")==true){
+                            $('#dnbId').hide();
+                            $('#hideLink').text("Unhide");
+                        }else{
+                            $('#dnbId').show();
+                            $('#hideLink').text("Hide");
+                        }
+                    }
+                </script>
+                
+                 
+                
+                  <div class="panel accordion-heading" Id="dnbSection" style="display:none;">
+                    <div class="accordion-spacing">
+                        <div class="accordion-body">
+                           <div class="accordion-inner" style="padding-bottom: 0px !important;">
+                             <div style="padding-bottom:40px;">  
+                                 <div class="intro-label lat-dark-grey" style="float:left;width:70%;text-align:left!important;"> 
+                                     <text style="font-size: 13px !important;"> A note about your identity check </text>
+                                 </div>
+                                 
+                                 <div class="intro-label lat-dark-grey" style="float:right;width:30%;text-align:right!important;">
+                                     <a Id="hideLink" class="underline-dotted" style="font-size: 13px !important;cursor:pointer;" onclick="DNBmsgClip();"> Hide </a>
+                                 </div>
+                             </div> 
+                              
+                                 
+                             <div Id="dnbId">
+                                 <div style="padding-bottom:25px;text-align:left!important;" class="intro-label lat-dark-grey"> 
+                                    <apex:outputText style="font-size: 13px !important;" value="{!$Label.APP_GSD_DNB_Msg}" escape="false"></apex:outputText>
+                                 </div>
+                                 <!--
+                                 <div class="pull-center confirmMarginB btnLRMargin paymentDetailsBtnRMargin vertical-align">
+                                        <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnText" 
+                                        id="btnDone" style="line-height:30px;" onclick="DNBmsgClip(); return false;">Ok, thanks
+                                            <i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+                                 </div>
+                                 -->
+                              </div>
+                            </div>
+                          </div>
+                      </div>
+                  </div>
+            </div>
+            <br/>
+            
+            <!-- FOOTER -->
+            <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                 <style>
+                    .accordion-inner {
+                        box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
+                    }
+                 </style>
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+            <!-- End Loan Panel Section -->
+            <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+            <!-- div class="scroll-top page-scroll visible-xs visible-sm"><a class="btn btn-primary" href="#page-top"><i class="fa fa-chevron-up"></i></a> </div> -->
+        </form>
+    </html>
+    
+    <script>
+        //Used for displaying applicant names
+        var applicantDisplayNames;
+        var isUpsell = false;
+        var isInsured = false;
+        
+        /*  Description: Display ribbons based on conditions
+         *  Author: Mike Lasala
+         *  Date Created: 27-JAN-2016
+         *  Input: Application, isStraightThrough wrapper
+         */
+        function displayRibbons(applicationWrapper){
+            //console.log('!: '+JSON.stringify(applicantMetadataObject));
+    
+            for(var i=0; i<applicantNames.length; i++){
+                if(i == 0){
+                    //Applicant 1 first name
+                    applicantDisplayNames = applicantNames[0];
+                } else {
+                    //Applicant 2 first name
+                    applicantDisplayNames += ' & '+applicantNames[1];
+                }
+            }
+            
+                
+            //Validate if:
+            //1. Document generation is done
+            //2. Acceptance channel is defined
+            //3. Any of the post contract acceptance response codes
+            if(applicationWrapper.application.Generated_Doc_Confirm_Sent__c &&
+               typeof applicationWrapper.application.Acceptance_Channel__c !== 'undefined' &&
+               (applicationWrapper.application.Response_Code__c == 'PCO' ||
+                applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending' ||
+                applicationWrapper.application.Response_Code__c == 'PCO Applicant 2 Pending' ||
+                applicationWrapper.application.Response_Code__c == 'Pending FIA' ||
+                applicationWrapper.application.Response_Code__c == 'FIA')){
+                
+                //Show what's next
+                $('#apply').removeClass('hidden');
+                $('#nextStatic').css('visibility', 'visible');
+                    
+              //  $('#icnArrRight2').removeClass('icon_arrow_right_gray').addClass('icon_approved');
+              //  $('#accord8Lbla2').removeClass('lat-white').addClass('lat-dark-grey');
+              //  $('#accord8Lbla2').text('Done');
+                
+                //Display accept contract ribbon
+                // $('#acceptContractDiv').show();
+                $('#acceptContractDiv').removeClass('hidden');
+                
+                if((applicationWrapper.application.Application_Type__c != 'Joint' || 
+                    (!isPrimary &&
+                      applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending') ||
+                     (isPrimary &&
+                      applicationWrapper.application.Response_Code__c == 'PCO Applicant 2 Pending')) || 
+                    
+                    applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance'){
+                    
+                    $('#accord6Lbla2').hide();
+                }
+                
+                //Validate if:
+                //1. Response code = PCO
+                //2. Acceptance channel = Online acceptance and Appliction type = Joint
+                //2.1 Logged in user is primary applicant and pending acceptance
+                //2.2 Logged in user is secondary applicant and pending acceptance
+
+                // Fix Pack: Updated by Adrian Recio
+                // Fix Description: Always enable offline contract acceptance even if Status is Pending FIA
+                
+                if(applicationWrapper.application.Response_Code__c == 'PCO' ||
+
+                   ( applicationWrapper.application.Application_Type__c == 'Joint' && 
+                    (applicationWrapper.application.Acceptance_Channel__c == 'Online Acceptance' ||
+                     applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance') &&
+                     ((isPrimary && applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending') ||
+                     (!isPrimary && applicationWrapper.application.Response_Code__c == 'PCO Applicant 2 Pending')) ) ||
+
+                     (applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance' &&
+                      (applicationWrapper.application.Response_Code__c == 'Pending FIA' || 
+                      (!isPrimary && applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending')))        //MLASALA 10-MAY-2016   DEFECT FIX
+
+                    ){
+
+                    //Enable accept contract ribbon
+                    $('#accordContract').removeClass('disabled').addClass('enabled');
+                    
+                    $('#accord6Lbla1').removeClass('lat-dark-grey').addClass('lat-white');
+                    $('#accord6Lbla2').removeClass('lat-dark-grey').addClass('lat-white');
+                    $('#icnEdit5').removeClass('icon_edit').addClass('icon_edit_white');
+                    $('#icnArrRight3').removeClass('icon_arrow_right_gray').addClass('icon_arrow_right');
+                    $('#accord9Lbla2').text('Required');
+                    
+                    if(applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance' &&
+                      applicationWrapper.application.Response_Code__c == 'Pending FIA'){
+                        $('#icnArrRight3').removeClass('icon_arrow_right_gray').addClass('icon_approved');
+                        $('#accord9Lbla2').text('Done');
+                    }
+                } else {
+                
+                    $('#icnArrRight3').removeClass('icon_arrow_right_gray').addClass('icon_approved');
+                    $('#accord9Lbla2').removeClass('lat-white').addClass('lat-dark-grey');
+                    $('#accord9Lbla2').text('Done');
+                }
+    
+                //Validate if:
+                //1. Acceptance channel = Online acceptance and Appliction type = Joint
+                //1.1 Logged in user is primary applicant and secondary applicant is pending acceptance
+                //1.2 Logged in user is secondary applicant and primart applicant is pending acceptance
+                if((applicationWrapper.application.Acceptance_Channel__c == 'Online Acceptance' &&
+                    applicationWrapper.application.Application_Type__c == 'Joint' &&
+                    (isPrimary &&
+                     applicationWrapper.application.Response_Code__c == 'PCO Applicant 2 Pending') ||
+                    (!isPrimary &&
+                     applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending')) || 
+                     
+                   (applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance' &&
+                    applicationWrapper.application.Application_Type__c == 'Joint' && 
+                    !isPrimary &&
+                    applicationWrapper.application.Response_Code__c == 'PCO Applicant 1 Pending')){
+    
+                    //Display text indicating that the other applicant is pending acceptance
+                    var pendingApplicant = isPrimary ? applicantNames[1] : applicantNames[0];
+                    
+                    var acceptRibbonTxt = 'login and accept the contract';
+                    
+                    if(applicationWrapper.application.Acceptance_Channel__c == 'Offline Acceptance'){
+                        acceptRibbonTxt = 'upload the contract documents';
+                    }
+                    
+                    $('.contractText').text(pendingApplicant+' still needs to '+acceptRibbonTxt);
+                }
+                
+            } else {
+            //Pre document generation
+    
+                //Objects that will identify whether a ribbon is applicable for both/single applicant/s
+                var amlObject = new Object();
+                var poaObject = new Object();
+                var poiObject = new Object();
+                
+                //Boolean to identify whether applicant/s are in PCA
+                var isPCA = true;
+                
+                //Boolean to identify whether offer has been accepted
+                var offerAccepted = false;
+    
+                for(var key in applicantMetadataObject){
+                    if(applicantMetadataObject.hasOwnProperty(key)){
+    
+                        //Identify if applicant/s have no outstanding referrals
+                        if(applicantMetadataObject[key].Response_Code__c != 'PCO'){
+                            isPCA = false;
+                        }
+    
+                        //Create objects which will drive the show/hide logic for the ribbon
+                        amlObject[key] = applicantMetadataObject[key].AML__c;
+                        poaObject[key] = applicantMetadataObject[key].POA__c;
+                        poiObject[key] = applicantMetadataObject[key].POI__c;
+                    }
+                }
+                //console.log('amlObject: '+JSON.stringify(amlObject)+' poaObject: '+JSON.stringify(poaObject)+' poiObject: '+JSON.stringify(poiObject));
+                
+                //BEGIN MLASALA 21-JUN-16: TQLQW-347 Referred Response Pages for NZ should not show POI, IDV or POA ribbons
+                if(applicationWrapper.application.Brand_Country__c == 'NZ'){
+                  
+                  //Set variable to true to not display ribbons for NZ referred statuses
+                    if(!isReferred){
+                        isPCA = true;
+                        
+                        
+                    } else {    //BEGIN MLASALA 05-OCT-16 TQLQW-524 Fixes and tweaks to Promo Engine
+                        
+                        if(applicationWrapper.application.Promo_Online_Message__c != null){
+                            $('#intro').html($('#intro').text()+'<br/>'+applicationWrapper.application.Promo_Online_Message__c);
+                        }
+                    }
+                    //END MLASALA 05-OCT-16 TQLQW-524 Fixes and tweaks to Promo Engine
+                }
+                //END MLASALA 21-JUN-16
+                
+                //Applicant/s is not in PC response code
+                if(!isPCA || isPCA){
+    
+                    //Display referral ribbons
+                    isActive(amlObject, 'aml');
+                    isActive(poiObject, 'poi');
+    
+                    //Only display POA for NZ
+                    if(applicationWrapper.application.Brand_Country__c == 'NZ'){
+                        isActive(poaObject, 'poa');
+                    }
+    
+                }
+                console.log('isPCA: '+isPCA);
+                
+                if(applicationWrapper.application.Disbursement_Count__c < 1 || applicationWrapper.application.Debit_Count__c < 1){
+                //  $('#accord8Lbla2').text('Required');
+                    $('#accord8Lbla2').text('Optional');
+                }
+                //Simple loan
+               //if(applicationWrapper.isStraightThrough && isPCA)
+               if(applicationWrapper.isStraightThrough){
+                    //Show what's next
+                    $('#apply').removeClass('hidden');
+                    $('#nextStatic').css('visibility', 'visible');
+                    
+                    if((applicationWrapper.application.Response_Code__c == 'PCO' ||
+                       applicationWrapper.application.Response_Code__c == 'PAO' ||
+                       applicationWrapper.application.Response_Code__c == 'PIO' ||
+                       applicationWrapper.application.Response_Code__c == 'PDO' ||
+                       applicationWrapper.application.Response_Code__c == 'AMO' ||
+                       applicationWrapper.application.Response_Code__c == 'SAR') &&
+                      (applicationWrapper.application.Disbursement_Count__c < 1 || applicationWrapper.application.Debit_Count__c < 1)){
+                        
+                        //Enable payment details ribbon when offer is accepted
+                        $('#accord8Lbla2').removeClass('lat-dark-grey').addClass('lat-white');
+                        $('#accordPay').removeClass('disabled').addClass('enabled');
+                        $('#paymentDetailsAccord').removeClass('disabled').addClass('enabled');
+                        $('#icnEdit4').removeClass('icon_edit').addClass('icon_edit_white');
+                        $('#accord5Lbla1').removeClass('lat-dark-grey').addClass('lat-white');
+                        $('#icnArrRight2').removeClass('icon_arrow_right_gray').addClass('icon_arrow_right');
+                    }
+                  if(applicationWrapper.application.Disbursement_Count__c > 0 && applicationWrapper.application.Debit_Count__c > 0){
+                     $('#icnArrRight2').removeClass('icon_arrow_right_gray').addClass('icon_approved');
+                     $('#accord8Lbla2').removeClass('lat-white').addClass('lat-dark-grey');
+                     $('#accord8Lbla2').text('Done');                
+                  }
+              }
+                
+            }
+    
+            //Simple loan
+            if(applicationWrapper.isStraightThrough){
+                //Show payment details container
+                $('#paymentDetailsDiv').removeClass('hidden');
+            }
+            
+            var loanAmountWithFees;
+            
+            //BEGIN 05-JUL-16 MLASALA: DEFECT 1043/1066 FIX
+            //Customer has accepted the offer online or agent has made offer for customer
+            if(applicationWrapper.application.Customer_Confirmed_Online_Offer__c || 
+                applicationWrapper.application.Staff_Hide__c){
+                
+                loanAmountWithFees = '$'+addCommas(parseFloat(applicationWrapper.application.Total_Loan_Amount_with_Insurance__c).toFixed(2)+' (including establishment fee');
+                
+                //Display upsell data
+                $('#upsellAmount').text('$'+addCommas(parseFloat(applicationWrapper.application.Total_Loan_Amount__c).toFixed(2)));
+                $('#upsellTerm').text(applicationWrapper.application.Loan_Term__c);
+                $('#upsellRate').text(applicationWrapper.application.Offered_Interest_Rate__c+'%');
+                $('#upsellMMP').text('$'+addCommas(parseFloat(applicationWrapper.application.EMI_with_Service_Fee__c).toFixed(2)));
+                
+                if(applicationWrapper.application.Total_Loan_Amount__c > applicationWrapper.application.Initial_Requested_Amount__c){
+                    
+                    isUpsell = true;
+                    
+                    //Change insurance ribbon chevron to done
+                    $('#accord2Lbla21').text('Done');
+                    $('#icona1').removeClass('icon_arrowDown').addClass('icon_approved');
+                }
+                
+                //Display upsell ribbon
+                $('#upsellDiv').removeClass('hidden');
+                
+                var insuranceText;
+                var insuranceTextMobile;
+                var subHeaderInsurance;
+                var subHeaderInsurance2;
+                
+                //Check insurance
+                if(typeof applicationWrapper.application.Product_Items__r !== 'undefined' && 
+                   applicationWrapper.application.Product_Items__r.length > 0){
+                    isInsured = true;
+                    //Iterate insurance and only display items which were applied for
+                    for(var i=0; i<applicationWrapper.application.Product_Items__r.length; i++){
+                        // console.log('$$$ insur: '+applicationWrapper.application.Product_Items__r[i].Product_Version__r.Product_Name__c);
+                        
+                        
+                        if(applicationWrapper.application.Product_Items__r[i].Product_Version__r.Product_Name__c == 'Involuntary Unemployment Insurance'){
+                            $('#iuiDiv').removeClass('hidden');
+                            $('#iuiBorder').removeClass('hidden');
+                        }
+                        
+                        if(applicationWrapper.application.Product_Items__r[i].Product_Version__r.Product_Name__c == 'Disability Insurance'){
+                            $('#disDiv').removeClass('hidden');
+                            $('#disBorder').removeClass('hidden');
+                        }
+                        
+                        if(applicationWrapper.application.Product_Items__r[i].Product_Version__r.Product_Name__c == 'Life Insurance'){
+                            $('#lifeDiv').removeClass('hidden');
+                            $('#lifeBorder').removeClass('hidden');
+                        }
+                    }
+                    
+                    //Change insurance ribbon icon to done
+                    $('#insuranceIcon').removeClass('icon_close').addClass('icon_approved_mono');
+                    
+                    //Change insurance ribbon chevron to done
+                    $('#accord2Lbla22').text('Done');
+                    $('#icona2').removeClass('icon_arrowDown').addClass('icon_approved');
+                    
+                    //Populate text based on region
+                    insuranceText = "{!$Label.APP_GSD_Response_InsuranceHeadingAU}";
+                    insuranceTextMobile = "{!$Label.APP_GSD_Response_InsuranceHeadingMobileAU}";
+                    
+                    if(applicationWrapper.application.Brand_Country__c == 'NZ'){
+                        insuranceText = "{!$Label.APP_GSD_Response_InsuranceHeadingNZ}";
+                        insuranceTextMobile = "{!$Label.APP_GSD_Response_InsuranceHeadingMobileNZ}";
+                    }
+                    
+                    $('#upsellMMP').text($('#upsellMMP').text()+'  (including insurance)');
+                    loanAmountWithFees += ' and insurance)';
+                    
+                } else {    //No insurance
+                    
+                    //Display all ribbons
+                    $('#lifeDiv').removeClass('hidden');
+                    $('#lifeBorder').removeClass('hidden');
+                    $('#disDiv').removeClass('hidden');
+                    $('#disBorder').removeClass('hidden');
+                    $('#iuiDiv').removeClass('hidden');
+                    $('#iuiBorder').removeClass('hidden');
+                    
+                    //Populate text based on region
+                    insuranceText = "{!$Label.APP_GSD_Response_NoInsuranceHeadingAU}";
+                    insuranceTextMobile = "{!$Label.APP_GSD_Response_NoInsuranceHeadingMobileAU}";
+                    //subHeaderInsurance = "{!$Label.APP_GSD_Response_Insurance_SubHeader}";
+                     //Condition for Insurance Subheader Added by Suneel NFLPI 26/03/2018
+                    if('{!$Site.Name}' == 'Gem' || '{!$Site.Name}' == 'Kiwibank' ){                    
+                    subHeaderInsurance = "{!$Label.APP_GSD_Response_Insurance_SubHeader}";
+                    }else{
+                    subHeaderInsurance = "{!$Label.APP_GSD_Response_Insurance_SubHeader_AU}";
+                    }
+                    //End
+                    subHeaderInsurance2 = "{!$Label.APP_GSD_Response_Insurance_Checkout}";
+                    if(applicationWrapper.application.Brand_Country__c == 'NZ'){
+                        insuranceText = "{!$Label.APP_GSD_Response_NoInsuranceHeadingNZ}";
+                        insuranceTextMobile = "{!$Label.APP_GSD_Response_NoInsuranceHeadingMobileNZ}";
+                        $(".insuranceCheckHeading").addClass("hidden");
+                        $("#insuranceSummary").addClass("hidden");
+                        $('.insuranceCheckHeadingMobile').addClass("hidden");
+                    }
+                    
+                    loanAmountWithFees += ')';
+                }                
+                setInsuranceDescriptions(applicationWrapper.application.Brand_Country__c);               
+                if(applicationWrapper.application.Brand_Country__c == 'NZ'){
+                    // $('#insuranceEmail').removeClass('hidden');
+                    if('{!$Site.Name}' == 'Gem'){
+                        $('#insuranceContact').text('{!$Label.APP_GSD_Insurance_Contact_Gem}');
+                    } else {
+                        $('#insuranceContact').text('{!$Label.APP_GSD_Insurance_Contact_Kiwi}');
+                    }
+                } else {
+                    // $('#insuranceCall').removeClass('hidden');
+                    $('#insuranceContact').text($('#contactUs').text());
+                }
+                
+                //Set text
+                $('.insuranceHeading').text(insuranceText);
+                $('.insuranceHeadingMobile').text(insuranceTextMobile);
+                $('.insuranceSubHeading').text(subHeaderInsurance);
+                $('.insuranceSubHeadingMobile').text(subHeaderInsurance);
+                $('.insuranceCheckHeading').text(subHeaderInsurance2);
+                $('.insuranceCheckHeadingMobile').text(subHeaderInsurance2);
+                
+                //Display insurance ribbon
+                if(applicationWrapper.application.Online_Self_serve_Insurance_Eligibility__c){
+                    $('#insuranceDiv').removeClass('hidden');
+                }
+                
+                $('#totalLoanAmountWithFees').text(loanAmountWithFees);
+            }
+            //END  05-JUL-16 MLASALA: DEFECT 1043/1066 FIX
+        }
+        
+        function setInsuranceDescriptions(bCountry){
+            if(bCountry === 'NZ'){
+                $("#lifedescd").append(unescapeHtml("{!$Label.Insurance_Life_Description_NZ}"));
+                $("#lifedescm").append(unescapeHtml("{!$Label.Insurance_Life_Description_NZ}"));
+                $("#disdescd").append(unescapeHtml("{!$Label.Insurance_Disability_Description_NZ}"));
+                $("#disdescm").append(unescapeHtml("{!$Label.Insurance_Disability_Description_NZ}"));
+                $("#iuidescd").append(unescapeHtml("{!$Label.Insurance_Unemployment_Description_NZ}"));
+                $("#iuidescm").append(unescapeHtml("{!$Label.Insurance_Unemployment_Description_NZ}"));
+                $("#iuiArrow").addClass("hidden");
+                $("#disArrow").addClass("hidden");
+                $("#lifeArrow").addClass("hidden");
+                $('#iuiAccordion').addClass('disabled');
+                $('#disAccordion').addClass('disabled');
+                $('#lifeAccordion').addClass('disabled');
+            }
+            else{               
+                $("#lifedescd").append(unescapeHtml("{!$Label.Insurance_Life_Description}"));                
+                $("#lifedescm").append(unescapeHtml("{!$Label.Insurance_Life_Description}"));              
+                $("#lifesumaum").removeClass("hidden");
+                $("#lifesumaud").removeClass("hidden");
+                $("#fullLifeSummaryDescd").append("{!$Label.APP_GSD_Insurance_Life_Summary}");
+                $("#fullLifeSummaryDescm").append("{!$Label.APP_GSD_Insurance_Life_Summary}");
+                $("#disdescd").append(unescapeHtml("{!$Label.Insurance_Disability_Description}"));
+                $("#disdescm").append(unescapeHtml("{!$Label.Insurance_Disability_Description}"));
+                $("#dissumaum").removeClass("hidden");
+                $("#dissumaud").removeClass("hidden");
+                $("#fullDisSummaryDescd").append("{!$Label.APP_GSD_Insurance_Dis_Summary}");
+                $("#fullDisSummaryDescm").append("{!$Label.APP_GSD_Insurance_Dis_Summary}");
+                $("#iuidescd").append(unescapeHtml("{!$Label.Insurance_Unemployment_Description}"));
+                $("#iuidescm").append(unescapeHtml("{!$Label.Insurance_Unemployment_Description}"));
+                $("#iuisumaum").removeClass("hidden");
+                $("#iuisumaud").removeClass("hidden");
+                $("#fullIUISummaryDescd").append("{!$Label.APP_GSD_Insurance_IUI_Summary}");
+                $("#fullIUISummaryDescm").append("{!$Label.APP_GSD_Insurance_IUI_Summary}");
+            }
+        }
+        /*  Description: Identify whether ribbons should be displayed
+         *  Author: Mike Lasala
+         *  Date Created: 28-JAN-2016
+         *  Input: Process
+                   Div Id
+         */
+        function isActive(process, divId){
+    
+            //Indicator if both applicants are applicable for the ribbon (Joint)
+            var isJoint = true;
+    
+            //Iterate over object to identify whether both applicants for joint is applicable
+            for(var key in process){
+                if(process.hasOwnProperty(key)){
+    
+    
+                    if(!process[key]){
+    
+                        //Ribbon is only applicable to 1 applicant
+                        isJoint = false;
+    
+                    } else {
+    
+                        //Display ribbon
+                        //$('#'+divId).show();
+                        $('#'+divId).removeClass('hidden');
+                        
+                        $('#apply').removeClass('hidden');
+                        $('#nextStatic').css('visibility', 'visible');
+                    }
+                }
+            }
+    
+            //For both applicants
+            if(isJoint &&
+               applicantCount == 2){
+    
+                //Append applicant names
+                $('#'+divId).find('.name').text(applicantDisplayNames+'\'s');
+    
+            } else {
+    
+                //For single and/or 1 applicant only
+                if(process[1]){
+    
+                    //Applicant 1
+                    if(applicantCount>1){
+    
+                        //Append applicant 1 name
+                        $('#'+divId).find('.name').text(applicantNames[0]+'\'s');
+    
+                    } else {
+    
+                        $('#'+divId).find('.name').text('your');
+                    }
+    
+                } else if(process[2]){
+    
+                    //Applicant 2
+                    if(applicantCount>1){
+    
+                        //Append applicant 2 name
+                        $('#'+divId).find('.name').text(applicantNames[1]+'\'s');
+                    }
+                }
+            }
+        }
+    
+        function changeIcon(elem, icon, status){
+            // console.log('$$$$ elem: '+elem+', '+$('#'+elem).attr('class'));
+            
+            if(elem == 'accord2Lbla211'){
+                
+                if($('#'+elem).attr('class').indexOf('collapsed') > -1){
+                    $('#icnEditUpsell').removeClass('icon_edit').addClass('icon_edit_white');
+                } else {
+                    $('#icnEditUpsell').removeClass('icon_edit_white').addClass('icon_edit');
+                }
+                
+            } else {
+                
+                 if($('#'+elem).attr('class').indexOf('collapsed') > -1){
+                    $('#icnEditInsurance').removeClass('icon_edit').addClass('icon_edit_white');
+                } else {
+                    $('#icnEditInsurance').removeClass('icon_edit_white').addClass('icon_edit');
+                }
+            }
+            
+            var downArrowClass;
+            var upArrowClass;
+            
+            downArrowClass = 'icon_arrowDown'
+            
+            if((elem == 'accord2Lbla211' && 
+                isUpsell) || 
+               isInsured){
+                   
+                downArrowClass = 'icon_approved';
+            }
+            
+            if('{!$Site.Name}' == 'Latitude'){
+                upArrowClass = 'icon_arrowUp';
+            } else {
+                upArrowClass = 'icon_arrow_up';
+            }
+                
+            if($('#'+elem).attr('class').indexOf('collapsed') > -1){
+                $('#'+icon).removeClass(downArrowClass).addClass(upArrowClass);
+                $('#'+status).addClass('hidden');
+            } else {
+                $('#'+icon).removeClass(upArrowClass).addClass(downArrowClass);
+                $('#'+status).removeClass('hidden');
+            }
+        }
+        
+        function changeArrow(elem, icon){
+            if($('#'+elem).attr('class').indexOf('collapsed') > -1){
+                $('#'+icon).removeClass('icon_blue_arrow_down').addClass('icon_blue_arrow_up');
+            } else {
+                $('#'+icon).removeClass('icon_blue_arrow_up').addClass('icon_blue_arrow_down');
+            }
+        }
+        
+        /*  Description: method to unescapre html tags
+         *  Author: Russell Cadapan
+         *  Date Created: 02-JUN-2016
+         */
+        function unescapeHtml(safe) {
+            return $('<div />').html(safe).text();
+        }
+        
+        function hideShowSummary(originElement, targetElement){
+            $("#"+originElement).toggleClass("lat-blue lat-dark-grey");
+            //$("#"+originElement).toggleClass("blueUnderline noUnderline");
+            if($("#"+targetElement).hasClass("hidden")){
+                $("#"+targetElement).removeClass("hidden");
+            }
+        }
+    </script>
+    
+    <!-- jQuery -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jQueryMin.js')}"/>
+    <!-- Bootstrap Core JavaScript -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+    <!-- Plugin JavaScript -->
+    <!--<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/js/collapse.js')}" />-->
+    <!-- Contact Form JavaScript -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jqBootstrapValidation.js')}"/>
+    <!--Custom scripts -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/>
+    <!--<apex:includeScript value="{!$Resource.autoHideNavBar}"/>-->
+    
+    <c:APP_GSD_MobileStyles />
+        
+</apex:page>

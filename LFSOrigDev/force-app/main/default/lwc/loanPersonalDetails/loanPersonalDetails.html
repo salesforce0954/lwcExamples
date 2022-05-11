@@ -1,0 +1,548 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="About" icon-name="standard:employee_contact" >
+            
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="title"
+                                                label="Title"
+                                                data-id="title_"
+                                                value={personalDetailsObj.Title}
+                                                placeholder="Select"
+                                                options={titleOptions}
+                                                onchange={handleShowWarning}
+                                                onblur={handlePersonalDetailsChange}
+                                                required
+                                                message-when-value-missing="Please complete this field"
+                                                disabled={isDisabled}
+                    ></lightning-combobox>
+                    <div class="title_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="text" disabled={isDisabled} onchange={handleShowWarning} pattern="[A-Za-z]*" label="First name" name="firstName" message-when-value-missing="Please complete this field" value={personalDetailsObj.FirstName} onblur={handlePersonalDetailsChange} required min-length="3" max-length="15"></lightning-input>
+                    <div class="firstName_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="text" disabled={isDisabled} label="Middle name" name="middleName" pattern="[A-Za-z]*" onchange={handleShowWarning} value={personalDetailsObj.MiddleName} onblur={handlePersonalDetailsChange} max-length="15"></lightning-input>
+                    <div class="middleName_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="text" disabled={isDisabled} label="Last name" pattern="[A-Za-z]*" onchange={handleShowWarning} message-when-value-missing="Please complete this field" value={personalDetailsObj.LastName}  name="lastName" onblur={handlePersonalDetailsChange} required min-length="3" max-length="20"></lightning-input>
+                    <div class="lastName_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="gender"
+                                                label="Gender"
+                                                value={personalDetailsObj.Gender}
+                                                placeholder="Select"
+                                                options={genderOptions}
+                                                onblur={handlePersonalDetailsChange}
+                                                onchange={handleShowWarning}
+                                                required
+                                                message-when-value-missing="Please complete this field"
+                                                disabled={isDisabled}
+                    ></lightning-combobox>
+                    <div class="gender_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-grid slds-var-m-around_x-small slds-grid_vertical-align-center">
+                               
+                <div class="slds-col slds-size_2-of-12">
+                  <span>
+                      
+                    <lightning-combobox
+                    name="dayOfBirth"
+                    label="Date of birth"
+                    value={personalDetailsObj.dobDay}
+                    placeholder="Select"
+                    options={dayoptions}
+                    onblur={handlePersonalDetailsChange}
+                    onchange={handleShowWarning}
+                    required
+                    message-when-value-missing="Please complete this field"
+                    disabled={isDisabled}
+                    ></lightning-combobox>
+                    <div class="dayOfBirth_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                  </span>
+                </div>
+                <div class="slds-col slds-var-m-top_xx-small slds-var-m-left_xx-small slds-size_2-of-12">
+                  <span>
+                    <lightning-combobox
+                    name="monthOfBirth"
+                    label=""
+                    class="mobirth"
+                    value={personalDetailsObj.dobMonth}
+                    placeholder="Select"
+                    options={monthoptions}
+                    onblur={handlePersonalDetailsChange}
+                    onchange={handleShowWarning}
+                    disabled={isDisabled} 
+                    ></lightning-combobox>
+                    <div class="monthOfBirth_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                  </span>
+                </div>
+                <div class="slds-col slds-size_2-of-12 slds-var-m-top_xx-small slds-var-m-left_xx-small">
+                    <lightning-input class="yobirth" type="text" label="" value ={personalDetailsObj.dobYear} onchange={handleShowWarning} name="yearOfBirth" disabled={isDisabled} placeholder="Year" message-when-value-missing="Please complete this field" min-length="4" max-length="4" onblur={handlePersonalDetailsChange}></lightning-input>
+                    <div class="yearOfBirth_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="relationshipStatus"
+                                                label="Relationship status"
+                                                value={personalDetailsObj.RelationshipStatus}
+                                                placeholder="Select"
+                                                options={relationshipStatusOptions}
+                                                onchange={handlePersonalDetailsChange}
+                                                required
+                                                message-when-value-missing="Please complete this field"
+                                                disabled={isDisabled} 
+                    ></lightning-combobox>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="number" name="numberOfDependants" disabled={isDisabled} onblur={handlePersonalDetailsChange} min-length="1" max-length="2" label="Number of dependants in the household?" value={personalDetailsObj.Dependents} message-when-value-missing="Please complete this field" required></lightning-input>
+                </div>
+                <template if:true={showDLTextbox}>
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-input type="text" label="Driver's licence number" pattern="[0-9A-Za-z]*" message-when-pattern-mismatch="Special characters are not allowed." disabled={isDisabled} name="dlNumber" onchange={handleShowWarning} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} value={personalDetailsObj.DLNumber} max-length="9" required></lightning-input>
+                        <div class="dlNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                            <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                        </div>
+                    </div>
+                    
+                </template>
+                <div class="slds-col slds-size_4-of-12 slds-var-p-top_xx-small">
+                    <strong>
+                        <lightning-input  type="checkbox" class="dont-have-dl" disabled={isDisabled} label="Applicant does not have a driver's licence" checked={personalDetailsObj.NoDL} name="dontHaveDl" onclick={handleShowWarning} onblur={handlePersonalDetailsChange}></lightning-input>
+                        <div class="dontHaveDl_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                            <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                        </div>
+                    </strong>
+                </div>
+            </div>
+
+
+            <!-- Residential Address :START-->
+            
+            <!-- To be uncommented when Datatools integration is done: START -->
+
+            <!-- <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-var-p-top_x-small slds-col slds-size_8-of-12">
+                    <lightning-input type="search" label="Residential address" name="residentialAddress" value={residentialAddressValue} onchange={searchAddress}></lightning-input>
+                    <template if:true={addressListFound}>
+                    <ul>
+                        
+                            <li >
+                                <a href="#">Google</a>
+                            </li>
+                            <li >
+                                <a href="#">Amazon</a>
+                            </li>
+                            <li >
+                                <a href="#">Apple</a>
+                            </li>
+                        
+                    </ul>
+                </template>
+                    Can't find your address? <lightning-formatted-text value="Enter manually"  name="resAddressManualEntry" class= "addressComponent" onclick={handleManualAddressClick}></lightning-formatted-text>
+                </div>
+            </div> -->
+
+            <!-- To be uncommented when Datatools integration is done: END -->
+
+            <!-- <template if:true={showResAddressDetails}> -->
+                <lightning-card title="Residential address" icon-name="standard:agent_home">
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Unit number (optional)" min-length="1" max-length="4" disabled={isDisabled} onchange={handleShowWarning} onblur={handlePersonalDetailsChange} name="resUnitNumber" value={personalDetailsObj.ResidentialUnitNumber} ></lightning-input>
+                            <div class="resUnitNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" label="Street number" name="resStreetNumber" pattern="[0-9]*" onchange={handleShowWarning} message-when-pattern-mismatch="Please enter a residential street number" disabled={isDisabled} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} value={personalDetailsObj.ResidentialStreetNumber} required></lightning-input>
+                            <div class="resStreetNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Street" pattern="[A-Za-z ]*" message-when-pattern-mismatch="Please enter a residential street name" onchange={handleShowWarning} onblur={handlePersonalDetailsChange} disabled={isDisabled} message-when-value-missing="Please complete this field" value={personalDetailsObj.ResidentialStreet} name="resStreet" max-length="15" required></lightning-input>
+                            <div class="resStreet_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="resStreetType"
+                                                        label="Street type"
+                                                        value={personalDetailsObj.ResidentialStreetType}
+                                                        placeholder="Select"
+                                                        options={streetTypeOptions}
+                                                        onblur={handlePersonalDetailsChange}
+                                                        onchange={handleShowWarning}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                            <div class="resStreetType_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Suburb" pattern="[A-Za-z ]*" max-length="22" message-when-pattern-mismatch="Please enter a residential suburb" onchange={handleShowWarning} disabled={isDisabled} value={personalDetailsObj.ResidentialSuburb} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} name="resSuburb" required></lightning-input>
+                            <div class="resSuburb_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="resState"
+                                                        label="State"
+                                                        value={personalDetailsObj.ResidentialState}
+                                                        placeholder="Select"
+                                                        options={stateOptions}
+                                                        onblur={handlePersonalDetailsChange}
+                                                        onchange={handleShowWarning}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                            <div class="resState_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" onchange={handleShowWarning} label="Postcode" min-length="4" max-length="4" pattern="[0-9]*" message-when-pattern-mismatch="Please enter a 4 digit postcode" disabled={isDisabled} message-when-value-missing="Please complete this field" name="resPostcode" onblur={handlePersonalDetailsChange} value={personalDetailsObj.ResidentialPostcode} required></lightning-input>
+                            <div class="resPostcode_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" label="Country" value="Australia" name="resCountry" disabled></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="text" onchange={handleShowWarning} label="Property name (optional)" max-length="20" disabled={isDisabled} name="resPropertyName" onblur={handlePersonalDetailsChange} value={personalDetailsObj.ResidentialPropName}></lightning-input>
+                            <div class="resPropertyName_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="slds-grid slds-var-m-around_x-small slds-grid_vertical-align-center">
+                               
+                        <div class="slds-col slds-size_2-of-12">
+                            <lightning-input type="number" label="Time at this address" disabled={isDisabled} message-when-value-missing="Please complete this field" onchange={handleShowWarning} onblur={handlePersonalDetailsChange} required placeholder="Years" name="resYears" value={personalDetailsObj.ResidentialYears} max="99" min-length="1" max-length="2" message-when-range-overflow="Please enter a number between 0 to 99." ></lightning-input>
+                            <div class="resYears_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="slds-col slds-size_2-of-12 slds-var-m-top_xx-small slds-var-m-left_xx-small">
+                            <lightning-input type="number" label="" placeholder="Months" disabled={isDisabled} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} value={personalDetailsObj.ResidentialMonths} name="resMonths" min="0" max="11" max-length="2" onchange={handleShowWarning} message-when-range-overflow="Please enter a number between 0 to 11."></lightning-input>
+                            <div class="resMonths_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        
+        
+        
+                    </div>
+                </lightning-card>
+                
+            <!-- </template> -->
+            <!-- Residential Address :END-->
+
+            
+
+            <!-- Previous Address :START-->
+            <!-- <template if:true={showPreviousAddressSearch}>
+                <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                    <div class="slds-var-p-top_x-small slds-col slds-size_8-of-12">
+                        <lightning-input type="search" label="Previous residential address" value={prevResidentialAddressValue} name="prevResAddress"></lightning-input>
+                        Can't find your address? <lightning-formatted-text value="Enter manually" name="prevAddressManualEntry" class="addressComponent" onclick={handleManualAddressClick}></lightning-formatted-text>
+                    </div>
+                </div>
+            </template> -->
+
+            <template if:true={showPreviousAddressSearch}>
+                <lightning-card title="Previous residential address" icon-name="standard:address">
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Unit number (optional)"  min-length="1" max-length="4" onchange={handleShowWarning} disabled={isDisabled} onblur={handlePersonalDetailsChange} value={personalDetailsObj.PrevUnitNumber} name="prevUnitNumber"></lightning-input>
+                            <div class="prevUnitNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" label="Street number" pattern="[0-9]*" message-when-pattern-mismatch="Please enter a street number" disabled={isDisabled} onchange={handleShowWarning} onblur={handlePersonalDetailsChange} message-when-value-missing="Please complete this field" value={personalDetailsObj.PrevStreetNumber} name="prevStreetNumber" required></lightning-input>
+                            <div class="prevStreetNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Street" disabled={isDisabled} pattern="[A-Za-z ]*" message-when-pattern-mismatch="Please enter a street name" onchange={handleShowWarning} value={personalDetailsObj.PrevStreet} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} name="prevStreet" max-length="15" required></lightning-input>
+                            <div class="prevStreet_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="prevStreetType"
+                                                        label="Street type"
+                                                        value={personalDetailsObj.PrevStreetType}
+                                                        placeholder="Select"
+                                                        options={streetTypeOptions}
+                                                        onblur={handlePersonalDetailsChange}
+                                                        onchange={handleShowWarning}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                            <div class="prevStreetType_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Suburb" pattern="[A-Za-z ]*" max-length="22" message-when-pattern-mismatch="Please enter a suburb" onchange={handleShowWarning} name="prevSuburb" disabled={isDisabled} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} value={personalDetailsObj.PrevSuburb} required></lightning-input>
+                            <div class="prevSuburb_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="prevState"
+                                                        label="State"
+                                                        value={personalDetailsObj.PrevState}
+                                                        placeholder="Select"
+                                                        options={stateOptions}
+                                                        onblur={handlePersonalDetailsChange}
+                                                        onchange={handleShowWarning}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                            <div class="prevState_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Postcode" onchange={handleShowWarning} min-length="4" max-length="4" pattern="[0-9]*" message-when-pattern-mismatch="Please enter a 4 digit postcode" name="prevPostcode" disabled={isDisabled} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} value={personalDetailsObj.PrevPostcode} required></lightning-input>
+                            <div class="prevPostcode_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" label="Country" name="prevCountry" value="Australia" disabled></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="text" label="Property name (optional)" max-length="20" onchange={handleShowWarning} disabled={isDisabled} onblur={handlePersonalDetailsChange} name="prevProperty" value={personalDetailsObj.PrevProperty}></lightning-input>
+                            <div class="prevProperty_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                                <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                
+                    <!-- Previous Address :END-->
+
+                    <div class="slds-grid slds-var-m-around_x-small slds-grid_vertical-align-center">
+                                    
+                        <div class="slds-col slds-size_2-of-12">
+                            <lightning-input type="text" required label="Time at previous address" disabled={isDisabled} message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} placeholder="Year" name="prevYears" value={personalDetailsObj.PrevYears} max="99" max-length="2" min-length="1" onchange={handleYearChange}></lightning-input>
+                        </div>
+                        
+                        <div class="slds-col slds-size_2-of-12 slds-var-m-top_xx-small slds-var-m-left_xx-small">
+                            <lightning-input type="text" label="" message-when-value-missing="Please complete this field" disabled={isDisabled} placeholder="Month" min="0" max="11" max-length="2" onblur={handlePersonalDetailsChange} name="prevMonths" value={personalDetailsObj.PrevMonths} onchange={handleYearChange} message-when-range-overflow="Please enter a number between 0 to 11."></lightning-input>
+                        </div>
+                        
+                    </div>
+                </lightning-card>
+            </template>
+
+            <div class="slds-grid slds-var-m-around_x-small slds-var-p-top_medium slds-grid_vertical-align-center">
+                <lightning-input type="toggle" label="Postal address same as residential address?" disabled={isDisabled} onblur={handlePersonalDetailsChange} message-toggle-active="Yes" name="isPostalSameRes" message-toggle-inactive="No" checked={personalDetailsObj.IsPostalAddSameAsRes} onchange={handlePersonalDetailsChange}></lightning-input>
+
+            </div>
+
+            <!-- Postal Address :START-->
+            <!-- <template if:true={showPostalAddressSearch}>
+                <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                    <div class="slds-var-p-top_x-small slds-col slds-size_8-of-12">
+                        <lightning-input type="search" label="Postal address" value={postalAddressValue} name="posAddress"></lightning-input>
+                        Can't find your address? <lightning-formatted-text value="Enter manually" name="postAddressManualEntry" class="addressComponent" onclick={handleManualAddressClick}></lightning-formatted-text>
+                    </div>
+                </div>
+            </template> -->
+
+            <template if:true={showPostalAddressSearch}>
+                <lightning-card title="Postal address" icon-name="utility:home">
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Unit number (optional)"  min-length="1" max-length="4" disabled={isDisabled} onblur={handlePersonalDetailsChange} value={personalDetailsObj.PosUnitNumber} name="posUnitNumber"></lightning-input>
+                        </div>
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" label="Street number" disabled={isDisabled} pattern="[0-9]*" message-when-pattern-mismatch="Please enter a street number" message-when-value-missing="Please complete this field" value={personalDetailsObj.PosStreetNumber} onblur={handlePersonalDetailsChange} name="posStreetNumber" required></lightning-input>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Street" disabled={isDisabled} value={personalDetailsObj.PosStreet} pattern="[A-Za-z ]*" message-when-pattern-mismatch="Please enter a street name" message-when-value-missing="Please complete this field" onblur={handlePersonalDetailsChange} name="posStreet" max-length="15" required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="posStreetType"
+                                                        label="Street type"
+                                                        value={personalDetailsObj.PosStreetType}
+                                                        placeholder="Select"
+                                                        options={streetTypeOptions}
+                                                        onchange={handlePersonalDetailsChange}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" label="Suburb" disabled={isDisabled} pattern="[A-Za-z ]*" max-length="22" message-when-pattern-mismatch="Please enter a suburb" message-when-value-missing="Please complete this field" name="posSuburb" onblur={handlePersonalDetailsChange} value={personalDetailsObj.PosSuburb} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-combobox
+                                                        name="posState"
+                                                        label="State"
+                                                        value={personalDetailsObj.PosState}
+                                                        placeholder="Select"
+                                                        options={stateOptions}
+                                                        onchange={handlePersonalDetailsChange}
+                                                        required
+                                                        message-when-value-missing="Please complete this field"
+                                                        disabled={isDisabled} 
+                            ></lightning-combobox>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                        <div class="slds-col slds-size_4-of-12">
+                            <lightning-input type="text" name="posPostcode" min-length="4" max-length="4" pattern="[0-9]*" message-when-pattern-mismatch="Please enter a 4 digit postcode" disabled={isDisabled} message-when-value-missing="Please complete this field" label="Postcode" onblur={handlePersonalDetailsChange} value={personalDetailsObj.PosPostcode} required></lightning-input>
+                        </div>
+                        <div class="slds-col slds-var-p-left_x-small slds-size_4-of-12">
+                            <lightning-input type="text" name="posCountry" label="Country" value="Australia" disabled></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_8-of-12">
+                            <lightning-input type="text" name="posPropertyName" disabled={isDisabled} label="Property name (optional)" max-length="20" onblur={handlePersonalDetailsChange} value={personalDetailsObj.PosPropertyName}></lightning-input>
+                        </div>
+                    </div>
+                </lightning-card>
+            </template> 
+            <!-- Postal Address :END-->
+
+
+        </lightning-card>
+
+    </div>
+
+    <div class="slds-var-m-around_x-small slds-var-p-bottom_x-small">
+        <lightning-card title="Contact Details" icon-name="standard:log_a_call" class="contact-details">
+            <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="email" label="Applicant's email address" max-length="40" onchange={handleShowWarning} disabled={isDisabled} message-when-value-missing="Please complete this field" value={personalDetailsObj.Email} onblur={handlePersonalDetailsChange} name="emailAddress" required></lightning-input>
+                    <div class="emailAddress_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="email" label="Confirm applicants's email address" max-length="40" disabled={isDisabled} message-when-value-missing="Please complete this field" class="confirmEmail" value={personalDetailsObj.ConfirmEmail} onblur={handleConfirmEmailChange} name="confirmEmail" onpaste={handleConfirmEmailPaste} required></lightning-input>
+                </div>
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="tel" label="Mobile number" max-length="10" onchange={handleShowWarning} disabled={isDisabled}  message-when-value-missing="Please complete this field" pattern="^04[0-9]{8}" message-when-pattern-mismatch="Please enter a 10-digit mobile phone number starting with 04."	value={personalDetailsObj.MobileNumber} name="mobileNumber" onblur={handlePersonalDetailsChange} required></lightning-input>
+                    <div class="mobileNumber_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+                
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="tel" label="Work number" max-length="10" disabled={isDisabled} pattern="^0(2|3|4|7|8)[0-9]{8}$" message-when-pattern-mismatch="Work number must begin with 02, 03, 04, 07, 08 and be 10 numbers in total with no spaces or dashes." name="workNumber" onblur={handlePersonalDetailsChange} value={personalDetailsObj.WorkNumber}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="tel" label="Home number" max-length="10" disabled={isDisabled} pattern="^0(2|3|7|8)[0-9]{8}$" message-when-pattern-mismatch="Please enter a 10 digit landline number with the area code (e.g. 02, 03, 07, 08)." name="homeNumber" onblur={handlePersonalDetailsChange} value={personalDetailsObj.HomeNumber} ></lightning-input>
+                </div>
+            </div>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+        
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handlePersonalDetailsPrev}></lightning-button>
+                                <template if:true={isJointApplication}>
+                                    <lightning-button class="slds-float_right" label="Proceed to Applicant 2" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleGoToJointApplicant}></lightning-button>
+                                </template>
+                                <template if:false={isJointApplication}>
+                                    <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handlePersonalDetailsNext}></lightning-button>
+                                </template>
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+        </lightning-card>
+    </div>
+</template>

@@ -1,0 +1,579 @@
+<!--
+    * @Description: Consolidated payment details page (Disbursement, Direct Debit, Personal Reference)
+    * @Author: Mike Lasala
+    * @Date Created: 10-FEB-2016
+    * @History:
+    =====================================================================
+        10-FEB-16: Created -Mike
+    ===================================================================== 
+-->
+<apex:page controller="APP_GSD_Response_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+    <c:APP_GSD_Scripts />
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+    
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScriptGSD}"/>
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    <!--<link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/css/desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />-->
+    <!-- Bootstrap Core CSS -->
+    <!--<link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet"/>-->
+    
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+        
+        var className = 'APP_GSD_Response_Ext';
+        
+        //PLEASE CHANGE VALUE TO PAGES CONTROLLER/EXTENSION
+        var className = 'APP_GSD_Response_Ext';                         //Used for calling remote action for base controller
+        
+          //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+
+    </script>
+
+<!-- Latitude -->
+ <apex:outputPanel rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+    <style>
+        ul li, ol li {
+        margin-left: 0 !important;
+        }
+
+        ul li::before {
+            content: none !important;
+            color: #004a95;
+            padding-right: 0.5em;
+        }  
+        
+        ul li::after {
+            color: #75787b;        
+        }
+
+         .nav-tabs > li:active > a.hover {
+            border: 0;
+            background: #3b73b9 !important;
+            color: white;
+            border: none !important;
+        }
+
+            .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+                background: #3b73b9 !important;
+                color: white !important;
+            }
+            
+            .nav-tabs li {
+                border: 1px solid #3b73b9;
+                width: 50%;
+            }
+            
+            .nav-tabs li.active a {
+                border: 0 !important;
+                border-radius: 0;
+                padding-bottom: 12px;
+                width: 100%;
+            }
+                        
+        input[type="text"]:focus{
+            border:1px solid #006ac6;
+        }
+ </style>
+ </apex:outputPanel>
+
+<!-- Gem -->
+ <apex:outputPanel rendered="{!if($Site.Name = 'Gem', 'true', 'false')}">
+    <style>
+        ul li, ol li {
+        margin-left: 0 !important;
+        }
+
+        ul li::before {
+            content: none !important;
+            color: #004a95;
+            padding-right: 0.5em;
+        }  
+        
+        ul li::after {
+            color: #75787b;        
+        }
+
+         .nav-tabs > li:active > a.hover {
+            border: 0;
+            background: #4465ad !important;
+            color: white;
+            border: none !important;
+        }
+
+            .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+                background: #4465ad !important;
+                color: white !important;
+            }
+            
+            .nav-tabs li {
+                border: 1px solid #4465ad;
+                width: 50%;
+            }
+            
+            .nav-tabs li.active a {
+                border: 0 !important;
+                border-radius: 0;
+                padding-bottom: 12px;
+                width: 100%;
+            }
+                        
+        input[type="text"]:focus{
+            border:1px solid #006ac6;
+        }
+ </style>
+ </apex:outputPanel>
+
+<!-- Kiwibank -->
+ <apex:outputPanel rendered="{!if($Site.Name = 'Kiwibank', 'true', 'false')}">
+    <style>
+        ul li, ol li {
+        margin-left: 0 !important;
+        }
+
+        ul li::before {
+            content: none !important;
+            color: #88c83d;
+            padding-right: 0.5em;
+        }  
+        
+        ul li::after {
+            color: #75787b;        
+        }
+
+         .nav-tabs > li:active > a.hover {
+            border: 0;
+            background: #88c83d !important;
+            color: white;
+            border: none !important;
+        }
+
+            .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+                background: #88c83d !important;
+                color: white !important;
+            }
+            
+            .nav-tabs li {
+                border: 1px solid #88c83d;
+                width: 50%;
+            }
+            
+            .nav-tabs li.active a {
+                border: 0 !important;
+                border-radius: 0;
+                padding-bottom: 12px;
+                width: 100%;
+            }
+                        
+        input[type="text"]:focus{
+            border:1px solid #006ac6;
+        }
+ </style>
+ </apex:outputPanel>
+    
+    <html>
+        <apex:include pageName="APP_GSD_BrandScript"/>
+        <title>Confirm Your Payment Details</title>
+            
+            <!-- LOAN DETAILS COMPONENT -->
+            <c:APP_GSD_LoanDetailComponent />
+            
+        
+        <!-- BACK BUTTON TO MAIN RESPONSE PAGE -->
+        <!-- Kabir - TQLQW-109  -->               
+             
+        <!-- TABS CONTAINER -->
+        <div class="container" >
+        <!-- START -->
+        <!-- Adding the below custom lable for more clarity -->        
+        <div class="middle-content-margin">        
+            <span class="lat-blue module2-label">{!$Label.APP_GSD_Payments_Header}</span>
+        </div>
+        <div style="font-size: 24px; padding: 1px">
+          <div>
+              <span class="lat-blue">{!$Label.APP_GSD_Payments_Sub_Header}</span>
+          </div>
+          </div> 
+          
+          <br/>
+         <table style="width:100%">
+          <tr>
+          <th>
+          <div style="font-size: 22px;">
+          <div>
+              <span class="lat-dark-grey"><b>{!$Label.APP_GSD_Payments_DC}</b></span>
+          </div>
+        </div>
+        </th>
+        <th>
+          <div style="font-size: 22px; padding-right: 10px">
+          <div>
+              <span class="lat-dark-grey"><b>{!$Label.APP_GSD_Payments_DD_Header}</b></span>
+          </div>
+        </div>
+        </th>
+<!--     <br/> -->
+        </tr>
+        <tr>
+        <td>
+        <div style="font-size: 20px;">
+          <div>
+              <span class="lat-dark-grey">{!$Label.APP_GSD_Payments_DC_Desc}</span>
+          </div>
+        </div> 
+
+        </td>
+        <td>
+        <div style="font-size: 20px;">
+          <div>
+              <span class="lat-dark-grey">{!$Label.APP_GSD_Payments_DD_Desc}</span>
+          </div>
+        </div> 
+        </td>
+        </tr>
+        </table>
+       <br/>
+       <br/>
+       
+       <!-- END -->  
+                    
+          <div class="row noLeftRightMargin paymentDetailsPadding GDepad">
+          <!-- <div class="col-md-12 col-xs-12"> -->
+            <div class="col-md-16 col-xs-16">
+              <div class="tabbable-panel middle-content-margin">
+               <div class="switch">
+                 <ul class="nav nav-tabs tab-links"> 
+                
+                    <!-- DISBURSEMENT TAB -->
+                   <li id="directCredit_Tab" class="col-md-6 col-xs-6 aligncenter active">
+                       <a href="#directCredit_Content" style="font-size:24px; font-family:Arial" onclick="switchTab('#directCredit_Content');"><b>1: Direct Credit Details</b></a>
+                   </li>
+                   
+                    <!-- DIRECT DEBIT TAB -->
+                    <li id="repayments_Tab" class="col-md-6 col-xs-6 aligncenter">
+                        <a href="#repayments_Content" style="font-size:24px; font-family:Arial"  onclick="switchTab('#repayments_Content');"><b>2: Direct Debit Details</b></a>
+                    </li>
+                    
+                    <!-- PERSONAL REFERENCE TAB -->
+                    <!-- Removed this section as part of the E2E Tactical Enhancements
+                    Start
+                      -- <li id="personalReference_Tab" class="col-md-4 col-xs-4 aligncenter" style='display:none'>
+                      -- <a href="#personalReference_Content"  onclick="validateTab('#personalReference_Content');"  class="paymentDetailsTab lat-dark-grey">3. Alternate contact person</a>
+                      -- </li>
+                    End -->
+                </ul>
+            
+                <div id="dmlStatus"></div>
+            
+            <div class="tab-content">
+                
+                <!-- DISBURSEMENT CONTAINER -->
+                <div id="directCredit_Content" class="tab-pane active">
+                    <div class="panel-gap-top" id="thumbsRow">
+                        <div class="center-block mid-content margin-top">
+                            <span class="lat-blue module2-label">{!$Label.APP_GSD_Disbursement_Header}</span>
+                        </div>
+                    </div>
+                    <br/>
+                    <br/>
+                    
+                    <!-- AU SUB HEADERS FOR DISBURSEMENTS -->
+                    <!-- Added the new bullets as part of the E2E Tactical Enhancments -->
+                    <div id="aupointbullets" style="display:{!if($site.Name = 'Latitude', 'block', 'none')}">
+                    <ul class="aubullet">
+                      <li id = "aupointone" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_AU_1}</li>
+                      <li id = "aupointtwo" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_AU_2}</li>
+                      <li id = "aupointthree" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_AU_3}&#174;{!$Label.APP_GSD_Disbursement_SubHeader_AU_5} <b>1800 803 051</b> {!$Label.APP_GSD_Disbursement_SubHeader_AU_4}</li>
+                    </ul>
+                    </div>
+                   
+                   <!-- NZ SUB HEADERS FOR DISBURSEMENTS -->
+                   <!-- Added the new bullets as part of the E2E Tactical Enhancments -->
+                    <div id="nzpointbulletsgem" style="display:{!if($site.Name = 'Gem','block','none')}">
+                    <ul class="nzbulletgem">
+                      <li id = "nzpointonegem" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_1}</li>
+                      <li id = "nzpointtwogem" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_2}</li>
+                      <li id = "nzpointthreegem" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_3}</li>
+                      <li id = "nzpointfourgem" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_4} <b>0800 500 505</b> {!$Label.APP_GSD_Disbursement_SubHeader_AU_4}</li>
+                    </ul>
+                    </div>
+
+                  <div id="nzpointbulletskb" style="display:{!if($site.Name = 'Kiwibank','block','none')}">
+                    <ul class="nzbulletkb">
+                      <li id = "nzpointonekb" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_1}</li>
+                      <li id = "nzpointtwokb" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_2}</li>
+                      <li id = "nzpointthreekb" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_3}</li>
+                      <li id = "nzpointfourkb" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Disbursement_SubHeader_NZ_4} <b>0800 32 10 10</b> {!$Label.APP_GSD_Disbursement_SubHeader_AU_4}</li>
+                    </ul>
+                  </div>
+
+
+                    <apex:include pageName="APP_GSD_DisbursementDetails"/>
+                  <!--  <br/> -->
+                    
+                    <!-- BUTTON CONTAINER -->
+                    <div class="container" id="toprow">
+                    <div class="row"> 
+
+               <!--  Commenting this code as part of the E2E Tactical Enhancements
+                 -- Start
+                 --   <div class="pull-right confirmMarginB btnLRMargin hidden-xs" id="btnDone">
+                 -- End -->                                
+                    <div class="GForm-group centerAlignText" id="btnDone">                     
+                        <button type="submit" onclick="validateTab('#repayments_Content');" class="GPrimary-button module5-label lat-blue forms_margin_bottom btnAlign inlineHeight noOutline">Save &amp; next<i class="pull-right btnChevGapToText"></i></button>                        
+                         <br/>
+                          <a href="#" style="font-size:18px; font-family:Arial" class="GForm-group centerAlignText" onclick="switchTab('#repayments_Content');"><u>Skip to Direct Debit</u></a>
+                         <br/>
+                         <br/>
+                       </div>
+                       <div class="hiddenDiv visible-xs">
+                         <div>
+                         <!-- Commenting this code as part of the E2E Tactical Enhancements -->
+                       <!--    <button type="submit" onclick="validateTab('#repayments_Content');" class="GPrimary-button module5-label lat-white forms_margin_bottom btnAlign inlineHeight noOutline" style="width:100%;display:inline !important">Next</button> -->
+                         </div>
+                       </div>
+                    </div>
+                    </div>
+                </div>
+               
+                
+                <!-- DIRECT DEBIT CONTAINER -->
+                <div id="repayments_Content" class="tab-pane">
+                    <div class="panel-gap-top panel-gap-bottom30" id="thumbsRow">
+                        <div class="center-block mid-content margin-top">
+                            <span class="lat-blue module2-label">{!$Label.APP_GSD_Repayments_Header}</span>
+                        </div>
+                    </div>
+                   <!-- <br/> -->
+                   <!-- AU SUB HEADERS FOR REPAYMENTS -->
+                   <!-- Added the new bullets as part of the E2E Tactical Enhancments -->
+                    <div id="aureppointbullets" style="display:{!if($site.Name = 'Latitude', 'block', 'none')}">
+                    <ul class="aurepbullet">
+                      <li id = "aupointone" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_AU_1}</li>
+                      <li id = "aupointtwo" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_AU_2}</li>
+                      <li id = "aupointthree" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_AU_3}&#174; {!$Label.APP_GSD_Repayment_SubHeader_AU_5} <b>1800 803 051</b> {!$Label.APP_GSD_Repayment_SubHeader_AU_4}</li>
+                    </ul>
+                    </div>
+
+                  <!-- NZ SUB HEADERS FOR REPAYMENTS -->
+                  <!-- Added the new bullets as part of the E2E Tactical Enhancments -->
+                  <div id="nzreppointbullets" style="display:{!if(OR($site.Name = 'Gem',$site.Name = 'Kiwibank'),'block','none')}">
+                    <ul class="nzrepbullet">
+                      <li id = "nzpointone" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_NZ_1}</li>
+                      <li id = "nzpointtwo" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_NZ_2}</li>
+                      <li id = "nzpointthree" class="body-label lat-dark-grey" style="list-style:disc;">{!$Label.APP_GSD_Repayment_SubHeader_NZ_3}</li>
+                    </ul>
+                    </div>                    
+                    <apex:include pageName="APP_GSD_RepaymentDetails"/>
+<!--                    <br/> -->
+                    
+                    <!-- BUTTONS CONTAINER -->
+                    <div class="container" id="toprow">
+                        <div class="row">
+                           <!-- <div class="pull-right confirmMarginB btnLRMargin vertical-align hidden-xs"> -->
+                            <div class="GForm-group centerAlignText">
+                            <!-- Commented the below code as part of the E2E Tactical Enhancements -->
+                              <!--  <button class="GSecondary-button module5-label lat-blue noOutline" onclick="switchTab('#directCredit_Content');" style="line-height:30px;"><i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button> -->
+                                <!-- <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Aussie'), true, false)}"> -->
+                                <!--        <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnAlign inlineHeight au" id="btnNext" onclick="validateTab('#personalReference_Content');" >Next<i class="icon_arrow_right_blue icon_size pull-right btnChevGapToText"></i></button>  -->
+                                <!--    </apex:panelGroup> -->                                
+                                <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Gem', $Site.Name = 'Kiwibank'), true, false)}">
+                                <!--    <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnAlign inlineHeight" id="btnDone" onclick="skipAndRedirect();" >Skip and Close</button> -->
+                                    <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnAlign inlineHeight" id="btnDone" onclick="validateTab('#repayments_Content');" >Save &amp; close<i class="pull-right btnChevGapToText"></i></button>
+                               <br/>
+                                </apex:panelGroup>
+                                <!-- Commenting this code as part of the E2E Tactical Enhancements -->
+                               <!-- <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Aussie'), false, true)}">
+                                    <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnAlign inlineHeight nz" onclick="validateTab('');">Done<i class="icon_arrow_right_blue icon_size pull-right"></i></button>
+                                </apex:panelGroup> -->
+                         <br/>
+                          <a href="#" style="font-size:18px; font-family:Arial" class="GForm-group centerAlignText" onclick="skipAndRedirect()"><u>Skip &amp; close</u></a>
+                         <br/>
+                         <br/>
+                            </div>
+                            <div class="hiddenDiv visible-xs">
+                            <!-- Commenting this code as part of the E2E Tactical Enhancements -->
+                                <!-- BEGIN MLASALA 12-JUL-16 DEFECT 1111 FIX -->
+                                <!-- <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Aussie'), true, false)}">
+                                    <button class="GPrimary-button module5-label lat-white noOutline btnBMargin" id="btnNext" style="width:100%;display:inline !important" onclick="validateTab('#personalReference_Content');" >Next</button>
+                                </apex:panelGroup> 
+                                <apex:panelGroup rendered="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Aussie'), false, true)}">
+                                    <button class="GPrimary-button module5-label lat-white noOutline btnBMargin" id="btnNext" style="width:100%;display:inline !important" onclick="validateTab('');" >Done</button>
+                                </apex:panelGroup>
+                                <!-- END MLASALA 12-JUL-16 DEFECT 1111 FIX -->
+                               <!-- <button class="GSecondary-button module5-label lat-blue noOutline" onclick="switchTab('#directCredit_Content');" style="line-height:30px;width:100%;display:inline !important">Back</button> -->
+                            <!-- End -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+         <!--  Removing the Personal Reference Check fro Customer UI as part of E2E Enhancement -->
+                <!-- PERSONAL REFERENCE CONTAINER -->
+             <!--  <div id="personalReference_Content" class="tab-pane">  
+                         <div class="panel-gap-top panel-gap-bottom30" id="thumbsRow">  
+                             <div class="center-block mid-content margin-top">  
+                                 <span class="lat-blue module2-label">{!$Label.APP_GSD_PersonalReference_Header}</span>  
+                             </div>  
+                         </div>  
+                     <apex:include pageName="APP_GSD_Personal_Reference"/>  
+        
+                     <br/>  -->
+                    
+                    <!--  BUTTONS CONTAINER  -->
+                  <!--   <div class="container" id="toprow">  
+                         <div class="row">  
+                             <div class="pull-right confirmMarginB btnLRMargin vertical-align hidden-xs">  
+                                 <button class="GSecondary-button module5-label lat-blue noOutline btnText" onclick="switchTab('#repayments_Content');" style="line-height:30px;"><i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button>  
+                                 <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnText" id="btnDone" onclick="validateTab('');" style="line-height:30px;">Done<i class="icon_arrow_right_blue icon_size pull-right btnChevGapToText"></i></button>  
+                             </div>  
+                             <div class="hiddenDiv visible-xs">  
+                                 <button class="GPrimary-button module5-label lat-white noOutline btnBMargin" id="btnDone" style="width:100%;display:inline !important" onclick="validateTab('');">Done</button>  
+                                 <button class="GSecondary-button module5-label lat-blue noOutline" onclick="switchTab('#repayments_Content');" style="line-height:30px;width:100%;display:inline !important">Back</button>  
+                             </div>  
+                         </div>  
+                     </div> 
+                 </div>  -->
+                
+            </div> 
+            
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        <br/>
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+        
+    </html>
+    
+    <script>
+        /*  Description: Validate and upsert record before switch/next tab
+         *  Author: Mike Lasala
+         *  Date Created: 10-FEB-2016
+         *  Input: Tab
+         */
+        var isValid = false; //Boolean indicator if record is valid
+        var tab;             //contains appropriate tab to navigate
+        
+        function validateTab(generaltab){
+            
+            isValid     = false;
+            tab         = generaltab;
+            
+            //Identifier of tab which user is currently viewing
+            var activeTab = $('.tab-links').find('.active').attr('id');
+            console.log('Leo');
+            console.log('activeTab'+ activeTab);
+            if(activeTab == 'directCredit_Tab'){
+                 console.log('Leo1');
+                //Perform initial validations and if valid, DML
+                updateDisbursement();
+                
+            } else if(activeTab == 'repayments_Tab'){
+                
+                //Perform initial validations and if valid, DML
+                updateRepayment();
+                
+                if($('.validateRepaymentForm').valid() && 
+                   $('.validateRepaymentForm').find('label.customError').length <=0){
+                    
+                    //Set flag to true if data is valid
+                    isValid = true;
+                }
+            } else if(activeTab == 'personalReference_Tab'){
+                
+                //Perform initial validations and if valid, DML
+                savePersonalReference();
+                
+                
+            }
+            // Afreen Mar-09-2016 Commenting the below code as it has to go on separate method which will be called from each page individually from the callback method of asyn call (JS remoting)
+            //Navigate to next tab when tab data is valid 
+            /*if(isValid){
+                
+                if(tab != ''){
+                    
+                    //Navigate to destination tab
+                    switchTab(tab);
+                    
+                } else {
+                    
+                    //Redirect to response page
+                    redirect('APP_GSD_Response');
+                }
+            }*/
+        }
+
+        function doNavigate(){
+            if(isValid){
+                if(tab != ''){
+                    //Navigate to destination tab
+                    switchTab(tab);
+                    
+                } else {
+                    
+                    //Redirect to response page
+                    redirect('APP_GSD_Response');
+                }
+            }
+        }
+           
+      function skipAndRedirect(){
+            redirect('APP_GSD_Response');
+        }
+        
+        /*  Description: Switch/next tab
+         *  Author: Mike Lasala
+         *  Date Created: 10-FEB-2016
+         *  Input: Tab
+         */ 
+        function switchTab(tab){
+            
+            //Show/hide Tabs
+            $('.switch '+tab).fadeIn(400).siblings().hide();
+            
+            //Change/remove current tab to active
+            $('a[href='+tab+']').parent('li').addClass('active').siblings().removeClass('active');
+
+            var activeTab = $('.tab-links').find('.active').attr('id');
+            if(activeTab == 'repayments_Tab'){
+                $('html,body').animate({
+                scrollTop: $('#repayments_Tab').offset().top - 20
+                }, 'slow');          
+            }            
+         }
+        
+        /*  Description: Prevent onclick from adding href to url
+         *  Author: Mike Lasala
+         *  Date Created: 12-FEB-2016
+         *  Input: None
+         */
+        $('a').click(function(e){
+            e.preventDefault();
+        });
+    </script>
+    
+    <c:APP_GSD_MobileStyles />
+</apex:page>

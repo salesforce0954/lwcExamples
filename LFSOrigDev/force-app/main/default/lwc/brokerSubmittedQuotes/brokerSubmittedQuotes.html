@@ -1,0 +1,418 @@
+<template>
+    <div class="slds-var-m-top_medium">
+        <lightning-card title="My Quotes" icon-name="action:quote">
+
+            <!-- Search Criteria : START-->
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_3-of-12">
+                    <lightning-input variant="label-stacked" type="text" label="Email" name="email"
+                        onchange={handleEmailId}></lightning-input>
+                </div>
+
+                <div class="slds-col slds-size_3-of-12">
+                    <lightning-input variant="label-stacked" type="text" label="Mobile Number" name="mobile"
+                        onchange={handleMobileNumber}></lightning-input>
+                </div>
+
+                <div class="slds-col slds-size_6-of-12 slds-var-m-top_large slds-var-m-bottom_xx-small">
+                    <lightning-button label="Search" onclick={handleQuoteSearch}></lightning-button>
+                </div>
+            </div>
+            <!-- Search Criteria : END -->
+            
+            <template if:true={showSpinner}>
+                <c-application-spinner></c-application-spinner>
+            </template>
+
+            <lightning-datatable key-field="id" hide-checkbox-column data={data} data-id="datarow" columns={columns}
+                onrowselection={getSelectedQuote} max-row-selection=0 onrowaction={handleRowAction}>
+            </lightning-datatable>
+            
+
+            <!-- Prev & Next Buttons : START-->
+            <template if:true={quotesFound}>
+                <lightning-layout multiple-rows="true" horizontal-align="center">
+                    <lightning-layout-Item padding="around-small" flexibility="auto">
+
+                        <lightning-button label="Prev" icon-name="utility:chevronleft" icon-position="left"
+                            onclick={handlePrev} disabled={disablePrev}>
+                        </lightning-button>
+                        <span class="slds-var-p-horizontal_small">
+                            Page {pageNumber}
+                        </span>
+                        <lightning-button label="Next" icon-name="utility:chevronright" icon-position="right"
+                            disabled={isLastPage} onclick={handleNext}>
+                        </lightning-button>
+
+                    </lightning-layout-Item>
+
+                </lightning-layout>
+            </template>
+
+            <template if:false={quotesFound}>
+                <div class="slds-align_absolute-center" style="height:5rem">
+                    No Quotes found.
+                </div>
+            </template>
+
+        </lightning-card>
+    </div>
+
+    <!-- modal start -->
+    <template if:true={showModal}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- modal header start -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Quote Details</h2>
+                </header>
+                <!-- modal body start -->
+                <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+
+                    <lightning-layout multiple-rows="false">
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Quote Information</div>
+                            </div>
+                            
+                            <div class="slds-grid slds-wrap slds-var-m-around_xx-small">
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Quote Reference</h3>
+                                    <lightning-formatted-text value={quoteReference}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Amount Requested*</h3>
+                                    <lightning-formatted-text value={loanAmount}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Purpose</h3>
+                                    <lightning-formatted-text value={loanPurpose}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Term</h3>
+                                    <lightning-formatted-text value={loanTerm}></lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Interest Rate Offered</h3>
+                                    <lightning-formatted-text value={interestRateOffered}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Secured Interest Rate Offered</h3>
+                                    <lightning-formatted-text value={securedRateOffered}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Quote Status</h3>
+                                    <lightning-formatted-text value={quoteStage}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Quote Expires On</h3>
+                                    <lightning-formatted-text value={quoteExpiresOn}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <template if:true={isBetterStart}>
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Product Type</h3>
+                                        <lightning-formatted-text value={productType}>
+                                        </lightning-formatted-text>
+                                    </div>  
+                                </template>                              
+                                <template if:true={showDeclineSection}>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Quote Declined On</h3>
+                                    <lightning-formatted-date-time value={quoteDeclinedOn}>
+                                    </lightning-formatted-date-time>
+                                </div>
+                            </template>
+                                <div class="slds-col slds-size_1-of-1 slds-text-body_small slds-var-m-bottom_x-small">
+                                    <lightning-formatted-rich-text value={disclaimer}>
+                                    </lightning-formatted-rich-text>
+                                </div>
+
+                               
+
+                            </div>
+
+                        </lightning-layout-item>
+
+                        <template if:true={showDeclineSection}>
+                            <lightning-layout-item size="12">
+                                <div style="padding:0.5rem;background:#F3F2F2">
+                                    <div>Reason for decline</div>
+                                </div>
+                                
+                                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                                        Unfortunately, your client's details do not meet our lending criteria so we cannot offer them a quote at this stage.
+                                        Our decision is based on several factors such as: <br/><br/>
+                                        - your client's personal circumstances;<br/>
+                                        - how they've managed their financial products in the past; and <br/>
+                                        - their Credit Score <br/><br/>
+
+                                        Even though we are unable to assist your client this time, under the Australian Privacy Act we are required to send your
+                                        client an email providing more information on this decision. This email will be sent 48 hours after the quote has been decisioned. 
+
+                                    </div>
+
+                            </lightning-layout-item>
+                    </template>
+
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Personal Information</div>
+                            </div>
+                            
+                                <div class="slds-grid slds-wrap slds-var-m-around_xx-small">
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">First Name</h3>
+                                        <lightning-formatted-text value={firstName}>
+                                        </lightning-formatted-text>
+                                    </div>
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Last Name</h3>
+                                        <lightning-formatted-text value={lastName}>
+                                        </lightning-formatted-text>
+                                    </div>
+                                    
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Email ID</h3>
+                                        <lightning-formatted-email value={quoteEmailId}></lightning-formatted-email>
+                                    </div>
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Mobile Number</h3>
+                                        <lightning-formatted-phone value={quoteMobileNumber}>
+                                        </lightning-formatted-phone>
+                                    </div>
+                                   
+
+                                </div>
+                            
+
+                        </lightning-layout-item>
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Broker Information</div>
+                            </div>
+
+                            <div class="slds-grid slds-wrap">
+
+                                <div class="slds-col slds-size_4-of-12 slds-var-m-top_xx-small slds-align_absolute-center">
+                                    <b>Broker Name:&nbsp;</b>
+                                    <lightning-formatted-text value={currentRecordBrokerName}>
+                                    </lightning-formatted-text>
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            
+                            <template if:true={showNotes}>
+                                <div class="slds-var-m-around_medium slds-box">
+                                    <div class="slds-align_absolute-center">
+                                        <h3>Log of Changes</h3>
+                                    </div>
+                                    <template if:true={notesFound}>
+                                        <lightning-datatable key-field="id" data={quoteNotes} hide-checkbox-column data-id="datarow" columns={notesColumns}
+                                                             max-row-selection=0 >
+                                        </lightning-datatable>
+                                    </template>
+                                    <template if:false={notesFound}>
+                                        <div class="slds-align_absolute-center">No record(s) found.</div>
+                                    </template>
+
+                                </div>
+                            </template>
+
+
+
+                        </lightning-layout-item>
+
+                    </lightning-layout>
+
+
+                </div>
+
+                <!-- modal footer start-->
+                <footer class="slds-modal__footer">
+                    
+                    <template if:true={showConvertToApp}>
+                        <lightning-button label="Convert to Application" variant="brand"
+                            onclick={handleApplicationConvert} class="slds-var-m-top_small"></lightning-button>
+                    </template>
+
+                    <!--<lightning-button class="slds-var-m-left_small" label="Download Copy of Quote" variant="neutral"
+                        onclick={handleDownloadCopyOfQuote}>
+                    </lightning-button>-->
+                    
+                        <lightning-button class="slds-var-m-left_small" label="Download Quote" variant="neutral"
+                            onclick={handlePrintQuote}>
+                        </lightning-button>
+
+                    
+                    <template if:true={showConvertToApp}>
+                       
+                        <lightning-button label="Cancel Quote" variant="destructive-text"
+                            onclick={handleQuoteCancel} class="slds-var-m-left_small slds-var-m-top_small"></lightning-button>
+                    </template>
+                    <lightning-button label="Close" variant="neutral" onclick={closeModal}
+                        class="slds-var-m-left_small"></lightning-button>
+
+
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <!-- modal end -->
+
+    <!-- Veify DOB modal start -->
+    <template if:true={showVerifyDOBModal}>
+        <!--<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-03" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeVerifyDOBModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-03" class="slds-text-heading_medium slds-hyphenate">Download Quote
+                    </h2>
+                </header>
+
+                <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-3">
+
+                    <lightning-layout multiple-rows="false">
+
+                        <lightning-layout-item size="12">
+                            <p>Protecting your client's personal information is our top priority. Please enter their date of birth to continue:
+                            </p>                            
+                        </lightning-layout-item>
+
+                    </lightning-layout>
+                    
+                    <lightning-layout>
+                        <lightning-layout-item size="12">
+                            <div class="slds-var-m-top_x-small">
+                                <b>Client's date of birth</b>
+                            </div>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                    <lightning-layout>
+                        
+                        <lightning-layout-item size="12">
+                            <div class="slds-grid slds-wrap">
+                               
+                                <div class="slds-col slds-size_3-of-12 slds-var-m-right_xx-small">
+                                  <span>
+                                      
+                                    <lightning-combobox
+                                    name="progress"
+                                    label=""
+                                    value=""
+                                    placeholder="Select"
+                                    options={dayoptions}
+                                    onchange={handleDayChange}
+                                    ></lightning-combobox>
+                                    
+                                  </span>
+                                </div>
+                                <div class="slds-col slds-size_3-of-12 slds-var-m-right_xx-small">
+                                  <span>
+                                    <lightning-combobox
+                                    name="progress"
+                                    label=""
+                                    value=""
+                                    placeholder="Select"
+                                    options={monthoptions}
+                                    onchange={handleMonthChange}
+                                    ></lightning-combobox>
+                                  </span>
+                                </div>
+                                <div class="slds-col slds-size_3-of-12">
+                                    <lightning-input type="text" label="" placeholder="Year" min-length="4" max-length="4" onchange={handleYearChange}></lightning-input>
+                                </div>
+                                
+                                </div>
+                                               
+                        </lightning-layout-item>
+                       
+                        
+                    </lightning-layout>
+                    
+                </div>
+
+                
+
+
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Continue" variant="brand" onclick={verifyDOBQuotePrint}
+                        class="slds-var-m-top_small"></lightning-button>
+                    <lightning-button label="Cancel" variant="neutral" onclick={closeVerifyDOBModal}
+                        class="slds-var-m-left_small"></lightning-button>
+
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div> -->
+
+        <c-verify-date-of-birth modal-heading="Download Quote"  onmodalclose={closeVerifyDOBModal} onverifydob={verifyDOBQuotePrint}></c-verify-date-of-birth>
+    </template>
+    <!-- Verify DOB modal end -->
+
+
+        <!-- Cancel Quote modal start -->
+        <template if:true={showCancelQuoteCmp}>
+            <c-cancel-quote quote-id={recordId} onquoteclose={handleQuoteCmpClose}></c-cancel-quote>
+        </template>
+        <!-- Manual Cancel modal end -->
+
+
+
+    <template if:true={showAppForm}>
+        
+        <div  style="height: 5000px;">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container">
+            <header class="slds-modal__header">
+            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close">
+            <svg class="slds-button__icon slds-button__icon_large" aria-hidden="true">
+            <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+            </svg>
+            <span class="slds-assistive-text">Close</span>
+            </button>
+            <h2 id="modal-heading-11" class="slds-modal__title slds-hyphenate">Modal header</h2>
+            </header>
+            <div class="slds-modal__content  slds-scrollable_y" style="height: 800px;" id="modal-content-id-12">
+                <c-pl-application-form></c-pl-application-form>
+                
+            </div>
+            
+            </div>
+            </section>
+        </div>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        
+
+    </template>
+    
+
+</template>

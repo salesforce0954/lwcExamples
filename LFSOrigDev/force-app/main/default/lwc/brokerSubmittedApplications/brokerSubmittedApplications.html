@@ -1,0 +1,249 @@
+<template>
+    <div class="slds-var-m-top_medium">
+        <lightning-card title="My Applications" icon-name="action:add_file">
+
+            <!-- Search Criteria : START-->
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_3-of-12">
+                    <lightning-input variant="label-stacked" type="text" label="Loan Number" name="loanNumber"
+                        onchange={handleLoanNumber}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <lightning-input variant="label-stacked" type="text" label="Name" name="applicantName"
+                        onchange={handleApplicantName}></lightning-input>
+                </div>
+
+                <div class="slds-col slds-size_6-of-12 slds-var-m-top_large slds-var-m-bottom_xx-small">
+                    <lightning-button label="Search" onclick={handleApplicationSearch}></lightning-button>
+                </div>
+            </div>
+            <!-- Search Criteria : END -->
+
+            <template if:true={showSpinner}>
+                <c-application-spinner></c-application-spinner>
+            </template>
+
+            <c-custom-datatable-cmp key-field="id" data={data} columns={columns} onrowselection={getSelectedApp} onrowaction={handleRowAction}
+            min-column-width="120"
+            hide-checkbox-column>
+            </c-custom-datatable-cmp>
+
+            <!-- Prev & Next Buttons : START-->
+            <!--<template if:true={applicationsFound}>
+                <lightning-layout multiple-rows="true" horizontal-align="center">
+                    <lightning-layout-Item padding="around-small" flexibility="auto">
+
+                        <lightning-button label="Prev" icon-name="utility:chevronleft" icon-position="left"
+                            onclick={handlePrev} disabled={disablePrev}>
+                        </lightning-button>
+                        <span class="slds-var-p-horizontal_small">
+                            Page {pageNumber}
+                        </span>
+                        <lightning-button label="Next" icon-name="utility:chevronright" icon-position="right"
+                            disabled={isLastPage} onclick={handleNext}>
+                        </lightning-button>
+
+                    </lightning-layout-Item>
+
+                </lightning-layout>
+            </template> -->
+            <!-- Prev & Next Buttons : END-->
+
+            <!-- <template if:true={applicationsFound}>
+                <div class="slds-align_absolute-center">
+                    <lightning-button label="Download Copy of Application" variant="brand" onclick={handleAppCopyDownload}
+                        class="slds-var-m-top_small"></lightning-button>
+                </div>
+            </template> -->
+            <template if:false={applicationsFound}>
+                <div class="slds-align_absolute-center" style="height:5rem">
+                    No Applications found.
+                </div>
+            </template>
+
+
+    <!-- modal start -->
+    <template if:true={showDetailModal}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- modal header start -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeDetailModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Application Details</h2>
+                </header>
+                <!-- modal body start -->
+                <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+
+                    <lightning-layout multiple-rows="false">
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Application Information</div>
+                            </div>
+                            
+                            <div class="slds-grid slds-wrap slds-var-m-around_xx-small">
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Number</h3>
+                                    <lightning-formatted-text value={currentRowDetail.loanNumber}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Amount*</h3>
+                                    <lightning-formatted-number format-style="currency" value={currentRowDetail.loanAmount}>
+                                    </lightning-formatted-number>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Purpose</h3>
+                                    <lightning-formatted-text value={currentRowDetail.loanPurpose}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Loan Term</h3>
+                                    <lightning-formatted-text value={currentRowDetail.loanTerm}></lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Interest Rate Offered</h3>
+                                    <lightning-formatted-number format-style="percent" maximum-fraction-digits="3" value={currentRowDetail.offeredInterestRate}>
+                                    </lightning-formatted-number>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <!--<h3 class="header">Interest Rate Offered</h3>
+                                    <lightning-formatted-number format-style="percent" maximum-fraction-digits="3" value={currentRowDetail.offeredInterestRate}>
+                                    </lightning-formatted-number>-->
+                                </div>                                
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Application Status</h3>
+                                    <lightning-formatted-text value={currentRowDetail.applicationStatus}>
+                                    </lightning-formatted-text>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                    <h3 class="header">Application Type</h3>
+                                    <lightning-formatted-text value={currentRowDetail.applicationType}>
+                                    </lightning-formatted-text>
+                                </div>
+                            </div>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Primary Applicant Information</div>
+                            </div>
+                            
+                                <div class="slds-grid slds-wrap slds-var-m-around_xx-small">
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">First Name</h3>
+                                        <lightning-formatted-text value={currentRowDetail.firstName}>
+                                        </lightning-formatted-text>
+                                    </div>
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Last Name</h3>
+                                        <lightning-formatted-text value={currentRowDetail.lastName}>
+                                        </lightning-formatted-text>
+                                    </div>
+                                    
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Email ID</h3>
+                                        <lightning-formatted-email value={currentRowDetail.email}></lightning-formatted-email>
+                                    </div>
+                                    <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                        <h3 class="header">Mobile Number</h3>
+                                        <lightning-formatted-phone value={currentRowDetail.mobile}>
+                                        </lightning-formatted-phone>
+                                    </div>
+                                   
+
+                                </div>
+                            
+
+                        </lightning-layout-item>
+
+                        <template if:true={currentRowDetail.isJointApplication}>
+                            <lightning-layout-item size="12">
+                                <div style="padding:0.5rem;background:#F3F2F2">
+                                    <div>Secondary Applicant Information</div>
+                                </div>
+                                
+                                    <div class="slds-grid slds-wrap slds-var-m-around_xx-small">
+                                        <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                            <h3 class="header">First Name</h3>
+                                            <lightning-formatted-text value={currentRowDetail.secondaryApplicant.First_Name__c}>
+                                            </lightning-formatted-text>
+                                        </div>
+                                        <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                            <h3 class="header">Last Name</h3>
+                                            <lightning-formatted-text value={currentRowDetail.secondaryApplicant.Last_Name__c}>
+                                            </lightning-formatted-text>
+                                        </div>
+                                        
+                                        <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                            <h3 class="header">Email ID</h3>
+                                            <lightning-formatted-email value={currentRowDetail.secondaryApplicant.Email_Address__c}></lightning-formatted-email>
+                                        </div>
+                                        <div class="slds-col slds-size_6-of-12 slds-var-m-bottom_x-small">
+                                            <h3 class="header">Mobile Number</h3>
+                                            <lightning-formatted-phone value={currentRowDetail.secondaryApplicant.Mobile__c}>
+                                            </lightning-formatted-phone>
+                                        </div>
+                                       
+    
+                                    </div>
+                                
+    
+                            </lightning-layout-item>                            
+                        </template>
+
+                        <lightning-layout-item size="12">
+                            <div style="padding:0.5rem;background:#F3F2F2">
+                                <div>Broker Information</div>
+                            </div>
+
+                            <div class="slds-grid slds-wrap">
+
+                                <div class="slds-col slds-size_4-of-12 slds-var-m-top_xx-small">
+                                    <b>Broker Name:&nbsp;</b>
+                                    <lightning-formatted-text value={currentRowDetail.brokerName}>
+                                    </lightning-formatted-text>
+                                    </p>
+                                </div>
+
+                            </div>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </div>
+
+                <!-- modal footer start-->
+                <footer class="slds-modal__footer">
+                        <!--<template if:true={statusReffered}>-->
+                            <!--<lightning-button label="Upload Documents" variant="success"
+                                onclick={handleUploadDocuments} class="slds-var-m-top_small"></lightning-button>-->
+                        <!--</template>-->
+                    
+                        <!--<lightning-button class="slds-var-m-left_small" label="Download Copy of Application" variant="neutral"
+                            onclick={handleAppCopyDownload}>
+                        </lightning-button>-->
+
+                    <lightning-button label="Close" variant="neutral" onclick={closeDetailModal}
+                        class="slds-var-m-left_small"></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <!-- modal end -->
+    
+            <!-- Veify DOB modal start -->
+    <template if:true={showVerifyDOBModal}>
+        <c-verify-date-of-birth modal-heading={dobModalHeading} application-id={selectedAppId} onmodalclose={handleCloseVerifyDOB} onverifydob={handleVerifyDob}></c-verify-date-of-birth>
+    </template>
+    <!-- Verify DOB modal end -->
+
+        </lightning-card>
+    </div>
+
+</template>

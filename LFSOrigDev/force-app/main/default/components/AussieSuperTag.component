@@ -1,0 +1,10 @@
+<apex:component >
+<script type="text/javascript">
+ <!-- SUPERTAG CODE ASYNC v2.9.6.2 -->
+(function(s,d,src) {
+    var st = d.createElement(s); st.type = 'text/javascript';st.async = true;st.src = src;
+    var sc = d.getElementsByTagName(s)[0]; sc.parentNode.insertBefore(st, sc);
+})('script', document, '//c.supert.ag/p/000262/supertag-async.js');
+</script>
+
+</apex:component>

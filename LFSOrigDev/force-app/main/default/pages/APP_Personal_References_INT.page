@@ -1,0 +1,63 @@
+<apex:page id="personalReferencePage" standardController="Application__c" extensions="APP_Personal_References_EXT_INT" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+
+    <apex:form id="prcForm" styleClass="">
+
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!refreshPRCList}" reRender="prcForm" status="status" onclick="document.getElementById('appPageId:personalReferenceInclude:personalReferencePage:prcForm:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>                         
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="prcPageBlock" title="Personal References">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Name</th>
+                    <th class="headerRow">Relationship</th>
+                    <th class="headerRow">Phone</th>
+                    <th class="headerRow">Address</th>
+                    <th class="headerRow">Property Name</th>
+                    <th class="headerRow">Street No.</th>
+                    <th class="headerRow">Street Type</th>
+                    <th class="headerRow">Suburb</th>
+                    <th class="headerRow">{!IF(application.Brand_Country__c = 'NZ','Town/City', 'State')}</th>
+                    <th class="headerRow">PostCode</th>
+                    <th class="headerRow">Country</th>
+                    <th class="headerRow">Created By</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!prcList}" var="w" id="prcPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!w.Name__c}</td>
+                        <td class="dataCell">{!w.Relationship__c}</td>
+                        <td class="dataCell">{!w.Phone_Number__c}</td>
+                        <td class="dataCell">{!IF(NOT(ISBLANK(w.Personal_Ref_Address__c)), w.Personal_Ref_Address__c, w.Street_Name__c)}</td>
+                        <td class="dataCell">{!w.Property_Name__c}</td>
+                        <td class="dataCell">{!w.Street_Number__c}</td>
+                        <td class="dataCell">{!w.Street_Type__c}</td>
+                        <td class="dataCell">{!w.Suburb__c}</td>
+                        <td class="dataCell">{!IF(w.Country__c = 'New Zealand', w.Town_City__c, w.State__c)}</td>
+                        <td class="dataCell">{!w.Postcode__c}</td>
+                        <td class="dataCell">{!w.Country__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!w.CreatedById}"/>
+                        </td>
+                        <td class="dataCell">
+                            <!-- MLASALA 08-SEPT-2016 Stored XSS Code Scan fix -->
+                            <a onclick="openSubtab('/{!JSENCODE(w.Id)}','{!JSENCODE(w.Name)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

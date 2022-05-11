@@ -1,0 +1,70 @@
+<apex:page controller="APP_GSD_POI_Response_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+
+
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+
+     <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/>
+  
+    <!-- Bootstrap Core JavaScript -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+
+<!-- Bootstrap Core CSS -->
+
+<link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    <script>
+        <!--Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource-->
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+
+        <!--PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION-->
+        var className = 'APP_GSD_POI_Response_Ext';
+                
+        
+    </script>    
+    <apex:form >
+    <div style="width:100%;"> 
+            Header
+         <div style="float:left; width:70%;">
+            Left  Column
+            <br />
+            <c:GEDDFooter />
+            some text goes here
+            <br />
+        </div>
+        <div style="float:right; width:30%;">
+            <apex:outputPanel id="Income__c-1">
+                    <c:GEDDFooter />
+           </apex:outputPanel> 
+        </div>
+
+        </div>
+        <!--<div id="col1">
+            <apex:pageblock title="PageBlock Header1">
+                <apex:pageblockSection title="Section title1">
+                    Field1: <apex:inputText />
+                </apex:pageblockSection>
+                <apex:pageblockButtons >
+                    <apex:commandButton value="Save"/>
+                </apex:pageblockButtons>
+            </apex:pageblock>
+        </div>
+        <div id="col2">
+            <apex:pageblock title="PageBlock Header2">
+                <apex:pageblockSection title="Section title2">
+                    Field1: <apex:inputText />
+                </apex:pageblockSection>
+                <apex:pageblockButtons >
+                    <apex:commandButton value="Save"/>
+                </apex:pageblockButtons>
+            </apex:pageblock>
+        </div>    -->
+        
+       
+       
+    </apex:form>
+</apex:page>

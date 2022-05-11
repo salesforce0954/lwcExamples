@@ -1,0 +1,66 @@
+<apex:component >
+    <style>
+        .footer-bottom, .footer-bottom-inner {
+            background-color: #eeeeee !important;
+            color: #75787b !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        
+        .footer-bottom, .footer-bottom-inner {
+            background-color: #eeeeee !important;
+            color: #75787b !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        
+        .footer-bottom p, .footer-bottom a {
+            font-size: 14px !important;
+            color: #75787b !important;
+        }
+        
+        .footer-bottom a {
+            text-decoration: underline !important;
+        }
+    </style>
+    <footer style="position:relative !important;">
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <!--<div class="pull-left">-->
+                <div>
+                    <!-- MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                    <apex:outputPanel rendered="{!$CurrentPage.Name!='app_societyone_syserror'}">
+                    <p class="contactPhone" style="{!if($CurrentPage.Name=='app_submitwait', 'position: relative; right: 70px;', '')}">
+                        <svg width="15px" height="15px" viewBox="0 0 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <!-- Generator: sketchtool 40 (33762) - http://www.bohemiancoding.com/sketch -->
+                            <title>B804D582-D770-4BE1-B3F5-00688A4C7AC4</title>
+                            <desc>Created with sketchtool.</desc>
+                            <defs></defs>
+                            <g id="Getting-Started" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g id="560-About-You-RestState-V2" transform="translate(-481.000000, -2715.000000)" fill="#75787B">
+                                    <g id="Group-15" transform="translate(306.000000, 2702.000000)">
+                                        <g id="Group-14" transform="translate(175.000000, 0.000000)">
+                                            <g id="Group-7">
+                                                <g id="Group-8">
+                                                    <path d="M1.79041029,13.6232525 C1.88444663,13.5621632 1.96750062,13.4784228 2.0725193,13.4358662 C2.68341227,13.1812131 3.38079122,13.1599348 4.029436,13.0068683 C4.86066229,12.8167365 6.47781268,16.6344743 5.44547219,16.9673767 C5.05903091,17.0874961 3.8496001,17.2700776 3.53111207,17.5089436 C3.24419829,17.7258449 3.38079122,18.2516247 3.66221382,18.5810951 C4.40214936,19.4528188 5.49077437,20.4261292 6.35151571,21.2758882 C6.37553959,21.2971665 6.39956347,21.3239359 6.42358735,21.3479598 C6.44829763,21.3699245 6.47506709,21.3939484 6.49634539,21.4179723 C7.34610438,22.2787136 8.31666917,23.3700842 9.18839286,24.1100197 C9.52060881,24.3914423 10.0463886,24.5280353 10.2605443,24.2411215 C10.502156,23.9219471 10.6840511,22.7104571 10.8048569,22.3267614 C11.1377592,21.2944209 14.9554971,22.9115713 14.7653652,23.7427976 C14.6122988,24.3914423 14.5882749,25.0860757 14.3336218,25.6997143 C14.2903788,25.8047329 14.2100704,25.8877869 14.1482947,25.9811369 C12.76246,28.1611325 9.41078536,28.4425551 6.90886975,26.3140392 C5.95477847,25.5013456 5.02951585,24.6570778 4.12621793,23.7853541 L4.12072675,23.7908453 C4.09670287,23.7668214 4.07748377,23.740052 4.0507143,23.7180873 C4.02669042,23.6913178 4.00266654,23.6700395 3.97864266,23.6487612 L3.98413383,23.64327 C3.11241015,22.7399721 2.26814233,21.8147095 1.45544875,20.8571862 C-0.671007919,18.3614482 -0.388898916,15.007028 1.79041029,13.6232525 L1.79041029,13.6232525 Z" id="Fill-1"></path>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </g>
+                            </g>
+                        </svg>
+                        Contact us &nbsp;<apex:outputLink value="tel:1800035902" rendered="{!IF($CurrentPage.parameters.form == 'broker', true , false)}">1800 035 902</apex:outputLink><apex:outputLink value="tel:132826" rendered="{!IF($CurrentPage.parameters.form != 'broker', true , false)}">13 28 26</apex:outputLink></p>
+                     </apex:outputPanel>
+                    <!--Added by Arshad as part of Submit Page Footer Text Change on 17/04/2018 -->
+                    <a href="https://www.latitudefinancial.com.au/privacy/" target="_blank">Privacy &amp; Credit Reporting policy</a> <span class="flseparator">|</span><a href="https://www.latitudefinancial.com.au/security/" target="_blank">Security</a><br />
+                    Credit provided by Latitude Personal Finance Pty Ltd ABN 54 008 443 810<br />
+                    Australian Credit Licence Number 392163<br />
+                    <br />
+                    <!--<p class="footerContent">Credit provided by Latitude Personal Finance Pty Ltd ABN 54 008 443 810 Australian Credit Licence Number 392163.</p>-->
+                    <!-- <p>&copy; {!$Label.Global_Brand}</p> -->   <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+                </div>
+            </div><!-- footer-bottom-inner -->
+        </div><!-- footer-bottom -->
+    </footer>
+</apex:component>

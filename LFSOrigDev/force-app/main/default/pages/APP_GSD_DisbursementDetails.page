@@ -1,0 +1,667 @@
+<!--
+* @Description: Disbursement Details Page
+* @Author: Afreen Khan
+* @Date Created: 29-JAN-2016
+* @History:
+=====================================================================
+29-JAN-16: Created - Afreen Khan
+FEB-10-2016 : Updated - Afreen Khan - updated validations method and updatedisbursementdetails method
+
+===================================================================== 
+-->
+<apex:page showHeader="false" sidebar="false"  controller="APP_GSD_DisbursementDetails_Ext" id="pageId"  standardStylesheets="false" docType="html-5.0" >
+    <!--<apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScriptGSD}" />   
+    <apex:includeScript value="/support/console/29.0/integration.js"/>-->
+    <style>
+        
+        input:-moz-read-only { 
+        background-color:#BDBDBD;
+        }
+        
+        input:read-only { 
+        background-color: #BDBDBD;
+        }
+        
+        .fieldLabel:after {
+        color: #da291c;
+        content: ' *';
+        display:inline;
+        }
+        div#msgDivDisburse label{
+        
+        color: red; 
+        font-weight: bold;
+        margin-bottom: 1cm;
+        }
+        div#msgDivDisburse label.success{
+        text-align: center; 
+        
+        color: green;   
+        font-weight: bold;
+        margin-bottom: .5cm;
+        }
+        
+        . {
+            width: 30%;
+        }
+        
+        .paddingLR80 {
+            padding-left: 80px; 
+            padding-right: 80px;
+        }
+        
+        .leftAlignText {
+            display: inline-block; 
+            text-align: left;
+        }
+        
+        .disburseDisabledField {
+            border-color: #75787b;
+            background-color: #f2f1ef;
+            color: #75787b;
+        }
+        .footer_margin {
+            padding: 20px;
+         }
+    </style>
+    
+    <html>
+        
+        <!-- BEGIN: MLASALA 08-FEB-16 -->
+        <!-- LOAN DETAILS CONTAINER -->
+        <!--<div id="loanDetails" class="hidden">-->
+            
+            <!-- LOAN DETAILS COMPONENT -->
+        <!--    <c:APP_GSD_LoanDetailComponent/>-->
+            
+        <!--</div>-->
+        <!-- END: MLASALA 08-FEB-16 -->
+        
+        <form class="validateDisbursementForm" action="#">
+            <div class="accordion-heading paymentDtldCenterWidth" style="padding: 30px;">
+                <div>
+                    <span id="disbursementSubHeade" class="body-label lat-dark-grey"></span>
+                </div>
+            </div>
+            <div class="paddingLR80 GDepad"> 
+                <div id="msgDivDisburse" class="center"></div>
+                <div id="auDiv" class="hidden" style="text-align: center;">
+                    <div class="GForm-group required leftAlignText" style ="display:none">
+                        <label for="appNumDisburse" class="fieldLabel body-label lat-dark-grey disabledF">Application Number</label>
+                        <br/>
+                        <input type="text" id="appNumDisburse" name="appNumDisburse" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField"/>
+                    
+                   <!--     <input type="hidden" id="appNumDisburse" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField"></input> -->
+                    </div>
+                   <!-- <br/> -->
+                    <div class="GForm-group leftAlignText">
+                        <label for="payeeDisburse" class="fieldLabel body-label lat-dark-grey ">Account name</label>
+                        <br/>
+                        <input type="text" id="payeeDisburse" name="payeeDisburse" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal" maxlength="20"/> 
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText" style = "display:none">
+                        <label for="accountHolderDisburse" class="body-label lat-dark-grey">Account holders</label>
+                        <br/>
+                        <input type="text" id="accountHolderDisburse" name="accountHolderDisburse" maxlength="255" class="GForm-field body-label GForm-half noOutline forms_lbl_margin"/>
+                    </div>
+                   <!-- <br/> -->
+                    <div class="GForm-group required leftAlignText">
+                        <label for="amtDisburse" class="fieldLabel body-label lat-dark-grey ">Loan amount</label>
+                        <br/>
+                        <input type="text" id="amtDisburse" name="amtDisburse" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText" id="bsbDivDisbursement">
+                        <label for="bsbDisburse" class="fieldLabel body-label lat-dark-grey ">BSB number</label>
+                        <br/>
+                        <input type="text" id="bsbDisburse" name="bsbDisburse" class="GForm-field body-label GForm-half noOutline forms_lbl_margin bsbVal bsbLength genericVal" maxlength="6" onkeyup="getBSBdataDisbursement();" onchange="getBSBdataDisbursement();" autocomplete="off"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="acctNumDisburse" class="fieldLabel body-label lat-dark-grey ">Account number</label>
+                        <br/>
+                        <input type="text" id="acctNumDisburse" name="acctNumDisburse"  class="GForm-field body-label GForm-half noOutline forms_lbl_margin acctNumVal"  maxlength="16"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="fiNameDisburse" class="fieldLabel body-label lat-dark-grey ">Bank name</label>
+                        <br/>
+                        <input type="text" id="fiNameDisburse" name="fiNameDisburse" maxlength="30" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="branchDisburse" class="body-label lat-dark-grey ">Branch location</label>
+                        <br/>
+                        <input type="text" id="branchDisburse" name="branchDisburse" maxlength="255" class="GForm-field body-label GForm-half noOutline forms_lbl_margin"/>
+                    </div>
+                    <br/>
+<!--                    <div class="GForm-group leftAlignText">
+                        <label for="accountHolderDisburse" class="body-label lat-dark-grey">Account holders</label>
+                        <br/>
+                        <input type="text" id="accountHolderDisburse" name="accountHolderDisburse" maxlength="255" class="GForm-field body-label GForm-half noOutline forms_lbl_margin"/>
+                    </div>
+-->                    <!-- BEGIN MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                    <!--<button type="button" onclick="redirect('APP_GSD_Response');"> Back </button>-->
+                    <!--<button type="button" onclick="updateDisbursement();"> Confirm </button>-->
+                    <!-- END MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                </div>
+                <div id="nzDiv" class="hidden" style="text-align: center;">
+                    <div class="GForm-group required leftAlignText" style ="display:none">
+                        <label for="appNumDisburse" class="fieldLabel body-label lat-dark-grey v">Application Number</label>
+                      <!--  <br /> -->
+                        <input type="text" id="appNumNZDisburse" name="appNumDisburse" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField"/>
+                    </div>
+                   <!-- <br/> -->
+                    <div class="GForm-group required leftAlignText">
+                        <label for="payeeDisburse" class="fieldLabel body-label lat-dark-grey ">Payee name</label>
+                        <br />
+                        <!--[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Disabled field by MDAVID - 7/5/2016-->
+                        <input type="text" id="payeeNZDisburse" name="payeeDisburse" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField" maxlength="30" disabled="true"/><!--June 28,2016- Afreen - Disabled teh field, User story 168-->
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText">
+                        <label for="amtDisburse" class="fieldLabel body-label lat-dark-grey ">Loan amount</label>
+                        <br />
+                        <input type="text" id="amtNZDisburse" name="amtDisburse" required="true" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal disburseDisabledField"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText" id="bankNumDivDisbursement">
+                        <label for="bankNum" class="fieldLabel body-label lat-dark-grey ">Bank number (2 digits)</label>
+                        <br />
+                        <input type="text" id="bankNumNZDisburse" name="bankNum" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin bankNumberNZ" maxlength="2" onkeyup="searchBankNumberDisbursement();" onchange="searchBankNumberDisbursement();" autocomplete="off"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText" id="branchNumDivDisbursement">
+                        <label for="branchNum" class="fieldLabel body-label lat-dark-grey ">Branch number (4 digits)</label>
+                        <br />
+                        <input type="text" id="branchNumNZDisburse" name="branchNum" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin branchNumberNZ" maxlength="4" onkeyup="searchBranchNumberDisbursement();" onchange="searchBranchNumberDisbursement();"  autocomplete="off"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText">
+                        <label for="acctNumDisburse" class="fieldLabel body-label lat-dark-grey ">Account number (7 digits)</label>
+                        <br />
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : updated maxlength from 16 to 7 -->
+                        <input type="text" id="acctNumNZDisburse" name="acctNumDisburse" required="true" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin acctNumDebitNZVal"  maxlength="7"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText">
+                        <label for="sufNum" class="fieldLabel body-label lat-dark-grey ">Suffix number (3 digits)</label>
+                        <br />
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : updated maxlength from 4 to 3 -->
+                        <input type="text" id="sufNumNZDisburse" name="sufNum" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin suffix " maxlength="3"/>
+                    </div>
+                  <!--  <br/> -->
+                    <div class="GForm-group required leftAlignText" style ="display:none">
+                        <label for="bankName" class=" body-label lat-dark-grey ">Bank name</label>
+                        <br />
+                        <input type="text" id="bankNameNZDisburse" name="bankName" class="GForm-field body-label GForm-half noOutline forms_lbl_margin bankNameVal alphaNumeric" maxlength="32"/>
+                    </div>
+                 <!--  <br/> -->
+                    <div class="GForm-group required leftAlignText" style ="display:none">
+                        <label for="branchName" class="body-label lat-dark-grey ">Branch name</label>
+                        <br />
+                        <input type="text" id="branchNameNZDisburse" name="branchName" class="GForm-field body-label GForm-half noOutline forms_lbl_margin alphaNumeric" maxlength="32"/>
+                    </div>
+                   <!-- <br/> -->
+                    <div class="GForm-group leftAlignText" style ="display:none">
+                        <label for="acctName" class="body-label lat-dark-grey ">Account name</label>
+                        <br />
+                        <input type="text" id="acctNameNZDisburse" name="acctName" class="GForm-field body-label GForm-half noOutline forms_lbl_margin alphaNumeric" maxlength="40"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText" >
+                        <label for="reference" class="fieldLabel body-label lat-dark-grey ">Reference</label>
+                        <br />
+                        <!--[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Disabled field by MDAVID - 7/5/2016-->
+                        <input type="text" id="referenceNZDisburse" name="reference" class="GForm-field required body-label GForm-half noOutline forms_lbl_margin genericVal alphaNumeric disburseDisabledField" maxlength="20" disabled="true"/>
+                    </div>              
+                    <!-- BEGIN MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                    <!--<button type="button" onclick="redirect(‘APP_GSD_Response’);"> Back </button>-->
+                    <!--<button type="button" onclick="updateDisbursement();"> Confirm </button>-->
+                    <!-- END MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                </div> 
+                
+            </div>
+        </form>
+    </html>
+    <script src="../../soap/ajax/36.0/connection.js" type="text/javascript"></script>
+    <script>
+    sforce.connection.sessionId='{!GETSESSIONID()}';
+    var disbusement = new sforce.SObject("Disbursement__c");
+    var $ = jQuery.noConflict();
+    var currentApplication;
+    var appDivision;
+    
+    //BEGIN MLASALA 26-FEB-16 - Regex for checking string with only numbers and not all zeros
+    var regexNumbers = /^\d+$/;     //All characeters are numeric
+    var regerZeros = /^0*$/;        //Does not consist of only zeros
+    //END MLASALA 26-FEB-16 - Regex for checking string with only numbers and not all zeros
+    
+    /*
+    * @Description: Get the current application Details
+    *
+    */
+    function getApplicationDetailDisbursement(){
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_DisbursementDetails_Ext.queryApplicationRecord}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    console.log('application disburse: '+JSON.stringify(result));
+                    currentApplication = result;
+                    resultValidationDisbursement(result);
+                    setHeaders(currentApplication);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+        );
+    }
+    
+    /*
+    * @Description: Look for valid BSB on user input
+    *
+    */
+    function getBSBdataDisbursement(){
+        var searchValue = $('#directCredit_Content').find('#bsbDisburse').val();
+        console.log('searchValue: '+$('#directCredit_Content').find('#bsbDisburse').val());
+        
+        //BEGIN MLASALA 25-FEB-16 - Added validation before validating in the database
+        if(searchValue != null && 
+           searchValue != '' && 
+           regexNumbers.test(searchValue) && 
+           !regerZeros.test(searchValue) && 
+           searchValue.length == 6){
+            //END MLASALA 25-FEB-16 - Added validation before validating in the database
+            Visualforce.remoting.Manager.invokeAction(
+                
+                '{!$RemoteAction.APP_GSD_DisbursementDetails_Ext.searchBSB}',
+                searchValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('result: '+JSON.stringify(result));
+                        if(result != null){
+                            console.log('trest');
+                            $('#directCredit_Content').find('label:contains("Please enter a valid BSB")').remove();
+                        }else{
+                            $('#directCredit_Content').find('label:contains("Please enter a valid BSB")').remove();
+                            console.log('result == null: '+$('#directCredit_Content').find("#bankNumNZDisburse").parent().find("label:hidden").length + '::::'+ ($('#directCredit_Content').find("#bankNumNZDisburse").parent().find("label.customError").length));
+                            if(($("#bsbDivDisbursement").parent().find("label:hidden").length) >=1 || 
+                               ($("#bsbDivDisbursement").parent().find("label.customError").length) == 0 && 
+                               ($("#bsbDivDisbursement").parent().find("label.error").length) == 0){
+                                $( "<label class='customError'> Please enter a valid BSB</label>" ).appendTo( "#bsbDivDisbursement" );
+                            }
+                        }
+                        
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true}
+            );
+        }else{
+            $('#directCredit_Content').find('label:contains("Please enter a valid BSB")').remove();
+        }
+    }
+    
+    /*
+    * @Description: Look for valid Bank Number on user input
+    *
+    */
+    function searchBankNumberDisbursement(){
+        var searchValue = $('#directCredit_Content').find('#bankNumNZDisburse').val();
+        if(searchValue.length == 1){
+            searchValue = 0+''+ searchValue;
+        }
+        
+        //BEGIN MLASALA 26-FEB-16 - Added validation before validating in the database
+        if(searchValue != null && 
+           searchValue != '' && 
+           regexNumbers.test(searchValue) && 
+           !regerZeros.test(searchValue)){
+           //END MLASALA 26-FEB-16 - Added validation before validating in the database
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_DisbursementDetails_Ext.searchBankNumber}',
+                searchValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('Bank Number'+JSON.stringify(result));
+                        if(result != null){
+                            
+                            $('#directCredit_Content').find('label:contains("Invalid bank number.")').remove();
+                        }else{
+                            $('#directCredit_Content').find('label:contains("Invalid bank number.")').remove();
+                            console.log($("#bankNumDivDisbursement").find("label:hidden").length + '::::'+ ($("#bankNumDivDisbursement").find("label.customError").length));
+                            if(($("#bankNumDivDisbursement").find("label:hidden").length) >=1  || 
+                               ($("#bankNumDivDisbursement").find("label.customError").length) == 0 && 
+                               ($("#bankNumDivDisbursement").parent().find("label.error").length) == 0){
+                                $( "<label class='customError'>Invalid bank number.</label>" ).appendTo( "#bankNumDivDisbursement" );
+                           }
+                        }
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true}
+            );
+        }else{
+            $('#directCredit_Content').find('label:contains("Invalid bank number.")').remove();
+        }
+    }
+
+    /*
+    * @Description: Look for valid Branch Number on user input
+    *
+    */
+    
+    function searchBranchNumberDisbursement(){
+        var bankValue = $('#directCredit_Content').find('#bankNumNZDisburse').val();
+        var searchValue = $('#directCredit_Content').find('#branchNumNZDisburse').val();
+        if(bankValue.length == 1){
+            bankValue = 0+''+ bankValue;
+        }
+        console.log(bankValue +':::'+searchValue );
+        
+        //BEGIN MLASALA 26-FEB-16 - Added validation before validating in the database
+        if(bankValue != null && (searchValue != null && searchValue != '') && regexNumbers.test(searchValue) && !regerZeros.test(searchValue)){
+           //END MLASALA 26-FEB-16 - Added validation before validating in the database
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_DisbursementDetails_Ext.searchBranchNumber}',
+                searchValue, bankValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('Branch Number'+JSON.stringify(result));
+                        if(result != null){
+                            
+                            $('#directCredit_Content').find('label:contains("Invalid branch number.")').remove();
+                        }else{
+                            $('#directCredit_Content').find('label:contains("Invalid branch number.")').remove();
+                            console.log($("#branchNumDivDisbursement").parent().find("label:hidden").length);
+                            
+                            if(($("#branchNumDivDisbursement").parent().find("label:hidden").length) >=1 || 
+                               ($("#branchNumDivDisbursement").parent().find("label.customError").length) == 0 && 
+                               ($("#branchNumDivDisbursement").parent().find("label.error").length) == 0){
+                                $( "<label class='customError'>Invalid branch number.</label>" ).appendTo( "#branchNumDivDisbursement" );                   
+                            }
+                        }
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true}
+            );
+        }else{
+            $('#directCredit_Content').find('label:contains("Invalid branch number.")').remove();
+        }
+    }
+    
+    /*
+    * @Description: Process the result if no error encountered in JS remoting to get the application details. 
+    *
+    */
+    function resultValidationDisbursement(currentApplication){
+        var currentDisbursement;
+        var isdisbursementNew;
+        var recordTypeString;
+        
+        //Check the application division
+        if(currentApplication.Brand_Country__c == 'AU'){
+            $('#directCredit_Content').find('#auDiv').removeClass('hidden');
+            appDivision = 'AU';
+        }else{
+            $('#directCredit_Content').find('#nzDiv').removeClass('hidden');
+            appDivision = 'NZ';
+        }
+        
+        //Checking the disbursement details
+        var disbursement = currentApplication.Disbursements__r;
+        if(disbursement != null){
+            currentDisbursement = currentApplication.Disbursements__r[0];
+            disbusement.Id = currentDisbursement.Id;
+            isdisbursementNew = false;
+        }else{
+            currentDisbursement =  new sforce.SObject("Disbursement__c");
+            //currentDisbursement.Payee__c = '123';
+            isdisbursementNew = true;
+        }
+        
+        setFieldValuesDisbursement(currentDisbursement, appDivision, currentApplication);
+    }
+    
+    /*
+    * @Description: Formats the HTML form depening on the application region.
+    *
+    */
+
+    function setFieldValuesDisbursement(currentDisbursement, currentDiv, currentApplication){
+        console.log('division'+currentDiv);
+        if(currentDiv == 'AU'){
+            $('#directCredit_Content').find('#appNumDisburse').val(currentApplication.Name);
+            $('#directCredit_Content').find('#payeeDisburse').val(currentDisbursement.Payee__c);
+            $('#directCredit_Content').find('#amtDisburse').val(currentApplication.Total_Loan_Amount__c);
+            $('#directCredit_Content').find('#bsbDisburse').val(currentDisbursement.BSB__c);
+            $('#directCredit_Content').find('#acctNumDisburse').val(currentDisbursement.Bank_Acc_No__c);
+            $('#directCredit_Content').find('#fiNameDisburse').val(currentDisbursement.Fin_Institution__c);
+            $('#directCredit_Content').find('#branchDisburse').val(currentDisbursement.Branch__c);
+            $('#directCredit_Content').find('#accountHolderDisburse').val(currentDisbursement.Account_Holders__c);
+            
+        }else if(currentDiv == 'NZ'){
+            $('#directCredit_Content').find('#appNumNZDisburse').val(currentApplication.Name);
+            $('#directCredit_Content').find('#amtNZDisburse').val(currentApplication.Total_Loan_Amount__c);
+            $('#directCredit_Content').find('#bankNumNZDisburse').val(currentDisbursement.Bank_Number__c);
+            $('#directCredit_Content').find('#branchNumNZDisburse').val(currentDisbursement.Branch_Number__c);
+            $('#directCredit_Content').find('#acctNumNZDisburse').val(currentDisbursement.Bank_Acc_No_NZ__c);
+            $('#directCredit_Content').find('#sufNumNZDisburse').val(currentDisbursement.Suffix_Number__c);
+            $('#directCredit_Content').find('#bankNameNZDisburse').val(currentDisbursement.Bank_Name__c);
+            $('#directCredit_Content').find('#branchNameNZDisburse').val(currentDisbursement.Branch_Name__c);
+            $('#directCredit_Content').find('#acctNameNZDisburse').val(currentDisbursement.Account_Name__c);
+            
+            //June 28, 2016 - Afreen - Prepopulate the Payee field for NZ - Story 168
+            if(currentDisbursement.Payee__c != null){
+                $('#directCredit_Content').find('#payeeNZDisburse').val(currentDisbursement.Payee__c);
+            }else{
+                var firstNameInitial = currentApplication.Applicant__r[0].First_Name__c.match(/\b(\w)/g).join('');
+                var lastName         = currentApplication.Applicant__r[0].Last_Name__c;
+                $('#directCredit_Content').find('#payeeNZDisburse').val(lastName+', '+firstNameInitial);
+            }
+            
+            if(currentDisbursement.Reference__c != null){
+                $('#directCredit_Content').find('#referenceNZDisburse').val(currentDisbursement.Reference__c);
+            }else{
+                var siteName = ('{!$Site.Name}' == 'Gem' ? '{!$Label.Gem_Personal_Loan}': '{!$Label.Kiwibank_Brand}');
+                $('#directCredit_Content').find('#referenceNZDisburse').val(siteName);
+            }      
+         }
+    }
+    
+     /*
+    * @Description: Method to revalidate the form again on submit and process different fields based on region. 
+    *
+    */
+    
+    function updateDisbursement(){
+        console.log('Leo2');        
+        if($('.validateDisbursementForm').valid() ){
+            console.log('Leo3');  
+            getBSBdataDisbursement();
+            searchBranchNumberDisbursement();
+            searchBankNumberDisbursement();
+            console.log('Hi');
+            if(appDivision == 'AU'  && $('#directCredit_Content').find('.validateDisbursementForm').find('label.customError').length <=0){
+                disbusement.Application__c      = '{!$CurrentPage.parameters.id}';
+                disbusement.Payee__c            = $('#directCredit_Content').find('#payeeDisburse').val();
+                disbusement.Amount__c           = $('#directCredit_Content').find('#amtDisburse').val();
+                disbusement.BSB__c              = $('#directCredit_Content').find('#bsbDisburse').val();
+                disbusement.Bank_Acc_No__c      = $('#directCredit_Content').find('#acctNumDisburse').val();
+                disbusement.Fin_Institution__c  = $('#directCredit_Content').find('#fiNameDisburse').val();
+                disbusement.Branch__c           = $('#directCredit_Content').find('#branchDisburse').val();
+                disbusement.Account_Holders__c  = $('#directCredit_Content').find('#accountHolderDisburse').val();
+                recordTypeString                = 'Direct Credit';
+                console.log('Hirr');
+                saveRecordDisbursement(disbusement, recordTypeString);
+            }else if(appDivision == 'NZ' && $('#directCredit_Content').find('.validateDisbursementForm').find('label.customError').length <=0){
+                disbusement.Application__c      = '{!$CurrentPage.parameters.id}';
+                disbusement.Payee__c            = $('#directCredit_Content').find('#payeeNZDisburse').val();
+                disbusement.Amount__c           = $('#directCredit_Content').find('#amtNZDisburse').val();
+                disbusement.Bank_Number__c      = $('#directCredit_Content').find('#bankNumNZDisburse').val();
+                disbusement.Branch_Number__c    = $('#directCredit_Content').find('#branchNumNZDisburse').val();
+                disbusement.Bank_Acc_No_NZ__c   = $('#directCredit_Content').find('#acctNumNZDisburse').val();
+                disbusement.Suffix_Number__c    = $('#directCredit_Content').find('#sufNumNZDisburse').val();
+                disbusement.Bank_Name__c       = $('#directCredit_Content').find('#bankNameNZDisburse').val();
+                disbusement.Branch_Name__c      = ($('#directCredit_Content').find('#branchNameNZDisburse').val() ? $('#directCredit_Content').find('#branchNameNZDisburse').val() : '');
+                disbusement.Account_Name__c     = $('#directCredit_Content').find('#acctNameNZDisburse').val();
+                disbusement.Reference__c        = $('#directCredit_Content').find('#referenceNZDisburse').val();
+                recordTypeString                = 'Direct Credit NZ';
+                
+                saveRecordDisbursement(disbusement, recordTypeString);
+            }           
+        }
+    }   
+
+    /*
+    * @Description: Method to do save the disbursement details 
+    *
+    */  
+    
+    function saveRecordDisbursement(disbusement, recordTypeString){
+        delete disbusement.type;
+        console.log('Disbursement Details'+ disbusement);
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_DisbursementDetails_Ext.confirmDisbursementDetails}',
+            disbusement, recordTypeString, currentApplication.Id, currentApplication.Total_Loan_Amount__c,
+            function(result, event){
+                if(event.status ){
+                    console.log('Disbursement id '+JSON.stringify(result));
+                    
+                    if(result.length == 18){
+                        //BEGIN MLASALA 23-FEB-16: Commented out and replaced with message div on parent page
+                        // $('#directCredit_Content').find("#msgDiv").empty();
+                        // $('#directCredit_Content').find('#msgDiv').removeClass('hidden');
+                        // $( "<label class='success'> Disbursement saved successfully.</label>" ).appendTo( "#msgDivDisburse" );                   
+                        // $( "<label class='msg success'> Disbursement saved successfully.</label>" ).appendTo("#dmlStatus");
+                        disbusement.Id = result;
+                        console.log('Disbursement saved successfully');
+                        
+                        //Prepopulate debit fields
+                        if(appDivision == 'NZ'){
+                            $('#bankNumNZ').val(disbusement.Bank_Number__c);
+                            $('#branchNumNZ').val(disbusement.Branch_Number__c);
+                            $('#acctNumNZ').val(disbusement.Bank_Acc_No_NZ__c);
+                            $('#sufNumNZ').val(disbusement.Suffix_Number__c);
+                        }
+                    }else{
+                        $('#directCredit_Content').find("#msgDivDisburse").empty();
+                        $('#directCredit_Content').find('#msgDivDisburse').removeClass('hidden');
+                        $( "<label> Error encountered. "+result+"</label>" ).appendTo( "#msgDivDisburse" );
+                        console.log('Error while saving Disbursement ');
+                    }   
+                    
+                    validateDisbursementFormToNavigate();
+
+                   
+                    
+                } else if(event.type === 'exception'){
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            {escape: true}
+        );
+    }
+
+    function setHeaders(application){
+        if(application.Brand_String__c == "{!brandLatitude}" || application.Brand_String__c == "{!brandAussie}"){
+            $("#disbursementSubHeader").html("{!$Label.APP_GSD_Disbursement_SubHeader_AU}");
+        }
+        else {
+            $("#disbursementSubHeader").html("{!$Label.APP_GSD_Disbursement_SubHeader_NZ}");
+        }
+    }
+
+    function validateDisbursementFormToNavigate(){
+        if($('.validateDisbursementForm').valid() && $('.validateDisbursementForm').find('label.customError').length <=0 && $('div#msgDivDisburse').find('label').length <=0 ){
+            isValid = true;
+        }
+
+        doNavigate();
+    }
+    
+    
+    $( document ).ready(function() {
+        getApplicationDetailDisbursement();
+        $('.validateDisbursementForm').validate({
+            onchange:function(element) {
+                this.element(element);
+            }
+        });
+        
+        $('#btnDone').click(function(e) {
+            $('input[type="text"].required').each(function() {
+                if ($.trim($(this).val()) == '') {
+                    isValid = false;
+                    $(this).css({
+                        "border": "1px solid red"
+                    });
+                }
+                else {
+                    $(this).css({
+                        "border": "",
+                        "background": ""
+                    });
+                }
+            });
+        });
+        
+        $('#repayments_Tab').click(function(e) {
+            $('input[type="text"].required').each(function() {
+                if ($.trim($(this).val()) == '') {
+                    isValid = false;
+                    $(this).css({
+                        "border": "1px solid red"
+                    });
+                }
+                else {
+                    $(this).css({
+                        "border": "",
+                        "background": ""
+                    });
+                }
+            });
+        });
+        
+        $('#personalReference_Tab').click(function(e) {
+            $('input[type="text"].required').each(function() {
+                if ($.trim($(this).val()) == '') {
+                    isValid = false;
+                    $(this).css({
+                        "border": "1px solid red"
+                    });
+                }
+                else {
+                    $(this).css({
+                        "border": "",
+                        "background": ""
+                    });
+                }
+            });
+        });
+    });
+    </script>
+</apex:page>

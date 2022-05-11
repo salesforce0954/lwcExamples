@@ -1,0 +1,354 @@
+<!--
+ * @History:
+   =====================================================================
+       APR-28-2015: Updated Defect 884 - Add max length attribute to phone number - DY
+       APR-30-2015: Updated Defect 1052 - Updated the streetTypeOptions and countryOptions merge fields since its conflicting with the method in app_commonext.cls - DY
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="App_Personal_Reference_Ext" sidebar="false" showHeader="false" id="pg">
+	<script type="text/javascript" src="/canvas/sdk/js/publisher.js"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScript}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.mobileoveride, '/css/mobile-overide.css')}" />
+
+    
+
+    <apex:stylesheet value="{!URLFOR($Resource.DataTools, '/DataTools/DataToolsPredictiveSearchPlugin-1.0.0.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery-1.10.2.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery.ui.core.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery.ui.widget.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery.ui.position.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery.ui.autocomplete.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/jquery.ui.menu.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.DataTools, '/DataTools/DataToolsPredictiveSearchPlugin-1.0.3.js')}" />
+    <style>
+    .errorMsg {
+      display : none;
+    }
+    </style>
+    
+    <script>
+	function refreshFeed() {
+	  Sfdc.canvas.publisher.publish({name:'publisher.refresh',payload:{feed:true}});
+	}
+	</script>
+   <script>
+   
+   	//Added by TXU - Function to be used by NZ data tool that returns the selected index 
+	function returnSelectedIndex(el, text){
+		
+		for(var i=0; i<el.options.length; i++){
+			if(el.options[i].text == text){
+				el.selectedIndex = i;
+				break;
+			}
+		}
+	}  	
+   
+     var j$ = jQuery.noConflict();
+        if("{!brandCountry}" == "NZ") {
+          DataToolMethodNZ();
+        }
+        else {
+          DataToolMethod();
+        }
+        
+        function callOnComplete() {
+           if("{!brandCountry}" == "NZ") {
+             DataToolMethodNZ();
+          }
+          else {
+            DataToolMethod();
+          } 
+        }
+        function DataToolMethodNZ() {
+            j$(function() {
+                j$("input.datatools").each(function(index, callingitem){    
+                    console.log(callingitem);
+                    //For PO Box we need to call a different web service therefore for Postal Address we will treat it differently  
+                    if(callingitem.id == "pg:frm:pb:pbs:pbsitem:fulAdd"){  
+                    //alert(callingitem.id);    
+                        j$(callingitem).autocomplete({
+                            source: function( request, response ) {
+                                j$.ajax({
+                                    url: "{!NZEndPoint}",
+                                    dataType: "jsonp",
+                                    type: "GET",
+                                    contentType: "application/json; charset=utf-8",
+                                    data: {OutputFormat:"json", ResultLimit:10, AddressLine:request.term, Method:"DataTools.Capture.Address.Predictive.NzPaf.SearchAddress", RequestKey:"{!NZRequestKey}", DepartmentCode:"CloudSherp"},
+                                    success: function( data ) {
+                                        response( j$.map( data.DtResponse.Result, function( item ) {
+                                            var Output = (item.AddressLine + ", " + item.Suburb + ", " + item.TownCityMailtown + ", " + item.Postcode);
+                                            return {
+                                                label: Output ,
+                                                value: Output ,
+                                                Output: Output,
+                                                RecordId: item.RecordId,
+                                                AddressLine: item.AddressLine
+                                            }
+                                        }));
+                                    }
+                                });
+                            },
+                            select: function(event, ui){
+                                //Retrieve detailed address
+                                j$.ajax({
+                                    url: "{!NZEndPoint}",
+                                    dataType: "jsonp",
+                                    type: "GET",
+                                    contentType: "application/json; charset=utf-8",
+                                    data: {Method:"DataTools.Capture.Address.Predictive.NzPaf.RetrieveAddress", RecordId:ui.item.RecordId, RequestId:"", RequestKey:"{!NZRequestKey}", DepartmentCode:"CloudSherp", OutputFormat:"json" },
+                                    success: function( data ) { 
+                                         
+                                         console.log(data.DtResponse.Result);
+                                                                    
+                                         j$.map(data.DtResponse.Result, function (item) {
+                                    
+                                            console.log(item);
+        
+                                            if(callingitem.id == "pg:frm:pb:pbs:pbsitem:fulAdd"){
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemUnitnum:unitNum').value = item.UnitNumber;
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemStreetNum:streetNum').value = item.StreetNumber1 + item.StreetNumberSuffix1;
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemStreetName:streetName').value = item.StreetName;   
+                                               
+                                                returnSelectedIndex(document.getElementById('pg:frm:pb:pbs:strType:streetType'), item.StreetType);
+                                                //j$("#pg\\:frm\\:pb\\:pbs\\:strType\\:streetType option:contains("+ item.StreetType +")").attr('selected', true);      
+                                               
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemCity:town').value = item.TownCityMailtown;
+                                                document.getElementById('pg:frm:pb:pbs:suburb').value = item.Suburb;
+                                                if(item.Postcode != null && item.Postcode != '' && item.Postcode.length == 3)  {
+                                                  item.Postcode = "0"+item.Postcode;
+                                                }
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemPostCode:postCode').value = item.Postcode;
+                                                document.getElementById('pg:frm:pb:pbs:pbsitemcountry:country').value = "New Zealand";
+                                                
+                                                if(item.UrbanRural == "RURAL"){
+                                                  document.getElementById('pg:frm:pb:pbs:suburb').value = item.PostalRD;
+                                                }
+        
+                                            } 
+                                        }); 
+
+                                    }
+                                }); 
+                                            
+                            }                       
+                        });
+                    }
+                });
+            });
+        } 
+        
+        
+         function DataToolMethod(){
+            j$(function() {
+                j$("input.datatools").each(function(index, callingitem){
+             
+                    j$(callingitem).DataToolsPredictiveSearchPlugin({
+                        SearchType:"DtSearchAddressLinePredictive",
+                        DataToolsCloudServer:"{!webServer}",
+                        UrlKey1:"{!URLKey}", UrlKey2:"", UrlKey3:"", UrlKey4:"", UrlKey5:"",
+                        Layout:"SingleLine",
+                        DisplayOnlyCountryCode:"{!brandCountry}"
+                    }).bind("Selected", function(event, item) {
+                        
+                        var ws = '';
+                        if(item.country_code == 'AU'){
+                            ws = 'DtSearchAddressLineAMAS_jsonp';
+                        } else if(item.country_code == 'NZ'){
+                            ws = 'DtSearchNzAddressLine_jsonp';
+                        }
+                        
+                        j$.ajax({
+                            url: "{!webServerWebService}"+ws,
+                            dataType: "jsonp",
+                            crossDomain: true,
+                            data: { AddressLine: item.address_line, LocalityLine: (item.locality + " " + item.state + " " + item.postcode)  ,
+                                UrlKey1:"{!URLKey}", UrlKey2:"", UrlKey3:"", UrlKey4:"", UrlKey5:""
+                            },
+                            success: function (data) {
+                                var FullAddressLine = (item.address_line + ", " + item.locality + " " + item.state + " " + item.postcode + item.error_message);
+                                document.getElementById('pg:frm:pb:pbs:pbsitem:fulAdd').value = FullAddressLine;
+                                j$.map(data.items, function (item) {
+                                    
+                                    if(callingitem.id == "pg:frm:pb:pbs:pbsitem:fulAdd"){
+                                        
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemUnitnum:unitNum').value = item.unit_number;
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemStreetNum:streetNum').value = item.street_number_1 + item.street_number_suffix_1;
+                                        
+                                        if(item.street_number_2 != ''){
+                                            document.getElementById('pg:frm:pb:pbs:pbsitemStreetNum:streetNum').value = item.street_number_1 + item.street_number_suffix_1 + '-' + item.street_number_2 + item.street_number_suffix_2;                                        
+                                        }
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemStreetName:streetName').value = item.street_name;
+                                        
+                                        if(item.country_code == 'AU'){
+                                           // j$("#pg\\:frm\\:pb\\:pbs\\:strType\\:streetType option:contains("+ item.street_type +")").attr('selected', true); 
+                                            document.getElementById('pg:frm:pb:pbs:strType:streetType').value = item.street_type;                           
+                                            document.getElementById('pg:frm:pb:pbs:stateSec:stateId').value = item.state;                         
+                                        }
+
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemSuburb:suburb').value = item.locality;
+                                        if(item.postcode != null && item.postcode != '' && item.postcode.length == 3)  {
+                                          item.postcode = "0"+item.postcode;
+                                        }
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemPostCode:postCode').value = item.postcode;
+                                        document.getElementById('pg:frm:pb:pbs:pbsitemcountry:country').value = item.country;
+
+                                    } 
+                                });
+                               
+                            }
+                        });
+                    }); <!-- end jquery DataToolsPredictiveSearchPlugin -->  
+                }); <!-- end jquery(input.datatools) -->         
+            });  <!-- end jquery function -->
+        }
+            
+   </script>
+<apex:form id="frm">
+  <apex:pageMessages ></apex:pageMessages>
+    <apex:pageBlock id="pb">
+      <apex:pageBlockSection columns="1" id="pbs">
+        <!--apex:inputField value="{!personalReference.Name__c}" required="true"/-->
+         <apex:pageBlockSectionItem id="pbsitemName">
+            <apex:outputLabel value="Name" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Name__c}"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+        
+        <apex:pageBlockSectionItem id="pbsitem">
+        <apex:outputPanel id="pnl" style="border: 1px solid #9C9C9C; padding:7px; border-radius:5px;width:40%;align:center;width: 70%;padding-left: 5%;margin-left: 10%;" layout="block">
+          <apex:outputLabel value="Address Search " /><br/>
+          <apex:inputText id="fulAdd" styleClass="datatools" style="width: 90%;" value="{!addressSearch}"/>
+        </apex:outputPanel>        
+        </apex:pageBlockSectionItem>
+       
+       
+        <apex:pageBlockSectionItem id="pbsitemPropName">
+            <apex:outputLabel value="Property Name" />
+           
+           <apex:inputField value="{!personalReference.Property_Name__c}" id="propName"/>
+          
+         </apex:pageBlockSectionItem>
+         
+         <apex:pageBlockSectionItem id="pbsitemUnitnum">
+           <apex:outputLabel value="Unit number" />           
+           <apex:inputField value="{!personalReference.Unit_number__c}" id="unitNum"/>          
+         </apex:pageBlockSectionItem>
+         
+          <apex:pageBlockSectionItem id="pbsitemStreetNum">
+            <apex:outputLabel value="Street Number" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Street_Number__c}"  id="streetNum"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+         
+          <apex:pageBlockSectionItem id="pbsitemStreetName">
+            <apex:outputLabel value="Street Name" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Street_Name__c}" id="streetName" />
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+         
+    
+        <apex:pageBlockSectionItem id="strType">
+          
+          <apex:outputLabel value="Street Type" />
+          <apex:outputPanel layout="block" styleClass="requiredInput" id="strtTypePnl">
+          <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!personalReference.Street_Type__c}" id="streetType" >
+                                <apex:selectOptions value="{!streetTypeOptionsInt}"/>
+                            </apex:selectList>
+          </apex:outputPanel>                
+        </apex:pageBlockSectionItem>      
+
+          <apex:pageBlockSectionItem id="pbsitemSuburb" rendered="{!!$Setup.Profile_Country__c.NZ__c}">
+            <apex:outputLabel value="Suburb" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Suburb__c}" id="suburb"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+         
+         <apex:inputField value="{!personalReference.Suburb__c}" id="suburb" rendered="{!$Setup.Profile_Country__c.NZ__c}"/>
+         
+          <apex:pageBlockSectionItem id="pbsitemCity" rendered="{!$Setup.Profile_Country__c.NZ__c}">
+            <apex:outputLabel value="Town/City" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Town_City__c}"  id="town"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+         
+          <apex:pageBlockSectionItem id="pbsitemPostCode">
+            <apex:outputLabel value="Postcode" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputField value="{!personalReference.Postcode__c}"  id="postCode"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+         
+        <apex:pageBlockSectionItem id="pbsitemcountry">
+          <apex:outputLabel value="Country" />
+           <apex:outputPanel layout="block" styleClass="requiredInput">
+          <div class="requiredBlock"></div>
+          <apex:selectList size="1" styleClass="width303" value="{!personalReference.Country__c}" id="country" onChange="disableState();">                                
+                                <apex:selectOptions value="{!countryOptsInt}"/> 
+                            </apex:selectList>
+          </apex:outputPanel>                         
+        </apex:pageBlockSectionItem>         
+        
+        <apex:pageBlockSectionItem id="stateSec" rendered="{!!$Setup.Profile_Country__c.NZ__c}">
+          
+          <apex:outputLabel value="State" />
+          <apex:outputPanel layout="block" styleClass="requiredInput" id="strtTypePnl">
+          <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!personalReference.State__c}" id="stateId" >
+                                <apex:selectOptions value="{!stateOptions}"/>
+                            </apex:selectList>
+          </apex:outputPanel>                
+        </apex:pageBlockSectionItem>     
+        
+        
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Phone Number" />
+            <apex:outputPanel layout="block" styleClass="requiredInput" >
+          <div class="requiredBlock"></div>
+           <apex:inputText value="{!personalReference.Phone_Number__c}" id="phoneNumber" maxLength="{!if(brandCountry='NZ',11,10)}"/>
+           </apex:outputPanel>     
+         </apex:pageBlockSectionItem>
+       
+
+        
+        
+         <apex:pageBlockSectionItem id="relationSec" >
+          
+          <apex:outputLabel value="Relationship" />
+          <apex:outputPanel layout="block" styleClass="requiredInput" id="relationPnl">
+          <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!personalReference.Relationship__c}" id="relationId" >
+                                <apex:selectOptions value="{!relationshipOptions}"/>
+                            </apex:selectList>
+          </apex:outputPanel>                
+        </apex:pageBlockSectionItem>   
+        
+      </apex:pageBlockSection>
+      
+      <apex:pageBlockButtons >
+        <apex:commandButton value="Save" action="{!save}" rerender="frm" oncomplete="refreshFeed();callOnComplete();"/>
+      </apex:pageBlockButtons>
+    </apex:pageBlock>
+  </apex:form>
+  <apex:outputPanel rendered="false">
+    {!Application__c.Status__c}
+  </apex:outputPanel>
+</apex:page>

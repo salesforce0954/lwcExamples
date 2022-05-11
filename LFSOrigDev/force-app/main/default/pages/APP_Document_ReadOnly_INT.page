@@ -1,0 +1,265 @@
+<apex:page standardController="Application__c"
+	extensions="APP_Documents_EXT_INT" showHeader="false" sidebar="false"
+	id="AppDocumentInt" standardStylesheets="false" applyHtmlTag="false"
+	applyBodyTag="false">
+
+	<apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}" />
+
+	<apex:form id="documentForm" styleClass="documentFormClass"
+		enctype="multipart/form-data">
+		<apex:inputHidden value="{!showDocs}" id="showDocs" />
+		<apex:actionFunction name="updateDocuments"
+			action="{!updateRealtedDocumentsNotLoan}"
+			rerender="documentOutputPanel,editDocumentOutputPanel,showDocs"
+			status="myStatus" onComplete="showDocuments();" />
+
+		<!-- Updated by: Adrian Recio -->
+		<!-- Date: 22/09/2015 -->
+		<!-- Description: Action function is updated to fire a separate callout on complete. 
+						  Param is also added to pass the related document Id for retry.
+		-->
+		<apex:actionFunction name="retryRelatedDocument" action="{!retryRelatedDocument}" oncomplete="fireDocGenServiceCallRetry();">
+			<apex:param name="relatedDocumentId" value="{!relatedDocumentId}"/>
+		</apex:actionFunction>
+
+		<apex:actionFunction name="fireDocGenServiceCallRetry" action="{!fireDocGenServiceCallRetry}"/>
+
+		<div id="showDocs">
+			<apex:outputPanel id="documentOutputPanel">
+				<apex:pageBlock title="Documents" id="documentPageBlock"
+					mode="detail">
+					<apex:pageMessages />
+
+					<table class="list " border="0" cellpadding="0" cellspacing="0">
+			            <tr class="headerRow">
+			                <th class="headerRow">Applicant</th>
+			                <th class="headerRow">Document URL</th>
+			                <th class="headerRow">Category</th>
+			                <th class="headerRow">Type</th>
+			                <th class="headerRow">Created Date</th>
+			                <th class="headerRow">Created By</th>
+			            </tr>
+			            <apex:repeat value="{!relatedDocumentWrapperListNotLoan}" var="d" id="documentPageBlockTable">
+			                <tr class="dataRow">
+			                    <td class="dataCell">{!d.applicantName}</td>
+			                    <td class="dataCell">
+			                    	<a onclick="javscript:window.open('{!d.documentURL}');return false;" id="eventlink">
+			                    		<u>{!d.documentURLDisplay}</u>
+			                    	</a>
+			                    </td>
+			                    <td class="dataCell">{!d.relatedDocument.Document_Category__c}</td>
+			                    <td class="dataCell">{!d.relatedDocument.Type__c}</td>
+			                    <td class="dataCell">
+			                        <apex:outputField value="{!d.relatedDocument.CreatedDate}"/>
+			                    </td>
+			                    <td class="dataCell">
+			                        <apex:outputField value="{!d.relatedDocument.CreatedById}"/>
+			                    </td>
+			                </tr>
+			            </apex:repeat>
+			        </table>
+
+					<apex:pageBlockButtons >
+						<apex:commandButton styleClass="btn" value="Edit"
+							onClick="editDocuments();" reRender="false"
+							 status="updateStatus" disabled="{!editDocumentButton}"/>
+						<apex:commandButton styleClass="btn" value="Upload Documents"
+							action="{!uploadDocument}" status="updateStatus"
+							disabled="{!newEditDocument}" />
+					</apex:pageBlockButtons>
+					<apex:actionStatus id="updateStatus">
+						<apex:facet name="start">
+							<c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699"
+								borderSize="3" height="50px" width="120px"
+								ImageUrl="{!$Resource.LoadingDialog}" Message="Updating..."
+								messageStyle="color:darkred;font-size:11pt;font-weight:bold;" />
+						</apex:facet>
+					</apex:actionStatus>
+				</apex:pageBlock>
+			</apex:outputPanel>
+		</div>
+
+		<div id="editDocs" style="display: none;">
+			<apex:outputPanel id="editDocumentOutputPanel">
+				<apex:pageBlock title="Documents" id="editDocumentPageBlock">
+					<apex:pageMessages />
+					<apex:pageBlockTable value="{!relatedDocumentWrapperListNotLoan}"
+						var="ed" id="editDocumentPageBlockTable">
+ 
+						<apex:column headerValue="Applicant" value="{!ed.applicantName}" rendered="{!NOT(IsJoint)}"/>
+
+						<apex:column rendered="{!IsJoint}">
+							<apex:facet name="header">
+								<apex:outputText value="Applicant"></apex:outputText>
+							</apex:facet>
+							<apex:selectList value="{!ed.relatedDocument.Applicant__c}" size="1" multiselect="false" >
+	                              <apex:selectOptions value="{!JointApplicant}"/>
+	                        </apex:selectList>
+            			</apex:column>
+            			
+						<apex:column >
+							<apex:facet name="header">
+								<apex:outputText value="Document URL"></apex:outputText>
+							</apex:facet>
+							<apex:outputLink value=""
+								onclick="javscript:window.open('{!ed.documentURL}');return false;"
+								id="eventlink">{!ed.documentURLDisplay}</apex:outputLink>
+						</apex:column>
+						
+						<apex:column headerValue="Category">
+							<apex:inputHidden value="{!ed.relatedDocument.GE_Link_Type__c}"
+								id="gelinktype" />
+							<apex:inputField value="{!ed.relatedDocument.Document_Category__c}" id="category" />
+						</apex:column>
+						
+						<apex:column headerValue="Type">
+							<apex:inputField value="{!ed.relatedDocument.Type__c}" id="type" />
+						</apex:column>
+
+						<apex:column headerValue="Created Date"
+							value="{!ed.relatedDocument.CreatedDate}" />
+						<apex:column headerValue="Created By"
+							value="{!ed.relatedDocument.CreatedById}" />
+					</apex:pageBlockTable>
+					
+					<apex:pageBlockButtons >
+						<apex:commandButton styleClass="midbutton" value="Save"
+							onClick="updateDocuments();" reRender="false"
+							status="updateStatus" />
+						<apex:commandButton styleClass="midbutton" value="Cancel"
+							onClick="showDocuments(); return false;" reRender="false"
+							status="updateStatus" />
+					</apex:pageBlockButtons>
+					<apex:actionStatus id="updateStatus">
+						<apex:facet name="start">
+							<c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699"
+								borderSize="3" height="50px" width="120px"
+								ImageUrl="{!URLFOR($Resource.getheme,'images/loading-bar.gif')}"
+								Message="Updating..."
+								messageStyle="color:#660000;font-size:11pt;font-weight:bold;visibility:hidden;" />
+						</apex:facet>
+					</apex:actionStatus>
+				</apex:pageBlock>
+			</apex:outputPanel>
+		</div>
+	</apex:form>
+
+	<apex:form id="loanDocuFormId">
+	<!-- Removed by: Adrian Recio -->
+	<!-- Description: Hidden value not needed. This will be replace by a param in an action function. -->
+	<!-- Date: 25/09/2015 -->
+	<!--
+		<apex:inputHidden value="{!relatedDocumentId}" id="relDocId" />
+		-->
+		<apex:outputPanel id="editDocumentOutputPanel">
+			<apex:pageBlock title="Generated Document" id="editDocumentPageBlock"
+				mode="detail">
+
+				<table class="list " border="0" cellpadding="0" cellspacing="0">
+		            <tr class="headerRow">
+		                <th class="headerRow">Attachment Url</th>
+		                <th class="headerRow">Title</th>
+		                <th class="headerRow">Status</th>
+		                <th class="headerRow">Created Date</th>
+		                <th class="headerRow">Created By</th>
+		                <th class="headerRow">Retry</th>
+		            </tr>
+		            <apex:repeat value="{!relatedDocumentWrapperListLoan}" var="d" id="documentPageBlockTable">
+		                <tr class="dataRow">
+		                    <td class="dataCell">
+		                    	<a onclick="javscript:window.open('{!d.documentURL}');return false;" id="eventlink">
+		                    		<u>{!d.documentURLDisplay}</u>
+		                    	</a>
+		                    </td>
+		                    <td class="dataCell">{!IF(d.isStatic, d.documentURLDisplay, d.relatedDocument.Title__c)}</td>
+		                    <td class="dataCell">{!IF(NOT(d.isStatic),d.relatedDocument.Status__c, '')}</td>
+		                    <td class="dataCell">
+		                    	<apex:outputField value="{!d.relatedDocument.CreatedDate}" rendered="{!NOT(d.isStatic)}"/>
+		                    </td>
+		                    <td class="dataCell">
+		                    	<apex:outputField value="{!d.relatedDocument.CreatedById}" rendered="{!NOT(d.isStatic)}"/>
+		                    </td>
+		                    <td class="dataCell">
+		                    	<!-- Updated by: Adrian Recio -->
+		                    	<!-- Description: Update is implemented to allow synchronous 
+		                    					  callouts  on click of retry instead of asynch. -->
+		                    	<!-- Date: 23/09/2015 -->
+		                    	<!--
+		                    	<apex:commandButton value="Retry"
+								rendered="{!IF(AND(d.relatedDocument.Error_Code__c == retryableCode &&
+								 NOT(d.isStatic)),true,false)}"
+								onclick="passRelatedId('{!d.relatedDocument.Id}');"
+								action="{!retryRelatedDocument}"/>
+								-->
+								<apex:commandButton value="Retry"
+								rendered="{!IF(AND(d.relatedDocument.Error_Code__c == retryableCode &&
+								 NOT(d.isStatic)),true,false)}" onclick="retryRelatedDocument('{!d.relatedDocument.Id}'); return false;"/>
+
+								<apex:outputField value="{!d.relatedDocument.Error_Description__c}"
+								rendered="{!IF(AND(d.relatedDocument.Error_Code__c != retryableCode &&
+								 NOT(d.isStatic), d.relatedDocument.Error_Code__c != successCode),true,false)}" />
+		                    </td>
+		                </tr>
+		            </apex:repeat>
+		        </table>
+			</apex:pageBlock>
+		</apex:outputPanel>
+	</apex:form>
+	<script>
+		/* Removed by: Adrian Recio 
+		   Description: Method not needed because action functions 
+		   				will be using params to pass this value to the controller.
+		   Date: 23/09/2015 
+		*/
+		/*
+        function passRelatedId(myid){           
+            document.getElementById('appPageId:docSubTab:AppDocumentInt:loanDocuFormId:relDocId').value = myid;
+        }
+        */
+
+        window.onload = function(e){
+            showDocuments();
+        }
+        function editDocuments(){
+            document.getElementById("showDocs").style.display = "none";
+            document.getElementById("editDocs").style.display = "block";          
+            //disableGeneratedDocuments();
+        }
+        function showDocuments(){
+            var showDocs = document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:showDocs').value;
+            if(showDocs == 'true'){
+                document.getElementById("showDocs").style.display = "block";
+                document.getElementById("editDocs").style.display = "none";
+            }
+            else{
+                document.getElementById("showDocs").style.display = "none";
+                document.getElementById("editDocs").style.display = "block";
+            }
+            disableGeneratedDocuments();
+        }
+        function disableGeneratedDocuments(){
+            var loop = 
+            document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable').rows.length-1;
+            
+            
+            for(var i=0;i<loop;i++){
+                var fieldValue =
+ document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+i+':gelinktype').value;   
+                disableField(fieldValue,i+1);
+            }
+            
+        }        
+        function disableField(value,rowIndex){            
+            if(rowIndex != null && rowIndex !=''){
+                var rowIndex = rowIndex-1;
+            }
+            
+            if(value == 'Generated Document'){
+                document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':category').disabled = true;
+                document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':source').disabled = true;
+                document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':type').disabled = true;
+                document.getElementById('appPageId:docSubTab:AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':type').style.display = "none";
+            }
+        }
+    </script>
+</apex:page>

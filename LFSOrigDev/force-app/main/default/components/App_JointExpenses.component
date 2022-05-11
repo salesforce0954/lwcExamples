@@ -1,0 +1,2393 @@
+<!--
+/**
+* @Description: Expense component (Customer UI)
+* @Author: Jade Serrano
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Jade
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      18/03/2019 - Enabling Expense field for NZ Sprint 1 
+28/03/2019 - Sprint 3 Keypad on Number field 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointExpense" id="Expense__c-mycomponent">
+    <style>
+        .frequencyPicklist {margin-top: 44px;}    
+        
+        .popover{
+    background-color: #ededed  !important;
+}
+
+.popover-title {
+  background-color: #bcc3ca  !important;
+  color: black  !important;
+  font-size: 14.994px  !important;
+  font-weight: 700  !important;
+  padding: 10px 20px 11px  !important;
+}
+
+.privacyloancontent a[data-toggle="popover"]{
+    color: #006ac6 !important;
+    text-decoration: underline !important;
+}
+
+.privacyloancontent .popover a{
+    color: #006ac6 !important;
+    text-decoration: underline !important;
+}
+ 
+
+</style>
+
+<apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+  <style>
+  @media screen and (min-width: 0px) and (max-width: 425px) and (orientation: portrait) {
+    .lfs_exp_input, .gem-live-expense-wrapper, .gem-total-wrapper {
+        width: 95% !important;
+        margin-left: 2% !important;
+    }        
+    
+    .helpTextMbF span{
+      padding-right: 20px !important;   
+    }
+    
+    .helpTextMbT span{
+      padding-right: 61px !important;   
+    }
+    
+    .helpTextMbP span{
+      padding-right: 14px !important;   
+    }
+    
+    .helpTextMb span{
+      padding-right: 93px !important;
+      margin-right: 0px !important;   
+    }
+    
+   #showErrExpense {
+     width: 95% !important;
+     margin-left: 8px !important;
+   } 
+ }   
+  
+  @media screen and (min-width: 320px) and (max-width:568px) {
+    .UtilityHTAU span, .helpTextMb span {
+      padding-right: 0px !important;     
+    }
+  }
+  
+  @media screen and (min-width: 375px) and (max-width:667px) {
+    .helpTextMbT span {
+      padding-right: 0px !important;      
+    }
+  }
+
+  @media screen and (min-width: 411px) and (max-width:731px) {
+   .helpTextMbT span {
+     padding-right: 0px !important;
+   }
+   
+   #showErrExpense {
+     width: 95% !important;
+     margin-left: 8px !important;
+   }
+  }
+  
+  @media screen and (min-width: 426px) and (max-width:536px){
+    .input100pct {
+      width: 95% !important;
+    }
+    
+    .helpTextMbF span, .helpTextMb span, .helpTextMbP span{
+      padding-right: 0px !important;
+    }
+    
+    #showErrExpense {
+     width: 100% !important;
+     margin-left: 0px !important;
+   }  
+  }
+  
+    
+  @media screen and (min-width: 581px) and (max-width: 767px) {
+     .lfs_exp_input, .gem-live-expense-wrapper, .gem-total-wrapper, {
+        width: 90% !important;
+        margin-left: 2px !important;
+        padding: 0px 10px 0px 10px!important;
+    }
+    
+    .interval {
+        margin-top: 43px !important;
+        margin-left: 5px !important;
+    } 
+    .exp-font {
+        font-size: 16px !important;
+    } 
+   
+    #showErrExpense {
+     width: 100% !important;
+     margin-left: 0px !important;
+   }      
+  }
+  
+  @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .lfs_exp_input, .gem-live-expense-wrapper, .gem-total-wrapper, {
+        width: 95% !important;
+        margin-left: 2px !important;
+        padding: 0px 10px 0px 10px!important;
+    }  
+    .span6 select {
+      margin-left: 10px;
+      padding: 0px 10px;
+    }
+  }
+
+  @media screen and (min-width: 581px) and (max-width: 767px) {
+     .exp-input-right {
+       padding-top: 0px;
+     }
+
+     .transportHT span, .mb-grocery-desc span {
+       margin-right: 0;
+     }
+     
+     .UtilityHTAU span, .helpTextMb span {
+       padding-right: 0px !important;
+     }
+   }
+
+   @media screen and (min-width: 581px) and (max-width: 1024px) {
+    .exp-input-right {
+       padding-left: 2%;
+     }
+   }
+   
+   @media screen and (min-width: 581px) and (max-width: 639px) {
+    .exp-input-right-lat-trans{
+      margin-top: 43px !important;
+    }
+   }
+
+   @media screen and (min-width: 581px) and (max-width: 636px) {
+    .exp-input-right-fge {
+      margin-top: 68px !important;
+    }
+   }
+  </style>                  
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+  <style>
+  
+   .totalExpenseValidation{
+       font-family:Calibre Regular !important;
+       font-weight: normal !important;
+       margin-top: 0px !important;
+       margin-bottom: 0px !important;
+   }
+   
+   .shades h4{
+      color: #4B4B4B !important;
+      font-size: 16pt !important;
+    }
+    
+    .shades {
+      color:#4B4B4B !important;
+    }
+    
+  @media screen and (min-width: 0px) and (max-width: 425px) and (orientation: portrait) {
+    .lfs_exp_input, .gem-live-expense-wrapper, .gem-total-wrapper {
+        width: 90% !important;
+    }   
+    
+    .mobile-responsive span {
+      margin-right: 0 !important;
+    }
+    
+    .revolving-gem label{
+      width:75% !important;          
+    }
+    
+    .educationHT span{
+      padding-right:119px !important;
+    }
+    
+    .transportHT span{
+      padding-right:51px !important;
+    }
+    
+  }
+
+   @media screen and (min-width:280px) and (max-width: 653px) {
+      .propHT span, .secondaryPropHT span {  
+        padding-right: 0px !important;
+     }
+     
+     .personalHTNZ span, .additionalHT span, .mb-grocery-desc span, .utilityHT span, .educationHT span {
+       padding-right: 0px !important;
+     }
+   }
+   
+  @media screen and (min-width: 320px) and (max-width: 568px) {
+     #showErrExpense {
+      width: 90%;
+    }
+    
+    .propHT span {
+       padding-right: 0px !important;    
+    }
+    
+    .personalHTNZ span {
+       margin-right: 0px !important;
+    }
+    
+    .educationHT span {
+       padding-right: 81px !important;
+    }
+    
+    .transportHT span {
+       padding-right: 12px !important;    
+    }
+    
+   }
+
+   @media screen and (min-width: 360px) and (max-width: 640px) {     
+      .propHT span, .secondaryPropHT span, .propRatesHT span, .otherP span {
+        padding-right: 0px !important;
+        margin-right: 0px !important;
+      }
+      
+      #showErrExpense {
+       width: 90%;
+      }
+   }
+
+
+   @media screen and (min-width: 426px) and (max-width: 536px) {
+      .transportHT span, .educationHT span{
+        padding-right: 0px !important;
+      }
+      
+      .propHT span, .secondaryPropHT span, .propRatesHT span, .otherP span {
+        padding-right: 0px !important;
+        margin-right: 0px !important;
+      }
+
+      #showErrExpense {
+       width: 100%;
+      }
+   }
+
+  @media screen and (min-width: 581px) and (max-width: 1024px) {
+    .exp-input-right {
+       padding-left: 2%;
+     }
+   }
+
+     @media screen and (min-width: 581px) and (max-width: 767px) {
+      #showErrExpense {
+        width: 100%;
+      }
+     
+     .exp-input-right {
+       padding-top: 42.5px;
+     }
+     
+    .additionalHT span, .utilityHT span, .personalHTNZ span, .otherP span {
+       padding-right: 0px !important;
+       margin-right: 0px !important;
+    }     
+    
+     .transportHT span, .mb-grocery-desc span {
+       margin-right: 0;
+     }        
+  }
+  
+   @media screen and (min-width:768px) and (max-width: 1024px) {
+      .propHT span, .secondaryPropHT span {  
+        padding-right: 0px !important;
+        margin-right: 0px !important;
+     }
+   }
+
+   @media screen and (min-width:1024px) {
+      .propHT span, .secondaryPropHT span {  
+        padding-right: 0px !important;
+     }
+   }
+  </style>                  
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+  <style>
+   .totalExpenseValidation{
+       font-weight: bold !important;
+       margin-top: 5px !important;
+       margin-bottom: 5px !important;
+   }  
+    .shades h4{
+      color: #353C2E !important;
+      font-size: 16pt !important;
+    }
+    
+    .shades {
+      color:#353C2E !important;
+    }
+    
+  @media screen and (min-width: 0px) and (max-width: 425px) and (orientation: portrait) {
+    .lfs_exp_input, .gem-live-expense-wrapper, .gem-total-wrapper {
+        width: 101% !important;
+        margin-left: 0% !important;
+    }   
+    
+    .mobile-responsive span {
+      margin-right: 0 !important;
+    }
+    
+     .revolving-gem label{
+      width:75% !important;          
+    }
+    
+    .otherP span{
+      padding-right: 21px !important;
+    }
+    .educationHT span{
+      padding-right:72px !important;
+    }
+    .personalHTNZ span{
+      padding-right:123px !important;
+    }
+    .utilityHT span{
+      padding-right:85px !important;
+    }
+    .additionalHT span{
+      padding-right:55px !important;
+    }
+    .propHT span, .secondaryPropHT span {  
+      padding-right: 0px !important;
+      margin-right: 0px !important;
+   }       
+ }
+   
+   @media screen and (min-width: 280px) and (max-width: 653px) {
+     .mb-grocery-desc span, .transportHT span {
+        padding-right: 0px !important;
+     }
+     
+     .utilityHT span {
+        padding-right: 42px !important;
+     }
+     
+     .educationHT span {
+        padding-right: 14px !important;
+     }
+     
+     .personalHTNZ span {
+       margin-right: 0px !important;
+       padding-right: 0px !important;
+     }
+     
+     .additionalHT span {
+       padding-right: 27px !important;
+     }
+   }
+   
+   @media screen and (min-width: 320px) and (max-width: 568px) {
+     .mb-grocery-desc span, .transportHT span {
+       padding-right: 0px !important;
+     }
+     
+     .utilityHT span{
+      padding-right:79px !important;
+    }
+    
+    .educationHT span{
+      padding-right:34px !important;
+    }
+    
+    .personalHTNZ span {
+      padding-right: 20px !important;
+    }
+  }
+   @media screen and (min-width: 375px) and (max-width: 812px) {
+    .propHT span, .secondaryPropHT span, .propRatesHT span, .transportHT span {
+      padding-right: 0px !important;
+      margin-right: 0px !important;
+    }      
+   }
+   
+   @media screen and (min-width: 426px) and (max-width: 536px) {
+      .transportHT span, .educationHT span{
+        padding-right: 0px !important;
+      }
+      
+      .interval {
+        margin-left: 0px !important;
+      }
+      
+      .propHT span, .secondaryPropHT span, .propRatesHT span {
+        padding-right: 0px !important;
+      }
+   }
+   
+   @media screen and (min-width: 411px) and (max-width:736px) {
+     .propHT span, .secondaryPropHT span, .propRatesHT span, .transportHT span{
+        padding-right: 0px !important;
+      }
+      .interval {
+        margin-left: 0px !important;
+      }
+   }
+
+   @media screen and (min-width: 540px) and (max-width: 720px) {
+     .otherP span {
+       padding-right: 0px !important;
+       margin-right: 0px !important;
+     }
+     
+     .personalHTNZ span {
+       margin-right: 0px !important;
+     }
+     
+     .additionalHT span {
+       padding-right: 0px !important;
+     }
+   }
+
+   @media screen and (min-width: 581px) and (max-width: 767px) {
+     .exp-input-right {
+       padding-top: 38.5px;
+     }
+
+     .transportHT span, .mb-grocery-desc span {
+       margin-right: -4px;
+     }
+     
+     .personalHTNZ span{
+       padding-right: 0px !important;
+     }
+     
+     .otherPropInt {
+       margin-top: 20px !important;
+     }
+   }
+
+   @media screen and (min-width: 581px) and (max-width: 616px) {
+     .exp-input-right-fge {
+       padding-top: 58.5px;
+     }
+   }
+   
+   @media screen and (min-width: 768px) and (max-width: 1024px) {
+      .otherP span {  
+        margin-right: 0px !important;
+     }
+   }
+   
+   @media screen and (min-width:1024px) {
+      .propHT span, .secondaryPropHT span {  
+        padding-right: 0px !important;
+     }
+   }
+  </style>                  
+</apex:outputPanel>
+
+    <script>
+    /** Commenting this section to remove default value for I Pay expense field ***/
+    /** Uncommenting again **/
+      function copyIPayExpenses(){
+            if('{!country_NZ}' == '{!region}'){
+                document.getElementById("GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:payExpenses").value = "true";
+            }
+        }    
+       
+       function displayTotalExpense(){
+       var totalExpense;
+       if('{!country_NZ}' == '{!region}'){
+        totalExpense = document.getElementById('totalMonthlyLivingExpenseNZ');
+        }else if('{!country_NZ}' != '{!region}'){
+        totalExpense = document.getElementById('totalMonthlyLivingExpense');
+        }
+           document.getElementById('TotalExpense').innerHTML = '&#36;' + totalExpense.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+       }
+       function showRentFields(){
+         var resStatus = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:resStatus');
+          if((resStatus.value == 'Boarding with Parents' || resStatus.value == 'Boarding Other') && ('{!country_NZ}' == '{!region}')){
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlock').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockBoard').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockRent').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:Expense__c___Agent_Landlord_Name__c').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockBoard').style.display = "none";
+
+           }else if((resStatus.value == 'Boarding with Parents' || resStatus.value == 'Boarding Other') && ('{!country_NZ}' != '{!region}')){
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlock').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockBoard').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockRent').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:Expense__c___Agent_Landlord_Name__c').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockBoard').style.display = "block";
+
+           }else if(resStatus.value == 'Renting'){
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlock').style.display = "block";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "block";
+              if('{!country_NZ}' == '{!region}') {
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockRent').style.display = "none";
+             document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentPayment').style.display = "none";
+             document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentInterval').style.display = "none";
+               document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "block";
+document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:Expense__c___Agent_Landlord_Name__c').style.display = "block";
+              }
+              if('{!country_NZ}' != '{!region}') {
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockRent').style.display = "block";
+             document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentPayment').style.display = "block";
+             document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentInterval').style.display = "block";
+              }
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlockBoard').style.display = "none";
+           }else if(resStatus.value == 'Own a home outright' || resStatus.value == 'Supplied by employer' || resStatus.value == 'Own a home with a mortgage'){
+            document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingBlock').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentingOnly').style.display = "none";
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentPayment').value = '';
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentInterval').value = 'Month';
+              document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:Expense__c___Agent_Landlord_Name__c').value = '';
+           }
+       }
+       function totalExpenseZero(){
+        var expTotalAU = document.getElementById('totalMonthlyLivingExpense');
+        var expTotal = document.getElementById('totalMonthlyLivingExpenseNZ');
+        var anyaddExpNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:anyAddExpNZ');
+        if('{!country_NZ}' == '{!region}'){
+            if(expTotal.value < 1 && anyaddExpNZ.value != ''){
+             document.getElementById('showErrExpense').style.display='block';
+             document.getElementById('showErrExpense').innerHTML ="<h5 class='totalExpenseValidation' style='font-family:Helvetica,Arial,sans-serif;'>Total residential and living expenses must be greater than $0</h5>";
+             return false;
+            }else{
+             document.getElementById('showErrExpense').style.display='none';
+            } 
+            
+        }
+        if('{!country_NZ}' != '{!region}'){       
+            var persExpVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:persExpVal');
+            if(expTotalAU.value < 1 && persExpVal.value != ''){
+             document.getElementById('showErrExpense').style.display ='block';
+             document.getElementById('showErrExpense').innerHTML = "<h5 style='font-family:Lexia Bold;'>Total living expenses must be greater than $0</h5>";
+             return false;
+            }else{
+             document.getElementById('showErrExpense').style.display ='none';
+            }
+            
+        }
+        if(loanAmtBSAU() == false && "{!$CurrentPage.parameters.subType}" == "betterStart"){
+         return false;
+        }else{       
+         return true;
+        }
+       }
+       function getExpenses(){
+       
+       
+         if('{!country_NZ}' != '{!region}'){ 
+        var rentPayment = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentPayment');
+        
+       var livVal =      document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:livVal');
+        livVal.value = 0;
+       livVal.value = livVal.value.replace(/,/g, ""); 
+        
+        var expenseVal =  document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:expVal');
+        expenseVal.value = expenseVal.value.replace(/,/g, ""); 
+        
+        var insuVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:insuExpVal');
+        insuVal.value = insuVal.value.replace(/,/g, ""); 
+        
+        var utilVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:utilExpVal');
+        utilVal.value = utilVal.value.replace(/,/g, ""); 
+        
+        var transExpVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:transExpVal');
+        transExpVal.value = transExpVal.value.replace(/,/g, "");
+       
+       var eduExpVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:eduExpVal');
+       eduExpVal.value = eduExpVal.value.replace(/,/g, ""); 
+        
+       var persExpVal = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:persExpVal');
+       persExpVal.value = persExpVal.value.replace(/,/g, ""); 
+       
+        var livFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:livingInterval');
+        
+        
+        var frequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getExpenses');
+        var insuFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getInsuranceExpenses');
+        var utilFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getUtilitiesExpenses');
+       var transFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getTransportExpenses');
+       var educFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getEducationExpenses');
+       var persFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:getPersonalExpenses');
+       var rentFrequency = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentInterval');
+       
+         var totalExpenses = 0;
+         var weeklyExpenses = 0.0;
+         var fortnightExpenses = 0.0;
+         var monthExpenses  = 0.0;
+         var quarterExpenses = 0.0;
+         var yearExpenses = 0.0;
+          
+         var weekly = 0.0;
+         var weeklyliv = 0.0;
+         var weeklyinsu = 0.0;
+         var weeklyutil = 0.0;
+         var weeklytrans = 0.0;
+         var weeklyedu = 0.0;
+         var weeklyper = 0.0;
+         var weeklyRent = 0.0;
+         
+         var fortnight = 0.0;
+         var fortnightliv = 0.0;
+         var fortnightinsu = 0.0;
+         var fortnightutil = 0.0;
+         var fortnightlytrans = 0.0;
+         var fortnightlyedu = 0.0;   
+         var fortnightlyper = 0.0; 
+         var fortnightlyRent = 0.0;
+         
+         var month = 0.0;
+         var monthliv = 0.0;
+         var monthInsu = 0.0;
+         var monthutil = 0.0;
+         var monthlytrans = 0.0;
+         var monthlyedu = 0.0;
+         var monthlyper = 0.0;
+         var monthlyRent = 0.0;
+         
+         var quarter = 0.0;
+         var quarterliv = 0.0;
+         var quarterinsu = 0.0;
+         var quarterutil = 0.0;
+         var quarterlytrans = 0.0;
+         var quarterlyedu = 0.0;
+         var quarterlyper = 0.0; 
+         var quarterlyRent = 0.0;
+         
+         var year = 0.0;
+         var yearliv = 0.0;
+         var yearinsu = 0.0;
+         var yearutil = 0.0;
+         var yearlytrans = 0.0;
+         var yearlyedu = 0.0;
+         var yearlyper = 0.0; 
+         var yearlyRent = 0.0;
+         
+         
+         
+     
+
+        
+       if(frequency.value == 'Week' || livFrequency.value == 'Week'  || insuFrequency.value == 'Week' || utilFrequency.value == 'Week' || transFrequency.value == 'Week' || educFrequency.value == 'Week' || persFrequency.value == 'Week' || rentFrequency.value == 'Week'){
+           if(frequency.value == 'Week'){
+               if(expenseVal.value != null){
+               weekly = (expenseVal.value * 52)/12;
+               }
+           }
+           
+           if(livFrequency.value == 'Week'){
+               if(livVal.value != null){          
+               weeklyliv = (livVal.value * 52)/12;  
+               }       
+           } 
+           
+           if(insuFrequency.value == 'Week'){
+             if(insuVal.value != null)
+             {
+               weeklyinsu = (insuVal.value * 52)/12;
+             }
+           }
+           
+           if(utilFrequency.value == 'Week'){
+             if(utilVal.value != null){
+               weeklyutil = (utilVal.value * 52)/12;
+             }
+           }
+           
+           if(transFrequency.value == 'Week'){
+            if(transExpVal.value != null){           
+            weeklytrans = (transExpVal.value * 52)/12;           
+            }           
+            }
+            
+            if(educFrequency.value == 'Week'){
+
+            if(eduExpVal.value != null){
+            
+            weeklyedu = (eduExpVal.value * 52)/12;
+            
+            }
+            
+            }
+            if(persFrequency.value == 'Week'){
+            
+            if(persExpVal.value != null){
+            
+            weeklyper = (persExpVal.value * 52)/12;
+            
+            }
+            
+            }   
+            
+            if(rentFrequency.value == 'Week'){
+              if(rentPayment.value != null){
+                weeklyRent = (rentPayment.value * 52)/12;
+              }
+            }         
+            
+           
+          <!--  weeklyExpenses = weekly + weeklyliv + weeklyinsu + weeklyutil + weeklytrans + weeklyedu + weeklyper + weeklyRent; -->
+            weeklyExpenses = weekly + weeklyliv + weeklyinsu + weeklyutil + weeklytrans + weeklyedu + weeklyper;          
+            totalExpenses += weeklyExpenses;
+           document.getElementById('totalMonthlyLivingExpense').value = Math.round(totalExpenses.toFixed(2));
+           
+         }
+        if(frequency.value == 'Fortnight' || livFrequency.value == 'Fortnight' || insuFrequency.value == 'Fortnight' || utilFrequency.value == 'Fortnight' || transFrequency.value == 'Fortnight' || educFrequency.value == 'Fortnight' || persFrequency.value == 'Fortnight' || rentFrequency.value == 'Fortnight'){
+              
+              if(frequency.value == 'Fortnight'){
+                      if(expenseVal.value != null){
+                       fortnight = (expenseVal.value * 26)/12;
+                       }
+               }
+              if(livFrequency.value == 'Fortnight'){
+               if(livVal.value != null){
+               fortnightliv = (livVal.value * 26)/12; 
+               }
+               }
+               
+               
+                if(insuFrequency.value == 'Fortnight'){
+               if(insuVal.value != null){
+               fortnightinsu = (insuVal.value * 26)/12; 
+               }
+               }
+               
+               if(utilFrequency.value == 'Fortnight'){
+                if(utilVal.value != null){
+                 fortnightutil = (utilVal.value * 26)/12;
+                }
+               }
+               
+               if(transFrequency.value == 'Fortnight'){
+
+                    if(transExpVal.value != null){
+                    
+                    fortnightlytrans = (transExpVal.value * 26)/12;
+                    
+                    }
+                    
+                    }
+                    
+                    if(educFrequency.value == 'Fortnight'){
+
+                        if(eduExpVal.value != null){
+                        
+                        fortnightlyedu = (eduExpVal.value * 26)/12;
+                        
+                        }
+                        
+                        }
+                        
+                        if(persFrequency.value == 'Fortnight'){
+
+                            if(persExpVal.value != null){
+                            
+                            fortnightlyper = (persExpVal.value * 26)/12;
+                            
+                            }
+                            
+                            }
+                            
+                            if(rentFrequency.value == 'Fortnight'){
+                              if(rentPayment.value != null){
+                                fortnightlyRent = (rentPayment.value * 26)/12;
+                              }
+                            } 
+             <!-- fortnightExpenses = fortnight + fortnightliv + fortnightinsu + fortnightutil + fortnightlytrans + fortnightlyedu + fortnightlyper + fortnightlyRent; -->
+              fortnightExpenses = fortnight + fortnightliv + fortnightinsu + fortnightutil + fortnightlytrans + fortnightlyedu + fortnightlyper;
+              totalExpenses += fortnightExpenses;
+              document.getElementById('totalMonthlyLivingExpense').value = Math.round(totalExpenses.toFixed(2));                        
+         }
+         
+          if(frequency.value == 'Month' || livFrequency.value == 'Month' || insuFrequency.value == 'Month' || utilFrequency.value == 'Month' || transFrequency.value == 'Month' || educFrequency.value == 'Month' || persFrequency.value == 'Month' || rentFrequency.value == 'Month'){
+          
+           
+           if(frequency.value == 'Month'){
+             if(expenseVal.value != null){
+               month = (expenseVal.value * 1)/1;
+             }
+           }
+           if(livFrequency.value == 'Month'){
+             if(livVal.value != null){
+              monthliv = (livVal.value * 1)/1;
+             }
+           }
+           
+           if(insuFrequency.value == 'Month'){
+             if(insuVal.value != null){
+              monthInsu = (insuVal.value * 1)/1;
+             }
+           
+           }
+          
+           if(utilFrequency.value == 'Month'){
+             if(utilVal.value != null){
+              monthutil = (utilVal.value * 1)/1;
+             }
+           }
+           
+           if(transFrequency.value == 'Month'){
+
+            if(transExpVal.value != null){
+            
+            monthlytrans = (transExpVal.value * 1)/1;
+            
+            }
+            
+            }
+            
+            if(educFrequency.value == 'Month'){
+
+                if(eduExpVal.value != null){
+                
+                monthlyedu = (eduExpVal.value * 1)/1;
+                
+                }
+                
+                }
+                
+                if(persFrequency.value == 'Month'){
+
+                if(persExpVal.value != null){
+                
+                monthlyper = (persExpVal.value * 1)/1;
+                
+                }
+                
+                }
+                
+                   if(rentFrequency.value == 'Month'){
+                     if(rentPayment.value != null){
+                          monthlyRent = (rentPayment.value * 1)/1;
+                      }
+               } 
+
+           <!-- monthExpenses = (month + monthliv + monthInsu + monthutil + monthlytrans + monthlyedu + monthlyper + monthlyRent); -->
+            monthExpenses = (month + monthliv + monthInsu + monthutil + monthlytrans + monthlyedu + monthlyper);
+            totalExpenses += monthExpenses;
+           document.getElementById('totalMonthlyLivingExpense').value = Math.round(totalExpenses.toFixed(2));
+           
+           
+         }
+
+          if(frequency.value == 'Quarter' || livFrequency.value == 'Quarter' || insuFrequency.value == 'Quarter' || utilFrequency.value == 'Quarter' || transFrequency.value == 'Quarter' || educFrequency.value == 'Quarter' || persFrequency.value == 'Quarter' || rentFrequency.value == 'Quarter'){
+         
+         
+         var quarterInsu = 0.0;
+         var quarterutil = 0.0;
+         var quarterlytrans = 0.0;
+         var quarterlyedu = 0.0;
+         var quarterlyper = 0.0;
+         var quarterlyRent = 0.0;
+         
+         
+           if(frequency.value == 'Quarter'){
+             if(expenseVal.value != null){
+               quarter = (expenseVal.value * 1)/3;
+             }
+           }
+           if(livFrequency.value == 'Quarter'){
+             if(livVal.value != null){
+              quarterliv = (livVal.value * 1)/3;
+             }
+           }
+           
+           if(insuFrequency.value == 'Quarter'){
+             if(insuVal.value != null){
+              quarterInsu = (insuVal.value * 1)/3;
+             }
+           
+           }
+          
+           if(utilFrequency.value == 'Quarter'){
+             if(utilVal.value != null){
+              quarterutil = utilVal.value/3;
+             }
+           }
+           
+           if(transFrequency.value == 'Quarter'){
+
+            if(transExpVal.value != null){
+            
+            quarterlytrans = transExpVal.value/3;
+            
+            }
+            
+            }
+            
+            if(educFrequency.value == 'Quarter'){
+
+                if(eduExpVal.value != null){
+                
+                quarterlyedu = eduExpVal.value/3;
+                
+                }
+                
+                }
+                
+                if(persFrequency.value == 'Quarter'){
+                    if(persExpVal.value != null){              
+                       quarterlyper = persExpVal.value/3;         
+                    }                
+                }
+                
+                if(rentFrequency.value == 'Quarter'){
+                  if(rentPayment.value != null){
+                      quarterlyRent = rentPayment.value/3;
+                  }
+                } 
+           <!-- quarterExpenses = quarter + quarterliv + quarterInsu + quarterutil + quarterlytrans + quarterlyedu + quarterlyper + quarterlyRent; -->
+            quarterExpenses = quarter + quarterliv + quarterInsu + quarterutil + quarterlytrans + quarterlyedu + quarterlyper;
+            totalExpenses += quarterExpenses;
+           document.getElementById('totalMonthlyLivingExpense').value = Math.round(totalExpenses.toFixed(2));                      
+         }
+         
+         if(frequency.value == 'Year' || livFrequency.value == 'Year' || insuFrequency.value == 'Year' || utilFrequency.value == 'Year' || transFrequency.value == 'Year' || educFrequency.value == 'Year' || persFrequency.value == 'Year' || rentFrequency.value == 'Year'){
+             
+             if(frequency.value == 'Year'){
+              if(expenseVal.value != null){
+                year = expenseVal.value / 12;
+              }
+             }
+             if(livFrequency.value == 'Year'){
+              if(livVal.value != null){
+                yearliv = livVal.value / 12;
+              }
+             }
+            
+             if(insuFrequency.value == 'Year'){
+               if(insuVal.value != null){
+                yearinsu = insuVal.value / 12;
+               }
+             }
+             
+             if(utilFrequency.value == 'Year'){
+               if(utilVal.value != null){
+                yearutil = utilVal.value / 12;
+               }
+             }
+             
+             if(transFrequency.value == 'Year'){
+
+                if(transExpVal.value != null){
+                
+                yearlytrans = transExpVal.value/12;
+                
+                }
+                
+                }
+                
+                if(educFrequency.value == 'Year'){
+
+                if(eduExpVal.value != null){
+                
+                yearlyedu = eduExpVal.value/12;
+                
+                }
+                
+                }
+                
+                if(persFrequency.value == 'Year'){
+
+                    if(persExpVal.value != null){
+                    
+                    yearlyper = persExpVal.value/12;
+                    
+                    }
+                    
+                    }
+                    
+                     if(rentFrequency.value == 'Year'){
+                     if(rentPayment.value != null){
+                          yearlyRent = rentPayment.value/12;
+                      }
+               } 
+            <!-- yearExpenses = year + yearliv + yearinsu + yearutil + yearlytrans + yearlyedu + yearlyper + yearlyRent; -->
+             yearExpenses = year + yearliv + yearinsu + yearutil + yearlytrans + yearlyedu + yearlyper;
+             totalExpenses += yearExpenses;
+             document.getElementById('totalMonthlyLivingExpense').value = Math.round(totalExpenses.toFixed(2));           
+         }
+         displayTotalExpense();
+         totalExpenseZero();
+         
+         var isBroker = "{!brokerChannel}";
+         
+                 
+                 if('{!country_NZ}' != '{!region}'){
+                          
+                     if( isBroker == 'false'){
+                         var totalExpenseWarnAU = document.getElementById('totalExpenseWarn');
+                         var expTotalAU = document.getElementById('totalMonthlyLivingExpense');
+               
+                        if(expTotalAU.value > 30000 ){
+                        document.getElementById('summaryOfWarningMsgs').style.display = 'block';
+                        document.getElementById('confirmationHeader').style.display = 'block';                         
+                        document.getElementById('confirmationReview').style.display = 'block'; 
+                        totalExpenseWarnAU.style.display="block";
+                        totalExpenseWarnAU.innerHTML = "<label style ='display:list-item;font-size:21px;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>Total monthly living expenses more than $30,000</label>"; 
+                        document.getElementById('confirmationFooter').style.display = 'block';
+                        }else{
+                           document.getElementById('summaryOfWarningMsgs').style.display='none';
+                           document.getElementById('confirmationHeader').style.display = 'none';
+                           document.getElementById('confirmationReview').style.display = 'none'; 
+                           document.getElementById('confirmationFooter').style.display = 'none';
+                         }
+                         
+                }else if( isBroker == 'true'){
+                    var totalExpenseWarnAU = document.getElementById('totalExpenseWarn');
+                         var expTotalAU = document.getElementById('totalMonthlyLivingExpense');
+               
+                        if(expTotalAU.value > 30000 ){
+                        document.getElementById('summaryOfWarningMsgs').style.display = 'block';
+                        document.getElementById('confirmationHeaderBroker').style.display = 'block';                         
+                        document.getElementById('confirmationReview').style.display = 'block'; 
+                        totalExpenseWarnAU.style.display="block";
+                        totalExpenseWarnAU.innerHTML = "<label style ='display:list-item;font-size:21px !important;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>Total monthly living expenses more than $30,000</label>"; 
+                        document.getElementById('confirmationFooter').style.display = 'block';
+                        }else{
+                           document.getElementById('summaryOfWarningMsgs').style.display='none';
+                           document.getElementById('confirmationHeaderBroker').style.display = 'none';
+                           document.getElementById('confirmationReview').style.display = 'none'; 
+                           document.getElementById('confirmationFooter').style.display = 'none';
+                         }
+                }
+               
+             } 
+       }
+       
+       
+       if('{!country_NZ}' == '{!region}'){
+       
+       var rentPaymentNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentPayment');
+       var rentFrequencyNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:rentInterval');
+              
+        var weeklyExpensesNZ  = 0.0;
+        var totalExpensesNZ = 0.0;
+        var weeklymortgageInterval = 0.0;
+        var weeklysecondaryMortgageInterval = 0.0;
+        var weeklypropertyRatesNZ = 0.0;
+        var weeklyotherPropertyInterval = 0.0;
+        var weeklyfoodGrocNZ = 0.0;
+        var weeklyinsuranceExpNZ = 0.0;
+        var weeklytansportExpInterval = 0.0;
+        var weeklyeduExpenseInterval = 0.0;
+        var weeklypersonalExpNZ = 0.0;
+        var weeklyutilitiesExpNZ = 0.0;
+        var weeklyanyAddExpNZ = 0.0;
+        var weeklyRentNZ = 0.0;
+        
+        var fortnightExpensesNZ = 0.0;
+        var fortnightmortgageInterval = 0.0;
+        var fortnightsecondaryMortgageInterval = 0.0;
+        var fortnightpropertyRatesNZ = 0.0;
+        var fortnightotherPropertyInterval = 0.0;
+        var fortnightfoodGrocNZ = 0.0;
+        var fortnightinsuranceExpNZ = 0.0;
+        var fortnighttansportExpInterval = 0.0;
+        var fortnighteduExpenseInterval = 0.0;
+        var fortnightpersonalExpNZ = 0.0;
+        var fortnightutilitiesExpNZ = 0.0;
+        var fortnightanyAddExpNZ = 0.0;
+        var fortnightRentNZ = 0.0;
+        
+        var MonthExpensesNZ = 0.0;
+        var MonthmortgageInterval = 0.0;
+        var MonthsecondaryMortgageInterval = 0.0;
+        var MonthpropertyRatesNZ = 0.0;
+        var MonthotherPropertyInterval = 0.0;
+        var MonthfoodGrocNZ = 0.0;
+        var MonthinsuranceExpNZ = 0.0;
+        var MonthtansportExpInterval = 0.0;
+        var MontheduExpenseInterval = 0.0;
+        var MonthpersonalExpNZ = 0.0;
+        var MonthutilitiesExpNZ = 0.0;
+        var MonthanyAddExpNZ = 0.0;
+        var MonthRentNZ = 0.0;
+        var MonthQuarterExpensesNZ = 0.0;
+        
+        var YearExpensesNZ = 0.0;
+        var YearmortgageInterval = 0.0;
+        var YearsecondaryMortgageInterval = 0.0;
+        var YearpropertyRatesNZ = 0.0;
+        var YearotherPropertyInterval = 0.0;
+        var YearfoodGrocNZ = 0.0;
+        var YearinsuranceExpNZ = 0.0;
+        var YeartansportExpInterval = 0.0;
+        var YeareduExpenseInterval = 0.0;
+        var YearpersonalExpNZ = 0.0;
+        var YearutilitiesExpNZ = 0.0;
+        var YearanyAddExpNZ = 0.0;
+        var YearRentNZ = 0.0;
+        
+            var mortgageNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:mortgageNZ');
+            mortgageNZ.value = mortgageNZ.value.replace(/,/g, "");
+            
+            var secondaryNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:secondaryMortgageNZ');
+            secondaryNZ.value = secondaryNZ.value.replace(/,/g, "");
+           
+            var propertyRatesNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:propertyRatesNZ');
+            propertyRatesNZ.value = propertyRatesNZ.value.replace(/,/g, "");
+            
+            var otherPropertyRatesNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:otherPropertyRatesNZ');
+            otherPropertyRatesNZ.value = otherPropertyRatesNZ.value.replace(/,/g, "");
+            
+            var foodGrocNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:foodGrocNZ');
+            foodGrocNZ.value = foodGrocNZ.value.replace(/,/g, "");
+            
+            var insuranceExpNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:insuranceExpNZ');
+            insuranceExpNZ.value = insuranceExpNZ.value.replace(/,/g, "");
+            
+            var transportExpNZ= document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:transportExpNZ');
+            transportExpNZ.value = transportExpNZ.value.replace(/,/g, "");
+            
+            var educationExpNZ= document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:educationExpNZ');
+            educationExpNZ.value = educationExpNZ.value.replace(/,/g, "");
+            
+            var personalExpNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:personalExpNZ');
+            personalExpNZ.value = personalExpNZ.value.replace(/,/g, "");
+            
+            var utilitiesExpNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:utilitiesExpNZ');
+            utilitiesExpNZ.value = utilitiesExpNZ.value.replace(/,/g, "");
+            
+            var anyAddExpNZ = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:anyAddExpNZ');
+            anyAddExpNZ.value = anyAddExpNZ.value.replace(/,/g, "");
+            
+            var mortgageInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:mortgagaeIntervalNZ');
+            var secondaryMortgageInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:secondaryMortgageInterval');
+            var propertyRateInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:propertyRateInterval');
+            var otherPropertyInterval= document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:otherPropertyInterval');
+            var foodGrocInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:foodGrocInterval');
+            var insuranceExpInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:insuranceExpInterval');
+            var tansportExpInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:tansportExpInterval');
+            var eduExpenseInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:eduExpenseInterval');
+            var personalExpInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:personalExpInterval');
+            var utilityExpInterval 
+            = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:utilityExpInterval');
+            var additionalExpInterval = document.getElementById('GETemplate:GETemplate:mainForm:expensePageBlock1:Expense__c-1:component-1:Expense__c-mycomponent:additionalExpInterval');
+
+                 
+                 if(mortgageInterval.value == 'Week' || secondaryMortgageInterval.value == 'Week'  || propertyRateInterval.value == 'Week' || otherPropertyInterval.value == 'Week' || foodGrocInterval.value == 'Week' || insuranceExpInterval.value == 'Week' || tansportExpInterval.value == 'Week' || eduExpenseInterval.value == 'Week' || personalExpInterval.value == 'Week' || utilityExpInterval.value == 'Week' || rentFrequencyNZ.value == 'Week' || additionalExpInterval.value == 'Week'){
+          
+          
+          
+           if(mortgageInterval.value == 'Week'){
+               if(mortgageNZ.value != null){
+               weeklymortgageInterval = (mortgageNZ.value * 52)/12;
+               }
+           }
+           
+           if(secondaryMortgageInterval.value == 'Week'){
+               if(secondaryNZ.value != null){          
+               weeklysecondaryMortgageInterval = (secondaryNZ.value * 52)/12;  
+               }       
+           } 
+           
+           if(propertyRateInterval.value == 'Week'){
+             if(propertyRatesNZ.value != null)
+             {
+               weeklypropertyRatesNZ  = (propertyRatesNZ.value * 52)/12;
+             }
+           }
+           
+           if(otherPropertyInterval.value == 'Week'){
+             if(otherPropertyRatesNZ.value != null){
+               weeklyotherPropertyInterval = (otherPropertyRatesNZ.value * 52)/12;
+             }
+           }
+           
+           if(foodGrocInterval.value == 'Week'){
+                if(foodGrocNZ.value != null){           
+                weeklyfoodGrocNZ = (foodGrocNZ.value * 52)/12;           
+                }           
+            }
+            
+            if(insuranceExpInterval.value == 'Week'){
+                if(insuranceExpNZ.value != null){          
+                weeklyinsuranceExpNZ = (insuranceExpNZ.value * 52)/12;            
+                }           
+            }
+            if(tansportExpInterval.value == 'Week'){           
+                if(transportExpNZ.value != null){           
+                weeklytansportExpInterval = (transportExpNZ.value * 52)/12;            
+                }
+            
+            }      
+             if(eduExpenseInterval.value  == 'Week'){            
+                if(educationExpNZ.value != null){
+                            weeklyeduExpenseInterval  = (educationExpNZ.value * 52)/12;
+                
+                }           
+            }      
+              if(personalExpInterval.value  == 'Week'){            
+                if(personalExpNZ.value != null){            
+                weeklypersonalExpNZ = (personalExpNZ.value * 52)/12;            
+                }            
+            }        
+             if(utilityExpInterval.value  == 'Week'){ 
+                if(utilitiesExpNZ.value != null){           
+                weeklyutilitiesExpNZ = (utilitiesExpNZ.value * 52)/12;           
+                }            
+            }         
+             if(additionalExpInterval.value  == 'Week'){  
+                if(anyAddExpNZ.value != null){            
+                weeklyanyAddExpNZ = (anyAddExpNZ.value * 52)/12;  
+                }           
+            }      
+            
+            if(rentFrequencyNZ.value == 'Week'){
+              if(rentPaymentNZ.value != null){
+                weeklyRentNZ = (rentPaymentNZ.value * 52)/12;
+              }
+            }    
+            weeklyExpensesNZ =  weeklymortgageInterval  + weeklysecondaryMortgageInterval  + weeklypropertyRatesNZ   + weeklyotherPropertyInterval + weeklyfoodGrocNZ + weeklyinsuranceExpNZ + weeklytansportExpInterval + weeklyeduExpenseInterval + weeklypersonalExpNZ + weeklyutilitiesExpNZ + weeklyanyAddExpNZ;
+          
+            totalExpensesNZ += weeklyExpensesNZ;
+           document.getElementById('totalMonthlyLivingExpenseNZ').value = Math.round(totalExpensesNZ.toFixed(2));
+           
+         }
+         
+            if(mortgageInterval.value == 'Fortnight' || secondaryMortgageInterval.value == 'Fortnight'  || propertyRateInterval.value == 'Fortnight' || otherPropertyInterval.value == 'Fortnight' || foodGrocInterval.value == 'Fortnight' || insuranceExpInterval.value == 'Fortnight' || tansportExpInterval.value == 'Fortnight' || eduExpenseInterval.value == 'Fortnight' || personalExpInterval.value == 'Fortnight' || utilityExpInterval.value == 'Fortnight' || rentFrequencyNZ.value == 'Fortnight' || additionalExpInterval.value == 'Fortnight'){
+          
+           if(mortgageInterval.value == 'Fortnight'){
+               if(mortgageNZ.value != null){
+               fortnightmortgageInterval = (mortgageNZ.value * 26)/12;
+               }
+           }
+           
+           if(secondaryMortgageInterval.value == 'Fortnight'){
+               if(secondaryNZ.value != null){          
+               fortnightsecondaryMortgageInterval = (secondaryNZ.value * 26)/12;  
+               }       
+           } 
+           
+           if(propertyRateInterval.value == 'Fortnight'){
+             if(propertyRatesNZ.value != null)
+             {
+               fortnightpropertyRatesNZ  = (propertyRatesNZ.value * 26)/12;
+             }
+           }
+           
+           if(otherPropertyInterval.value == 'Fortnight'){
+             if(otherPropertyRatesNZ.value != null){
+               fortnightotherPropertyInterval = (otherPropertyRatesNZ.value * 26)/12;
+             }
+           }
+           
+           if(foodGrocInterval.value == 'Fortnight'){
+                if(foodGrocNZ.value != null){           
+                fortnightfoodGrocNZ = (foodGrocNZ.value * 26)/12;           
+                }           
+            }
+            
+            if(insuranceExpInterval.value == 'Fortnight'){
+                if(insuranceExpNZ.value != null){          
+                fortnightinsuranceExpNZ = (insuranceExpNZ.value * 26)/12;            
+                }           
+            }
+            if(tansportExpInterval.value == 'Fortnight'){           
+                if(transportExpNZ.value != null){           
+                fortnighttansportExpInterval = (transportExpNZ.value * 26)/12;            
+                }
+            
+            }      
+             if(eduExpenseInterval.value  == 'Fortnight'){            
+                if(educationExpNZ.value != null){
+                            fortnighteduExpenseInterval  = (educationExpNZ.value * 26)/12;
+                
+                }           
+            }      
+              if(personalExpInterval.value  == 'Fortnight'){            
+                if(personalExpNZ.value != null){            
+                fortnightpersonalExpNZ = (personalExpNZ.value * 26)/12;            
+                }            
+            }        
+             if(utilityExpInterval.value  == 'Fortnight'){            
+                if(utilitiesExpNZ.value != null){           
+                fortnightutilitiesExpNZ = (utilitiesExpNZ.value * 26)/12;           
+                }            
+            }         
+             if(additionalExpInterval.value  == 'Fortnight'){            
+                if(anyAddExpNZ.value != null){            
+                fortnightanyAddExpNZ = (anyAddExpNZ.value * 26)/12;           
+                }           
+            }   
+             if(rentFrequencyNZ.value == 'Fortnight'){
+              if(rentPaymentNZ.value != null){
+                fortnightRentNZ  = (rentPaymentNZ.value * 26)/12;
+              }
+            }          
+            
+             
+            fortnightExpensesNZ =  fortnightmortgageInterval + fortnightsecondaryMortgageInterval + fortnightpropertyRatesNZ + fortnightotherPropertyInterval + fortnightfoodGrocNZ  + fortnightinsuranceExpNZ + fortnighttansportExpInterval + fortnighteduExpenseInterval + fortnightpersonalExpNZ + fortnightutilitiesExpNZ + fortnightanyAddExpNZ;
+          
+            totalExpensesNZ += fortnightExpensesNZ;
+           document.getElementById('totalMonthlyLivingExpenseNZ').value = Math.round(totalExpensesNZ.toFixed(2));
+           
+         }
+         
+          if(mortgageInterval.value == 'Month' || secondaryMortgageInterval.value == 'Month'  || propertyRateInterval.value == 'Month' || otherPropertyInterval.value == 'Month' || foodGrocInterval.value == 'Month' || insuranceExpInterval.value == 'Month' || tansportExpInterval.value == 'Month' || eduExpenseInterval.value == 'Month' || personalExpInterval.value == 'Month' || utilityExpInterval.value == 'Month' || rentFrequencyNZ.value == 'Month' || additionalExpInterval.value == 'Month'){
+          
+           if(mortgageInterval.value == 'Month'){
+               if(mortgageNZ.value != null){
+               MonthmortgageInterval = (mortgageNZ.value * 1)/1;
+               }
+           }
+           
+           if(secondaryMortgageInterval.value == 'Month'){
+               if(secondaryNZ.value != null){          
+               MonthsecondaryMortgageInterval = (secondaryNZ.value * 1)/1;  
+               }       
+           } 
+           
+           if(propertyRateInterval.value == 'Month'){
+             if(propertyRatesNZ.value != null)
+             {
+               MonthpropertyRatesNZ  = (propertyRatesNZ.value * 1)/1;
+             }
+           }
+           
+           if(otherPropertyInterval.value == 'Month'){
+             if(otherPropertyRatesNZ.value != null){
+               MonthotherPropertyInterval = (otherPropertyRatesNZ.value * 1)/1;
+           }
+          } 
+           if(foodGrocInterval.value == 'Month'){
+                if(foodGrocNZ.value != null){           
+                MonthfoodGrocNZ = (foodGrocNZ.value * 1)/1;           
+                }           
+            }
+            
+            if(insuranceExpInterval.value == 'Month'){
+                if(insuranceExpNZ.value != null){          
+                MonthinsuranceExpNZ = (insuranceExpNZ.value * 1)/1;            
+                }           
+            }
+            if(tansportExpInterval.value == 'Month'){           
+                if(transportExpNZ.value != null){           
+                MonthtansportExpInterval = (transportExpNZ.value * 1)/1;            
+                }
+            
+            }      
+             if(eduExpenseInterval.value  == 'Month'){            
+                if(educationExpNZ.value != null){
+                            MontheduExpenseInterval  = (educationExpNZ.value * 1)/1;
+                
+                }           
+            }      
+              if(personalExpInterval.value  == 'Month'){            
+                if(personalExpNZ.value != null){            
+                MonthpersonalExpNZ = (personalExpNZ.value * 1)/1;            
+                }            
+            }        
+             if(utilityExpInterval.value  == 'Month'){            
+                if(utilitiesExpNZ.value != null){           
+                MonthutilitiesExpNZ = (utilitiesExpNZ.value * 1)/1;           
+                }            
+            }         
+             if(additionalExpInterval.value  == 'Month'){            
+                if(anyAddExpNZ.value != null){            
+                MonthanyAddExpNZ = (anyAddExpNZ.value * 1)/1;           
+                }           
+            }    
+             if(rentFrequencyNZ.value == 'Month'){
+              if(rentPaymentNZ.value != null){
+                MonthRentNZ = (rentPaymentNZ.value * 1)/1;
+              }
+            }         
+            MonthExpensesNZ =  MonthmortgageInterval + MonthsecondaryMortgageInterval + MonthpropertyRatesNZ + MonthotherPropertyInterval + MonthfoodGrocNZ + MonthinsuranceExpNZ + MonthtansportExpInterval + MontheduExpenseInterval + MonthpersonalExpNZ + MonthutilitiesExpNZ + MonthanyAddExpNZ;
+          
+            totalExpensesNZ += MonthExpensesNZ;
+           document.getElementById('totalMonthlyLivingExpenseNZ').value = Math.round(totalExpensesNZ.toFixed(2));
+           
+         }
+         
+         if(mortgageInterval.value == 'Quarter' || secondaryMortgageInterval.value == 'Quarter'  || propertyRateInterval.value == 'Quarter' || otherPropertyInterval.value == 'Quarter' || foodGrocInterval.value == 'Quarter' || insuranceExpInterval.value == 'Quarter' || tansportExpInterval.value == 'Quarter' || eduExpenseInterval.value == 'Quarter' || personalExpInterval.value == 'Quarter' || utilityExpInterval.value == 'Quarter' || rentFrequencyNZ.value == 'Quarter' || additionalExpInterval.value == 'Quarter'){
+             
+           
+           var quarterMortNZ = 0.0;
+           var quartersecMorNZ = 0.0;
+           var quarterPropNZ = 0.0;
+           var quarterOtherPropNZ = 0.0;
+           var quarterFoodNZ = 0.0;
+           var quarterInsuNZ = 0.0;
+           var quarterutilNZ = 0.0;
+           var quartertransNZ = 0.0;
+           var quartereduNZ = 0.0;
+           var quarterperNZ = 0.0;
+           var quarterAnyAddNZ = 0.0;
+           var quarterRentNZ = 0.0;
+           var MonthQuarterExpensesNZ = 0.0;
+
+           
+           
+            if(mortgageInterval.value == 'Quarter'){
+               if(mortgageNZ.value != null){
+                  quarterMortNZ = (mortgageNZ.value)/3;
+               }
+           }
+           
+           if(secondaryMortgageInterval.value == 'Quarter'){
+               if(secondaryNZ.value != null){          
+                quartersecMorNZ = (secondaryNZ.value)/3;  
+               }       
+           } 
+           
+           if(propertyRateInterval.value == 'Quarter'){
+             if(propertyRatesNZ.value != null)
+             {
+               quarterPropNZ = (propertyRatesNZ.value)/3;
+             }
+           }
+           
+           if(otherPropertyInterval.value == 'Quarter'){
+             if(otherPropertyRatesNZ.value != null){
+               quarterOtherPropNZ = (otherPropertyRatesNZ.value)/3;
+           }
+          } 
+           if(foodGrocInterval.value == 'Quarter'){
+                if(foodGrocNZ.value != null){           
+                quarterFoodNZ = (foodGrocNZ.value)/3;           
+                }           
+            }
+            
+            if(insuranceExpInterval.value == 'Quarter'){
+                if(insuranceExpNZ.value != null){          
+                 quarterInsuNZ = (insuranceExpNZ.value)/3;            
+                }           
+            }
+            if(tansportExpInterval.value == 'Quarter'){           
+                if(transportExpNZ.value != null){           
+                 quartertransNZ = (transportExpNZ.value)/3;            
+                }
+            
+            }      
+             if(eduExpenseInterval.value  == 'Quarter'){            
+                if(educationExpNZ.value != null){
+                   quartereduNZ = (educationExpNZ.value)/3;
+                
+                }           
+            }      
+              if(personalExpInterval.value  == 'Quarter'){            
+                if(personalExpNZ.value != null){            
+                  quarterperNZ = (personalExpNZ.value)/3;            
+                }            
+            }        
+             if(utilityExpInterval.value  == 'Quarter'){            
+                if(utilitiesExpNZ.value != null){           
+                  quarterutilNZ = (utilitiesExpNZ.value)/3;           
+                }            
+            }         
+             if(additionalExpInterval.value  == 'Quarter'){            
+                if(anyAddExpNZ.value != null){            
+                  quarterAnyAddNZ = (anyAddExpNZ.value)/3;           
+                }           
+            }    
+             if(rentFrequencyNZ.value == 'Quarter'){
+              if(rentPaymentNZ.value != null){
+                quarterRentNZ = (rentPaymentNZ.value)/3;
+              }
+            }         
+            MonthQuarterExpensesNZ =  quarterMortNZ + quartersecMorNZ + quarterPropNZ + quarterOtherPropNZ + quarterFoodNZ + quarterInsuNZ + quartertransNZ + quartereduNZ + quarterperNZ + quarterutilNZ  + quarterAnyAddNZ;
+          
+            totalExpensesNZ += MonthQuarterExpensesNZ;
+           document.getElementById('totalMonthlyLivingExpenseNZ').value = Math.round(totalExpensesNZ.toFixed(2));
+         
+         }
+          
+         if(mortgageInterval.value == 'Year' || secondaryMortgageInterval.value == 'Year'  || propertyRateInterval.value == 'Year' || otherPropertyInterval.value == 'Year' || foodGrocInterval.value == 'Year' || insuranceExpInterval.value == 'Year' || tansportExpInterval.value == 'Year' || eduExpenseInterval.value == 'Year' || personalExpInterval.value == 'Year' || utilityExpInterval.value == 'Year' || rentFrequencyNZ.value == 'Year' || additionalExpInterval.value == 'Year'){
+          
+           if(mortgageInterval.value == 'Year'){
+               if(mortgageNZ.value != null){
+               YearmortgageInterval = mortgageNZ.value/12;
+               }
+           }
+           
+           if(secondaryMortgageInterval.value == 'Year'){
+               if(secondaryNZ.value != null){          
+               YearsecondaryMortgageInterval = secondaryNZ.value/12;  
+               }       
+           } 
+           
+           if(propertyRateInterval.value == 'Year'){
+             if(propertyRatesNZ.value != null)
+             {
+               YearpropertyRatesNZ  = propertyRatesNZ.value /12;
+             }
+           }
+           
+           if(otherPropertyInterval.value == 'Year'){
+             if(otherPropertyRatesNZ.value != null){
+               YearotherPropertyInterval = otherPropertyRatesNZ.value/12;
+           }
+           }
+           
+           if(foodGrocInterval.value == 'Year'){
+                if(foodGrocNZ.value != null){           
+                YearfoodGrocNZ = foodGrocNZ.value /12;           
+                }           
+            }
+            
+            if(insuranceExpInterval.value == 'Year'){
+                if(insuranceExpNZ.value != null){          
+                YearinsuranceExpNZ = insuranceExpNZ.value/12;            
+                }           
+            }
+            if(tansportExpInterval.value == 'Year'){           
+                if(transportExpNZ.value != null){           
+                YeartansportExpInterval = transportExpNZ.value/12;            
+                }
+            
+            }      
+             if(eduExpenseInterval.value  == 'Year'){            
+                if(educationExpNZ.value != null){
+                            YeareduExpenseInterval  = educationExpNZ.value/12;
+                
+                }           
+            }      
+              if(personalExpInterval.value  == 'Year'){            
+                if(personalExpNZ.value != null){            
+                YearpersonalExpNZ = personalExpNZ.value/12;            
+                }            
+            }        
+             if(utilityExpInterval.value  == 'Year'){            
+                if(utilitiesExpNZ.value != null){           
+                YearutilitiesExpNZ = utilitiesExpNZ.value/12;           
+                }            
+            }         
+             if(additionalExpInterval.value  == 'Year'){            
+                if(anyAddExpNZ.value != null){            
+                YearanyAddExpNZ = anyAddExpNZ.value/12;           
+                }           
+            }       
+            if(rentFrequencyNZ.value == 'Year'){
+             if(rentPaymentNZ.value != null){
+                YearRentNZ = rentPaymentNZ.value/12;
+              }
+            }      
+            YearExpensesNZ =  YearmortgageInterval + YearsecondaryMortgageInterval + YearpropertyRatesNZ + YearotherPropertyInterval + YearfoodGrocNZ + YearinsuranceExpNZ + YeartansportExpInterval + YeareduExpenseInterval + YearpersonalExpNZ + YearutilitiesExpNZ + YearanyAddExpNZ;
+          
+            totalExpensesNZ += YearExpensesNZ ;
+           document.getElementById('totalMonthlyLivingExpenseNZ').value = Math.round(totalExpensesNZ.toFixed(2));
+           
+         }
+       
+           displayTotalExpense();
+          totalExpenseZero();
+           
+          }
+
+     if('{!country_NZ}' == '{!region}'){
+         var mortgageWarn = document.getElementById('mortgageWarn');
+         var foodGrocWarnMsg = document.getElementById('FoodGroc');
+         var InsuranceWarn = document.getElementById('InsuranceWarn');
+         var UtilitiesWarn = document.getElementById('UtilitiesWarn');
+         var TransportWarn = document.getElementById('TransportWarn');
+         var EducationWarn = document.getElementById('EducationWarn');
+         var PersonalWarn = document.getElementById('PersonalWarn');
+         
+        var expTotal = document.getElementById('totalMonthlyLivingExpenseNZ');
+         
+         if((mortgageNZ.value == "0" || foodGrocNZ.value == "0" || utilitiesExpNZ.value == "0" || transportExpNZ.value == "0" || personalExpNZ .value == "0" || totalMonthlyLivingExpenseNZ.value > 30000 || weeklymortgageInterval > 15000 || fortnightmortgageInterval > 15000 || MonthmortgageInterval > 15000 || quarterMortNZ > 15000 || YearmortgageInterval > 15000) && expTotal.value > 0 ){
+           document.getElementById('summaryOfWarningMsgs').style.display = 'block';
+           document.getElementById('confirmationHeader').style.display = 'block';  
+           document.getElementById('confirmationReview').style.display = 'block';        
+         } else{
+           document.getElementById('summaryOfWarningMsgs').style.display ='none';
+           document.getElementById('confirmationHeader').style.display = 'none';
+           document.getElementById('confirmationReview').style.display = 'none';
+         }
+         
+          if((mortgageNZ.value == "0" || foodGrocNZ.value == "0" || utilitiesExpNZ.value == "0" || transportExpNZ.value == "0" || personalExpNZ .value == "0" || totalMonthlyLivingExpenseNZ.value > 30000 || weeklymortgageInterval > 15000 || fortnightmortgageInterval > 15000 || MonthmortgageInterval > 15000 || quarterMortNZ > 15000 || YearmortgageInterval > 15000) && expTotal.value > 0 ){
+           document.getElementById('confirmationFooter').style.display = 'block';
+         } else{
+           document.getElementById('confirmationFooter').style.display = 'none';
+         }
+         
+         if(mortgageNZ.value == "0"){
+             mortgageWarn.style.display ="block";
+             mortgageWarn.innerHTML = "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Mortgage, rent or board</h4>";
+             }else{
+             mortgageWarn.style.display ="none";
+         }
+         
+         if(foodGrocNZ.value == "0"){
+         foodGrocWarnMsg.style.display ="block";
+          foodGrocWarnMsg.innerHTML = "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Food, groceries and entertainment</h4>";
+         }else{
+         foodGrocWarnMsg.style.display ="none";
+         }
+         
+       
+         
+          if(utilitiesExpNZ.value == "0"){
+          UtilitiesWarn.style.display="block";
+          UtilitiesWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for General insurance</h4>";
+         }else{
+         UtilitiesWarn.style.display="none";
+         }
+         
+         if(transportExpNZ.value == "0"){
+         TransportWarn.style.display="block";
+          TransportWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Transport and auto</h4>";
+         }else{
+         TransportWarn.style.display="none";
+         }
+       
+         if(personalExpNZ .value == "0"){
+         PersonalWarn.style.display="block";
+          PersonalWarn.innerHTML= "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>$0 for Personal, fitness and medical</h4>";
+         }else{
+         PersonalWarn.style.display="none";
+         }
+         if(totalMonthlyLivingExpenseNZ.value > 30000){
+         totalExpenseWarn.style.display="block";
+         totalExpenseWarn.innerHTML = "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>Total monthly residential and living expenses more than $30,000</h4>";
+         }else{
+              totalExpenseWarn.style.display="none";
+         }
+         
+         if(weeklymortgageInterval > 15000 || fortnightmortgageInterval > 15000 || MonthmortgageInterval > 15000 || quarterMortNZ > 15000 || YearmortgageInterval > 15000){
+         mortagageWarn.style.display = "block";
+         mortagageWarn.innerHTML = "<h4 style='display:list-item;list-style-type:disc;list-style-position:inside;padding-left:.5em;'>Monthly Primary mortgage, rent or board more than $15,000</h4>";
+         }else{
+         mortagageWarn.style.display="none";
+         }
+     }
+     
+   
+     
+        } 
+        
+     window.onload = function(){
+      getExpenses();
+      showRentFields();
+      displayTotalExpense();
+      fixAskewColumn();
+     }
+     
+     //Fix askew columns on 581 - 767px
+     function fixAskewColumn() {
+       let screenWidth = screen.width;
+       if(screenWidth >= 581 && screenWidth <= 767) {
+         
+       }
+     }
+     
+     
+    
+  </script>
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="country" description="Region value will drive localizaiton functionality" type="String" required="true" assignTo="{!region}" />
+    <apex:attribute name="expenseWrapper" description="This is the value for the component." type="MyBudgetsExpenseWrapper" required="true" />
+    <apex:attribute name="jointIndicator" description="Single/Joint indicator" type="Boolean" required="true" assignTo="{!isJoint}" />
+
+    <div class="tab-pane active" id="tab1">
+        <div class="span12 removelmargin">
+          <!--  <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText rendered="{!$Site.Name=='Latitude'}">Accommodation&nbsp;</apex:outputText>Expenses</span></h3> -->
+            <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText >Residential&nbsp;</apex:outputText>Expenses</span></h3> 
+
+        </div>
+        <div class="divider10"></div>
+        
+        <!-- APPLICANT SECTION -->
+        <apex:outputPanel id="yourDetailsPanel3">
+            <div class="span12 removelmargin lfs_exp_input input100pct">
+                
+                <label class="pix40 labeldark normaltext">
+                    Residential status
+                </label>
+                
+
+                <!-- APPLICANT RESIDENTIAL STATUS FIELD -->
+                <apex:selectList id="resStatus" size="1" value="{!expenseWrapper.applicant.Res_Status__c}"  styleClass="isPicklistResStatus marginbottom10" onChange="warningResidentialstatus();showRentFields();getExpenses();">
+                    <apex:selectOptions value="{!residentialStatusOptions}"/>
+                    <apex:actionSupport event="onchange" rerender="expenseRentPageBlock" oncomplete="changePickVal();"/>
+                </apex:selectList>
+                
+                <div id="warningResidentialstatusMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                
+                <div class="clearfix"></div>
+                <apex:outputText rendered="{!expenseWrapper.errorResidentialStat}" value="Error: Please select residential status." styleClass="warningMessage" /> 
+
+            </div>
+            <div class="clearfix"></div>
+         
+        </apex:outputPanel>
+        <!-- EXPENSE DYNAMIC FIELDS SECTION -->
+        <apex:outputPanel id="expenseRentPageBlock">
+            
+            <!-- RENTING SECTION-->
+            <apex:outputPanel id="rentingBlock" style="display:none;"  >
+                                                
+                <div class="span6 removelmargin lfs_exp_input input100pct" style="display:{!if(OR($Site.Name=='Gem', $Site.Name=='Kiwibank'),"none","block")}">
+                  
+                  <apex:outputPanel id="rentingBlockRent" style="display:none;">                                     
+                    <label class="pix40 labeldark normaltext">
+                            Rent payments
+                    </label>
+                  </apex:outputPanel>
+                  
+                  <apex:outputPanel id="rentingBlockBoard"  style="display:none;">                                     
+                    <label class="pix40 labeldark normaltext">
+                            Board payments
+                    </label>
+                   </apex:outputPanel>            
+                            
+               <!-- <label class="pix40 labeldark normaltext">
+                        My share of rent/board payments are
+                    </label> -->
+
+                    <!-- RENT AMOUNT FIELD -->
+                    <apex:inputText id="rentPayment" html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} marginbottom10 isMyPayments" value="{!expenseWrapper.expense.Rent_Board_Pay_Amt__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                   <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.rentAmountValid}" value="Error: Please enter in whole dollars e.g. 3500"/> 
+                </div>
+
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;display:{!if(OR($Site.Name=='Gem', $Site.Name=='Kiwibank'),"none","block")}"> 
+                    <!-- RENT INTERVAL FIELD -->
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+                    <apex:selectList id="rentInterval" size="1" styleClass="selectfield col6 marginbottom10 isPicklistEachPay frequencyPicklist" value="{!expenseWrapper.expense.Rent_Board_Pay_Int__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!RentExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.rentIntervalValid}" value="Error: Please select the rent interval"/>
+                </div>
+                <div class="clearfix" style="display:{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'),"none","block")}"></div>
+                <apex:outputPanel id="rentingOnly" style="display:none"> 
+                    <div class="span6 removelmargin mv_phone_p_c2_1 lfs_exp_input input100pct" style="width:100%">
+                        <label class="pix40 labeldark normaltext">
+                            Agent / Landlord name
+                        </label>
+
+                        <!-- LANDLORD NAME FIELD -->
+                        <apex:inputField styleClass="input-block-level isLandlord
+                        " value="{!expenseWrapper.expense.Agent_Landlord_Name__c}" id="Expense__c___Agent_Landlord_Name__c"/>
+                        <div class="clearfix"></div>
+                        <apex:outputText styleClass="warningMessage" escape="false" value="{!expenseWrapper.errorLandlordNameMsg}" rendered="{!expenseWrapper.errorLandlordName}"/>
+
+                    </div>                   
+                   
+                    
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+
+              <!-- Start of Mortgage section -->
+          <apex:outputPanel rendered="{!$Site.Name=='Gem' || $Site.Name == 'Kiwibank'}">
+         <div class="span6 lfs_exp_input input100pct"> 
+                    <!-- INTERVAL FIELD -->
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+                   
+                   <!-- <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.intervalValid }" value="Error: Please select the expense interval"/> -->
+                    <div class="clearfix"></div>
+          </div>                          
+                    <div class="gem-live-expense-wrapper">
+                    <div class="revolving-gem">
+                     <br/>
+                          <label class="pix40 normaltext" style="font-size:18px;">
+                                If you have <a href="#" title="Revolving credit facility" data-toggle="popover" data-trigger="focus" data-content="Revolving credit allows a customer the flexibility to access money up to a preset amount known as the credit limit. Unlike more traditional home loans, customers with a revolving facility can draw down, repay and redraw funds at any time." onclick="return false;">revolving credit facility</a> as part of a mortgage or home loan, please enter the limit of that facility. Enter $0 if not applicable.                          </label>
+                    </div>       
+                     <apex:inputField type="text" id="revolvingCredit" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isLiveExpense" value="{!expenseWrapper.applicant.Revolving_Credit__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();" />
+                       <div class="clearfix"></div>
+                      </div>
+
+             <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark normaltext" >
+                        Primary mortgage, rent or board
+                    </label>
+
+                    <!-- AMOUNT FIELD -->
+                    <apex:inputField type="text" id="mortgageNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isLiveExpense" value="{!expenseWrapper.expense.Rent_Board_Pay_Amt__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();" />
+                    <div class="clearfix"></div>
+                   <!-- <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter in whole dollars e.g. 3500"/> -->
+             </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                      <apex:selectList size="1" id="mortgagaeIntervalNZ" styleClass="selectfield col6 marginbottom10 isPicklistEach1 frequencyPicklist" value="{!expenseWrapper.expense.Rent_Board_Pay_Int__c}" onchange="getTotalExpense();getExpenses();" >
+                        <apex:selectOptions value="{!RentExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+               <div class="clearfix"></div>
+                <!-- HELP TEXT -->
+                <div class="propHT">
+                 <apex:outputText value="Exclude revolving mortgage facility expenses or property rates if any" style="color: #75787b; padding-right:150px; margin-right:50px"/>                                                                
+                </div>
+                <!-- END -->
+                
+              <div class="span6 removelmargin lfs_exp_input input100pct">    
+                    <label class="pix40 labeldark normaltext">
+                         Secondary mortgage, rent or board                  
+                     </label> 
+                    
+                    <apex:inputField type="text" id="secondaryMortgageNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isFoodGrocExpense" value="{!expenseWrapper.expense.Secondary_Mortgage_Rent__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+               </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right exp-input-right-fge" style="margin-left:2%;">
+                     <apex:selectList size="1" id="secondaryMortgageInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach2 frequencyPicklist" value="{!expenseWrapper.expense.Secondary_Mortgage_Rent_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!SecondaryMortgageInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+               <div class="clearfix"></div>
+                <!-- HELP TEXT -->
+                <div class="secondaryPropHT">
+                 <apex:outputText value="Exclude revolving mortgage facility expenses or property rates if any" style="color: #75787b; padding-right:100px;"/>                                                
+                </div>
+                <!-- END -->
+               <div class="span6 removelmargin lfs_exp_input input100pct">  
+                    <label class="pix40 labeldark normaltext">
+                         Property rates                 
+                     </label>
+                     
+                    <apex:inputField type="text" id="propertyRatesNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isUtilityExpense" value="{!expenseWrapper.expense.Property_rates__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+               </div>
+               <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                     <apex:selectList size="1" id="propertyRateInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach3 frequencyPicklist" value="{!expenseWrapper.expense.Property_rates_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!PropertyRatesInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+               </div>
+               <div class="clearfix"></div>
+                <!-- HELP TEXT -->
+                <div class="propRatesHT">
+                 <apex:outputText value="Property rates for primary and secondary residences" style="color: #75787b; padding-right:100px;"/>                                
+                </div>
+                <!-- END -->
+               <div class="span6 removelmargin lfs_exp_input input100pct">     
+                    <label class="pix40 labeldark normaltext">
+                         Utilities &amp; Other property expenses
+                     </label>
+                     
+                    <apex:inputField type="text" id="otherPropertyRatesNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isUtilityExpense" value="{!expenseWrapper.expense.Other_Property_Expenses__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+               </div>
+               <div class="span6 lfs_exp_input interval input100pct otherPropInt exp-input-right" style="margin-left:2%;">
+                    <apex:selectList size="1" id="otherPropertyInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach4 frequencyPicklist" value="{!expenseWrapper.expense.Other_Property_Expenses_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!OtherPropertyExpenseInterval}"/>
+                    </apex:selectList>  
+                  <div class="clearfix"></div>
+               </div>
+               <div class="clearfix"></div>
+                <!-- HELP TEXT -->
+                <div class="mobile-responsive otherP">
+                  <apex:outputText value="e.g. Body Corporate fees, utilities, water and rubbish collection"  style="color: #75787b; padding-right:150px; margin-right:175px;"/> 
+                </div>
+                                
+                <!-- END -->                                                        
+          </apex:outputPanel>
+            
+            <!-- End -->
+            
+            
+
+
+            <div class="clearfix"></div>
+            <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <hr class="dividerStyle" />               
+                <div class="span12 removelmargin"><h3 class="subpagetitle gecolor gem-heading"><span>Living Expenses</span></h3></div>
+                <!-- <div class="divider10"></div> -->          
+              </apex:outputPanel>
+              <apex:outputPanel rendered="{!brokerChannel && NOT(isJoint)}">
+                <label class="pix40 normaltext" style="color:#75787b !important;">
+                    <p>Please enter your applicant&apos;s expenses as accurately as possible. If they share 
+                       expenses, only enter what they contribute.</p>
+                </label>
+            </apex:outputPanel>
+             <apex:outputPanel rendered="{!brokerChannel && isJoint}">
+                <label class="pix40 labeldark normaltext" style="color:#75787b !important;">
+                    <p>Please enter both applicant&apos;s combined expenses as accurately as possible.</p>
+                </label>
+            </apex:outputPanel>
+             <apex:outputPanel rendered="{!isJoint && NOT(brokerChannel) && region != country_NZ}"> 
+                <div><h4 class="pix40 normaltext" style="color:#75787b !important;">Please enter your combined expenses as accurately as possible.</h4></div>
+                <br/>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!NOT(isJoint) && NOT(brokerChannel) && region != country_NZ}"> 
+                 <div><h4 class="pix40 normaltext" style="color:#75787b !important;">Please enter your expenses as accurately as possible. If you share expenses, only enter what you contribute.</h4></div>
+                </apex:outputPanel>
+            <!-- SINGPLE APPICATION SECTION  --> 
+            <apex:outputPanel rendered="{!NOT(isJoint) && region != country_NZ}">          
+                <apex:outputPanel >
+                <div class="clearfix"></div>
+                <!-- PAY ALL EXPENSE FIELD -->
+                <div class="span12 removelmargin lfs_exp_input">
+                    <div class="span12 removelmargin input100pct">
+                    <apex:outputPanel rendered="{!if(AND($Site.name=='Latitude',NOT(brokerChannel)),true,false)}">
+                        <label class="pix40 labeldark normaltext">
+                            Do you pay all the expenses for your household? <a href="#" class="txtooltip tipovr1" title="e.g. utilities, grocery bills, fuel, etc." style="float:none !important;">&nbsp;</a>
+                        </label>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!brokerChannel}">
+                        <label class="pix40 labeldark normaltext">
+                            Does the applicant pay all the expenses for their household? <a href="#" class="txtooltip tipovr1" title="e.g. utilities, grocery bills, fuel, etc." style="float:none !important;">&nbsp;</a>
+                        </label>
+                    </apex:outputPanel>
+                    </div>
+                    <div class="span6 removelmargin input100pct">
+                        <apex:selectList size="1" value="{!expenseWrapper.yesNoOption}" styleClass="{!IF(region != country_NZ,'isPicklistExpenseHousehold','')}" id="payExpenses"  >
+                            <apex:selectOption itemValue="Please Select" itemLabel="Select"/>
+                            <apex:selectOption itemValue="true" itemLabel="Yes, I pay all the expenses"/>
+                            <apex:selectOption itemValue="false" itemLabel="No, others contribute to expenses"/>
+                        </apex:selectList>
+                        <apex:outputText styleClass="warningMessage" escape="false" value="{!expenseWrapper.errorDoYouPayAllExpensesMsg}" rendered="{!expenseWrapper.errorDoYouPayAllExpenses}"/>
+                    </div>
+                </div>            
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <apex:outputPanel id="livingExpenses" rendered="{!$ObjectType.Expense__c.fields.Living_Exp__c.Updateable}">
+                <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark normaltext" style="display:none;">
+                        My share of living expenses is
+                    </label>
+
+                    <!-- AMOUNT FIELD -->
+                    <apex:inputField type="text" id="livVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isLiveExpense" value="{!expenseWrapper.expense.Living_Exp__c}" onchange="getTotalExpense();" onblur="$j(this).valid();" onkeyup="getExpenses();" style="display:none;"/>
+                    <div class="clearfix"></div>
+                   <!-- <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter in whole dollars e.g. 3500"/> -->
+                  
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Food, groceries and entertainment                 
+                     </label> 
+                    
+                    <apex:inputField type="text" id="expVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isFoodGrocExpense" value="{!expenseWrapper.expense.Food_Groc_Entert__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                </div>
+                <!-- FOOD GROC INTERVAL -->
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right exp-input-right-fge" style="margin-left:2%;">
+                    <apex:selectList size="1" id="getExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach2 frequencyPicklist" value="{!expenseWrapper.expense.Food_Groc_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!FoodGrocExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+                <!-- FOOD GROC HELP TEXT -->
+                <div class="clearfix"></div>
+                 <div class = "helpTextMbF">
+                 <apex:outputText value="  e.g. Groceries, restaurants, takeaway, lunches, coffees etc. " style="color: #75787b; padding-right:100px;"/> 
+                  </div>
+                <!-- END -->   
+                <!-- INSURANCE SECTION START -->
+                <div class="span6 removelmargin lfs_exp_input input100pct">    
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Insurance                 
+                     </label>
+                     
+                    <apex:inputField type="text" id="insuExpVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isUtilityExpense" value="{!expenseWrapper.expense.Insurance_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">  
+                    <apex:selectList size="1" id="getInsuranceExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach3 frequencyPicklist" value="{!expenseWrapper.expense.Insurance_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!InsuranceExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>                
+                <!-- END OF INSURANCE -->
+
+                <!--  INSURANCE HELP TEXT -->
+                <div class = "mobile-responsive">
+                <div class="clearfix"></div>
+                 <apex:outputText value="  e.g. Health, vehicle, home and life insurance, income protection etc. " style="color: #75787b; padding-right:100px;"/> 
+                </div>
+                <!-- END -->   
+                
+                <!-- UTILITIES SECTION START -->
+                <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Utilities
+                     </label>
+                     
+                    <apex:inputField type="text" id="utilExpVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isUtilityExpense" value="{!expenseWrapper.expense.Utilities_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">   
+                    <apex:selectList size="1" id="getUtilitiesExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach4 frequencyPicklist" value="{!expenseWrapper.expense.Utilities_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!UtilitiesExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+                <!-- END OF UTILITIES -->
+
+                <!--  UTILITIES HELP TEXT -->
+                <div class="clearfix"></div>
+                <div class="UtilityHTAU">
+                 <apex:outputText value="  e.g. Electricity, gas, water, phone, internet, general rates, streaming, pay TV etc. " style="color: #75787b; padding-right:100px;"/> 
+                </div>
+                <!-- END -->   
+                
+                <!-- TRANSPORT SECTION START -->
+                <div class="span6 removelmargin lfs_exp_input input100pct">
+                     <label class="pix40 labeldark exp-font normaltext">
+                         Transport
+                     </label>
+                     
+                  <apex:inputField type="text" id="transExpVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isTransportExpense" value="{!expenseWrapper.expense.Transport_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right exp-input-right-lat-trans" style="margin-left:2%;">    
+                    <apex:selectList size="1" id="getTransportExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach5 frequencyPicklist" value="{!expenseWrapper.expense.Transport_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!TransportExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>                
+                <!-- END OF TRANSPORT -->
+
+                <!--  TRANSPORT HELP TEXT -->
+                <div class="clearfix"></div>
+                 <div class = "helpTextMbT">                
+                     <apex:outputText value="  e.g. Daily travel, petrol, vehicle maintenance, vehicle registration, tolls, public transport, ride sharing etc. " style="color: #75787b; padding-right:100px;"/> 
+                  </div>
+                <!-- END -->   
+                
+                <!-- EDUCATION SECTION START -->
+                <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Education and childcare
+                     </label>
+                     
+                    <apex:inputField type="text" id="eduExpVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isEducationExpense" value="{!expenseWrapper.expense.Education_and_child_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">    
+                    <apex:selectList size="1" id="getEducationExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach6 frequencyPicklist" value="{!expenseWrapper.expense.Education_and_child_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!EducationExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>                
+                <!-- END OF EDUCATION -->
+
+                <!-- EDUCATION HELP TEXT -->
+                <div class="clearfix"></div>
+                <div class="clearfix"></div>
+                <div class = "helpTextMb">
+                 <apex:outputText value="  e.g. School fees, uniform, day care etc. " style="color: #75787b; padding-right:250px; margin-right:150px;"/> 
+                </div>
+                <!-- END -->   
+                
+                <!-- PERSONAL SECTION START -->
+                <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Personal / Other
+                     </label>
+                     
+                    <apex:inputField type="text" id="persExpVal" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense isTotalExpenseZero" value="{!expenseWrapper.expense.Personal_Other_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>                               
+              </div>
+                <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">  
+                    <apex:selectList size="1" id="getPersonalExpenses" styleClass="selectfield col6 marginbottom10 isPicklistEach7 frequencyPicklist" value="{!expenseWrapper.expense.Personal_Other_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!PersonalExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>                 
+              <!-- END OF PERSONAL -->
+
+                <!--  PERSONAL/OTHER HELP TEXT -->
+                <div class="clearfix"></div>
+                 <div class = "helpTextMbP">                
+                 <apex:outputText value="  e.g. Clothing, medical, fitness and any additional expenses " style="color: #75787b; padding-right:100px;"/> 
+                  </div>
+                <!-- END -->   
+    
+                <div class="span6 lfs_exp_input interval input100pct" style="margin-left:2%;"> 
+                    <!-- INTERVAL FIELD -->
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+                    <apex:selectList size="1" id="livingInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach1 frequencyPicklist" value="{!expenseWrapper.expense.Living_Exp_Int__c}" onchange="getTotalExpense();getExpenses();" style="display:none;">
+                        <apex:selectOptions value="{!LivingExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                   <!-- <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!expenseWrapper.intervalValid }" value="Error: Please select the expense interval"/> -->
+                </div>
+
+               <br/>
+              <!-- <apex:outputLabel >Total Monthly Living Expense amount</apex:outputLabel> -->
+               <input type="hidden" id="totalMonthlyLivingExpense" value="{!totalMonthlyLivingExpense}"  readOnly="true"/> 
+
+             <!--   </div> -->
+            </apex:outputPanel> 
+            <div class="clearfix"></div>
+        
+         </apex:outputPanel>
+        
+          <apex:outputPanel rendered="{!region == country_NZ}">        
+            <br/>
+            <div class="clearfix"></div>
+            <div class="clearfix"></div>
+            <apex:outputPanel >
+                <hr class="dividerStyle" />
+                <br/>
+                <div class="span12 removelmargin"><h3 class="subpagetitle gecolor gem-heading"><span>Living Expenses</span></h3></div>
+                <br/>
+                <apex:outputPanel rendered="{!isJoint}"> 
+                <div><h4>Please enter your combined expenses as accurately as possible.</h4></div>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!NOT(isJoint)}"> 
+                 <div><h4>Please enter your expenses as accurately as possible. If you share expenses, only enter what you contribute.</h4></div>
+                </apex:outputPanel>
+              <!--  <div class="divider10"></div> -->
+            </apex:outputPanel>
+              
+                <apex:outputPanel >
+              <!--  <div class="clearfix"></div> -->
+                <!-- PAY ALL EXPENSE FIELD -->
+                <div class="span12 removelmargin lfs_exp_input">
+                    <div class="span12 removelmargin input100pct">
+                        <label class="pix40 labeldark normaltext">
+                            Do you pay all the expenses for your household? <a href="#" class="txtooltip tipovr1" title="e.g. utilities, grocery bills, fuel, etc." style="float:none !important;">&nbsp;</a>
+                        </label>
+                    </div>
+                    <div class="span6 removelmargin input100pct">
+                        <apex:selectList size="1" value="{!expenseWrapper.yesNoOption}" styleClass="{!IF(region != country_NZ,'isPicklistExpenseHousehold','')} isPicklistExpenseHousehold" id="payExpenses1"  >
+                            <apex:selectOption itemValue="Please Select" itemLabel="Select"/>
+                            <apex:selectOption itemValue="true" itemLabel="Yes, I pay all the expenses"/>
+                            <apex:selectOption itemValue="false" itemLabel="No, others contribute to expenses"/>
+                        </apex:selectList>
+                        <apex:outputText styleClass="warningMessage" escape="false" value="{!expenseWrapper.errorDoYouPayAllExpensesMsg}" rendered="{!expenseWrapper.errorDoYouPayAllExpenses}"/>
+                    </div>
+                </div>            
+                </apex:outputPanel>
+            </apex:outputPanel>
+            
+                   
+
+        
+         <apex:outputPanel id="mortgageExpenses" rendered="{!region == country_NZ}">
+           <div class="span6 removelmargin m_ip5_por_column3_2 lfs_exp_input input100pct">                   
+                     <label class="pix40 labeldark exp-font normaltext">
+                         Food, groceries and entertainment
+                     </label>
+                     
+                  <apex:inputField type="text" id="foodGrocNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isTransportExpense" value="{!expenseWrapper.expense.Food_Groc_Entert__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+            </div>
+            <div class="span6 m_ip5_por_column3_3 interval lfs_exp_input input100pct exp-input-right exp-input-right-fge" style="margin-left:2%;">
+                 <apex:selectList size="1" id="foodGrocInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach2 frequencyPicklist" value="{!expenseWrapper.expense.Food_Groc_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!FoodGrocExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+            </div>
+                    <!-- FOOD GROC HELP TEXT -->
+                    <div class="clearfix"></div>
+                    <div class="mb-grocery-desc">
+                     <apex:outputText value="  e.g. Groceries, restaurants, takeaway, lunches, coffees, memberships " style="color: #75787b; padding-right:100px;"/> 
+                    </div>
+                    <!-- END -->                     
+            <div class="span6 removelmargin lfs_exp_input input100pct">
+                    <label class="pix40 labeldark normaltext">
+                         Health and life insurance 
+                     </label>
+
+                  <apex:inputField type="text" id="insuranceExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isEducationExpense" value="{!expenseWrapper.expense.Insurance_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+             </div>
+            <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;"> 
+                  <apex:selectList size="1" id="insuranceExpInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach3 frequencyPicklist" value="{!expenseWrapper.expense.Insurance_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                       <apex:selectOptions value="{!InsuranceExpenseInterval}"/>
+                  </apex:selectList>
+                  <div class="clearfix"></div>
+             </div>
+               <!--  INSURANCE HELP TEXT -->
+                <div class="clearfix"></div>
+               <!--  <apex:outputText value="  e.g. Health, vehicle, home and life insurance, income protection etc. " style="color: #75787b; padding-right:100px;"/> -->
+                <!-- END -->   
+              <div class="span6 removelmargin lfs_exp_input input100pct">        
+                     <label class="pix40 labeldark exp-font normaltext">
+                         General insurance
+                     </label>
+                     
+                    <apex:inputField type="text" id="utilitiesExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense" value="{!expenseWrapper.expense.Utilities_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+               </div>
+             <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                  <apex:selectList size="1" id="utilityExpInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach4 frequencyPicklist" value="{!expenseWrapper.expense.Utilities_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!UtilitiesExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+            </div>
+            <div class="clearfix"></div>
+             <!-- UTILITIES HELP TEXT -->
+             <div class="utilityHT">
+               <apex:outputText value="e.g. home, vehicle and contents" style="color: #75787b; padding-right:100px;"/>
+             </div>
+             <!-- END -->  
+             <div class="span6 removelmargin lfs_exp_input input100pct">                              
+                    <label class="pix40 labeldark exp-font normaltext">
+                         Transport and auto
+                     </label>
+                     
+                    <apex:inputField type="text" id="transportExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense" value="{!expenseWrapper.expense.Transport_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+              </div>
+            <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">       
+                <apex:selectList size="1" id="tansportExpInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach5 frequencyPicklist" value="{!expenseWrapper.expense.Transport_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!TransportExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="transportHT">
+            <!-- TRANSPORT HELP TEXT -->
+            <apex:outputText value="e.g. Daily travel, petrol, vehicle maintenance, vehicle registration, tolls, public transport, ride sharing etc." style="color: #75787b; padding-right:100px;"/>
+            </div><!-- END -->
+             <div class="span6 removelmargin lfs_exp_input input100pct">           
+                     <label class="pix40 labeldark exp-font normaltext">
+                         Education and childcare
+                     </label>
+                     
+                    <apex:inputField type="text" id="educationExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense" value="{!expenseWrapper.expense.Education_and_child_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+              </div>
+            <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                 <apex:selectList size="1" id="eduExpenseInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach6 frequencyPicklist" value="{!expenseWrapper.expense.Education_and_child_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!EducationExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+            </div>
+            <div class="clearfix"></div>            
+             <!-- EDUCATION HELP TEXT -->
+             <div class="educationHT">
+            <apex:outputText value="e.g. School fees, uniform, day-care etc." style="color: #75787b; padding-right:200px;"/>
+             </div>
+             <!-- END -->                                         
+             <div class="span6 removelmargin lfs_exp_input input100pct">         
+                     <label class="pix40 labeldark exp-font normaltext">
+                         Personal, fitness and medical 
+                     </label>
+                     
+                    <apex:inputField type="text" id="personalExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense" value="{!expenseWrapper.expense.Personal_Other_Expense__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+               </div>
+            <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                  <apex:selectList size="1" id="personalExpInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach7 frequencyPicklist" value="{!expenseWrapper.expense.Personal_Other_Expense_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!PersonalExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+             </div>
+            <div class="clearfix"></div>
+            <!-- PERSONAL HELP TEXT -->
+            <div class="personalHTNZ">
+            <apex:outputText value="e.g. Clothing, medical, fitness and any additional personal expenses" style="color: #75787b; padding-right:150px; margin-right:75px;"/>
+             </div>
+             <!-- END --> 
+             <div class="span6 removelmargin lfs_exp_input input100pct">       
+                     <label class="pix40 labeldark exp-font normaltext">
+                         Any additional expenses
+                     </label>
+                     
+                    <apex:inputField type="text" id="anyAddExpNZ" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isPersonalExpense" value="{!expenseWrapper.expense.Any_Additional_expenses__c}" onchange="getTotalExpense();" onkeypress="return event.charCode >= 48 && event.charCode <= 57" onblur="$j(this).valid();" onkeyup="getExpenses();"/>
+                    <div class="clearfix"></div>
+              </div>
+             <div class="span6 lfs_exp_input interval input100pct exp-input-right" style="margin-left:2%;">
+                 <apex:selectList size="1" id="additionalExpInterval" styleClass="selectfield col6 marginbottom10 isPicklistEach4 frequencyPicklist" value="{!expenseWrapper.expense.Any_Additional_expenses_Interval__c}" onchange="getTotalExpense();getExpenses();">
+                        <apex:selectOptions value="{!AnyNewAdditionalExpenseInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>              
+              </div>
+            <div class="clearfix"></div>
+              <!-- ANY ADDITIONAL HELP TEXT -->
+              <div class="additionalHT">
+               <apex:outputText value="e.g. Child maintenance, donations and tithings to family and/or the church    " style="color: #75787b; padding-right:100px;"/>
+              </div>
+              <!-- END -->
+       <div class="span6 lfs_exp_input input100pct">                      
+              <br/>
+              <div> 
+              <!--  <apex:outputLabel >Total Monthly Living Expense amount</apex:outputLabel>   -->
+                   <input type="hidden" id="totalMonthlyLivingExpenseNZ" value="{!totalMonthlyLivingExpense}" readOnly="true" style="isTotalExpenseZero"/>
+              </div>       
+       </div>
+       
+         </apex:outputPanel>
+         <div class="clearfix"></div>
+         
+          <div class='gem-total-wrapper' style="{!if($site.name=='Gem','background-color:#4465ad',if($site.name == 'Kiwibank','background-color:#6ab421',if($site.name=='Latitude','background-color:#006ac6','')))}">
+                <br/>
+              <apex:outputPanel rendered="{!if(AND($Site.name=='Latitude',NOT(brokerChannel),NOT(isJoint)),true,false)}">
+                <div style="font-size:15pt;text-align:center;color:white">Your total monthly living expenses:</div> 
+              </apex:outputPanel> 
+              <apex:outputPanel rendered="{!isJoint && region == country_NZ}">
+              <div style="font-size:15pt;text-align:center;color:white">Your total combined monthly residential and living expenses:</div>     
+              </apex:outputPanel>      
+               <apex:outputPanel rendered="{!isJoint && NOT(brokerchannel) && region != country_NZ}">    
+               <div style="font-size:15pt;text-align:center;color:white">Your total combined monthly living expenses:</div>                     
+               </apex:outputPanel>
+              <apex:outputPanel rendered="{!brokerChannel && NOT(isJoint)}">
+                <div style="font-size:15pt;text-align:center;color:white">Your applicant&apos;s total monthly living expenses:</div> 
+              </apex:outputPanel>
+               <apex:outputPanel rendered="{!brokerChannel && isJoint}">
+                <div style="font-size:15pt;text-align:center;color:white">Your applicant&apos;s combined total monthly living expenses:</div> 
+              </apex:outputPanel> 
+              <apex:outputPanel rendered="{!if(AND(OR($Site.name=='Gem',$Site.name=='Kiwibank'),NOT(isJoint)),true,false)}">
+                <div style="font-size:15pt;text-align:center;color:white">Your total monthly residential and living expenses:</div> 
+              </apex:outputPanel>  
+                <br/>
+                <div id="TotalExpense" style="text-align:center;font-weight:bold;color:white;font-size:16pt"/>               
+                <br/>                              
+         </div>
+
+                 <div id="showErrExpense" style="display:none;background-color:#CC0033;color:#ffffff;padding:8px;font-weight:500;font-family:math;"/>
+                 <br/>
+                 <div id="summaryOfWarningMsgs" style="{!if($site.name=='Gem','background-color:#E8F4FF',if($site.name == 'Kiwibank','background-color:#e7f6d6',if($site.name == 'Latitude','background-color:#E8F4FF','')))};display:none;" > 
+                 
+                 <br/>         
+                <div id="confirmationHeader" class="shades"  style="display:none;font-weight:bold;font-size:20pt;text-align:center;color:#686262;">Are all your details correct?</div>
+                 <apex:outputPanel rendered="{!brokerChannel}">
+                <div id="confirmationHeaderBroker" style="display:none;font-weight:bold;font-size:20pt;text-align:center;color:#686262;"><b>Are all your applicant&apos;s details correct ?</b></div>
+                </apex:outputPanel>
+               <br/>
+               <div id="confirmationReview" class="shades" style="display:none;font-size:16pt;color:#686262;padding-left:.5em;">Please review the following details before you continue:</div>
+               <div id="mortgageWarn" class="shades" style="display:none;color:#686262;font-size:16pt;"/>
+               <div id="FoodGroc" class="shades" style="display:none;color:#686262;font-size:16pt;"/>
+               <div id="InsuranceWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               <div id="UtilitiesWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               <div id="TransportWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               <div id="EducationWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               <div id="PersonalWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               <div id="mortagageWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+               
+               <div id="totalExpenseWarn" class="shades" style="display:none;color:#686262;font-size:16pt"/>
+                <div id="confirmationFooter" class="shades" style="display:none;font-size:16pt;color:#686262;padding-left:.5em;">By proceeding you are confirming these details are correct.</div>
+              <br/>
+              </div>
+
+    </div>  <!-- end tab-1 -->
+    
+    
+
+    <!-- FOR PERSPECSYS -->
+    <!-- <apex:inputField value="{!expenseWrapper.expense.PRS_RECORD_ID__c" id="Income__c___PRS_RECORD_ID__c"/> -->
+    
+    <apex:inputHidden value="{!expenseWrapper.expense.Id}" id="Income__c___id"/>
+    
+    <script type="text/javascript">
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=resStatus] option[value="Please Select"]').text("Select");
+            $('[id*=rentInterval] option[value="None"]').text("Select"); 
+            $('[id*=livingInterval] option[value="None"]').text("Select");
+            $('[id*=getExpenses] option[value=""]').text("Select");
+            $('[id*=getInsuranceExpenses] option[value=""]').text("Select");
+            $('[id*=getUtilitiesExpenses] option[value=""]').text("Select");
+            $('[id*=getTransportExpenses] option[value=""]').text("Select");
+            $('[id*=getEducationExpenses] option[value=""]').text("Select");
+            $('[id*=getPersonalExpenses] option[value=""]').text("Select"); 
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    </script>
+    
+</apex:component>

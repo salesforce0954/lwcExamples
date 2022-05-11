@@ -1,0 +1,149 @@
+<!--
+  * @Description: Promo eligiblity page
+  * @Author: Mike Lasala
+  * @Date Created: 10-AUG-2016
+-->
+<apex:page standardController="Promo__c" extensions="APP_PromoEligibility_Ext" showHeader="false" sidebar="false">
+    <!-- asdf -->
+    <apex:form >
+        <!-- LOADER -->
+        <apex:actionStatus id="loader">
+            <apex:facet name="start">
+                <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+                       height: 100%;opacity:0.65;width:100%;"> 
+                    <div class="waitingHolder" style="top: 5%; width: 50%;">
+                        <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                        <span class="waitingDescription">Loading...</span>
+                    </div>
+                </div>
+            </apex:facet>
+        </apex:actionStatus>
+        
+        <apex:pageBlock id="pageBlockId">
+            
+            <apex:pageMessages id="messages" escape="false"/>
+            
+            <!-- BUTTONS CONTAINER-->
+            <apex:pageBlockButtons location="both" rendered="{!$ObjectType.Promo__c.Updateable}">
+                <!-- ADD -->
+                <apex:commandButton action="{!toggleEligibility}" value="Add" rendered="{!NOT(displayEligibility)}" rerender="pageBlockId" status="loader"/>
+                <!-- SAVE -->
+                <apex:commandButton action="{!saveEligiblity}" value="Save" rendered="{!displayEligibility}" rerender="pageBlockId" status="loader"/>
+                <!-- CANCEL -->
+                <!--<apex:commandButton action="{!toggleEligibility}" value="Cancel" rendered="{!AND(promo.DM__c, displayEligibility)}" rerender="pageBlockId" status="loader"/>-->
+            </apex:pageBlockButtons>
+            
+            <!-- RULE TABLE -->
+            <apex:pageBlockTable value="{!ruleList}" var="rule" rendered="{!displayEligibility}">
+                <!-- RULE -->
+                <apex:column >
+                    <apex:outputField value="{!rule.Name}"/>
+                </apex:column>
+                
+                <!-- CONDITION -->
+                <apex:column >
+                    <!-- ELIGIBILITY 1 -->
+                    <apex:outputPanel rendered="{!rule.Name == 'Eligibility 1'}">
+                        
+                        <apex:pageBlockTable value="{!ruleConditionMap[rule.Name]}" var="condition">
+                            
+                            <apex:column headerValue="" width="20%">
+                                <apex:selectList size="1" value="{!condition.LHS_Field_Name__c}" disabled="{!NOT($ObjectType.Promo__c.Updateable)}">
+                                    <apex:selectOptions value="{!Eligibility1Options}"/>
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <!-- OPERATOR -->
+                            <apex:column headerValue="Operator" width="15%">
+                                <apex:selectList size="1" value="{!condition.Operation__c}" rendered="{!$ObjectType.Promo__c.Updateable}">
+                                    <apex:selectOptions value="{!ConditionOperations}"/>
+                                </apex:selectList>
+                                
+                                <apex:outputField value="{!condition.Operation__c}" rendered="{!NOT($ObjectType.Promo__c.Updateable)}"/>
+                            </apex:column>
+                            
+                            <!-- VALUE -->
+                            <apex:column headerValue="Value">
+                                <apex:inputField value="{!condition.Free_Text__c}"/>
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    
+                    </apex:outputPanel>
+                    
+                    <!-- ELIGIBILITY 2 -->
+                    <apex:outputPanel rendered="{!rule.Name == 'Eligibility 2'}">
+                        
+                        <apex:pageBlockTable value="{!ruleConditionMap[rule.Name]}" var="condition">
+                            
+                            <apex:column headerValue="" width="20%">
+                                <apex:outputText value="Loan Purpose"/>
+                            </apex:column>
+                            
+                            <!-- OPERATOR -->
+                            <apex:column headerValue="Operator" width="15%">
+                                <apex:selectList size="1" value="{!condition.Operation__c}" disabled="true" rendered="{!$ObjectType.Promo__c.Updateable}">
+                                    <apex:selectOptions value="{!ConditionOperations}"/>
+                                </apex:selectList>
+                                
+                                <apex:outputField value="{!condition.Operation__c}" rendered="{!NOT($ObjectType.Promo__c.Updateable)}"/>
+                            </apex:column>
+                            
+                            <!-- LOAN PURPOSE VALUES -->
+                            <apex:column headerValue="Value" width="25%">
+                                <apex:selectList size="12" value="{!loanValues}" multiselect="true" disabled="{!NOT($ObjectType.Promo__c.Updateable)}">
+                                    <apex:selectOptions value="{!LoanPurposeValues}"/>                                                
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <!-- CLEAR VALUES -->
+                            <apex:column headerValue="">
+                                <apex:commandButton action="{!clearloanValues}" value="Clear" rerender="pageBlockId" status="loader" rendered="{!$ObjectType.Promo__c.Updateable}"/>
+                            </apex:column>
+                            
+                        </apex:pageBlockTable>
+                    
+                    </apex:outputPanel>
+                    
+                    <!-- ELIGIBILITY 3 -->
+                    <apex:outputPanel rendered="{!rule.Name == 'Eligibility 3'}">
+                        
+                        <apex:pageBlockTable value="{!ruleConditionMap[rule.Name]}" var="condition">
+                            
+                            <apex:column headerValue="" width="20%">
+                                <apex:outputText value="Credit Score"/>
+                            </apex:column>
+                            
+                            <!-- OPERATOR -->
+                            <apex:column headerValue="Operator" width="15%">
+                                <apex:selectList size="1" value="{!condition.Operation__c}" disabled="true" rendered="{!$ObjectType.Promo__c.Updateable}">
+                                    <apex:selectOptions value="{!ConditionOperations}"/>
+                                </apex:selectList>
+                                
+                                <apex:outputField value="{!condition.Operation__c}" rendered="{!NOT($ObjectType.Promo__c.Updateable)}"/>
+                            </apex:column>
+                            
+                            <!-- CREDIT SCORE VALUES -->
+                            <apex:column headerValue="Value" width="10%">
+                                <apex:selectList size="10" value="{!riskGrades}" multiselect="true" disabled="{!NOT($ObjectType.Promo__c.Updateable)}">
+                                    <apex:selectOptions value="{!CreditScores}"/>                                                
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <!-- CLEAR VALUES -->
+                            <apex:column headerValue="">
+                                <apex:commandButton action="{!clearRiskGrades}" value="Clear" rerender="pageBlockId" status="loader" rendered="{!$ObjectType.Promo__c.Updateable}"/>
+                            </apex:column>
+                            
+                        </apex:pageBlockTable>
+                    
+                    </apex:outputPanel>
+                    
+                </apex:column>
+                
+            </apex:pageBlockTable>
+            
+        </apex:pageBlock>
+                    
+    </apex:form>
+    
+</apex:page>

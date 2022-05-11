@@ -1,0 +1,82 @@
+<!-- 
+* @Description: Component to display contact information based on brand and workflow status 
+* @Author: Kabir Singh
+* @Date Created: 21-Mar-2016
+* @History:
+====================================================================================================================================
+    21-Mar-2016: Created - Kabir Singh
+    
+====================================================================================================================================
+-->
+
+
+<apex:component allowDML="true"  controller="APP_GSD_ContactUSController">
+    
+    <div class="container">
+      <div class="row padLR">
+
+          <div class="col-xs-6 pull-left">
+          <span class="icon_arrow_back backArrow_size pull-left back_tmargin" id="aBackIcon"></span>
+          <span class="pull-left backLink_width back_margin">
+          <span class="body-label-bold lat-blue" id="back">
+             <a href="#" onclick="redirect('APP_GSD_Response');" class="underline-dotted" id="aBack">Back</a></span>
+          </span>
+
+         </div>
+
+        <div class="col-xs-6 pull-right">
+            <span id="contLabela" class="pull-right contactLink_width">
+              <div class="pull-right {!if($site.Name = 'Latitude', '', 'contactLink_width')}">
+                  <span id="contactUsText" class="body-label-bold lat-dark-grey"/>
+                  <a href= "#" id="contactUs" class="body-label-bold lat-blue"></a>
+              </div>
+            </span>
+        </div>
+      </div>
+    </div>
+    <hr class="hr-solid-border"></hr>    
+    
+  <!--<div id="contactUs"></div>-->
+  
+  <script>
+  
+  /*
+     * Description : Fetch the application data 
+     */
+    function getContactData(){
+        // console.log("getContactData: ");
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_ContactUSController.getContactDetails}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    // console.log("result: "+result);
+                    // $('#contactUs').text(result);                    
+                    var contactUsText = result.split(" ");
+                    var regexNum = /\d/g;
+                    var isNumber = regexNum.test(result);
+                    if(isNumber){
+                        $('#contactUsText').text(result.split(/[0-9]/)[0]);
+                        $('#contactUs').text(contactUsText[contactUsText.length-3]+' '+contactUsText[contactUsText.length-2]+' '+contactUsText[contactUsText.length-1]);
+                    } else {
+                        var staticText = '';
+                        for(var i=0; i<contactUsText.length-1; i++){
+                            staticText += contactUsText[i]+' ';
+                        }
+                        $('#contactUsText').text(staticText);
+                        $('#contactUs').text(contactUsText[contactUsText.length-1]);
+                    }
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+        );
+    }    
+    
+    getContactData();
+  
+  </script>
+</apex:component>

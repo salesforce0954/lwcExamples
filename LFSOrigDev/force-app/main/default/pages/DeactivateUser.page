@@ -1,0 +1,43 @@
+<apex:page Controller="userDeactivationController" contentType="application/vnd.ms-excel#deactivateUsers.xls" readOnly="true">
+<apex:pageBlock title="Deactivate User for NZ Applications 90 Days" rendered="{!submittedNZ != null}">
+        <apex:pageBlockTable value="{!users90DaysNZ}" var="u">
+            <apex:column value="{!u.Name}"/>
+            <apex:column value="{!u.Username}"/>
+            <apex:column value="{!u.Email}"/>
+            <apex:column value="{!u.id}"/>
+        </apex:pageBlockTable>
+</apex:pageBlock>
+<apex:pageBlock title="Deactivate User for AU Applications 90 Days" rendered="{!submittedAU != null}">
+        <apex:pageBlockTable value="{!users90DaysAU}" var="au">
+            <apex:column value="{!au.Name}"/>
+            <apex:column value="{!au.Username}"/>
+            <apex:column value="{!au.Email}"/>
+            <apex:column value="{!au.id}"/>
+        </apex:pageBlockTable>
+</apex:pageBlock>
+<apex:pageBlock title="New Applications: Deactivate User for NZ Applications 30 Days" rendered="{!unsubmittedNZ != null}">
+        <apex:pageBlockTable value="{!users30DaysNZ}" var="nz30">
+            <apex:column value="{!nz30.Name}"/>
+            <apex:column value="{!nz30.Username}"/>
+            <apex:column value="{!nz30.Email}"/>
+            <apex:column value="{!nz30.id}"/>
+        </apex:pageBlockTable>
+</apex:pageBlock>
+<apex:pageBlock title="New Applications: Deactivate User for AU Applications 30 Days" rendered="{!unsubmittedAU != null}">
+        <apex:pageBlockTable value="{!users30DaysAU}" var="au30">
+            <apex:column value="{!au30.Name}"/>
+            <apex:column value="{!au30.Username}"/>
+            <apex:column value="{!au30.Email}"/>
+            <apex:column value="{!au30.id}"/>
+        </apex:pageBlockTable>
+</apex:pageBlock>
+<apex:pageBlock title="Customer Login Fix: Deactivate User Application Last Modified 7 Days" rendered="{!CustomerLogin != null}">
+        <apex:pageBlockTable value="{!users7Days}" var="au7">
+            <apex:column value="{!au7.Name}"/>
+            <apex:column value="{!au7.Username}"/>
+            <apex:column value="{!au7.Email}"/>
+            <apex:column value="{!au7.id}"/>
+        </apex:pageBlockTable>
+</apex:pageBlock>
+
+</apex:page>

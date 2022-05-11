@@ -1,0 +1,735 @@
+<apex:page id="accountdatapage" standardController="Application__c" extensions="APP_AccountDataExt"
+ showHeader="false" sidebar="false" action="{!loadSearchAndMatchCLV}" docType="html">
+    <apex:includeScript value="{!URLFOR($Resource.FileUploadJQUERY, '/js/jquery-1.10.2.min.js')}" />
+
+    <script>
+        $.noConflict();       
+        jQuery( document ).ready(function( $ ) {
+        	try{
+                $(function() {
+                // Connect to the CometD endpoint
+                    $.cometd.init({
+                    url: window.location.protocol+'//'+window.location.hostname+'/cometd/24.0/',
+                    requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'}
+                    });                    
+                    $.cometd.subscribe('/topic/{!name}', function(message) {
+
+                    var statusResponse = JSON.stringify(message.data, null, '\t');
+                    if(statusResponse != null){
+
+                    var applicantCLVId = JSON.stringify(message.data.sobject.Applicant_CLV__c);
+                    var applicantCLVInsertedID = applicantCLVId.replace(/\"/g,'');
+                        if(applicantCLVInsertedID != null) {                        
+                        //disconnect from streaming api - this call is asynchronous so use the "responseReceived"
+                        // variable to stop this running multiple times
+                        $.cometd.disconnect();
+                        responseReceived = true;
+                        }
+
+                    }                    
+                });
+            });
+            }catch(e){
+            	alert("cometError:" + e);
+            }
+        }        
+    </script>
+	    	    	 
+    <script type="text/javascript">                             
+        function hideAction(){               
+            $(".actionColumn").hide();
+        }        
+
+        function clearNum(){
+            clearNumb();
+        }              
+ 		
+ 		var queriedCLV = new Array();
+ 		var populateDebtAndPersonalDetails = '{!$RemoteAction.APP_AccountDataExt.populateDebtAndPersonalDetails}';
+ 		
+ 		// Query CLV Information
+        function queryAppCLV(soqlReadSet,clvObjList,appliObjList){
+        	queryCLV = "Select Id,First_Name__c,Middle_Name__c,Surname__c,Date_of_Birth__c," + 
+								 "Street_Address__c,Suburb__c,State__c,Home__c,Work__c,Mobile__c," +
+								 "Applicant_Bucket__c,prepopulate__c, " +
+							   	 "(Select Id, Selected_ICBS_Customer_Number__c," + 
+                        		 "Account_Number__c, Applicant_CLV__c," + 
+			                     "Applicant_CLV__r.Applicant_Bucket__c," +
+			                     "Account_Balance__c, Closed_Date__c," + 
+			                     "Next_Payment_Amount_Due__c," + 
+			                     "Credit_Limit_Borrowed_Amount__c," +
+			                     "Installment_Amount__c," + 
+			                     "Current_Balance__c,Amount_Financed__c," +
+			                     "RecordTypeId,Maximum_Credit_Limit__c," +
+			                     "Opening_Balance__c " +
+					             "from Applicant_Accounts__r " +
+								 "order by Account_Open_Date__c ASC) " +
+								 "from Applicant_CLV__c where Id In " + soqlReadSet;
+								 
+        	console.log('CLV Query String:' + queryCLV);
+        	//alert('CLV Query String:' + queryCLV);	
+        	
+        	console.log('CLV Original List:' + clvObjList);
+        	//alert('CLV Original List:' + clvObjList[0].Id);	
+        	
+        	console.log('Applicant Original List:' + appliObjList);
+        	//alert('Applicant Original List:' + appliObjList[0].Id);	
+        		  
+        	try{
+	            sObject.query(queryCLV,{escape:false},function(clv,event){
+	 
+	                console.log("CLV Event Type:" + event.type);
+	            	console.log("CLV Event Message:" + event.message);
+	            	console.log("CLV Event Status:" + event.status);
+	            	console.log("CLV Value:" + JSON.stringify(clv));
+	            	
+	            	//alert("CLV Event Type:" + event.type);
+	            	//alert("CLV Event Message:" + event.message);
+	            	//alert("CLV Event Status:" + event.status);
+	            	//alert("CLV Value:" + JSON.stringify(clv));
+	            	
+	                queriedCLV = clv;
+	                
+	                //alert("Final CLV Result! " + queriedCLV[0].Id);
+	                
+	                try{
+
+						console.log("Final value CLV Query:" + JSON.stringify(queriedCLV));
+	                	console.log("Final value CLV:" + JSON.stringify(clvObjList));
+	                	console.log("Final value Application:" + JSON.stringify(appliObjList));
+	                	
+	                	//alert("Final value CLV Query:" + JSON.stringify(queriedCLV));
+	                	//alert("Final value CLV:" + JSON.stringify(clvObjList));
+	                	//alert("Final value Application:" + JSON.stringify(appliObjList));
+
+						var appliAccountList = [];
+ 						 
+ 						//alert("Queried CLV Length:" + queriedCLV.length); 
+ 						 
+				        //Populate list of sObjects if query was a success
+			        	for(var i = 0; i < queriedCLV.length; i++){
+			        		try{   					        					        		
+				        		//alert("Child applicant account:" + queriedCLV[i].Applicant_Accounts__r);
+				        		//alert("Applicant CLV Id:" + queriedCLV[i].Id);
+				        		//alert("JSON Applicant Account Object:" +
+				        		// JSON.stringify(queriedCLV[i].Applicant_Accounts__r));
+				        		
+				        		appliAccountList.push.apply(appliAccountList, queriedCLV[i].Applicant_Accounts__r);
+			        		}catch(e){
+			        			console.log("No Child Applicant Account:" + e);
+			        			//alert("No Child Applicant Account:" + e);
+			        		}
+			        	}
+        	
+        				console.log("Applicant Account Value:" + JSON.stringify(appliAccountList));
+        				
+        				// Make sure list array is not null
+        				if(appliAccountList.length==0){
+        					appliAccountList.push(new sObject());
+        				}
+        				
+        				if(appliObjList.length==0){
+        					appliObjList.push(new sObject());
+        				}
+        				
+        				//alert("Applicant Account Value:" + JSON.stringify(appliAccountList));
+        				
+		                sObject.populateDebtAndPersonalDetails(queriedCLV,
+		                clvObjList,appliAccountList,appliObjList,{escape:false},
+		                function(successValue,event){
+		                	console.log("DebtAndPersonalDetail Event Type:" + event.type);
+			            	console.log("DebtAndPersonalDetail Event Message:" + event.message);
+			            	console.log("DebtAndPersonalDetail Event Status:" + event.status);
+			            	console.log("DebtAndPersonalDetail Value:" + successValue);
+			            	//alert("!DebtAndPersonalDetail Final Value:" + successValue);
+			            	
+			            	if(successValue==true){
+			            		//alert("!BooleanDebtAndPersonalDetail Final Value:" + successValue);
+			            		redirectToAppEligibilityPage();
+			            	}
+		                }) 
+	                }catch(e){
+	                	console.log("Debt and Personal Detail Prepopulation Failed." + e);
+	                	//alert("Debt and Personal Detail Prepopulation Failed." + e);
+	                }
+	            })
+            }catch(e){
+            	console.log('Error in CLV Query:' + e);
+             	//alert('Error in CLV Query:' + e);
+            }
+        }
+	        
+ 		function prepopulatePDAndDebt(clvListJSONStr,clvIdJSONStr,applicantListJSONStr){
+        	//alert("PD and Debt Prepopulation Started.");
+        	console.log("PD and Debt Prepopulation Started.");
+       	
+       		//alert(clvListJSONStr);
+       		//alert(clvIdJSONStr);
+       		//alert(applicantListJSONStr);
+      		
+        	var parseClvObjList = jQuery.parseJSON( clvListJSONStr );
+        	var clvObjList = [];
+
+			var parseAppliObjList = jQuery.parseJSON( applicantListJSONStr );
+        	var appliObjList = [];
+
+			try{   	
+		        //Populate list of sObjects if query was a success
+	        	for(var i = 0; i < parseClvObjList.sObjects.length; i++){
+	        		//alert("type value!" + parseClvObjList.sObjects[i].attributes.type);
+	        		//alert("url value!" + parseClvObjList.sObjects[i].attributes.url);
+	        		
+	        		delete parseClvObjList.sObjects[i].attributes.type;
+	        		delete parseClvObjList.sObjects[i].attributes.url;
+	        		delete parseClvObjList.sObjects[i].Last_Search__c;
+	        		
+					delete parseClvObjList.sObjects[i].Applicant__r.attributes.type;
+					delete parseClvObjList.sObjects[i].Applicant__r.attributes.url;
+					delete parseClvObjList.sObjects[i].Applicant__r.attributes;
+	        		
+	        		parseClvObjList.sObjects[i].attributes["sObjectType"] =
+	        		 parseClvObjList.sObjectAttributes.sObjectType;
+	        		
+	        		clvObjList.push(new sObject(
+	        		parseClvObjList.sObjectAttributes.sObjectType, parseClvObjList.sObjects[i]
+	        		));
+	        	}
+	        	
+	        	//Populate list of sObjects if query was a success
+	        	for(var i = 0; i < parseAppliObjList.sObjects.length; i++){
+	        	
+	        		delete parseAppliObjList.sObjects[i].attributes.type;
+	        		delete parseAppliObjList.sObjects[i].attributes.url;
+	        		
+	        		parseAppliObjList.sObjects[i].attributes["sObjectType"] =
+	        		 parseAppliObjList.sObjectAttributes.sObjectType;
+	        		
+	        		appliObjList.push(new sObject(
+	        		parseAppliObjList.sObjectAttributes.sObjectType, parseAppliObjList.sObjects[i]
+	        		));
+	        	}
+        	}catch(e){
+        		alert("exception value test:" + e);
+        	}
+        	
+        	var clvIdList = jQuery.parseJSON( clvIdJSONStr );
+        	var ListFlag = 0;
+        	
+        	while(ListFlag<clvObjList.length){
+        		//alert("CLV List:" + clvObjList[ListFlag].Id);
+        		ListFlag++;
+        	}
+        	
+        	var soqlReadSet = transformSetIdToSOQLReadable(clvIdList);
+        	
+        	//alert("SOQL Set Value:" + soqlReadSet);
+        	
+        	queryAppCLV(soqlReadSet,clvObjList,appliObjList);
+        }
+        
+        function transformSetIdToSOQLReadable(clvIdList){
+        	var IdFlag = 0;
+        	var soqlReadSet = '';
+        	
+        	while(IdFlag<clvIdList.length){
+        	
+        		if(IdFlag==0){
+        			soqlReadSet = soqlReadSet + "(";
+        		}
+        		
+        		if(clvIdList[IdFlag]!='' && clvIdList[IdFlag]!=null){
+	        		soqlReadSet = soqlReadSet + "'" + clvIdList[IdFlag] + "'";
+	        		
+	   				if((IdFlag+1) < clvIdList.length){
+	        			soqlReadSet = soqlReadSet + ",";
+	        		}	
+        		}
+        		
+        		if((IdFlag+1) == clvIdList.length){
+	        		soqlReadSet = soqlReadSet + ")";
+	        	}
+	        		
+        		//alert("CLV Id:" + clvIdList[IdFlag]);
+        		IdFlag++;
+        	}
+        	
+        	return soqlReadSet;
+        }
+            
+       var count = 5;
+       var counter=setInterval(testSp, 5000); // increasing timer to 5 sec
+       function testSp(){       
+       		try{                 
+            count = count -1;  
+                 
+            var appCLVRecsId = pullCLVTableId();
+            var loadingGif2Id = pullLoderGIFId();
+            
+            if(count <= 0){                          
+                // document.getElementById('accountdatapage:frmAppAcc:j_id73:j_id74:appCLVRecs').
+                //style.visibility='visible'; 
+                // displaying "'Application CLV Records" after 5 sec
+                // document.getElementById('accountdatapage:frmAppAcc:loadingGif2').style.visibility='hidden';    
+                
+                document.getElementById(appCLVRecsId).style.visibility='visible'; 
+                // displaying "'Application CLV Records" after 5 sec
+                document.getElementById(loadingGif2Id).style.visibility='hidden';                    
+                
+                 clearInterval(counter);                 
+                 return;
+            }
+            else{
+                 // document.getElementById('accountdatapage:frmAppAcc:loadingGif2').style.visibility='visible';                
+                 // document.getElementById('accountdatapage:frmAppAcc:j_id73:j_id74:appCLVRecs').
+                 //style.visibility='hidden'; 
+                 // hiding "'Application CLV Records" for 5 sec
+                 // document.getElementById('!$Component.accountdatapage.frmAppAcc.appCLVRecs').
+                 //style.visibility='visible';
+                 
+                 document.getElementById(loadingGif2Id).style.visibility='visible';                
+                 document.getElementById(appCLVRecsId).style.visibility='hidden'; 
+                 // hiding "'Application CLV Records" for 5 sec
+                 //document.getElementById(appCLVRecsId).style.visibility='visible';
+            }
+            }catch(e){
+            	console.log("testSP Method Error:" + e);
+            	alert("testSP Method Error:" + e);
+            }
+           
+        }
+        window.onload=testSp;
+    </script>
+
+    <apex:form rendered="{!searchMatchViewControl == false && searchMatchEditControl == false}">
+        <Apex:PageMessages />
+    </apex:form>
+
+    <apex:form id="mainForm" rendered="{!searchMatchViewControl == true || searchMatchEditControl == true}">    
+    <apex:actionFunction name="selectedRow" action="{!displayApplicantAccount}" 
+    reRender="frmAppAcc, frmInvolved, relPanel" status="updateStatus" oncomplete="reloadPBSSummary();">
+        <apex:param name="P1" value="" assignTo="{!selectedCLV}"/>     
+    </apex:actionFunction>
+    <apex:actionFunction name="selectedApp" action="{!displayApplicantAccountDetail}" 
+    reRender="frmAppAcc, frmInvolved, relPanel" status="updateStatus" oncomplete="hideAction();" >
+        <apex:param name="P1" value="" assignTo="{!selectedAppACC}"/>      
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="selectedPartyInv" action="{!copyICBSCustomerNumber}"
+     reRender="frmAppAcc, frmInvolved, relPanel" status="updateStatus2" oncomplete="reloadpblData();">
+        <apex:param name="P1" value="" assignTo="{!selectedAccountParty}"/>      
+    </apex:actionFunction>    
+    
+    
+    <apex:actionFunction name="reloadpblData" action="{!displayApplicantAccount}" reRender="frmAppAcc, frmInvolved" />  
+    
+     
+    <apex:actionFunction name="clearNumb" action="{!clearICBSNumbers}" reRender="frmAppAcc, frmInvolved" 
+    oncomplete="reloadpblData();"/>   
+    
+    <apex:actionFunction name="goToNext" action="{!goToNext}" 
+    oncomplete="console.log('Has CLV:{!hasCLV}'); if('{!hasCLV}'=='true'){if('{!appClvError}'=='false'){try{
+    prepopulatePDAndDebt('{!clvListJSONStr}','{!clvIdJSONStr}','{!applicantListJSONStr}');
+    }catch(e){console.log('Prepopulate Call Exception:' + e);redirectToAppEligibilityPage();}}}else{redirectToAppEligibilityPage();}"  reRender="pgMsgId"/>
+    <apex:actionFunction name="redirectToAppEligibilityPage" action="{!redirectToAppEligibilityPage}" 
+    reRender="pgMsgId"/>  
+    
+    <apex:PageMessages Id="pgMsgId"/>
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Force Search" action="{!forceSearch}"/>         
+                <apex:commandButton value="Back To Search And Match" action="{!backToSearchandMatch}"/>               
+                <!-- MLASALA: 14-JAN-16 CAPINC0768525 Search Tab directing users to create new application -->
+                <!-- Toggle text based on application if it is newly created -->
+                <apex:commandButton value="{!IF(oldApp == 'true', 'Save', 'Next')}" onclick="goToNext();return false;" disabled="{!NOT(nextButton)}"/><br/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>  
+    </apex:form>
+    
+    <apex:actionStatus id="updateStatus">
+        <apex:facet name="start">
+            <c:EnhancedActionStatus BackColor="#efefef" borderColor="#ffffff" borderSize="0" height="50px"
+             width="130px" ImageUrl="{!$Resource.loading}" Message="Loading records..." 
+             messageStyle="color:darkred;font-size:11pt;font-weight:bold;padding:20px;"/>
+            <!--<c:ActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" 
+            height="50px" width="120px" ImageUrl="{!$Resource.LoadingDialog}" Message="Loading records..."
+             messageStyle="color:darkred;font-size:11pt;font-weight:bold;"/>-->
+        </apex:facet>
+    </apex:actionStatus>  
+        
+    <apex:form id="frmAppAcc" rendered="{!searchMatchViewControl == true || searchMatchEditControl == true}">        
+        
+                      
+                      
+        <script>
+      		// Method to pull clv table Id
+      		function pullLoderGIFId(){
+      			console.log("LoadingGifId Id!{!$Component.loadingGif2}"); 
+      			//alert("LoadingGifId Id!{!$Component.loadingGif2}"); 
+      			return "{!$Component.loadingGif2}";
+      		}
+      	</script>
+        	
+        <apex:image id="loadingGif2" url="{!URLFOR($Resource.getheme, 'images/loading-bar-2.gif')}" 
+        style="visibility:hidden;" title="Getting Applicant CLV Records."/>                
+
+		<!-- CLV List -->
+        <apex:pageBlock >
+        
+        <apex:pageBlockSection title="Applicant CLV Records" collapsible="false" columns="1">          
+        	<script>
+        		// Method to pull clv table Id
+        		function pullCLVTableId(){
+        			console.log("CLV Table Id!{!$Component.appCLVRecs}"); 
+        			//alert("CLV Table Id!{!$Component.appCLVRecs}"); 
+        			return "{!$Component.appCLVRecs}";
+        		}
+        	</script>	
+        	
+            <apex:pageBlockTable id="appCLVRecs" value="{!appCLVList}" var="app" title="Applicant CLV Records"
+             style="visibility:visible;">                               
+                <apex:column headerValue="Applicant" value="{!app.Applicant_Bucket__c}" 
+                onclick="selectedRow('{!app.Id}');" styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="CLV Identifier" value="{!app.CLV__c}"
+                 styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}" onclick="selectedRow('{!app.Id}');"/>
+                <apex:column headerValue="Title" value="{!app.Title__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="First Name" value="{!app.First_Name__c}" 
+                onclick="selectedRow('{!app.Id}');" styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Middle Name" value="{!app.Middle_Name__c}" onclick="selectedRow('{!app.Id}');"
+                 styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Last Name" value="{!app.Surname__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Date of Birth" value="{!app.Date_of_Birth__c}"
+                 onclick="selectedRow('{!app.Id}');" styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <!-- Only display Australian Drivers License field for AUSTRALIAN APPLICATIONS ADDED BY TXU -->
+                <apex:column headerValue="Australian Driver's License" value="{!app.Drivers_License__c}"
+                 onclick="selectedRow('{!app.Id}');" styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"
+                  rendered="{!$ObjectType.Applicant__c.fields.Drivers_Lic_No__c.Accessible}"/>
+                <apex:column headerValue="Street" value="{!app.Street_Address__c}" onclick="selectedRow('{!app.Id}');"
+                 styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Suburb" value="{!app.Suburb__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Post Code" value="{!app.Post_Code__c}" onclick="selectedRow('{!app.Id}');"
+                 styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Home" value="{!app.Home__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Mobile" value="{!app.Mobile__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>
+                <apex:column headerValue="Work" value="{!app.Work__c}" onclick="selectedRow('{!app.Id}');" 
+                styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}" />
+                <apex:column headerValue="State" value="{!app.State__c}"
+                 onclick="if('{app.Id}'!='{!selectedCLV}'){selectedRow('{!app.Id}');}" 
+                 styleClass="{!IF(app.Id==selectedCLV, 'selectedCell', '')}"/>    
+                 <!--    
+                <apex:column headerValue="Prepopulate" rendered="{!hasPrepopulation}">
+                -->
+                <apex:column headerValue="Prepopulate">
+                	<!--  
+                	<apex:outputPanel rendered="{!IF(app.Applicant_Bucket__c=='1' && hasExistDefaultApp1 == false,true,false)}">
+                	-->
+                		<apex:inputCheckBox value="{!app.Prepopulate__c}" onclick="recentVal();"/>
+                	<!--  
+                	</apex:outputPanel>
+                	-->
+                	
+                	<!--  
+                	<apex:outputPanel rendered="{!IF(app.Applicant_Bucket__c=='2' && hasExistDefaultApp2 == false,true,false)}">
+                	
+                		<apex:inputCheckBox value="{!app.Prepopulate__c}" onclick="recentVal();"/>
+
+                	</apex:outputPanel>
+                	-->
+ 
+                </apex:column>   
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        </apex:pageBlock>
+
+		<apex:actionFunction name="recentVal" reRender="currVal" status="updateStatus"></apex:actionFunction>
+		<apex:inputHidden Id="currVal"/>
+
+		<!-- Applicant Account List -->
+        <apex:outputPanel id="pbsAccSummary" rendered="{!showRelAppAccount}" styleClass="astable">
+            <apex:pageBlock > 
+                <apex:pageBlockSection title="Account Summary" collapsible="false" columns="1">
+                    <apex:pageBlockTable id="pbAppAccount" value="{!applicantAccList}" var="appAcc"
+                     title="Applicant CLV Records" styleClass="sortable1" rendered="{!IF(noRecs != null, false, true)}">               
+                        <apex:column headerValue="Account Number Identifier" value="{!appAcc.Account_Number__c}" 
+                        onclick="selectedApp('{!appAcc.Id}');" 
+                        styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Selected Customer Number" 
+                        value="{!appAcc.Selected_ICBS_Customer_Number__c}" onclick="selectedApp('{!appAcc.Id}');" 
+                        styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Account Open Date" value="{!appAcc.Account_Open_Date__c}"
+                         onclick="selectedApp('{!appAcc.Id}');"
+                          styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Account Type" value="{!appAcc.Account_Type__c}"
+                         onclick="selectedApp('{!appAcc.Id}');" 
+                         styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Credit Limit Borrowed Amount" 
+                        value="{!appAcc.Credit_Limit_Borrowed_Amount__c}"
+                         onclick="selectedApp('{!appAcc.Id}');" 
+                         styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Current Balance" value="{!appAcc.Account_Balance__c}" 
+                        onclick="selectedApp('{!appAcc.Id}');" 
+                        styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                        <apex:column headerValue="Host System Identifier" value="{!appAcc.Host_System_Identifier__c}" 
+                        onclick="selectedApp('{!appAcc.Id}');" 
+                        styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                         <apex:column headerValue="CLV Match Indicator" 
+                         value="{!appAcc.CLV_Match_Indicator__c}" onclick="selectedApp('{!appAcc.Id}');"
+                         
+                          styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>
+                         <apex:column headerValue="Account Status" value="{!appAcc.Account_Status__c}" 
+                         onclick="selectedApp('{!appAcc.Id}');" 
+                         styleClass="{!IF(appAcc.Id==selectedAppACC, 'selectedCell', '')}"/>                 
+                    </apex:pageBlockTable>             
+                </apex:pageBlockSection>
+                <apex:outputText value="{!noRecs}" rendered="{!IF(noRecs != null, true, false)}"/>         
+            </apex:pageBlock>
+        </apex:outputPanel>   
+		
+		<!-- Applicant Account Detail Information -->
+    	<apex:outputPanel id="detailId" rendered="{!showApplicantAccount}" >    
+        	<apex:detail subject="{!selectedAppACC}" relatedList="false"/>              
+    	</apex:outputPanel>  
+		  
+    </apex:form>
+
+	
+        
+	<!-- Applicant Account Related List -->
+	<!-- Hide show depending on the AA Type -->
+    <apex:outputPanel id="relPanel" rendered="{!searchMatchViewControl == true || searchMatchEditControl == true}">
+        <apex:relatedList id="relList24" rendered="{!IF(appRecordType = 'Vision', true, false)}"
+         subject="{!selectedAppACC}"  list="Applicant_Account_Histories__r"/>
+        <apex:relatedList id="relList25" rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+         subject="{!selectedAppACC}"  list="App_Account_Bus_Contract_Goods1__r"/>
+        <apex:relatedList id="relList26" rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+         subject="{!selectedAppACC}"  list="Applicant_Account_Loss_Histories1__r"/>
+        <apex:relatedList id="relList27" rendered="{!IF(appRecordType = 'Vision', true, false)}" 
+        subject="{!selectedAppACC}"  list="Applicant_Account_Plans__r"/>
+    </apex:outputPanel>
+    
+    
+    <!-- Applicant Account Involved Parties -->
+    <apex:form id="frmInvolved" rendered="{!searchMatchViewControl == true || searchMatchEditControl == true}">
+        <apex:pageBlock rendered="{!showPartyList}">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Clear Selection" onclick="clearNum();"
+                 rendered="{!IF(appRecordType == 'ICBS' && 
+                 NOT(searchMatchViewControl == true && searchMatchEditControl == false),
+                  true, false)}" 
+                 reRender="frmAppAcc, frmInvolved"/>
+            </apex:pageBlockButtons>
+        <apex:pageBlockSection id="pbInvolved" title="Applicant Account Involved Parties" 
+        collapsible="false" columns="1" >         
+            <apex:pageBlockTable id="pbAccountParty" value="{!appPartylist}" var="par">           
+                <apex:column headerValue="Applicant Account" value="{!par.Applicant_Account_Name__c}"
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Action" styleClass="{!IF(
+                par.Id==selectedAccountParty, 'selectedParty', ''
+                )}" 
+                rendered="{!IF(appRecordType == 'ICBS' && 
+                NOT(searchMatchViewControl == true && searchMatchEditControl == false), true, false)}">
+                    <apex:commandLink onclick="selectedPartyInv('{!par.Id}')" value="{!selectCust}" rerender="false"  />
+                </apex:column>                    
+               <apex:column headerValue="Full Names" rendered="{!OR(appRecordType = 'Vision', appRecordType = 'ICBS')}"
+                 value="{!par.Full_Name__c}" styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Annual Gross Salary" rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Annual_Gross_Salary__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Bank Interest" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Bank_Interest__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Bank Loan Interest" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Bank_Loan_Interest__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Depreciation" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Depreciation__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Directors Salaries" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Directors_Salaries__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Extra Items" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Extra_Items__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Interest" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.Commercial_Interest__c}"
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+
+                <apex:column headerValue="Commercial Ls Hp Rentals" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Ls_Hp_Rentals__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Net Profit" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Net_Profit__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Net Worth" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Net_Worth__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Other Principal" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Other_Principal__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Commercial Principal Repayments" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Commercial_Principal_Repayments__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Credit Store Card Limits" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Credit_Store_Card_Limits__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <!-- <apex:column headerValue="Customer Identifier" value="{!par.Customer_Identifier__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/> -->
+                <apex:column headerValue="Expenses Shared" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.Expenses_Shared__c}"
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                
+                <apex:column headerValue="House Value" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.House_Value__c}"
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Credit Card Payments"
+                 rendered="{!IF(appRecordType = 'Vision', true, false)}" 
+                 value="{!par.Monthly_Credit_Card_Payments__c}"
+                  styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Living Expenses"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                 value="{!par.Monthly_Living_Expenses__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Mortgage Payments" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+                 value="{!par.Monthly_Mortgage_Payments__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Net Pay"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+                  value="{!par.Monthly_Net_Pay__c}" 
+                  styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Other Finance Payment" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Monthly_Other_Finance_Payment__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Other Income" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Monthly_Other_Income__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+
+                <apex:column headerValue="Monthly Other Loan Payments"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                 value="{!par.Monthly_Other_Loan_Payments__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Other Payments" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Monthly_Other_Payments__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Part Time Income" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+                 value="{!par.Monthly_Part_Time_Income__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Rent" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+                 value="{!par.Monthly_Rent__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Monthly Store Account Payments" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Monthly_Store_Account_Payments__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Mortgage Balance"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                 value="{!par.Mortgage_Balance__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Mortgage Balance Dines"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}"
+                  value="{!par.Mortgage_Balance_Dines__c}" 
+                  styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Mortgagee Code" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.Mortgagee_Code__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+
+                <apex:column headerValue="Number of Credit Cards"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.Number_Of_Credit_Cards__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="OFC Monthly Payment" rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.OFC_Monthly_Payment__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Partner Party To Loan"
+                 rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                 value="{!par.Partner_Party_To_Loan__c}" 
+                 styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Relationship Type" 
+                rendered="{!OR(appRecordType = 'Genesis', appRecordType = 'ICBS')}" 
+                value="{!par.Relationship_Type__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Spouse Annual Gross Salary" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" value="{!par.Spouse_Annual_Gross_Salary__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+                <apex:column headerValue="Spouse Monthly Net Pay" 
+                rendered="{!IF(appRecordType = 'Genesis', true, false)}" 
+                value="{!par.Spouse_Monthly_Net_Pay__c}" 
+                styleClass="{!IF(par.Id==selectedAccountParty, 'selectedParty', '')}"/>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>  
+        </apex:pageBlock>      
+    </apex:form>    
+
+
+    <style type="text/css">                
+        .sortable1, .sortable2, .sortable3 { list-style-type: none; margin: 0;
+         padding: 0; float: left; margin-right: 10px; background: #eee; padding: 5px; 
+         width: 143px;}
+        .sortable1 tbody tr td, .sortable2 tbody tr td, .sortable3 tbody tr td { 
+        margin: 5px; padding: 5px; font-size: 1.2em; width: 120px; }
+        .selectedCell {border: 10px solid #fbd850;background-color:red;
+        background: #00d7eb;font-weight: bold;color: #eb8f00;}
+        .selectedParty {background: #00d7eb;font-weight: bold;}
+        .testSelect {background-color: red;}
+        input.btn[name="edit"] {
+            display: none;
+        }
+        input.btn[name="del"] {
+            display: none;
+        }
+        input.btn[name="clone"] {
+            display: none;
+        }
+        body {background:#f1f1f1 !important;}
+        .selectedCell {background:#d1e9f1;}
+        .astable .dataCell {font-size:12px !important;}
+    </style>
+
+    <script type="text/javascript">
+
+
+    if({!NOT(searchMatchControl)}){    
+        var elements = document.getElementsByTagName('input');
+        for(var i=0; i<elements.length; i++){
+
+                if (elements.item(i).getAttribute('type') == 'text') {
+                    elements.item(i).disabled = true; 
+                }
+
+                if (elements.item(i).getAttribute('type') == 'button') {
+                    elements.item(i).disabled = true; 
+                    elements.item(i).className = 'btnDisabled';
+                }
+
+        }
+
+        elements = document.getElementsByTagName('select');
+        for(var i=0; i<elements.length; i++){
+            elements.item(i).disabled = true; 
+        }
+    }
+
+    </script>
+    
+   	<c:sObjectRemote />
+    	
+</apex:page>

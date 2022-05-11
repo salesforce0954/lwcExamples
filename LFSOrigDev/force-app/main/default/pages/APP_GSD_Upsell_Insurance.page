@@ -1,0 +1,76 @@
+<!--
+  * @Description: Upsell and insurance page for customer UI
+  * @Author: Mike Lasala
+  * @Date Created: 17-JUN-2016
+  * @History:
+  =====================================================================
+      17-JUN-16: Created -Mike
+  =====================================================================
+-->
+<apex:page controller="APP_GSD_Insurance_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+    <!-- jQuery-UI -->
+    <apex:includeScript value="{!URLFOR($Resource.APP_GSD_jQueryUI, 'jquery-ui-1.11.4.custom/external/jquery/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.APP_GSD_jQueryUI, 'jquery-ui-1.11.4.custom/jquery-ui.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.APP_GSD_jQueryUI, '/jquery-ui-slider-pips.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.APP_GSD_jQueryUITouchPunch)}"/>
+    
+    <!-- jQueryValidate -->
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScriptGSD}"/>
+    
+    <!-- CSS -->
+    <apex:stylesheet value="{!URLFOR($Resource.APP_GSD_jQueryUI, 'jquery-ui-1.11.4.custom/jquery-ui.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.APP_GSD_jQueryUI, '/jquery-ui-slider-pips.css')}"/> 
+    
+    <!-- AJAX -->
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+    
+    <script>
+    
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+    
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_Insurance_Ext';                         //Used for calling remote action for base controller
+    
+        var siteName = "{!$Site.Name}";
+    
+        //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+    </script>
+    
+    <!--<c:APP_GSD_Scripts />-->
+    <!--<apex:include pageName="APP_GSD_BrandScript"/>-->
+    
+    <!-- LOAN DETAILS -->
+    <c:APP_GSD_LoanDetailComponent />
+    
+    <!-- UPSELL -->
+    <apex:include pageName="APP_GSD_Upsell"/>
+    
+    <!-- INSURANCE -->
+    <apex:include pageName="APP_GSD_Insurance"/>
+    
+    <!-- INDIVIDUAL BRAND STYLING -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+        <c:GEDDFooter />
+     </apex:outputPanel>
+     <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <c:GENZDDFooter />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <c:AussieFooter />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <c:KiwiFooter />
+    </apex:outputPanel>
+    
+</apex:page>

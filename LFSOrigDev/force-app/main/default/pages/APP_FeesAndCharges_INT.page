@@ -1,0 +1,43 @@
+<apex:page standardController="Application__c" showHeader="false" sidebar="false" id="AppFeesAndChargesInt"
+ extensions="APP_FeesChargesEXT">
+  
+  <apex:form >
+      <apex:pageBlock title="Fees and Charges">
+          <apex:pageBlockSection columns="2">
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="PPSR Serch Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!ppsrSearchFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="PPSR Registration Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!ppsrRegistrationFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Establishment Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!establishmentFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Loan Service Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!loanServiceFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Payment Handling Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!paymentHandlingFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Late Payment Fee"></apex:outputLabel>
+              <apex:outputLabel value="{!latePaymentFee}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Early Termination Fee 1"></apex:outputLabel>
+              <apex:outputLabel value="{!terminationFee1}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Early Termination Fee 2"></apex:outputLabel>
+              <apex:outputLabel value="{!terminationFee2}"/>
+          </apex:pageBlockSectionItem>                 
+          </apex:pageBlockSection>      
+      </apex:pageBlock>
+  </apex:form>
+  
+</apex:page>

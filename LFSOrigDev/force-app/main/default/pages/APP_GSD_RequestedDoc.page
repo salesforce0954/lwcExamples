@@ -1,0 +1,132 @@
+<!--
+    * @Description: PL Transformation AML Response Page
+    * @Author: Adrian Recio
+    * @Date Created: 12-FEB-2016
+    * @History:
+    =====================================================================
+        12-FEB-16: Created - Adrian
+    ===================================================================== 
+-->
+<apex:page controller="APP_GSD_Response_Ext" standardStylesheets="false" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+
+	<apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+        
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_Response_Ext';                         //Used for calling remote action for base controller
+        
+        //Call method in static resource which will retrieve application data and determine access control
+	    getApplicationData(applicationId);
+    </script>
+    
+  <apex:include pageName="APP_GSD_BrandScript"/>
+      
+    <html>
+        <title>Requested Documents</title>
+        <form>
+            <div >  
+                <c:APP_GSD_LoanDetailComponent />
+            </div>
+     
+        <div class="container">
+        <div class="row">
+      
+            <div class="container">
+                <div class="row" id="thumbsRow">
+                   <div class="thumbsup_margin middle-content-margin">
+                       <span id="thumbsUp" class="icon_file_logo icon_middle_width_lg center-block img-responsive">
+        
+                      <span class="icon_mark center-block icon_middle_width_xs"></span></span> 
+                    </div>
+                    <div class="secondary-margin text-center center-block middle_content_width">
+                      <span id="heading1" class="module1-label lat-blue">{!$Label.APP_GSD_RequestedDoc_Header}</span>
+                    </div>
+                    <div class="center-block mid-content">
+                      <span id="intro" class="intro-label lat-dark-grey">{!$Label.APP_GSD_RequestedDoc_SubHeader}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="container">
+                  <div class="text-center">
+                    <div class="middle-content-margin">
+                      <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                    </div>
+                    <div class="gap-content"></div>
+                  </div>
+                </div>
+            
+            
+            <div id="amlVerification">
+                <span class="module3-label lat-blue titleMarginLeft">
+                    {!$Label.APP_GSD_RequestedDoc_1_Header}
+
+               </span>
+              
+                <div class="accordion-spacing">
+                    <div class="accordion-section">
+                        <apex:include pageName="APP_GSD_FileUpload"/>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            
+             <!-- Kabir - TQLQW-109  -->
+            <!--<div style="text-align:right"><c:APP_GSD_ContactUSComponent /></div>-->
+            
+             <!-- BUTTONS CONTAINER -->
+            <div class="container" id="toprow">
+                <div class="row">
+                    <div class="hidden-xs">
+                        <div class="pull-right confirmMarginB btnLRMargin paymentDetailsBtnRMargin vertical-align">
+                            <button class="GSecondary-button module5-label lat-blue noOutline btnText"
+                              style="line-height:30px;" onclick="redirect('APP_GSD_Response'); return false;">
+                                <i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button>
+                            <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnText" 
+                            id="btnDone" style="line-height:30px;" onclick="redirect('APP_GSD_Response'); return false;">Done<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="hiddenDiv visible-xs">
+                        <div>
+                            <button class="GPrimary-button module5-label lat-white" 
+                            id="btnNext" style="line-height:30px;width:100%;display:inline !important" onclick="redirect('APP_GSD_Response'); return false;">Done</button>
+                        </div>
+                        <div>
+                            <button class="GTertiary-button module5-label lat-white btnBMargin"
+                              style="line-height:30px;width:100%;display:inline !important" onclick="redirect('APP_GSD_Response'); return false;">Back</button>
+                        </div>
+                    </div>
+            </div>
+            
+             <br/>
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+            
+            
+        </div>
+        </div>
+            
+        </form> 
+    </html>
+    
+
+    
+</apex:page>

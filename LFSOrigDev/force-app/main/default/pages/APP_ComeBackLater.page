@@ -1,0 +1,53 @@
+<!--
+/**
+ * @Description: Come Back Later page when submission of application failed
+ * @Author: Jan Mark Domingo
+ * @Date Created: 19.SEPT.2013
+ * @History:
+   =====================================================================
+       09-19-13: Created - Mac
+       03-19-14: Changed message - Mike
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_Main_PostSubmitExt" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+    
+    <section>
+        <div class="maincontent">
+            <div class="row-fluid">
+                <div class="divider10"></div>
+                <div class="span12 txtalignc">
+                
+                    <h2 style="line-height:100%">Thank you – your application is being assessed.</h2>
+                    
+                    <div class="divider30 clearfix"></div>
+                    
+                    <p><apex:outputPanel rendered="{!brand.Brand_Display_Name__c!='Kiwibank'}">Before we go any further we need to confirm a few things over the phone. One of our {!if(brand.Brand_Display_Name__c == 'GE Money NZ', 'GE Money', brand.Brand_Display_Name__c)} consultants will contact you as soon as possible. <br/>If you want to, you can call us on {!brand.Contact_Number__c} and quote reference number: {!application.UID__c}.
+	            </apex:outputPanel>
+	            <apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank'}">
+	            To finalise your application one of the Kiwibank team will contact you within 24 hours* to confirm a few details over the phone. 
+ 					You can call us on 0800 54 94 54 at any stage to check on the status of your application.
+	            </apex:outputPanel>.</p>
+                    <apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ'}">
+                    <p><br/>Please go through the below links</p>
+                    </apex:outputPanel>
+					<!--<apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='GE Money NZ' && Application__c.Channel__c=='Online'}">
+						<apex:outputLink value="{!GETnCurl}" target="_blank">GE Terms and Conditions</apex:outputLink><br/>
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!brand.Brand_Display_Name__c=='Kiwibank' && Application__c.Channel__c=='Online'}">
+						<apex:outputLink value="{!KiwiTnCurl}" target="_blank" style="color:#6FA23E">Kiwibank Terms and Conditions</apex:outputLink><br/>
+					</apex:outputPanel>-->
+					<apex:outputPanel rendered="{!Application__c.Loan_Insurance_Consent__c && Application__c.Channel__c=='Online' && (brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ')}">
+					<apex:outputLink value="{!repaymentURL}" target="_blank" style="{!if(brand.Brand_Display_Name__c=='Kiwibank','color:#6FA23E','color: #3A73BA;')}">Repayment Insurance protection</apex:outputLink><br/>
+				</apex:outputPanel>
+				<apex:outputPanel rendered="{!Application__c.Channel__c=='Online' && (brand.Brand_Display_Name__c=='Kiwibank' || brand.Brand_Display_Name__c=='GE Money NZ')}">
+					<apex:outputLink value="{!Disclouserurl}" target="_blank" style="{!if(brand.Brand_Display_Name__c=='Kiwibank','color:#6FA23E','color: #3A73BA;')}">Financial Advisers Act Disclosure Statement</apex:outputLink>
+				</apex:outputPanel>
+                    <div class="divider30 clearfix"></div>
+    				
+                </div>
+            </div>
+        </div>
+    </section>
+
+</apex:page>

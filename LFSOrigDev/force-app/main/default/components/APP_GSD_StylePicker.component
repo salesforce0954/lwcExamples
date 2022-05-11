@@ -1,0 +1,98 @@
+<apex:component >
+  <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+      <c:APP_GSD_MobileStyles />
+      <style>
+          .lp_eligibility {
+            display: block !important;
+          }
+          
+           @media screen and (min-width: 415px) {
+              .minusplusicon.adconad {
+                margin: 0 !important;
+                margin-top: -50px !important;
+            }
+          }
+          
+          @media screen and (max-width: 415px) {
+            .pbBody > .span12 {
+              display: block !important;
+            }
+            
+            .GImportant-block { display: block !important; }
+            .GImportant-none { display: none !important; }
+          }
+      </style>
+      <script>
+      
+          $(document).on('click', '.learn-more', function(){
+            $('.paginated-privacy').addClass('GImportant-block');
+            $('.paginated-privacy').removeClass('GImportant-none');
+            $('.lp_eligibility').addClass('GImportant-none');
+            $('.lp_eligibility').removeClass('GImportant-block');
+          });
+                    
+          $(document).on('click', '.learn-more2', function(){
+            $('.lp_eligibility').addClass('GImportant-block');
+            $('.lp_eligibility').removeClass('GImportant-none');
+            $('.paginated-privacy').addClass('GImportant-none');
+            $('.paginated-privacy').removeClass('GImportant-block');
+          });
+      </script>
+   </apex:outputPanel>
+   
+   <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+      <c:APP_GSD_MobileStyles />
+      <style>
+          .lp_eligibility {
+            display: block !important;
+          }
+          
+           @media screen and (min-width: 415px) {
+              .minusplusicon.adconad {
+                margin: 0 !important;
+                margin-top: -50px !important;
+            }
+          }
+          
+          @media screen and (max-width: 415px) {
+            .pbBody > .span12 {
+              display: block !important;
+            }
+            
+            .GImportant-block { display: block !important; }
+            .GImportant-none { display: none !important; }
+          }
+      </style>
+      <script>
+      
+          $(document).on('click', '.learn-more', function(){
+            $('.paginated-privacy').addClass('GImportant-block');
+            $('.paginated-privacy').removeClass('GImportant-none');
+            $('.lp_eligibility').addClass('GImportant-none');
+            $('.lp_eligibility').removeClass('GImportant-block');
+          });
+                    
+          $(document).on('click', '.learn-more2', function(){
+            $('.lp_eligibility').addClass('GImportant-block');
+            $('.lp_eligibility').removeClass('GImportant-none');
+            $('.paginated-privacy').addClass('GImportant-none');
+            $('.paginated-privacy').removeClass('GImportant-block');
+          });
+      </script>
+       <c:APP_GSD_GemStyles />
+   </apex:outputPanel>
+   
+   <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+       <c:APP_GSD_AussieStyles />
+   </apex:outputPanel>
+   
+   <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+       <c:APP_GSD_KiwiStyles />
+       <style>
+            .headertitle.GHeader-title {
+                display: none !important;
+            }
+        </style>
+       
+   </apex:outputPanel>
+</apex:component>

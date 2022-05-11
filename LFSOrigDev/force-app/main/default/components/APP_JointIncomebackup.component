@@ -1,0 +1,267 @@
+<!--
+/**
+* @Description: Income component (Customer UI)
+* @Author: Jade Serrano
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Jade
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      11-06-14: Modified code for DBHZL-34          - Tony Xu
+      04-09-15: Updated - Include client side validations - DYU   
+      02-29-16: TQLQW - 104 Rebranding - MDAVID
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointIncome" id="Income__c-mycomponent">
+
+<style>
+.mppiovr {padding: 10px 5px 0px 0px !important;}
+@media screen and (max-width: 320px) {
+        .m_ip5_por_column2_1 {width:49% !important;}
+        .m_ip5_por_column2_2 {width:49% !important;margin-left:2% !important;}
+        
+        m_ip5_por_column3_1 {width:32% !important;}
+        m_ip5_por_column3_2 {width:32% !important;margin-left:2%;}
+        m_ip5_por_column3_3 {width:32% !important;margin-left:2%;}
+        .mppiovr {padding: 10px 5px 5px 0px !important;}
+        .mv_labelh_adjust1 {height:42px;}
+        
+    }
+    
+</style>
+    
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="incomeWrap" description="This is the value for the component." type="MyBudgetsIncomeWrapper" required="true" />
+    <apex:attribute name="listSize" description="This is the size of list." type="Integer"/>
+    <apex:attribute name="incomeSlot" description="This is the value for income repeat block" type="Integer" required="false"/>
+    <apex:attribute name="incomeList" description="Income List involve" type="Integer" required="false"/>
+    <apex:attribute name="applicationCountry" description="This is the value of the applicaiton country" type="string" required="true" />
+    <!--<div class="bottomline">--> <!-- Removed for replacement with numbered income heading -->
+    <div>
+    <div id="add_fields_1" class="clonedSection">
+
+        <div class="span12">
+            <!-- Numbered Income heading and divider -->
+            <div class="{!if(incomeWrap.rowCount!=0,'incomeDivider', '')} input100pct">
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <label class="dynamicSubheader">Income {!incomeWrap.rowCount+1}</label>
+                </apex:outputPanel>
+                <!--<hr />-->
+                <!-- DELETE BUTTON -->
+                <apex:outputPanel rendered="{!listSize>1}">
+                    <div class="minusplusicon mppiovr">
+                        <apex:commandButton value="" rendered="{!incomeWrap.rowCount!=0}" styleClass="minusfield minusdark" onclick="deleteRow('{!incomeWrap.rowCount}'); return false;" rerender="false"/>
+                    </div>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>
+            </div>
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span4')} removelmargin m_ip5_por_column3_1 lfs_inc_input input100pct">
+                
+                <label class="pix40 labeldark normaltext">Income from</label>
+                <apex:inputField id="incomeSourcePick" styleClass="incomefield col2 isPicklistIncomeSource marginbottom10"  onblur="$j(this).valid();" value="{!incomeWrap.income.Income_Source__c}" >        
+                    <apex:actionSupport event="onchange" rerender="otherFields, benefitTypePick, SubjectTo" oncomplete="changePickVal()"/>        
+                </apex:inputField>      
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!incomeWrap.incomeSourceValid}" value="Please select your income source"/>
+            </div>
+        
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span6 removelmargin', 'span4')} m_ip5_por_column3_2 lfs_inc_input input100pct">
+                <label class="pix40 labeldark normaltext">Income amount (after tax)</label>
+
+                <!-- AMOUNT FIELD -->
+                <apex:inputField id="incomeAmount" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isIncomeAmount nubmerRegex marginbottom10" value="{!incomeWrap.income.Income_Amount__c}" onblur="$j(this).valid();" onchange="getTotalScript('{!incomeList}');" onkeypress="return isNumberDecimalKey(event, this);" />
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!incomeWrap.amountValid}" value="Please enter in whole dollars e.g. 3500"/>
+            </div>
+            
+            <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span6', 'span4')} m_ip5_por_column3_3 lfs_inc_input input100pct">
+                <label class="pix40 labeldark normaltext">Income frequency</label>
+                <apex:selectList size="1" id="incomeInterval" styleClass="selectfield col6 isPicklistIncomeFreq marginbottom10" value="{!incomeWrap.income.Income_Interval__c}" onchange="getTotalScript('{!incomeList}');" onblur="$j(this).valid();" >
+                    <apex:selectOptions value="{!IncomeInterval}"/>
+                </apex:selectList>
+                <div class="clearfix"></div>
+                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!incomeWrap.intervalValid }" value="Please select the income interval"/>
+            </div>        
+        </div>
+
+    </div><!-- add_fields_1 -->
+
+    <!-- DYNAMIC FIELDS FOR CATEGORIES -->
+    <div id="add_fields_1" class="clonedSection subfieldsovr">
+        <apex:outputPanel id="otherFields">
+            <apex:outputPanel rendered="{!OR(incomeWrap.income.Income_Source__c == 'My permanent - full time job', 
+                                             incomeWrap.income.Income_Source__c == 'My permanent - part time job', 
+                                             incomeWrap.income.Income_Source__c == 'My casual/temporary job', 
+                                             incomeWrap.income.Income_Source__c == 'My other source of income',
+                                             incomeWrap.income.Income_Source__c == 'My seasonal job',
+                                             incomeWrap.income.Income_Source__c == 'My self-employed business',
+                                             incomeWrap.income.Income_Source__c == 'My contracting job',
+                                             incomeWrap.income.Income_Source__c == 'My workers compensation',
+                                             incomeWrap.income.Income_Source__c == 'Net Salary/Wages',
+                                             incomeWrap.income.Income_Source__c == 'Self Employed')}" >
+            
+              <apex:outputPanel rendered="{!applicationCountry=='AU'}"> 
+               <div class="span12 lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">Industry you work for</label>
+               </div>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!applicationCountry=='NZ'}">   
+               <div class="span12 lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">Occupation</label>
+               </div>
+                </apex:outputPanel>
+                
+                <div class="span12 lfs_inc_input input100pct">
+                    <!-- Added by Tony Xu for DBHZL-34 -->
+                    <apex:inputField id="occupationPick" value="{!incomeWrap.income.Occupation__c}"  styleClass="selectfield col6 isPicklistOccupation marginbottom10" onblur="$j(this).valid();" />
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.occupationValid}" value="Please select your occupation"/>
+
+                </div>
+            
+                
+                <!-- INDUSTRY FIELD -->
+                <apex:outputPanel rendered="{!applicationCountry=='NZ'}">
+                    
+                    <div class="span12 input100pct">
+                        <label class="pix40 labeldark normaltext">Industry</label>
+                        <apex:inputField id="industryPick" value="{!incomeWrap.income.Industry__c}"  styleClass="isPicklistNone marginbottom10" />
+                        <div class="clearfix"></div>
+                        <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.industryValid}" value="Please select your industry"/>
+                    </div>
+                </apex:outputPanel>
+                
+                
+                <div class="span6 removelmargin mv_phone_p_c2_1 mv_paddingleft_2per lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">Employer name</label>
+
+                    <!-- EMPLOYER NAME FIELD -->
+                    <apex:inputText styleClass="input-block-level isEmployerNameUp marginbottom10" value="{!incomeWrap.income.Emp_Bus_Name__c}" id="Income__c___Emp_Bus_Name__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.companyNameValid}" value="Please enter your employer name"/>
+
+                </div>
+                
+                <div class="span6 mv_phone_p_c2_1 lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">Employer contact number</label>
+
+                    <apex:inputHidden id="Income__c___Employer_Business_Contact_No_Area_Code__c" value="{!incomeWrap.income.Employer_Business_Contact_No_Area_Code__c}"/>
+                    <apex:inputHidden id="Income__c___Employer_Business_Contact_No_WS__c" value="{!incomeWrap.income.Employer_Business_Contact_No_WS__c}"/>
+                    
+                    <script>
+                        function mapToWSFormat(slotNumber) {
+                            var businessNumber = "";
+                            var businessNum = document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock1:incomeRepeat:"+slotNumber+":component-1:Income__c-mycomponent:Income__c__Emp_Bus_Contact_No__c");
+                            
+                            if(businessNum != null){
+                                businessNumber = businessNum.value;
+                            }
+                            if(businessNumber.length>=8){
+                                var businessNoAreaCode = businessNumber.replace(/ /g, "").substring(0,2);
+                                var businessNoWS = businessNumber.replace(/ /g, "").substring(2);
+
+                                document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock1:incomeRepeat:" + slotNumber + ":component-1:Income__c-mycomponent:Income__c___Employer_Business_Contact_No_Area_Code__c").value = businessNoAreaCode;
+                               
+                                document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock1:incomeRepeat:" + slotNumber + ":component-1:Income__c-mycomponent:Income__c___Employer_Business_Contact_No_WS__c").value = businessNoWS;
+                            }
+                            
+                            var appSize = document.getElementById("GETemplate:GETemplate:mainForm:appSize").value;
+                            
+                            
+                            if(appSize > 1){
+                                var businessNumElem2 = document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock2:income2Repeat:"+slotNumber+":component-2:Income__c-mycomponent:Income__c__Emp_Bus_Contact_No__c");
+                                
+                                var businessNumber2 = "";
+                                if(businessNumElem2 != null){
+                                    businessNumber2 = businessNumElem2.value;
+                                }
+                                if(businessNumber2.length>=8){
+                                    var businessNoAreaCode2 = businessNumber.replace(/ /g, "").substring(0,2);
+                                    var businessNoWS2 = businessNumber.replace(/ /g, "").substring(2);
+                                    
+                                    document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock2:income2Repeat:"+slotNumber+":component-2:Income__c-mycomponent:Income__c___Employer_Business_Contact_No_Area_Code__c").value = businessNoAreaCode2;
+                                    
+                                    document.getElementById("GETemplate:GETemplate:mainForm:incomePageBlock:incomePageBlock2:income2Repeat:"+slotNumber+":component-2:Income__c-mycomponent:Income__c___Employer_Business_Contact_No_WS__c").value = businessNoWS2;
+                                }
+                            }
+                        }
+                    </script>
+
+                    <!-- EMPLOYER CONTACT NUMBER -->
+                    <apex:inputText styleClass="{!IF(applicationCountry == 'AU', 'input-block-level isEmployerPhoneUp','input-block-level isNumericOnly isNZEmployerContactNumber')} marginbottom10" value="{!incomeWrap.income.Emp_Bus_Contact_No__c}" id="Income__c__Emp_Bus_Contact_No__c" onkeypress="return isNumberKey(event, this)" onchange="mapToWSFormat('{!incomeSlot}')" maxlength="{!IF(applicationCountry == 'NZ', 11,10)}" />
+                    
+                    <div class="clearfix"/>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.contactNumberValid}" value="{!incomeWrap.phoneNumberCheckStrPortal}"/>
+
+                </div>
+                <div class="clearfix"></div>
+                <div class="span6 removelmargin mv_phone_p_c2_1 mv_paddingleft_2per lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">
+                        Time with this employer<apex:outputText rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}"> (years)</apex:outputText>
+                    </label>
+
+                    <!-- YEARS WITH EMPLOYER FIELD -->
+                    <apex:inputField styleClass="input-block-level isEmployerYearsUp marginbottom10" html-placeholder="Years" value="{!incomeWrap.income.Years_With_Employer__c}" onkeypress="return isNumberKey(event, this);" html-maxlength="2"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.employmentYearValid}" value="Please enter your time with this employer"/>
+                </div>
+                
+                <div class="span6 mv_phone_p_c2_1 lfs_inc_input input100pct">
+                    <label class="pix40 labeldark normaltext">
+                        <apex:outputText rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">Time with this employer (months)</apex:outputText>&nbsp;
+                    </label>
+
+                    <!-- MONTHS WITH EMPLOYER FIELD -->
+                    <apex:inputField styleClass="input-block-level isEmployerMonthsUp marginbottom10" html-placeholder="Months" value="{!incomeWrap.income.Months_With_Employer__c}" onkeypress="return isNumberKey(event, this);" html-maxlength="2"/>
+                    <div class="clearfix"></div>
+                    <apex:outputLabel styleClass="warningMessage" rendered="{!!incomeWrap.employmentMonthValid}" value="Please enter a valid number of months"/>
+                </div>
+                
+                <apex:outputPanel >
+                    <apex:outputPanel >
+
+                    </apex:outputPanel>
+                </apex:outputPanel>
+                
+            
+            </apex:outputPanel>
+            
+            <!-- Added by Tony Xu for DBHZL-34 -->
+            <apex:outputPanel id="benefitTypePick" rendered="{!incomeWrap.income.Income_Source__c == 'Government Benefit'}">          
+                <label class="pix40 labeldark normaltext">Government Benefit Type</label>
+                <apex:inputField styleClass="selectfield col6 isPicklistNone marginbottom10" value="{!incomeWrap.income.Government_Benefit_Type__c}" />
+                <apex:outputText styleClass="warningMessage" value="Subject to lending criteria"/>  
+            </apex:outputPanel>
+            
+            <!-- Warning Message when Income Source is "Other" this is applicable to the NZ Portal -->
+            <apex:outputPanel rendered="{!incomeWrap.income.Income_Source__c == 'Other'}">
+                <apex:outputText styleClass="warningMessage" value="Subject to lending criteria" />
+            </apex:outputPanel>
+            
+        </apex:outputPanel>
+    </div><!-- add_fields_1 -->
+    <div class="clearfix"></div>
+    </div><!-- bottomline -->
+
+    <!-- FOR PERSPECSYS -->
+    <!--apex:inputField value="{!incomeWrap.income.PRS_RECORD_ID__c" id="Income__c___PRS_RECORD_ID__c"/-->
+    <apex:inputHidden value="{!incomeWrap.income.Id}" id="Income__c___id"/>
+    
+    <!-- The following script is added by Tony Xu for DBHZL-34, to replace default "--Nonoe--" option for picklist with "Please Select" -->
+    <script type="text/javascript">
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=incomeSourcePick] option[value=""]').text("Select");
+            $('[id*=occupationPick] option[value=""]').text("Select");
+            $('[id*=industryPick] option[value=""]').text("Select"); 
+            $('[id*=benefitTypePick] option[value=""]').text("Select");
+            $('[id*=incomeInterval] option[value="None"]').text("Select");
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    </script>
+</apex:component>

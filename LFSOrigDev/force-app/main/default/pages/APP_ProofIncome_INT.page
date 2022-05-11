@@ -1,0 +1,188 @@
+<!--
+/**
+ * @Description: Proof of Income (Staff UI)
+ * @Author: Adrian Recio
+ */ 
+-->
+<apex:page id="proofOfIncomePage" standardController="Application__c"
+    extensions="APP_ProofIncomeExt_INT" showHeader="false" >
+
+    <apex:form id="mainForm">
+
+        <apex:pageMessages id="error" />
+
+        <apex:outputPanel Id="mainPanel">
+
+            <apex:outputPanel rendered="{!showEdit}" layout="block"
+                style="padding-top:25px;height:60px;">
+                <div align="center">
+                    <apex:actionStatus id="editStatus">
+                        <apex:facet name="stop">
+                            <apex:outputPanel >
+                                <br />
+                                <br />
+                                <apex:commandButton id="saveBtn" value="Save" action="{!saveIncomeCapacity}"
+                                    status="editStatus" reRender="mainForm" />
+                                <apex:commandButton value="Cancel" action="{!redirectMain}"
+                                    status="editStatus" />
+                            </apex:outputPanel>
+                        </apex:facet>
+
+                        <apex:facet name="start">
+                            <apex:outputPanel >
+                                <apex:image id="loadingGif2"
+                                    url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                                <br />
+                                <apex:commandButton value="Save" disabled="true" />
+                                <apex:commandButton value="Cancel" disabled="true" />
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel Id="viewPanel" rendered="{!!showEdit}">
+
+                <apex:tabPanel switchType="client" selectedTab="Applicant 1"
+                    id="theListTabPanel">
+                    <apex:tab label="Applicant 1" name="Applicant 1" id="tabListOne">
+                    <apex:outputPanel rendered="{!application.Brand_Country__c == 'AU'}">
+                        <apex:pageBlock >
+        <table class="list " border="0" cellpadding="0" cellspacing="0" >
+            <tr class="headerRow">
+                <th class="headerRow">Alert Information</th>
+                <th class="headerRow">Verifier Income</th>
+                <th class="headerRow">Verifier Request Date</th>           
+            </tr>
+             <apex:repeat value="{!ar}" var="arItem" id="prcPageBlockTable"> 
+                <tr class="dataRow">
+                    <td class="dataCell">
+                    <apex:outputText rendered="{!arItem.Remaining_Capacity__c > 0}">
+                    {!arItem.EVerifier_Alert_Applicant_1__c}
+                    </apex:outputText>
+                    </td> 
+                    <td class="dataCell">
+                        <apex:outputText value="{0, number,$###,###,##0.00}" rendered="{!arItem.Remaining_Capacity__c > 0}">
+                            <apex:param value="{!arItem.EVerifier_Income_Applicant_1__c}"/>
+                        </apex:outputText>
+                     </td>
+                   <!-- <td class="dataCell">{!arItem.EVerifier_Income_Applicant_1__c}</td> -->
+                  <!--  <td class="dataCell">{!arItem.EVerifier_Request_Date_Applicant_1__c}</td> -->
+                  <td class="dataCell">
+                   <apex:outputText value="{0,date,dd/MM/yyyy}" rendered="{!arItem.Remaining_Capacity__c > 0}">
+                     <apex:param value="{!arItem.EVerifier_Request_Date_Applicant_1__c}"/>
+                   </apex:outputText>
+                  </td>
+                    
+                </tr>
+            </apex:repeat>
+        </table>
+    </apex:pageBlock>
+                        </apex:outputPanel>
+                        <div align="center">
+                            <apex:actionStatus id="saveStatus1">
+
+                                <apex:facet name="stop">
+                                    <apex:commandButton value="Edit" action="{!renderEdit1}" disabled="{!IF(AND(application.Remaining_Capacity__c >= 0,application.EVerifier_Alert_Applicant_1__c != null,applicantList[0].Verify_POI_Check_Record_Count__c < 1),true,false)}"
+                                        status="saveStatus1"></apex:commandButton>
+                                </apex:facet>
+
+                                <apex:facet name="start">
+                                    <apex:image id="loadingEdit1"
+                                        url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                                </apex:facet>
+                            </apex:actionStatus>
+                        </div>
+                        <br />
+                        <apex:outputPanel rendered="{!application.Brand_Country__c == 'AU'}">
+                            <apex:outputText value="ePOI Eligible"/>
+                            <apex:outputField value="{!applicantList[0].Is_e_POI_Eligible__c}"/>
+                        </apex:outputPanel>
+                        <!--ODDS-12370: Added as part of the NZ epoi changes-->
+                         <apex:outputPanel rendered="{!application.Brand_Country__c == 'NZ'}">
+                            <apex:outputText value="ePOI Eligible"/>
+                            <apex:inputCheckbox value="{!ePOI_Eligible_NZ}" disabled="true"/>
+                        </apex:outputPanel> 
+                        <br/><br/>
+                        <c:APP_ProofIncomeRead_INT icList="{!icList1ReadOnly}"></c:APP_ProofIncomeRead_INT>
+                    </apex:tab>
+
+                    <apex:tab label="Applicant 2" name="Applicant 2" id="tabListTwo"
+                        rendered="{!applicantList.size>1}">
+                         <apex:outputPanel rendered="{!application.Brand_Country__c == 'AU'}">
+                        <apex:pageBlock >
+        <table class="list " border="0" cellpadding="0" cellspacing="0">
+            <tr class="headerRow">               
+                <th class="headerRow">Alert Information</th>
+                <th class="headerRow">Verifier Income</th>
+                <th class="headerRow">Verifier Request Date</th>             
+            </tr>
+             <apex:repeat value="{!ar}" var="arItem" id="prcPageBlockTable"> 
+                <tr class="dataRow">                  
+                    <td class="dataCell">
+                    <apex:outputText rendered="{!arItem.Remaining_Capacity__c > 0}">
+                    {!arItem.EVerifier_Alert_Applicant_2__c}
+                    </apex:outputText>
+                    </td> 
+                    <td class="dataCell">
+                        <apex:outputText value="{0, number,$###,###,##0.00}" rendered="{!arItem.Remaining_Capacity__c > 0}">
+                            <apex:param value="{!arItem.EVerifier_Income_Applicant_2__c}"/>
+                        </apex:outputText>
+                     </td>
+                   <!-- <td class="dataCell">{!arItem.EVerifier_Income_Applicant_2__c}</td> -->
+                   <!-- <td class="dataCell">{!arItem.EVerifier_Request_Date_Applicant_2__c}</td> -->
+                   <td class="dataCell">
+                   <apex:outputText value=" {0,date,dd/MM/yyyy}" rendered="{!arItem.Remaining_Capacity__c > 0}"> 
+                     <apex:param value="{!arItem.EVerifier_Request_Date_Applicant_2__c}"/>
+                   </apex:outputText>
+                  </td>
+                    
+                </tr>
+            </apex:repeat>
+        </table>
+    </apex:pageBlock>
+                        </apex:outputPanel>
+                        <div align="center">
+                            <apex:actionStatus id="saveStatus2">
+
+                                <apex:facet name="stop">
+                                    <apex:commandButton value="Edit" action="{!renderEdit2}" disabled="{!IF(AND(application.Remaining_Capacity__c >= 0,application.EVerifier_Alert_Applicant_2__c != null,applicantList[1].Verify_POI_Check_Record_Count__c < 1),true,false)}"
+                                        status="saveStatus2"></apex:commandButton>
+                                </apex:facet>
+
+                                <apex:facet name="start">
+                                    <apex:image id="loadingEdit2"
+                                        url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                                </apex:facet>
+                            </apex:actionStatus>
+                        </div>
+                        <br />
+                        <apex:outputPanel rendered="{!application.Brand_Country__c == 'AU'}">
+                            <apex:outputText value="ePOI Eligible"/>
+                            <apex:outputField value="{!applicantList[1].Is_e_POI_Eligible__c}"/>
+                        </apex:outputPanel>
+                        <!--ODDS-12370: Added as part of the NZ epoi changes-->
+                        <apex:outputPanel rendered="{!application.Brand_Country__c == 'NZ'}">
+                            <apex:outputText value="ePOI Eligible"/>
+                            <apex:inputCheckbox value="{!ePOI_Eligible_NZ_Secondary}" disabled="true"/>
+                        </apex:outputPanel> 
+                        <br/><br/>
+                        <c:APP_ProofIncomeRead_INT icList="{!icList2ReadOnly}"></c:APP_ProofIncomeRead_INT>
+                    </apex:tab>
+                </apex:tabPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel Id="editPanel" rendered="{!showEdit}">
+                <apex:pageBlock Id="mainProofIncomeBlock2">
+                    <apex:variable var="i2" value="{!1}"></apex:variable>
+                    <c:APP_ProofIncomeDetail_INT Id="component2"
+                        fromCalculatorPage="false"
+                        icVarList="{!IF(ApplicantMode == true,icList1,icList2)}"
+                        saveFiredVar="{!saveFired}" pageCounterVar="{!i2}"
+                        recordTypeVar="{!application.Brand_Lookup__r.Country__c}"></c:APP_ProofIncomeDetail_INT>
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

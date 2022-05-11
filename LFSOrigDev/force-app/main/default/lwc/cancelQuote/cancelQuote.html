@@ -1,0 +1,70 @@
+<template>
+
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-03" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- modal header start -->
+                <header class="slds-modal__header">
+                   
+                    <h2 id="modal-heading-07" class="slds-text-heading_medium slds-hyphenate">Cancel Quote
+                    </h2>
+                </header>
+                <!-- modal body start -->
+                <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-4">
+                    <div class="slds-text-body_small ">
+                        <lightning-formatted-rich-text value={disclaimer}>
+                        </lightning-formatted-rich-text>
+                    </div>
+
+                    
+                    <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                     
+                        <div class="slds-col">
+                            <lightning-radio-group name="cancelQuestion1" required label={label.BP_LBL_Cancel_Quote_Q1} onchange={handleFormChange} message-when-value-missing="Please select an option" options={mainReasonOptions} value={reasonValue} type="radio"></lightning-radio-group>
+                            <template if:true={showOtherReason}>
+                                    <lightning-input  type="text" label="Please provide details" required value ={otherReason} name="otherReason" placeholder="(max 255 characters)"  message-when-value-missing="Please complete this field" min-length="2" max-length="255" onblur={handleFormChange}></lightning-input>
+                            </template>
+                        </div>
+                        
+                       <template if:true={showClientFinanceQ}>
+                            <div class="slds-col slds-var-m-top_x-small">
+                                <lightning-radio-group name="cancelQuestion2" required label={label.BP_LBL_Cancel_Quote_Q2} options={clientFinanceOptions} message-when-value-missing="Please select an option" onchange={handleFormChange} value={financeValue} type="radio"></lightning-radio-group>
+                                <template if:true={showOtherFinance}>
+                                    
+                                        <lightning-input  type="text" label="Please provide details" required value ={otherFinance} name="otherFinance"  placeholder="(max 255 characters)" message-when-value-missing="Please complete this field" min-length="2" max-length="255" onblur={handleFormChange}></lightning-input>
+                                </template>
+                            </div>
+                        </template>
+                        
+
+
+
+                    </div>
+                    
+                    
+                    
+                </div>
+
+                
+
+                <!-- modal footer start-->
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel Quote" variant="brand" onclick={handleCancelQuoteConfirm}
+                        class="slds-var-m-top_small"></lightning-button>
+                    <lightning-button label="Close" variant="neutral" onclick={handleCancelQuoteClose}
+                        class="slds-var-m-left_small"></lightning-button>
+
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+
+    
+    <template if:true={showSpinner}>
+        <c-application-spinner></c-application-spinner>
+    </template>
+
+    <!-- Manual Cancel modal end -->
+
+</template>

@@ -1,0 +1,218 @@
+<apex:component >
+<!-- start of main content -->
+        <section>
+            
+            <div class="pagetitle">
+        <!-- Commented out by MDAVID - 03/01/2016 TQLQW - 104 Rebranding
+        <h3 class="droid-normal center dark">Whatever you need, a GE Money Personal Loan can help make it happen.</h3>-->
+        <h3 class="droid-normal center dark">Whatever you need, a Gem Personal Loan can help make it happen.</h3>
+        <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+        <h5 class="hlvtc-light center margint5 c666">{!$Label.Global_Brand} is committed to lending responsibly, which means tailoring our solution with a personal loan amount and repayment plan that suits your lifestyle...</h5>
+    </div>
+            
+            <div class="homeslider">
+                
+                <div class="fullwidthbanner-container">
+                    <div class="fullwidthbanner">
+                        <ul>
+                                 
+                            <li data-transition="papercut" data-slotamount="10" data-masterspeed="300">
+                                <apex:image url="{!URLFOR($Resource.bootstrap, 'images/slides/background-1920x430-2.jpg')}" />
+                                
+                                <div class="caption big-white bg-black droid-normal lfl stl"
+                                             data-x="40"
+                                             data-y="50"
+                                             data-speed="300"
+                                             data-start="800"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine">Why wait for the things you want?</div>
+                                
+                                <div class="caption h4-white droid-normal bg-orange lft ltb"
+                                             data-x="40"
+                                             data-y="105"
+                                             data-speed="600"
+                                             data-start="1100"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="600"
+                                    data-endeasing="easeInSine">Seize the moment now with {!$Label.Global_Brand}</div>      <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+                                    
+                                <div class="caption text-black droid-normal bg-white sft stb"
+                                             data-x="40"
+                                             data-y="151"
+                                             data-speed="1000"
+                                             data-start="1600"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine">You can confidently rely on our experts for quick, <br />simple solutions. As they say, there's no time like the present.</div>
+                                    
+                                <div class="caption sfb"
+                                             data-x="40"
+                                             data-y="235"
+                                             data-speed="2000"
+                                             data-start="1800"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine"><div class="btn btn-white-border">Apply Now</div></div>
+                                  </li>
+                            
+                            <li data-transition="slideup" data-slotamount="10" data-masterspeed="300">
+                                <apex:image url="{!URLFOR($Resource.bootstrap, 'images/slides/background-1920x430-3.jpg')}" />
+                                
+                                <div class="caption droid-normal super-big-white lfl stl text-center"
+                                             data-x="100"
+                                             data-y="90"
+                                             data-speed="300"
+                                             data-start="800"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine">Seize the moment now with {!$Label.Global_Brand}</div>      <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+                                
+                                <div class="caption h4-orange droid-normal lft ltb"
+                                             data-x="315"
+                                             data-y="140"
+                                             data-speed="600"
+                                             data-start="1100"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="600"
+                                    data-endeasing="easeInSine">Sed ut perspiciatis unde omnis iste natus...</div>
+                                    
+                                <div class="caption hlvtc-light text-white text-center sft stb"
+                                             data-x="190"
+                                             data-y="180"
+                                             data-speed="1000"
+                                             data-start="1600"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+                                    laudantium.<br />Linventore veritatis et quasi architecto
+                                    beatae vitae dicta sunt explicabo. </div>
+                                
+                                <div class="caption sfb stb"
+                                             data-x="390"
+                                             data-y="255"
+                                             data-speed="2000"
+                                             data-start="1800"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine"><div class="btn btn-large btn-white-border">Learn More</div></div>
+                                
+                                <div class="caption sfb stb"
+                                             data-x="540"
+                                             data-y="255"
+                                             data-speed="2000"
+                                             data-start="1800"
+                                             data-easing="easeOutExpo"
+                                    data-endspeed="300"
+                                    data-endeasing="easeInSine"><div class="btn btn-large btn-white-border">Apply Now</div></div>
+                                
+                                  </li>
+                            
+                        </ul>
+                    </div>
+                  </div>
+                
+            </div><!-- homeslider -->
+            
+             <div class="maincontent full">
+                
+                <div class="maincontent-inner">
+                    <div class="row-full services-panel">
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-check"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">Eligibility</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                        
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-user"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">About Me</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                        
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-money"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">Income</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                    </div><!-- row-fluid -->
+                    
+                    <div class="row-full services-panel">
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-home"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">Assets</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                        
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-bar-chart"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">Expenses</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                        
+                        <div class="one-third">
+                            <div class="services-box">
+                                <div class="services-icon-wrapper">
+                                    <div class="services-icon">
+                                        <span class="iconfa-credit-card"></span>
+                                    </div>
+                                </div>
+                                <h4 class="droid">Debts / Liabilities</h4>
+                                <p>Donec in velit vel ipsum auctor pulvinar. Vesti bulum iaculis lacinia est. Proin dictum elementum velit. Fusce euismod auctor pulvinar...</p>
+                            </div>
+                        </div><!-- span4 -->
+                    </div><!-- row-fluid -->
+                    
+                    <div class="divider50"></div>
+        
+                    <div class="infobox">
+                        <div class="row-fluid">
+                            <div class="span8">
+                                <h3>Save time with our easy application process.</h3>
+                                <p class="marginb0">You can apply in branch, over the phone or online. It only takes 15 minutes and we’ll call you within one business day to let you know how your application went.</p>
+                            </div>
+                            <div class="span4">
+                                <a class="btn btn-large btn-inverse pull-right" href="#">Apply Online</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="divider30"></div>
+                    
+                </div><!-- maincontent-inner -->
+                
+            </div><!-- maincontent -->
+            
+        </section>
+        <!-- end of main content -->
+</apex:component>

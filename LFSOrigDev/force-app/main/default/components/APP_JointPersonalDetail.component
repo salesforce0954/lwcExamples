@@ -1,0 +1,1020 @@
+<!--
+/**
+* @Description: Joint Assets component (CUI)
+* @Author: Russell Cadapan
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Russell Cadapan
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      09-07-14: Previous Address Country to only contain Australia - Clint
+      11-05-14: Changed style class attribute for mobile,work,home phones  - By Akash
+      12-09-2014: Added condition for style class attribute for mobile,work,home phones 
+                    for DBHZL-142 Phone number validation fix - Devendra babu Itraju
+      31-03-15: Updated Defect 460 - Added class to validate work phone for NZ Addresses - DYU
+      31-03-15: Updated Defect 90, 91 - Update validation classes for unit and street number NZ - DYU
+      08-04-15 - Defect 696 - Remove the client side validation classes (ismaxlength30) on issuing country except for required validation.
+      08-23-2014 - Updated Defect 1112 - AU PL regression testing. Update the visibility of suburb field in previous residential address - DY
+    18/03/2019 - Sprint 1 Adding Confirm Email Changes and Help text for First name / Middle / Last Name
+    28/03/2019 - Sprint 3 Keypad on Number field 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointPersonalDetail" id="Applicant__c-mycomponent">
+    <apex:attribute name="applicantWrapper" description="This is the value for the component." type="personalDetailsWrapper" required="true" />
+    <apex:attribute name="brandRegion" description="This is the value of the brand country" type="string" required="true" />
+    <apex:attribute name="applicantNo" description="This is the number of applicant." type="Integer" required="true"/>
+    <apex:attribute name="brokerchannel" description="Distinguish broker channel application from other" type="Boolean"/>
+    <style>
+    .green label { 
+    color: rgb(22, 160, 133);
+    text-decoration: none;
+    transition: all 0.25s ease 0s;}
+    .yesbutton {border: solid 1px #bdc3c7;}
+    
+    @media (max-width: 1000px) {
+        .m_ip5_por_label1 {width:49% !important;}
+        .m_ip5_por_label2 {width:49% !important;margin-left:2% !important;}
+    }
+    </style>
+
+    <!-- Applicant 1 -->
+    <div class="personaldetails span12 removelmargin">
+        <apex:inputHidden id="Applicant__c___Date_of_Birth__c" value="{!applicantWrapper.applicant.Date_of_Birth__c}"/>
+        <apex:inputHidden id="Applicant__c___Date_of_Birth_WS__c" value="{!applicantWrapper.applicant.Date_of_Birth_WS__c}"/>
+        <apex:inputHidden id="Applicant__c___Work_WS__c" value="{!applicantWrapper.applicant.Work_WS__c}"/>
+        <apex:inputHidden id="Applicant__c___Home_WS__c" value="{!applicantWrapper.applicant.Home_WS__c}"/>
+        <apex:inputHidden id="Applicant__c___Work_Area_Code__c" value="{!applicantWrapper.applicant.Work_Area_Code__c}"/>
+        <apex:inputHidden id="Applicant__c___Home_Area_Code__c" value="{!applicantWrapper.applicant.Home_Area_Code__c}"/>
+            <apex:outputPanel id="applicantMainPanel1">
+                <div class="span6 removelmargin lfsSelect input100pct">
+                    <label class="pix40 labeldark">Title</label>
+                    <apex:selectList id="Applicant__c___Title__c" size="1" value="{!applicantWrapper.applicant.Title__c}" styleClass="isPicklistTitle marginbottom10" onChange="warningTitleMsg();">
+                        <apex:selectOptions value="{!titleOptions}"/>
+                    </apex:selectList> 
+                    <div id="warningTitle" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorTitle}" value="{!applicantWrapper.errorTitleMsg}" styleClass="warningMessage"  />
+                </div>
+                <apex:outputPanel rendered="{!$Site.Name!='Aussie'}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>
+                <div class="{!if($Site.Name!='Aussie','span12 removelmargin','span6')}  lfsTextInput input100pct">
+                    <label class="pix40 labeldark">First name</label><br/>
+                    <apex:inputField value="{!applicantWrapper.applicant.First_Name__c}" styleClass="input-block-level isFirstName marginbottom10" html-placeholder="Legal name as shown on your ID" id="Applicant__c___First_Name__c" onChange="warningApplicantFName();"/>
+                    <div id="warningApplicantFNameMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText id="e" rendered="{!applicantWrapper.errorFName}" value="{!applicantWrapper.errorFNameMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>
+                <div class="{!if($site.Name!='Aussie','span12', 'span6')} removelmargin lfsTextInput input100pct">
+                    <label class="pix40 labeldark">Middle name</label>
+                    <apex:inputField value="{!applicantWrapper.applicant.Middle_Name__c}" html-placeholder="If you have one" styleClass="input-block-level isPersonalName isMaxLength15 marginbottom10" id="Applicant__c___Middle_Name__c" onChange="warningApplicantMName();"/>
+                    
+                    <div id="warningApplicantMNameMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="{!if($site.Name!='Aussie','span12 removelmargin', 'span6')} lfsTextInput input100pct">
+                    <label class="pix40 labeldark">Last name</label><br />
+                    <!-- <apex:inputField value="{!applicantWrapper.applicant.Last_Name__c}" onkeypress="return isCharacterKey(event)"/> -->
+                    <apex:inputField value="{!applicantWrapper.applicant.Last_Name__c}" styleClass="input-block-level isLastName marginbottom10" html-placeholder="Legal name as shown on your ID" id="Applicant__c___Last_Name__c" onChange="warningApplicantLName();"/>
+                    <div id="warningApplicantLNameMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorLName}" value="{!applicantWrapper.errorLNameMsg}" styleClass="warningMessage"  />
+                </div>
+            </apex:outputPanel>
+            <div class="clearfix"></div>
+            <div class="{!if($site.Name!='Aussie','span6','span12')} genderfm removelmargin lfsButtonGroup input100pct">
+                <apex:inputHidden value="{!applicantWrapper.applicant.Gender__c}" id="Applicant__c___Gender__c"/>
+                <label class="pix40 labeldark">Gender</label><br /><br />
+                <div class="span12 removelmargin">
+                    <div class="{!if($site.Name!='Aussie','span5','span6')} female removelmargin m_ip5_por_label1">
+                        <apex:outputLabel id="f" value="Female" onclick="setGender('Female',this); $j('.isGender').valid(); warningGender();" styleClass="maleb btn btn-block {!applicantWrapper.femaleSelected} isGenderF marginbottom10" style="padding-top: 9px; padding-bottom: 9px;"/>
+                        <!--Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding 
+    <apex:outputLabel id="f" value="Female" onclick="setGender('Female',this);" styleClass="maleb btn btn-large btn-block {!applicantWrapper.femaleSelected} isGenderF" style="width:100% !important"/>-->
+                    </div>
+                    <div class="{!if($Site.Name!='Aussie','span5', 'span6')} male m_ip5_por_label2 mv_paddingleft_2per">
+                        <apex:outputLabel id="m" value="Male" onclick="setGender('Male',this); $j('.isGender').valid(); warningGender()" styleClass="femaleb btn btn-block {!applicantWrapper.maleSelected} marginbottom10" style="{!if($Site.Name!='Kiwibank', 'margin-left: 10px !important;', 'margin-left: 0 !important;')} padding-top: 9px; padding-bottom: 9px;"/>
+                        <!--Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding
+                        <apex:outputLabel id="m" value="Male" onclick="setGender('Male',this);" styleClass="femaleb btn btn-large btn-block {!applicantWrapper.maleSelected}" style="width:100% !important"/>-->
+                    </div>
+                    <br/><br/>
+                    <div id="warningGenderMsg" style="background-color:#f9b845;display:none;width:84.5%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px; margin-left:0%;"></div>
+                </div>
+                <div class="clearfix"></div>
+                <apex:outputPanel id="err">
+                    <apex:outputText id="eg" rendered="{!applicantWrapper.errorGender}" value="{!applicantWrapper.errorGenderMsg}" styleClass="warningMessage" />
+                </apex:outputPanel>
+                <apex:inputField value="{!applicantWrapper.applicant.Gender__c}" id="Hidden_Applicant__c___Gender__c" styleClass="isGender marginbottom10" style="visibility:hidden; position: absolute; height: 0px; width: 0px; margin: 0px; padding: 0px;"/>
+            </div>
+            <div class="clearfix"></div>
+        
+            <apex:outputPanel id="applicantPanel1">
+                <!-- Old styling for DOB -->
+                <!--<div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per lfsSelect">
+                    <label class="pix40 labeldark">Date of birth</label><br />
+                    <apex:selectList id="dd" size="1" value="{!applicantWrapper.birthDate}" styleClass="dobday isPicklistDay marginbottom10">
+                        <apex:selectOptions value="{!DateOptions}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per lfsSelect">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:selectList id="mm" size="1" value="{!applicantWrapper.birthMonth}" styleClass="dobmonth isPicklistMonth marginbottom10">
+                        <apex:actionSupport event="onchange" id="b" action="{!setDate}" rerender="dd"/>
+                        <apex:selectOptions value="{!monthOptions}"/>
+                    </apex:selectList>
+                </div>
+                <div class="span4 mv_phone_p_c3_1">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:inputText id="yyyy" styleClass="input-block-level lfsTextInput dobyear isNumber isYear isDOB18 isDOB110 marginbottom10" html-type="number" maxlength="4" value="{!applicantWrapper.birthYear}" onkeypress="return isNumberKey(event)"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="span12 removelmargin">
+                    <apex:outputText rendered="{!applicantWrapper.errorDateOfBirth}" value="{!applicantWrapper.errorDateOfBirthMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>-->
+                
+                <div class="span12 removelmargin lfsSelect input100pct">
+                    <label class="pix40 labeldark">Date of birth</label><br />
+                    <div class="clearfix"></div>
+                    <div class="{!if($site.Name=='Aussie','span4 removelmargin','')} dobCont input100pct firstChild">
+                        <apex:selectList id="dd" size="1" value="{!applicantWrapper.birthDate}" onblur="$j(this).valid();"
+                                         styleClass="{!IF(applicantNo==2,'dobday2','dobday')} isPicklistDay marginbottom10"
+                                         style="{!if($Site.Name!='Latitude','width: 100% !important;','width: 93px !important;')}  float: left !important;" onChange="warningbirthDate();">
+                            <apex:selectOptions value="{!DateOptions}"/>
+                        </apex:selectList>
+                        
+                    </div>
+                    <div class="{!if($Site.Name=='Aussie','span4','')} dobCont input100pct">
+                        <apex:selectList id="mm" size="1" value="{!applicantWrapper.birthMonth}" onblur="$j(this).valid();" styleClass="{!IF(applicantNo==2,'dobmonth2','dobmonth')} isPicklistMonth marginbottom10" style="{!if($Site.Name!='Latitude','width: 100% !important;','width: 93px !important;')} float: left !important; margin-left: 10px;" onChange="warningbirthDate();">
+                                <apex:actionSupport event="onchange" id="b" action="{!setDate}" rerender="dd"/>
+                            <apex:selectOptions value="{!monthOptions}"/>
+                        </apex:selectList>
+                        
+                        <div id="warningbirthMonthMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; margin-left: 10px; font-size: 13px;"></div>
+                    </div>
+                    <div class="{!if($Site.Name!='Aussie','span4','')} dobCont lfsTextInputSm input100pct">
+                        <apex:inputText maxlength="4"  html-mobile-input="number"  html-inputmode="numeric" html-pattern="[0-9]*" id="yyyy" styleClass="input-block-level lfsTextInputSm {!IF(applicantNo==2,'dobyear2','dobyear')} isNumber isYear {!IF(applicantNo==2,'isDOB182','isDOB18')} marginbottom10" html-placeholder="Year" value="{!applicantWrapper.birthYear}" onkeypress="return isNumberKey(event)" onblur="$j(this).valid();" style="{!if($Site.Name!='Latitude','width: 100% !important;','width: 93px !important;')} float: left !important; margin-left: 10px;" onChange="warningbirthDate();"/>
+                        
+                    </div>
+                    <br/><br/>
+                    <div id="warningbirthDateMsg" style="background-color:#f9b845;display:none;width:41.5%;margin:0 auto; color: black; padding: 5px 10px !important;font-size: 13px; margin-left: 0%;"></div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="clearfix"></div>
+                <!--<div class="span12 removelmargin">
+                    <apex:outputText rendered="{!applicantWrapper.errorDateOfBirth}" value="{!applicantWrapper.errorDateOfBirthMsg}" styleClass="warningMessage" />
+                </div>-->
+                <div class="clearfix"></div>
+                
+                <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsSelectLge input100pct">
+                    <label class="pix40 labeldark">Relationship status</label><br />
+                    <apex:selectList id="Applicant__c___Rel_Status__c" size="1" value="{!applicantWrapper.applicant.Rel_Status__c}" styleClass="isPicklistRelationship marginbottom10" >
+                        <apex:selectOptions value="{!relationshipStatusOptions}"/>
+                    </apex:selectList>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorRelStat}" value="{!applicantWrapper.errorRelStatMsg}" styleClass="warningMessage"  />
+                </div>
+                
+                <div class="{!if($Site.Name!='Aussie', 'span12 removelmargin', 'span6')} lfsTextInput input100pct">
+                <apex:outputPanel rendered="{!IF(applicantNo==1, true, false)}">
+                        <label class="pix40 labeldark">Number of dependants in the household?</label><br />
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-type="number" html-pattern="[0-9]*" maxlength="2" id="Applicant__c___No_of_Deps__c" value="{!applicantWrapper.NoofDeps}" styleClass="input-block-level isNumDependants isNumDependantsRequired marginbottom10" onkeypress="return isNumberKey(event);"  />
+                        
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorNoOfDeps}" value="{!applicantWrapper.errorNoOfDepsMsg}" styleClass="warningMessage"  />
+                    </apex:outputPanel>
+                </div>
+            </apex:outputPanel>
+            <div class="clearfix"></div>
+            <!-- NZ Pre submission identification section-->
+
+            <apex:outputPanel id="amldetails" rendered="{!brandRegion == nz_Country}">
+                <br/>
+                <!--<div class="span12 removelmargin"><h3 class="subpagetitle sptline gecolor gem-heading"><span>Primary Identification</span></h3></div>-->
+                <!-- Matthew Gould (4/10/2016): Redesign heading -->
+                <div class="span12 removelmargin"><h3 class="subpagetitle gecolor gem-heading"><span>Primary Identification</span></h3></div>
+                <div class="span12 removelmargin lfsSelectXXLge input100pct">
+                        <label class="pix40 labeldark">Customer ID Type</label><br />
+                        <apex:inputField id="Applicant__c___Customer_ID_Type__c"  value="{!applicantWrapper.applicant.Customer_ID_Type__c}" styleClass="isPicklist" onchange="handlePreSubmitFields(this, 'false');warningCustomerID();" />
+                        
+                        <div id="warningCustomerIDMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorCustomerIdType}" value="Error: Please select customer id type." styleClass="warningMessage"  />
+                </div>
+                <div class="span12 removelmargin lfsTextInputXLge input100pct">
+                    <label class="pix40 labeldark">ID number</label><br />
+                    <apex:inputField id="Applicant__c___ID_Number__c" value="{!applicantWrapper.applicant.ID_Number__c}" styleClass="input-block-level isRequired isAlphaNumericOnly {!IF(applicantWrapper.applicant.Customer_ID_Type__c != 'NZ Driver Licence','isMaxLength16','isMaxLength8 isNZDriverLicense')}"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorIdType}" value="Please enter id number." styleClass="warningMessage" />
+                </div>
+                <apex:outputpanel id="amlExtraFields">
+                <div class="span12 removelmargin lfsTextInputXLge input100pct" style="float: none; clear: both; display: block;">
+                    <apex:outputText id="CustomerIdVersion" styleClass="pix40 labeldark" value="Version"/>
+                    <apex:outputText id="CustomerIdNZResidencyNumber" styleClass="pix40 labeldark" value="NZ residency number"/>
+                    <br/>
+                     <apex:inputText html-type="number" html-inputmode="numeric" html-pattern="[0-9]*" id="Applicant__c___Version__c" value="{!applicantWrapper.applicant.Version__c}" styleClass="input-block-level isRequired isNumberWithoutDecimal isMinLength3" onChange="warningDLVersion();"/>
+                    <apex:inputField id="Applicant__c___NZ_Residency_Number__c" value="{!applicantWrapper.applicant.NZ_Residency_Number__c}" styleClass="input-block-level isRequired isAlphaNumeric isMaxLength10"/>
+                    
+                    <div id="warningDLVersionMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorVersion}" value="Please enter id number." styleClass="warningMessage" />
+                    <apex:outputText rendered="{!applicantWrapper.errorNZResidencyNumber}" value="Please enter id number." styleClass="warningMessage" />
+                </div>
+                </apex:outputpanel>
+                <div class="clearfix"></div> 
+                <div class="span6 removelmargin lfsSelect input100pct">
+                    <label class="pix40 labeldark">Issue date</label>
+                    <br />
+                    <div class="clearfix"></div>
+                    <div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <apex:selectList id="issuedd" size="1" value="{!applicantWrapper.issueDate}" onChange="warningDLIssuedate();">
+                            <apex:selectOptions value="{!DateOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <apex:selectList id="issuemm" size="1" value="{!applicantWrapper.issueMonth}" onChange="warningDLIssuedate();">
+                            <apex:actionSupport event="onchange" id="issueb" action="{!setDate}" rerender="issuedd"/>
+                            <apex:selectOptions value="{!monthOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1">
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" id="issueyyyy" maxlength="4" value="{!applicantWrapper.issueYear}" html-placeholder="Year" styleClass="input-block-level lfsTextInputSm" onkeypress="return isNumberKey(event)" onChange="warningDLIssuedate();"/>
+                    </div>
+                    
+                    <br/>
+                    <div id="warningDLIssuedateMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px; margin-top: 23px;"></div>
+                </div>
+                <!-- Matthew Gould - Commented out the following for rebranding 20/09/2016 -->
+                <!--<div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                    <label class="pix40 labeldark">Issue date</label><br />
+                    <apex:selectList id="issuedd" size="1" value="{!applicantWrapper.issueDate}">
+                        <apex:selectOptions value="{!DateOptions}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:selectList id="issuemm" size="1" value="{!applicantWrapper.issueMonth}">
+                        <apex:actionSupport event="onchange" id="issueb" action="{!setDate}" rerender="issuedd"/>
+                        <apex:selectOptions value="{!monthOptions}"/>
+                    </apex:selectList>
+                </div>
+                <div class="span4 mv_phone_p_c3_1">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:inputText id="issueyyyy" maxlength="4" value="{!applicantWrapper.issueYear}" styleClass="input-block-level" onkeypress="return isNumberKey(event)"/>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span12 removelmargin">
+                    <apex:outputText rendered="{!applicantWrapper.errorIssuedate}" value="{!applicantWrapper.errorIssuedateMsg}" styleClass="warningMessage" />
+                </div>-->
+                <div class="clearfix"></div>
+                <!-- Matthew Gould - Commented out the following for rebranding 20/09/2016 -->
+                <div class="span6 removelmargin lfsSelect input100pct">
+                    <label class="pix40 labeldark">Expiry date</label>
+                    <br />
+                    <div class="clearfix"></div>
+                    <div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <apex:selectList id="expirydd" size="1" value="{!applicantWrapper.expiryDate}" styleClass="dobday isPicklistSelect" onChange="warningDLExpirydate();">
+                            <apex:selectOptions value="{!DateOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <apex:selectList id="expirymm" size="1" value="{!applicantWrapper.expiryMonth}" styleClass="dobmonth isPicklistSelect" onChange="warningDLExpirydate();">
+                            <apex:actionSupport event="onchange" id="expiryb" action="{!setDate}" rerender="expirydd"/>
+                            <apex:selectOptions value="{!monthOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1">
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" id="expiryyyyy" styleClass="input-block-level dobyear isRequired isNumber isYear lfsTextInputSm" html-placeholder="Year" maxlength="4" value="{!applicantWrapper.expiryYear}" onkeypress="return isNumberKey(event)" onChange="warningDLExpirydate();"/>
+                    </div>
+                    
+                    <br/>
+                    <div id="warningDLExpirydateMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px; margin-top: 23px;"></div>
+                </div>
+                <!--<div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                    <label class="pix40 labeldark">Expiry date</label><br />
+                    <apex:selectList id="expirydd" size="1" value="{!applicantWrapper.expiryDate}" styleClass="dobday isPicklistSelect">
+                        <apex:selectOptions value="{!DateOptions}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:selectList id="expirymm" size="1" value="{!applicantWrapper.expiryMonth}" styleClass="dobmonth isPicklistSelect">
+                        <apex:actionSupport event="onchange" id="expiryb" action="{!setDate}" rerender="expirydd"/>
+                        <apex:selectOptions value="{!monthOptions}"/>
+                    </apex:selectList>
+                </div>
+                <div class="span4 mv_phone_p_c3_1">
+                    <label class="pix40 labeldark">&nbsp;</label><br />
+                    <apex:inputText id="expiryyyyy" styleClass="input-block-level dobyear isRequired isNumber isYear" maxlength="4" value="{!applicantWrapper.expiryYear}" onkeypress="return isNumberKey(event)"/>
+                </div>-->
+                <div class="span12 removelmargin input100pct">
+                    <apex:outputText rendered="{!applicantWrapper.errorexpirydate}" value="{!applicantWrapper.errorexpirydateMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="span12 removelmargin lfsSelectXLge input100pct">
+                    <label class="pix40 labeldark">Issuing Country</label><br />
+                    <apex:inputField id="Applicant__c___Issuing_country__c" value="{!applicantWrapper.applicant.Issuing_Country__c}" styleClass="input-block-level {!IF(applicantWrapper.applicant.Customer_ID_Type__c = 'Australia/Cook Islands/Tokelau/Niue Passport', 'isRequired','')}" onChange="warningDLIssuingCountry();"/>
+                    <div id="warningDLIssuingCountryMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                     <apex:outputText rendered="{!applicantWrapper.errorIssuingcountry}" value="Please enter id number." styleClass="warningMessage" />                        
+                </div>
+                <div class="clearfix"></div>
+                <apex:outputPanel id="OthertypeMes">                    
+                    <apex:outputText value="Application will be conditionally approved subject to further credit checks and validation checks. Please call our Customer Service team to discuss other acceptable type of ID for verification." styleClass="warningMessage" />
+                </apex:outputPanel>   
+                <!-- SECONDARY IDENTIFICATION -->
+                <apex:outputPanel id="secondaryIdentificationId">
+                    <br/>
+                    <!--<div class="span12 removelmargin"><h3 class="subpagetitle sptline gecolor"><span>Secondary Identification</span></h3></div>-->
+                    <!-- Matthew Gould (4/10/2016): Redesign heading -->
+                    <div class="span12 removelmargin"><h3 class="subpagetitle gecolor"><span>Secondary Identification</span></h3></div>
+                    <div class="span12 removelmargin lfsTextInputXLge input100pct">
+                        <label class="pix40 labeldark">Identification</label><br />
+                        <apex:inputField id="Applicant__c___ID_1__c"  value="{!applicantWrapper.applicant.ID_1__c}" styleClass="isPicklist" onchange="handlePreSubmitFields(this, 'false');"/>
+                        <div class="clearfix"></div>
+                        <!-- <apex:outputText rendered="{!applicantWrapper.errorCustomerIdType}" value="Error: Please select customer id type." styleClass="warningMessage"/> -->
+                    </div>
+                    <div class="span12 input100pct">
+                        <label class="pix40 labeldark">ID No.</label><br />
+                        <apex:inputField id="Applicant__c___ID_No__c" value="{!applicantWrapper.applicant.ID_No__c}" styleClass="input-block-level isRequired isAlphaNumericOnly isMaxLength16"/>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorSecIDNumber}" value="Please enter id number." styleClass="warningMessage" />
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="span6 removelmargin input100pct">
+                        <label class="pix40 labeldark">Issue date</label>
+                        <br />
+                        <div class="clearfix"></div>
+                        <div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                            <apex:selectList id="issuedd2" size="1" value="{!applicantWrapper.issueDateSec}">
+                                <apex:selectOptions value="{!DateOptions}"/>
+                            </apex:selectList>
+                        </div>
+                        <div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                            <apex:selectList id="issuemm2" size="1" value="{!applicantWrapper.issueMonthSec}">
+                                <apex:actionSupport event="onchange" id="issueb2" action="{!setDate}" rerender="issuedd2"/>
+                                <apex:selectOptions value="{!monthOptions}"/>
+                            </apex:selectList>
+                        </div>
+                        <div class="span4 removelmargin mv_phone_p_c3_1">
+                            <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" id="issueyyyy2" maxlength="4" value="{!applicantWrapper.issueYearSec}" styleClass="input-block-level lfsTextInputSm isYear" onkeypress="return isNumberKey(event)"/>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <!--<div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <label class="pix40 labeldark">Issue date</label><br />
+                        <apex:selectList id="issuedd2" size="1" value="{!applicantWrapper.issueDateSec}">
+                            <apex:selectOptions value="{!DateOptions}"/>
+                        </apex:selectList>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <label class="pix40 labeldark">&nbsp;</label><br />
+                        <apex:selectList id="issuemm2" size="1" value="{!applicantWrapper.issueMonthSec}">
+                            <apex:actionSupport event="onchange" id="issueb2" action="{!setDate}" rerender="issuedd2"/>
+                            <apex:selectOptions value="{!monthOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1">
+                        <label class="pix40 labeldark">&nbsp;</label><br />
+                        <apex:inputText id="issueyyyy2" maxlength="4" value="{!applicantWrapper.issueYearSec}" styleClass="input-block-level" onkeypress="return isNumberKey(event)"/>
+                        <div class="clearfix"></div>
+                    </div>-->
+                    <div class="span6 removelmargin input100pct">
+                        <!-- <apex:outputText rendered="{!applicantWrapper.errorIssuedate}" value="{!applicantWrapper.errorIssuedateMsg}" styleClass="warningMessage" /> -->
+                    </div>
+                    <div class="span4 removelmargin mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <label class="pix40 labeldark">Expiry date</label><br />
+                        <apex:selectList id="expirydd2" size="1" value="{!applicantWrapper.expiryDateSec}" styleClass="dobday">
+                            <apex:selectOptions value="{!DateOptions}"/>
+                        </apex:selectList>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1 mv_paddingleft_2per">
+                        <label class="pix40 labeldark">&nbsp;</label><br />
+                        <apex:selectList id="expirymm2" size="1" value="{!applicantWrapper.expiryMonthSec}" styleClass="dobmonth">
+                            <apex:actionSupport event="onchange" id="expiryb2" action="{!setDate}" rerender="expirydd2"/>
+                            <apex:selectOptions value="{!monthOptions}"/>
+                        </apex:selectList>
+                    </div>
+                    <div class="span4 mv_phone_p_c3_1">
+                        <label class="pix40 labeldark">&nbsp;</label><br />
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" id="expiryyyyy2" styleClass="input-block-level dobyear isNumber isYear" maxlength="4" value="{!applicantWrapper.expiryYearSec}" onkeypress="return isNumberKey(event)"/>
+                    </div>
+                    <div class="span12 removelmargin">
+                        <!-- <apex:outputText rendered="{!applicantWrapper.errorexpirydate}" value="{!applicantWrapper.errorexpirydateMsg}" styleClass="warningMessage" /> -->
+                    </div>
+                    <div class="span12 removelmargin input100pct">
+                        <label class="pix40 labeldark">Issuing Country</label><br />
+                        <apex:inputField id="Applicant__c___Sec_ID_Issue_Country__c" value="{!applicantWrapper.applicant.Sec_ID_Issue_Country__c}" styleClass=""/>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="span12 removelmargin input100pct">
+                        <label class="pix40 labeldark">Issuer</label><br />
+                        <apex:inputField id="Applicant__c___Sec_ID_Issuer__c" value="{!applicantWrapper.applicant.Sec_ID_Issuer__c}" styleClass="input-block-level"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <!-- AU pre submission identification fields. -->
+            <apex:outputPanel id="applicantPanel3">
+                <apex:outputPanel rendered="{!$ObjectType.Applicant__c.fields.Drivers_Lic_No__c.Accessible}">
+                    <div class="span12 removelmargin lfsTextInput input100pct">
+                        <a href="#" class="txtooltip tipovr1" data-original-title="If you have an Australian driver's licence, please enter number here."></a>
+                        <label class="pix40 labeldark">Driver&apos;s licence number</label><apex:outputPanel id="d"></apex:outputPanel>
+                        <br />
+                        <apex:inputText id="Applicant__c___Drivers_Lic_No__c" value="{!applicantWrapper.applicant.Drivers_Lic_No__c}" onkeypress="return isAlphaNumericKey(event); "  maxLength="10" styleClass="input-block-level isLicence isLicenceRequired isMinlength4Char" onChange="warningDriverlicence();"/>
+                        
+                        <apex:outputPanel rendered="{!!applicantWrapper.applicant.Drivers_Lic_Flg__c}">
+                            <div id="warningDriverlicenceMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-family: auto; font-size: 14.5px;"></div>
+                        </apex:outputPanel>
+                            <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorLicense}" value="{!applicantWrapper.errorLicenseMsg}" styleClass="warningMessage" />
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="span12 lfsCheckBox removelmargin input100pct">
+                        <!--<label class="pix40 labeldark">&nbsp;</label><br class="mv_hidetotally" />-->
+                        <div class="driverlicenseckbox removelmargin">
+                        <label class="checkbox" for="checkbox">
+                            <apex:inputField id="Applicant__c___Drivers_Lic_Flg__c" value="{!applicantWrapper.applicant.Drivers_Lic_Flg__c}" onclick="enableDriver(); validateNoLicence();"/>
+                            I don&apos;t have a driver&apos;s licence
+                        </label>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+                <!--<div class="divider30"></div>-->
+            <div class="span12 removelmargin lfsTextInput lfsTextInputXLge input100pct">
+                <!--<h3 class="subpagetitle sptline gecolor"><span>Residential Address</span></h3>-->
+                <label class="labeldark">Residential Address</label>
+                <apex:inputText id="fulAdd" maxlength="100" styleClass="input-block-level datatools resAddress" />
+                
+            </div>
+            <div class="span12 removelmargin green">
+                Can't find your address?<apex:outputLabel id="residentialAddressFinder" style="cursor: pointer !important;" value="Enter manually" onClick="toggleAddress(this);"/>
+            </div>                                                        
+            
+             <apex:outputPanel id="yourDetailsPanel2">
+                <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} removelmargin input100pct">
+                    <label class="labeldark">Unit number (Optional)</label><br />
+                    <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Unit_No_Res__c}" id="Applicant__c___Unit_No_Res__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isMaxLength5', 'isMaxLength4')}" />
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorUnitNum}" value="{!applicantWrapper.errorUnitNumMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} input100pct">
+                    <label class="labeldark">Street number</label><br />
+                    <apex:inputField value="{!applicantWrapper.applicant.Street_No_Res__c}" id="Applicant__c___Street_No_Res__c" styleClass="input-block-level isStreetNum marginbottom10" onChange="warningStreetnumber();"/>
+                    <div id="warningStreetnumberMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorStreetNum}" value="{!applicantWrapper.errorStreetNumMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>
+                <div class="{!if($Site.Name!='Aussie', 'span8', 'span6')} removelmargin input100pct">
+                    <label class="pix40 labeldark">Street</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.Street_Res__c}" id="Applicant__c___Street_Res__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ','isNZAlphaNumeric isMaxLength22 isRequired','isStreetName')}" onChange="warningStreet();"/>
+                    <div id="warningStreetMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorStreetName}" value="{!applicantWrapper.errorStreetNameMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} input100pct">
+                    <label class="pix40 labeldark">Street type</label><br />
+                    <apex:selectList size="1" id="Applicant__c___Street_Type_Res__c" value="{!applicantWrapper.applicant.Street_Type_Res__c}" styleClass="isPicklistStreetType marginbottom10" onChange="warningStreetType();">
+                        <apex:selectOptions value="{!streetTypeOptions}"/>
+                    </apex:selectList>
+                    <div id="warningStreetTypeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorStreetType}" value="{!applicantWrapper.errorStreetTypeMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>
+                <div class="{!if($Site.Name!='Aussie', 'span8', 'span6')} removelmargin input100pct">
+                    <label class="pix40 labeldark">{!if(brandRegion='NZ', 'Suburb/Rural delivery number', 'Suburb')}</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.Suburb_Res__c}" id="Applicant__c___Suburb_Res__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isRequired isMaxLength22 isNZAlphaNumericSuburb isRDNumber', 'isResidentialSuburb')}" onChange="warningSuburb();"/>
+                    <div id="warningSuburbMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorSuburb}" value="{!applicantWrapper.errorSuburbMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} input100pct" style="display:{!if($ObjectType.Applicant__c.fields.State_Res__c.Accessible, 'block', 'none')}">
+                    <label class="pix40 labeldark">State</label><br />
+
+                    <apex:selectList size="1" value="{!applicantWrapper.applicant.State_Res__c}" id="Applicant__c___State_Res__c" styleClass="isResidentialState marginbottom10" onChange="warningState();">
+                        <apex:selectOptions value="{!stateOptions}"/>
+                    </apex:selectList>
+                    <div id="warningStateMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorState}" value="{!applicantWrapper.errorStateMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span4', 'span6'), 'span3  removelmargin lfsTextInputSm')} input100pct">
+                    <label class="pix40 labeldark input100pct">Postcode</label><br />
+                    <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Postcode_Res__c}" onkeypress="return isNumberKey(event);" id="Applicant__c___Postcode_Res__c" styleClass="input-block-level isResidentialPostcode marginbottom10" onChange="warningPostcode();" />
+                    
+                    <div id="warningPostcodeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorPostcode}" value="{!applicantWrapper.errorPostcodeMsg}" styleClass="warningMessage" />
+                </div>
+                
+                <div class="{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span12 removelmargin input100pct', 'span6 removelmargin'), 'span6 removelmargin')}" style="display:{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, 'block', 'none')}">
+                    <label class="pix40 labeldark">Town/City</label><br />
+                    <apex:inputField value="{!applicantWrapper.applicant.City_Res__c}" id="Applicant__c___City_Res__c" styleClass="input-block-level isRequired isNZAlphaNumericTown isMaxLength22" onChange="warningCity();"/>
+                    
+                    <div id="warningCityMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorCity}" value="{!applicantWrapper.errorCityMsg}" styleClass="warningMessage" />
+                </div>
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem')}">
+                    <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, 'block', 'none')}"></div>
+                </apex:outputPanel>
+                
+                <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, 'none', 'block')}"></div>
+                <div class="{!if($ObjectType.Applicant__c.fields.City_Res__c.Accessible, 'span12 removelmargin input100pct', 'span12 removelmargin lfsSelectXLge input100pct')}">
+                    <label class="pix40 labeldark">Country</label><br />
+                    <apex:selectList size="1" value="{!applicantWrapper.applicant.Country_Res__c}" id="Applicant__c___Country_Res__c" onChange="disableState();" styleClass="isResidentialCountry marginbottom10" disabled="true">
+                        <apex:selectOptions value="{!countryOpts}" html-selected="" />
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorCountry}" value="{!applicantWrapper.errorCountryMsg}" styleClass="warningMessage" />
+                </div> 
+                
+                <div class="clearfix"></div>
+                <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin input100pct">
+                    <label class="pix40 labeldark">Property Name (Optional)</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.Residential_Property_Name__c}" id="Applicant__c___Residential_Property_Name__c" styleClass="input-block-level isMaxLength20 marginbottom10" onChange="warningResPropertyName();"/>
+                    <div id="warningResPropertyNameMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorProperty}" value="{!applicantWrapper.errorPropertyMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="time">
+                <div class="{!if($site.Name!='Aussie', 'span6', 'span12')} removelmargin input100pct">
+                    <label class="pix40 labeldark">Time at this address</label>
+                    <div class="clearfix"></div>
+                        <!--Mar-17-2016- Afreen Khan - Userstroy 131 changing Picklist to free txt-->
+                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Years_At_Addr__c}" id="Applicant__c___Years_At_Addr__c" onChange="enablePrevious();" styleClass="isTimeAddressYears">
+                            <apex:selectOptions value="{!yearAtAddressOptions}"/>
+                        </apex:selectList>-->
+                    <div class="span6 removelmargin">
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Years_At_Addr__c}"  id="Applicant__c___Years_At_Addr__c" onChange="enablePrevious(); warningAddressThisTime();" onkeypress="return isNumberKey(event);" styleClass="isTimeResidentialYears marginbottom10 removelmargin removermargin" maxlength="2" html-placeholder="Years"/>
+                        <div id="warningAddressThisTimeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    </div>
+                    <div class="span6">
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Months_At_Addr__c}" id="Applicant__c___Months_At_Addr__c" onChange="enablePrevious(); warningAddressAtTime();" onkeypress="return isNumberKey(event);" styleClass="isTimeAddressMonths marginbottom10 marginl10" maxlength="2" html-placeholder="Months"/>
+                        <div id="warningAddressAtTimeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    </div>
+                    
+                    <div class="clearfix"></div>
+                    <!--<div class="span6 mv_phone_p_c2_1 lfsTextInput">
+                        <!--May-05-2016- Afreen Khan - Fix Pack 2 changing Picklist to free txt-->
+                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Months_At_Addr__c}" id="Applicant__c___Months_At_Addr__c" onChange="enablePrevious();" styleClass="isPicklist isTimeAddressMonths">
+                            <apex:selectOptions value="{!monthsAtAddressOptions}"/>
+                        </apex:selectList>-->
+                        <!--<apex:inputText value="{!applicantWrapper.applicant.Months_At_Addr__c}" id="Applicant__c___Months_At_Addr__c" onChange="enablePrevious();" onkeypress="return isNumberKey(event);" styleClass="isTimeAddressMonths marginbottom10" maxlength="2" html-placeholder="Months" />
+                        <div class="clearfix"></div>
+                    </div>-->
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorTimeAtAddress}" value="{!applicantWrapper.errorTimeAtAddressMsg}" styleClass="warningMessage"  />
+                    <div class="clearfix"></div>
+                </div>
+            </apex:outputPanel>
+            
+            <div class="span12 radio-yn removelmargin lfsButtonGroup input100pct">
+                <label class="pix40 labeldark">Is your postal address the same as your residential address?</label><br />
+                <div class="clearfix"></div>
+                <apex:inputHidden value="{!applicantWrapper.PostalFlag}" id="postalFlag"/>
+                <div class="{!if($Site.Name!='Aussie', 'span3', 'span6 m_ip5_por_label1 mv_paddingleft_2per')} female removelmargin">
+                    <!--Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding
+                    <apex:outputLabel id="postalYes" value="Yes" styleClass="ybutton maleb btn btn-large btn-block yesbutton" onClick="enablePostal(this);" style="width:100% !important"/>-->
+                    <apex:outputLabel id="postalYes" value="Yes" styleClass="ybutton maleb btn btn-block yesbutton" onClick="enablePostal(this); $j(this).valid();" style="width:100% !important" />
+                </div>
+                <div class="{!if($Site.Name!='Aussie', 'span3', 'span6')} male marginl10">
+                    <!--Commented out by MDAVID - 02/29/2016 TQLQW - 104 Rebranding
+                    <apex:outputLabel id="postalNo" value="No" styleClass="nbutton femaleb btn btn-large btn-block" onClick="enablePostal(this);" style="width:100% !important"/>-->
+                    <apex:outputLabel id="postalNo" value="No" styleClass="nbutton femaleb btn btn-block" onClick="enablePostal(this); $j(this).valid();" style="width:100% !important" />
+                </div>
+                <br/><br/>
+                <div id="warningPostalAddressMsg" style="background-color:#f9b845;display:none;width:44.7%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px; margin-left: 0%;"></div>
+                <apex:outputText id="errorPostalFlag" rendered="{!applicantWrapper.errorPostalFlag}" value="{!applicantWrapper.errorPostalFlagMsg}" styleClass="warningMessage" />
+                <div class="clearfix"></div>
+                <apex:inputText value="{!applicantWrapper.PostalFlag}" style="visibility:hidden; position: absolute; height: 0px; width: 0px; margin: 0px; padding: 0px;" id="hiddenPostalFlag" styleClass="isHiddenPostalFlag"/>
+            </div>
+            <apex:outputPanel id="postalPanel">
+                <div class="clearfix"></div>
+                <div id="prevAdd1">
+                    <div class="clearfix"></div>
+                    <!--<div class="divider30"></div>-->
+                    <!--<div class="span12 removelmargin">
+                        <h3 class="subpagetitle sptline gecolor"><span>Postal address</span></h3>
+                        
+                    </div>-->
+                    
+                    <apex:outputPanel id="postalAddress">
+                        <apex:outputText rendered="{!applicantWrapper.errorPostalAddress}" value="{!applicantWrapper.errorPostalAddressMsg}" styleClass="warningMessage" />
+                    </apex:outputPanel>
+                    <div class="clearfix"></div>
+                    <div class="span12 removelmargin lfsTextInput lfsTextInputXLge input100pct">
+                        <label class="labeldark">Postal address</label>
+                        <apex:inputText id="fulPAdd" maxlength="100" styleClass="input-block-level datatools" />
+                    </div>
+                    <div class="span12 removelmargin green">
+                    <apex:outputLabel id="postalAddressFinder" value="Can't find your address?" onClick="toggleAddress(this);enablePostalFields(document.getElementById('GETemplate:GETemplate:mainForm:applicantPageBlock:Applicant__c-{!applicantNo}:component-{!applicantNo}:Applicant__c-mycomponent:Applicant__c___Service_Delivery_Type__c'))"/>
+
+                    </div>                                                              
+                    
+                    <apex:outputPanel id="applicantPanel4">
+                        <div class="clearfix"></div>
+                        <div class="span12 lfsCheckBox removelmargin input100pct">
+                            <apex:outputPanel rendered="{!$ObjectType.Applicant__c.fields.PO_Box__c.Accessible}">
+                                <label class="checkbox" for="checkbox">
+                                    <apex:inputField id="Applicant__c___PO_Box__c" value="{!applicantWrapper.applicant.PO_Box__c}" onChange="enablePOBox();" styleClass="isPOBOXFlag"/>
+                                    My postal address is a PO Box or GPO box.
+                                </label>
+                            </apex:outputPanel>    
+                        </div>
+                        <div class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span8', 'span6')} removelmargin input100pct" style="display:{!if($ObjectType.Applicant__c.fields.Service_Delivery_Type__c.Accessible, 'block', 'none')}">
+                            <label class="pix40 labeldark">Service delivery type</label><span class="pos"></span><br />
+                            <apex:selectList size="1" id="Applicant__c___Service_Delivery_Type__c" value="{!applicantWrapper.applicant.Service_Delivery_Type__c}" styleClass="isPicklist" onchange="enablePostalFields(this)">
+                                <apex:selectOptions value="{!serviceDeliveryTypes}"/>
+                            </apex:selectList>
+                            <apex:outputPanel rendered="$site.Name!='Aussie'"><div class="clearfix"></div></apex:outputPanel>
+                            <!--<apex:outputText rendered="{!applicantWrapper.errorPostalStreetType}" value="{!applicantWrapper.errorPostalStreetTypeMsg}" styleClass="warningMessage" />-->
+                        </div>
+                        <div class="span4 input100pct" style="display:{!if($ObjectType.Applicant__c.fields.Service_Delivery_Id__c.Accessible, 'block', 'none')}">
+                            <apex:outputText styleClass="pix40 labeldark" id="posServiceId" value="{!$ObjectType.Applicant__c.fields.Service_Delivery_Id__c.Accessible}" style="margin-bottom: 5px;"/><br/>
+                            <apex:inputField value="{!applicantWrapper.applicant.Service_Delivery_Id__c}" id="Applicant__c___Service_Delivery_Id__c" styleClass="input-block-level isMaxLength4"/>
+                        </div>
+                        <div class="clearfix"></div>
+                        <apex:outputPanel id="pobox">
+                            <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} removelmargin lfsTextInputSm input100pct">
+                                <label class="pix40 labeldark">Unit number (Optional)</label><br />
+                                <apex:inputField html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Unit_No_Pos__c}" id="Applicant__c___Unit_No_Pos__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isMaxLength5', 'isMaxLength4')}" />
+                            </div>
+                            <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} lfsTextInputSm input100pct">
+                                <label class="pix40 labeldark">Street number</label><span class="pos"></span><br />
+                                <apex:inputField value="{!applicantWrapper.applicant.Street_No_Pos__c}" id="Applicant__c___Street_No_Pos__c" styleClass="input-block-level isPostalStreetNum marginbottom10"/>
+                                
+                                <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalStreetNo}" value="{!applicantWrapper.errorPostalStreetNoMsg}" styleClass="warningMessage" />
+                            </div>
+                            <div class="clearfix"></div>
+                            <div class="{!if($Site.Name!='Aussie', 'span8', 'span6')} removelmargin input100pct">
+                                <label class="pix40 labeldark">Street</label><span class="pos"></span><br />
+                                <apex:inputText value="{!applicantWrapper.applicant.Street_Pos__c}" id="Applicant__c___Street_Pos__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ','isRequired isNZAlphaNumeric isMaxLength22','isPostalStreetName')}" />
+                                
+                                <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalStreet}" value="{!applicantWrapper.errorPostalStreetMsg}" styleClass="warningMessage" />
+                            </div>
+                            <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} input100pct">
+                                <label class="pix40 labeldark input100pct">Street type</label><span class="pos"></span><br />
+                                <apex:selectList size="1" id="Applicant__c___Street_Type_Pos__c" value="{!applicantWrapper.applicant.Street_Type_Pos__c}" styleClass="isPicklistPostalStreetType marginbottom10" >
+                                    <apex:selectOptions value="{!streetTypeOptions}"/>
+                                </apex:selectList>
+                                
+                                <div class="clearfix"></div>
+                                <apex:outputText rendered="{!applicantWrapper.errorPostalStreetType}" value="{!applicantWrapper.errorPostalStreetTypeMsg}" styleClass="warningMessage" />
+                            </div>
+                        </apex:outputPanel>
+                        <div class="clearfix"></div>
+                        <apex:outputPanel id="posSuburbPanel">
+                        <div class="{!if($Site.Name!='Aussie', 'span8', 'span6')} removelmargin input100pct">
+                            <!-- Updated By Adrian Recio -->
+                            <!-- Added condition required class assignment for Fix Pack -->
+                            <apex:outputText styleClass="pix40 labeldark" id="posSuburb" value="{!if(brandRegion='NZ', 'Suburb/Rural delivery number', 'Suburb')}" style="{!if(OR($Site.Name=='Gem', $Site.Name=='Kiwibank'), 'margin-bottom: 5px;', '')}" /><br/>
+                            <apex:inputText value="{!applicantWrapper.applicant.Suburb_Pos__c}" id="Applicant__c___Suburb_pos__c" 
+                            styleClass="input-block-level isMaxLength22 marginbottom10 {!if(brandRegion='NZ', 'isNZAlphaNumericSuburb isRDNumber', 'isPostalSuburb')} {!if(applicantWrapper.applicant.Service_Delivery_Type__c!='PO Box', 'isRequired', '')}" />
+                            
+                            
+                            <div class="clearfix"></div>
+                            <apex:outputText rendered="{!applicantWrapper.errorPostalSuburb}" value="{!applicantWrapper.errorPostalSuburbMsg}" styleClass="warningMessage" />
+                        </div>
+                        <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} input100pct" style="display:{!if($ObjectType.Applicant__c.fields.State_Pos__c.Accessible, 'block', 'none')}">
+                            <label class="pix40 labeldark">State</label><br />
+    
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.State_Pos__c}" id="Applicant__c___State_Pos__c" styleClass="isPicklistPostalState marginbottom10" >
+                                <apex:selectOptions value="{!stateOptions}"/>
+                            </apex:selectList>
+                            
+                            <apex:outputText rendered="{!applicantWrapper.errorPostalState}" value="{!applicantWrapper.errorPostalStateMsg}" styleClass="warningMessage" />
+                        </div>
+                        <div class="{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, if(OR($site.Name=='Gem', $site.name=='Kiwibank'), 'span4 input100pct', 'span6'), 'span3 removelmargin lfsTextInputSm input100pct')}">
+                            <label class="pix40 labeldark">Postcode</label><span class="pos"></span><br />
+                            <apex:inputText html-mobile-input="number" html-inputmode="numeric" value="{!applicantWrapper.applicant.Postcode_Pos__c}" id="Applicant__c___Postcode_Pos__c" onkeypress="return isNumberKey(event);" styleClass="input-block-level isPostalPostcode marginbottom10"/>
+                        
+                            <div class="clearfix"></div>
+                            <apex:outputText rendered="{!applicantWrapper.errorPostalPostcode}" value="{!applicantWrapper.errorPostalPostcodeMsg}" styleClass="warningMessage" />
+                        </div>
+                        </apex:outputPanel>
+                        <div class="{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span12 removelmargin input100pct', 'span6 removelmargin'), 'span6 removelmargin')}" style="display:{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, 'block', 'none')}" id="{!if(applicantNo == 1, 'cityDiv', 'cityDiv2')}">
+                            <label class="pix40 labeldark">Town/City</label><br />
+                            <apex:inputField value="{!applicantWrapper.applicant.City_Pos__c}" id="Applicant__c___City_Pos__c" styleClass="input-block-level isRequired isName isMaxLength15" />
+                            
+                            <div class="clearfix"></div>
+                            <apex:outputText rendered="{!applicantWrapper.errorPostalCity}" value="{!applicantWrapper.errorPostalCityMsg}" styleClass="warningMessage" />
+                        </div>
+                        
+                        <apex:outputPanel rendered="{!$Site.Name!='Aussie'}">
+                            <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, 'block', 'none')}"></div>
+                            <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, 'none', 'block')}"></div>
+                        </apex:outputPanel>
+                        <div class="{!if($ObjectType.Applicant__c.fields.City_Pos__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span12 removelmargin input100pct', 'span6'), 'span12 removelmargin lfsSelectXLge input100pct')}">
+                            <label class="pix40 labeldark">Country</label><span id="req" class="pos"></span><br />
+                            <apex:selectList size="1" value="{!applicantWrapper.applicant.Country_Pos__c}" id="Applicant__c___Country_Pos__c" onChange="disableState();" styleClass="isPostalCountry marginbottom10" disabled="true">
+                                <apex:selectOptions value="{!countryOpts}" html-selected="" />                                    
+                            </apex:selectList>
+                            <div class="clearfix"></div>
+                            <apex:outputText rendered="{!applicantWrapper.errorPostalCountry}" value="{!applicantWrapper.errorPostalCountryMsg}" styleClass="warningMessage" />
+                        </div>
+                        
+                        <div class="clearfix"></div>
+                        <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsTextInputXLge input100pct">
+                            <apex:outputText styleClass="pix40 labeldark" id="posProperty" value="Property Name (Optional)"/><br/>
+                            <apex:inputText value="{!applicantWrapper.applicant.Postal_Property_Name__c}" id="Applicant__c___Postal_Property_Name__c"
+                                            styleClass="input-block-level isPOBOX isMaxLength20 marginbottom10"
+                                            />
+                        </div>
+                        <div class="clearfix"></div>
+                    </apex:outputPanel>
+                </div><!-- end prevAdd1 -->
+                <div class="clearfix"></div>
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="previousAddress">
+                <div class="clearfix"></div>
+                <!--<div class="divider30"></div>
+                <div class="span12 removelmargin"><h3 class="subpagetitle sptline gecolor mv_removeline"><span class="whspace_nor">Previous Residential Address</span></h3></div>-->
+                <div class="span12 removelmargin lfsTextInputXLge input100pct">
+                    <label class="pix40 labeldark">Previous Residential Address</label><br />
+                    <apex:inputText id="fulPreAdd" maxlength="100" styleClass="input-block-level datatools" onChange="warningPreviousResidentialAddress();"/>
+                    <div id="warningPreviousResidentialAddressMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                </div>
+                <div class="span12 removelmargin green">
+                    Can't find your address?<apex:outputLabel id="previousAddressFinder" style="cursor: pointer !important;" value="Enter manually" onClick="toggleAddress(this);"/>
+                </div>
+                     
+                <apex:outputPanel id="applicantPanel5">
+                     <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} removelmargin lfsTextInput input100pct">
+                        <label class="pix40 labeldark">Unit number (Optional)</label><br />
+                        <apex:inputField html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Unit_No_Pre__c}" id="Applicant__c___Unit_No_Pre__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isMaxLength5', 'isMaxLength4')}" />
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousUnitNo}" value="{!applicantWrapper.errorPreviousUnitNoMsg}" styleClass="warningMessage" />
+                    </div>
+                    <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} lfsTextInput input100pct">
+                        <label class="pix40 labeldark">Street number</label><br />
+                        <apex:inputField value="{!applicantWrapper.applicant.Street_No_Pre__c}" id="Applicant__c___Street_No_Pre__c" styleClass="input-block-level isPreviousStreetNum marginbottom10" onChange="warningPreviousStreetnumber();"/>
+                        <div id="warningPreviousStreetnumberMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousStreetNo}" value="{!applicantWrapper.errorPreviousStreetNoMsg}" styleClass="warningMessage" />
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="{!if($site.Name!='Aussie', 'span8', 'span6')} removelmargin lfsTextInputXLge input100pct">
+                        <label class="pix40 labeldark">Street</label><br />
+                        <apex:inputText value="{!applicantWrapper.applicant.Street_Pre__c}"  id="Applicant__c___Street_Pre__c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isRequired isNZAlphaNumeric isMaxLength22','isPreviousStreetName')}" onChange="warningPreviousStreet();"/>
+                        <div id="warningPreviousStreetMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousStreet}" value="{!applicantWrapper.errorPreviousStreetMsg}" styleClass="warningMessage" />
+                    </div>
+                    <div class="{!if($site.Name!='Aussie', 'span4', 'span6')} lfsSelectXLge input100pct">
+                        <label class="pix40 labeldark">Street type</label><br />
+                        <apex:selectList size="1" id="Applicant__c___Street_Type_Pre__c" value="{!applicantWrapper.applicant.Street_Type_Pre__c}" styleClass="isPicklistPreviousStreetType marginbottom10" onChange="warningPreviousStreetType();">
+                            <apex:selectOptions value="{!streetTypeOptions}"/>
+                        </apex:selectList>
+                        <div id="warningPreviousStreetTypeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousStreetType}" value="{!applicantWrapper.errorPreviousStreetTypeMsg}" styleClass="warningMessage" />
+                    </div>
+                     <div class="clearfix"></div>
+                    <div class="{!if($site.Name!='Aussie', 'span8', 'span6')} removelmargin lfsTextInputXLge input100pct" style="display:{!if($ObjectType.Applicant__c.fields.Suburb_Pre__c.Accessible, 'block', 'none')}">
+                        <label class="pix40 labeldark">{!if(brandRegion='NZ', 'Suburb/Rural delivery number', 'Suburb')}</label><br />
+                        <apex:inputText value="{!applicantWrapper.applicant.Suburb_Pre__c}" id="Applicant__c___Suburb_Pre_c" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ', 'isRequired isMaxLength22 isNZAlphaNumericSuburb isRDNumber', 'isPreviousSuburb')}" onChange="warningPreviousSuburb();"/>
+                        <div id="warningPreviousSuburbMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousSuburb}" value="{!applicantWrapper.errorPreviousSuburbMsg}" styleClass="warningMessage"  />
+                    </div>
+                    <div class="{!if($site.Name!='Aussie', 'span3', 'span6')} lfsSelect input100pct" style="display:{!if($ObjectType.Applicant__c.fields.State_Pre__c.Accessible, 'block', 'none')}">
+                        <label class="pix40 labeldark input100pct">State</label><br />
+                        <apex:selectList size="1" styleClass="input-block-level isResidentialState marginbottom10" value="{!applicantWrapper.applicant.State_Pre__c}" id="Applicant__c___State_Pre__c" onChange="warningPreviousState();">
+                            <apex:selectOptions value="{!stateOptions}" />
+                        </apex:selectList>
+                        <div id="warningPreviousStateMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousState}" value="{!applicantWrapper.errorPreviousStateMsg}" styleClass="warningMessage"  />
+                    </div>
+                    <div class="{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span4', 'span6'), 'span3 removelmargin lfsTextInputSm')} input100pct">
+                        <label class="pix40 labeldark">Postcode</label><br />
+                        <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Postcode_Pre__c}" id="Applicant__c___Postcode_Pre__c" onkeypress="return isNumberKey(event);" styleClass="input-block-level isPreviousPostcode marginbottom10" onChange="warningPreviousPostcode();"/>
+                        <div id="warningPreviousPostcodeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousPostcode}" value="{!applicantWrapper.errorPreviousPostcodeMsg}" styleClass="warningMessage" />
+                    </div>
+                    
+                    <div class="clearfix"></div>
+                    
+                    <div class="{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span12 removelmargin input100pct', 'span6 removelmargin'), 'span6 removelmargin')}" style="display:{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, 'block', 'none')}">
+                        <label class="pix40 labeldark">Town/City</label><br />
+                        <apex:inputField value="{!applicantWrapper.applicant.City_Pre__c}" id="Applicant__c___City_Pre__c" styleClass="input-block-level isRequired isNZAlphaNumericTown isMaxLength22"  onChange="warningPreviousCity();"/>
+                        <div id="warningPreviousCityMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousCity}" value="{!applicantWrapper.errorPreviousCityMsg}" styleClass="warningMessage" />
+                    </div>
+                    
+                    <apex:outputPanel rendered="{!$Site.Name!='Aussie'}">
+                        <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, 'block', 'none')}"></div>
+                        <div class="clearfix" style="display:{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, 'none', 'block')}"></div>
+                        <div class="clearfix"></div>
+                    </apex:outputPanel>
+                    
+                    <div class="{!if($ObjectType.Applicant__c.fields.City_Pre__c.Accessible, if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'span12 removelmargin input100pct', 'span6'), 'span12 removelmargin lfsSelectXLge input100pct')}">
+                        <label class="pix40 labeldark">Country</label><br />
+                        <apex:selectList size="1" value="{!applicantWrapper.applicant.Country_Pre__c}" id="Applicant__c___Country_Pre__c" styleClass="isPreviousCountry marginbottom10" onChange="disableState();" disabled="true">
+                            <apex:selectOptions value="{!countryOpts}" html-selected="" />
+                        </apex:selectList>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousCountry}" value="{!applicantWrapper.errorPreviousCountryMsg}" styleClass="warningMessage"  />
+                    </div>
+                    
+                    <div class="clearfix"></div>
+                    <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsTextInputXLge input100pct">
+                        <label class="pix40 labeldark">Property Name (Optional)</label><br />
+                        <apex:inputText value="{!applicantWrapper.applicant.Previous_Property_Name__c}" id="Applicant__c___Previous_Property_Name__c" styleClass="input-block-level isMaxLength20 marginbottom10"  onChange="warningPrePropertyName();" />
+                        <div id="warningPrePropertyNameMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                        <div class="clearfix"></div>
+                        <apex:outputText rendered="{!applicantWrapper.errorPreviousProperty}" value="{!applicantWrapper.errorPreviousPropertyMsg}" styleClass="warningMessage"  />
+                    </div>
+                </apex:outputPanel>
+
+                <div class="{!if($site.Name!='Aussie', 'span6', 'span12')} removelmargin lfsTextInput lfsTimeAtAddress input100pct">
+                    <label class="pix40 labeldark">Time at previous address</label><br />
+                    <div class="span12 removelmargin">
+                        <div class="span6 removelmargin">
+                            <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*" value="{!applicantWrapper.applicant.Years_At_Prev_Addr__c}" id="Applicant__c___Years_At_Prev_Addr__c" onkeypress="return isNumberKey(event);" styleClass="prevt isTimeResidentialYears marginbottom10 removermargin" maxlength="2" html-placeholder="Years"/>
+                        </div>
+                        <div class="span6">
+                            <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9]*"  value="{!applicantWrapper.applicant.Months_At_Prev_Addr__c}" id="Applicant__c___Months_At_Prev_Addr__c" onkeypress="return isNumberKey(event);" styleClass="isTimeAddressPrevMonths prevm marginbottom10" style="margin-left: 10px !important;" maxlength="2" html-placeholder="Months" />
+                        </div>
+                        
+                        <div class="clearfix"></div>
+                    </div>
+                    <!--<div class="span6 removelmargin">
+                        <label class="pix40 labeldark">Time at previous address</label><br />
+                        <!--Mar-17-2016- Afreen Khan - Userstory 131 changing Picklist to free txt--> 
+                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Years_At_Prev_Addr__c}" id="Applicant__c___Years_At_Prev_Addr__c" styleClass="prevt isTimeAddressYears" >
+                            <apex:selectOptions value="{!yearAtAddressOptions}"/>
+                        </apex:selectList>-->
+                        
+                        <!--<apex:inputText value="{!applicantWrapper.applicant.Years_At_Prev_Addr__c}" id="Applicant__c___Years_At_Prev_Addr__c" onkeypress="return isNumberKey(event);" styleClass="prevt isTimeResidentialYears marginbottom10" maxlength="2" html-placeholder="Years"/>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="span6">
+                        <label class="pix40 labeldark">&nbsp;</label><br />
+                        <!--May-05-2016- Afreen Khan - Fix Pack 2 changing Picklist to free txt-->
+                        <!--<apex:selectList size="1" value="{!applicantWrapper.applicant.Months_At_Prev_Addr__c}" id="Applicant__c___Months_At_Prev_Addr__c" styleClass="isPicklist isTimeAddressPrevMonths prevm " >
+                            <apex:selectOptions value="{!monthsAtAddressOptions}"/>
+                        </apex:selectList> -->
+                        
+                        <!--<apex:inputText value="{!applicantWrapper.applicant.Months_At_Prev_Addr__c}" id="Applicant__c___Months_At_Prev_Addr__c" onkeypress="return isNumberKey(event);" styleClass="isTimeAddressPrevMonths prevm marginbottom10" maxlength="2" html-placeholder="Months" />
+                    </div>-->
+                    <!--<div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorTimePrevAtAddress}" value="{!applicantWrapper.errorTimePrevAtAddressMsg}" styleClass="warningMessage" />
+                    <div class="clearfix"></div>-->
+                </div>
+                     
+            </apex:outputPanel><!-- end previousAddress-->
+                <div class="clearfix"></div>
+                <!--<div class="divider30"></div>-->
+                <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                    <hr class="dividerStyle" />
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!OR($Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <div class="divider50"></div>
+                    <div class="divider50"></div>
+                </apex:outputPanel>
+                <!--<div class="span12 removelmargin"><h3 class="subpagetitle sptline gecolor gem-heading"><span>Contact Details</span></h3></div>-->
+                <!-- Matthew Gould (4/10/2016): Redesign heading -->
+                <div class="span12 removelmargin"><h3 class="subpagetitle gecolor gem-heading"><span>Contact Details</span></h3></div>
+                <div class="clearfix"></div>
+                
+            <!---      <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsTextInputXLge input100pct">
+                    <label class="removelmargin labeldark">Email address</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.Email_Address__c}" onfocus="checkPhoneNumbersOnEmail()" id="Applicant__c___Email_Address__c" styleClass="input-block-level isMaxLength40 marginbottom10 {!if(applicantWrapper.applicant.Is_Primary_Applicant__c = true,'isEmail','')}" />
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorEmail}" value="{!applicantWrapper.errorEmailMsg}" styleClass="warningMessage" />
+                    <apex:outputText rendered="{!brokerchannel}" value="Please make sure to enter customer's email address." styleClass="warningMessage" />
+                </div> -->
+                 <!-- Confirm Email changes --->
+                <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsTextInputXLge input100pct">
+                    <label class="removelmargin labeldark">Email address</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.Email_Address__c}" onfocus="checkPhoneNumbersOnEmail()" id="Applicant__c___Email_Address__c"
+                                    html-onpaste="return false;" 
+                                    styleClass="input-block-level isMaxLength40 marginbottom10 {!IF(applicantNo==2,'isEmail2','isEmail')}" onChange="warningEmailaddress();"/>
+                    
+                    <div id="warningEmailaddressMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorEmail}" value="{!applicantWrapper.errorEmailMsg}" styleClass="warningMessage" />
+                    <apex:outputText rendered="{!brokerchannel}" value="Please make sure to enter customer's email address." styleClass="warningMessage" />
+                </div> 
+               
+              <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin lfsTextInputXLge input100pct" >                   
+                    <label class="removelmargin labeldark">Confirm Email address</label><br />
+                    <apex:inputText value="{!applicantWrapper.applicant.ConfirmEmailAddress__c}"  id="Applicant__c__Confirm_Email_Address__c"  onblur="$j(this).valid();"  
+                                    styleClass="input-block-level {!IF(applicantNo==2,'isConfirmEmail2','isConfirmEmail')}"  html-onpaste="return false;" />
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorConfirmEmail}" value="{!applicantWrapper.errorConfirmEmailMsg}" styleClass="warningMessage" />
+                </div> 
+               
+                
+                <apex:outputPanel rendered="{!$Site.Name!='Aussie'}">
+                    <div class="divider40"></div>
+                    <div class="span12 removelmargin pan input100pct">
+                        <p class="labeldark pan" style="margin-bottom: 0;">Please provide your preferred contact number.</p>
+                        <!--<label class="errorphone error"></label>-->
+                    </div>
+                </apex:outputPanel>
+                
+                <div class="{!if($site.Name!='Aussie', 'span12 removelmargin', 'span6')} input100pct">
+                    <label class="pix40 labeldark">Mobile</label><br />
+                    <apex:inputField value="{!applicantWrapper.applicant.Mobile__c}" onkeypress="return isNumberKey(event);" type="tel"
+                                    onblur="checkPhoneNumbersOnEmail(); $j(this).valid();" onfocus="checkPhoneNumbersOnFocus()"
+                                    styleClass="input-block-level marginbottom10
+                                                {!if(brandRegion='NZ','NZphoneGroup','phoneGroup')}
+                                                {!if(brandRegion='NZ','isNZMobile','isMobile')} 
+                                                {!if(brandRegion='NZ','isMaxLength11','isMaxLength10')}"
+                                    id="Applicant__c___Mobile__c" onChange="warningMobileNumber();"/>
+                    <div id="warningMobileNumberMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorMobile}" value="{!applicantWrapper.errorMobileMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($site.Name!='Aussie', 'span12', 'span6')} removelmargin input100pct">
+                    <label class="pix40 labeldark">Work (if you have one)</label><br />
+                    <apex:inputField type="tel" value="{!applicantWrapper.applicant.Work__c}" onkeypress="return isNumberKey(event);" onblur="checkPhoneNumbersOnEmail(); $j(this).valid();" html-placeholder="(__)____-____" onfocus="checkPhoneNumbersOnFocus()" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ','','phoneGroup')} {!if(brandRegion='NZ','isNZWorkNumber','isWorkNumber')} {!if(brandRegion='NZ','isMaxLength11','isMaxLength10')}" id="Applicant__c___Work__c" />
+                    
+                    <div id="warningapplicantWorkMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorWork}" value="{!applicantWrapper.errorWorkMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="{!if($site.Name!='Aussie', 'span12 removelmargin', 'span6')} input100pct">
+                    <label class="pix40 labeldark">Home (if you have one)</label><br />
+                    <apex:inputField type="tel" value="{!applicantWrapper.applicant.Home__c}" onkeypress="return isNumberKey(event);" onblur="checkPhoneNumbersOnEmail(); $j(this).valid();" html-placeholder="(__)____-____" onfocus="checkPhoneNumbersOnFocus()" styleClass="input-block-level marginbottom10 {!if(brandRegion='NZ','NZphoneGroup','phoneGroup')} {!if(brandRegion='NZ','isNZHomeNumber','isHomeNumber')} {!if(brandRegion='NZ','isMaxLength9','isMaxLength10')}"  id="Applicant__c___Home__c" />
+                    
+                    <div id="warningapplicantHomeMsg" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important; font-size: 13px;"></div>
+                    
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorHome}" value="{!applicantWrapper.errorHomeMsg}" styleClass="warningMessage" />
+                </div>
+                <div class="clearfix"></div>
+                <!--<div class="span12">
+                    <div class="doberror">
+                        
+                    </div>
+                </div>-->
+                <!--<div class="span12 removelmargin lfsSelectXLge input100pct">
+                    <label class="pix40 labeldark">Preferred contact method (Optional)</label><br />
+                    <apex:selectList size="1" value="{!applicantWrapper.applicant.Pref_Contact_Method__c}" id="Applicant__c___Pref_Contact_Method__c">
+                        <apex:selectOptions value="{!preferredContactMethodOptions}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText rendered="{!applicantWrapper.errorPrefContactMethod}" value="{!applicantWrapper.errorPrefContactMethodMsg}" styleClass="warningMessage" />
+                </div> -->
+            </apex:outputPanel>
+            
+            <div class="clearfix"></div>
+            
+            
+            <apex:inputHidden value="{!applicantWrapper.applicant.PRS_RECORD_ID__c}" id="Applicant__c___PRS_RECORD_ID__c" />
+            <apex:inputHidden value="{!applicantWrapper.applicant.id}" id="Applicant__c___id" />
+    </div><!-- end personaldetails -->
+    
+    <script type="text/javascript">
+    
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=Applicant__c___Customer_ID_Type__c] option[value=""]').text("Select"); 
+            $('[id*=Applicant__c___ID_1__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Sec_ID_Issue_Country__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___State_Res__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___State_Pos__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___State_Pre__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Rel_Status__c] option[value="Please Select"]').text("Select");
+            $('[id*=Applicant__c___Street_Type_Res__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Street_Type_Pos__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Street_Type_Pre__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Country_Res__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Country_Pos__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Country_Pre__c] option[value=""]').text("Select");
+            $('[id*=Applicant__c___Service_Delivery_Type__c] option[value=""]').text("Select");
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+   </script>
+</apex:component>

@@ -1,0 +1,153 @@
+<apex:page standardController="Application__c" extensions="APP_WaitPageExt_INT,Off_OfferPresentationRemote" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0">
+<apex:includeScript value="{!$Resource.streaming_cometd}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery}"/>
+    <apex:includeScript value="{!$Resource.streaming_json2}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery_cometd}"/>
+    
+    <apex:form id="theForm">
+        <apex:inputHidden id="applicationID" value="{!appId}" />
+        <apex:inputHidden id="applicationRespID" value="{!appRespId}" />
+
+        <div class="alert alert-info">
+            <apex:outputPanel rendered="{!showComponent}">
+                <c:WaitPageLoadingDialog BackColor="#f7f9fa"
+                   borderColor="#e9ecef"
+                   borderSize="1"
+                   height="100px"
+                   width="200px"
+                   margintop="-25px"
+                   marginleft="-150px"
+                   ImageUrl="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                   Message="Waiting for Response - Please Wait"/>
+            </apex:outputPanel>
+        </div>
+      <!-- <apex:actionFunction action="{!proceedToOffer}" name="checkAppRes" rerender="theForm"/> -->
+      <apex:actionFunction action="{!hideComponent}" name="hidCom" rerender="theForm"/>       
+      
+    </apex:form>
+
+    <script type="text/javascript">   
+      // During PVT we found an issue when doc arrived after 60 sec and the confirm contract received call 
+      //never been made as we have move this logic to client side, so we increase the timeout to 120 sec 
+      var count=120;  
+      var counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+      
+      var docReceived = false;
+
+      function timer()
+      {
+        count=count-1;      
+        if(count <= 0){      
+          clearInterval(counter);          
+          hidCom();         
+        } 
+          if(count %15 == 0){//TXU - As per PRS Removal, change this from 5sec to 10sec to avoid conflict 
+         //checkAppResponseNonStreaming();
+         twoStepPoll();
+        }
+      }
+
+      // Initialize Search        
+        function initializeSearchListen() {      
+            $.cometd.init({
+                url: window.location.protocol+'//'+window.location.hostname+'/cometd/24.0/',
+               requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'},
+               appendMessageTypeToURL : false
+            })
+
+             // Subscribe to a topic. JSON-encoded update will be returned in the callback
+             var responseReceived = false;
+             $.cometd.subscribe('/topic/{!name}', function(message) {
+                  var statusResponse = JSON.stringify(message.data, null, '\t'); 
+                  console.log(statusResponse);
+                  if(statusResponse != null){
+                      var applicationIdReturned = JSON.stringify(message.data.sobject.Application__c);
+                      var applicationResponseIdReturned = JSON.stringify(message.data.sobject.Id);
+                      
+                      var applicationIdResponseId = applicationIdReturned.replace(/\"/g,'');
+                      var appResponseId           = applicationResponseIdReturned.replace(/\"/g,'');
+                      document.getElementById('appWait:theForm:applicationID').value = applicationIdResponseId;
+                      document.getElementById('appWait:theForm:applicationRespID').value = appResponseId;
+                      if(applicationIdResponseId != '' || applicationIdResponseId != null) {                                                                    
+                          $.cometd.disconnect();
+                          responseReceived = true;    
+                          //redirect the user to the Offer page passing the Application and AppResponse Id
+                          checkAppRes();                                                
+                      }
+                  }                     
+              });     
+        }
+
+      // Javascript to perform a two step poll to determine if doc is received and new application info response is receieved
+      function twoStepPoll(){
+        // Updated by: Adrian Recio
+        // Description: This will create a dynamic polling behaviour to poll the doc gen first.
+        //              If doc gen is successful, poll the application update response.
+        // Date: 23/09/2015
+        if(docReceived==false){
+          docGenConfirm();
+        }else{
+          checkAppResponseNonStreaming();
+        }
+      }
+
+      // Added by: Adrian Recio
+      // Description: Javascript polling to check if documents are generated.
+      //              This method will replace the validation process in the GeneratedDocumentsTrigger.
+      // Date: 23/09/2015
+       function docGenConfirm() {
+            var applicationIdToLook = '{!applicationId}';
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.Off_OfferPresentationRemote.callConfirmContractRecieved}',
+                applicationIdToLook, 
+                function(result, event) {
+                    //alert('Doc Gen Response:' + result);
+                    if (event.status) {
+                       if(result == true) {
+                            docReceived = true;
+                            //alert('Do receieved:' + docReceived);
+                       }
+                    } 
+                }, 
+                {escape: true}
+            );
+        }
+
+      // Updated by: Adrian Recio
+      // Description: Javascript polling workaround to replace streaming api.
+      //              This will poll the response containing application update information 
+      //              and perform the actual application update.
+      // Date: 23/09/2015
+       function checkAppResponseNonStreaming() {
+            //var applicationIdToLook = $('.curApplicationId').html();
+            var applicationIdToLook = '{!applicationId}';
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.Off_OfferPresentationRemote.checkForApplicationResponseNonStreaming}',
+                applicationIdToLook, 
+                function(result, event) {
+                   //alert('App Response:' + result);
+                    if (event.status) {
+                       if(result != null) { // May-13-2016 Afreen - return type is changed
+                            //alert('Response Found!');
+                            proceedOffer();
+                            clearInterval(counter);
+                       }
+                    } 
+                }, 
+                {escape: true}
+            );
+        }
+
+      function setStreamingAndTimer(){                
+        timer();        
+        //initializeSearchListen();
+      }
+
+      window.onload = setStreamingAndTimer();
+
+    </script>
+
+    <apex:form >
+        <apex:actionFunction action="{!proceedToContractAcceptance}" name="proceedOffer"/>
+    </apex:form>
+</apex:page>

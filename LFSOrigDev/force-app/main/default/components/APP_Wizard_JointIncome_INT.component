@@ -1,0 +1,1230 @@
+<!--
+    * @Description: Contains income details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+    ===================================================================== 
+-->
+<apex:component id="incomeDetails">
+    
+    <style type="text/css">
+        .incomeApplicant1{
+            border-width: 1px; 
+        }
+        .incomeApplicant2{
+            border-width: 1px; 
+            width: 90%;
+            margin-left: 3%;
+            opacity: 0.6;
+        }
+        .incomeHeaderColor{
+            background-color: #6cb5c4;
+        }
+    </style>
+    
+    <div id="incomeWrapper" class="slds-grid">
+        <section id='Applicant1IncomeSection' class='slds-col slds-size--1-of-2 sectionBorder'>
+            <div class="slds-m-bottom--medium slds-box slds-text-align--center incomeHeaderColor">
+                <div id='NavigationImageDiv'>
+                    <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                   3
+                </div>
+                <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Employment and Income</div>
+            </div>
+            <div class ="incomeApplicant1">
+            <!-- PRIMARY EMPLOYMENT SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- PRIMARY EMPLOYMENT LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="app1_Primary_Employment_Status__c">Primary employment type</label>
+                </section>
+                
+                <!-- PRIMARY EMPLOYMENT PICKLIST -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select isPicklistSpace" id="app1_Primary_Employment_Status__c" name="app1_Primary_Employment_Status__c" onchange="removeIgnoreIfValueSelected('#app1_Primary_Employment_Status__c', 'select', '#Applicant1IncomeSection');clearValidationMessagesBySection('#app1_incomeDiv1');return false;"/>
+                    </div>
+                </section>
+                
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--right">
+                </section>
+            </div>
+            
+            <!-- INCOME SECTION -->
+            <div id="app1_incomeDiv1" class="app1_incomeSection">
+            
+                <!-- INCOME SOURCE SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                        <!--REMOVE BUTTON-->
+                        <button type="button" id="app1_removeButton1" class="slds-button slds-button--brand slds-button--small slds-hidden slds-m-right--large" onclick="removeRecord(this.id, 'app1_incomeSection', 'app1_incomeDiv', 'app1_addIncome', 1);calculateTotalIncomeAmount();">-</button>
+                        
+                        <!-- INCOME SOURCE LABEL -->
+                        <label class="slds-form-element__label req" for="app1_Income_Source__c1">Income from</label>
+                    </section>
+                    
+                    <!-- INCOME SOURCE PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select category isPicklistSpace" id="app1_Income_Source__c1" name="app1_Income_Source__c1" onchange="showHideIncome(this.id, this.value, 1);setRequiredPreviousFields(1);clearValidationMessagesBySection('#app1_incomeDiv1');return false;"/>
+                        </div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--right">
+                    </section>
+                    
+                </div>
+                
+                <!-- INCOME AMOUNT & INTERVAL SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- INCOME AMOUNT LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Income_Amount__c1">Income amount</label>
+                    </section>
+                    
+                    <!-- INCOME AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Income_Amount__c1" name="app1_Income_Amount__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalIncomeAmount();"/>
+                                                                                                                                             <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                        </div>
+                    </section>
+                    
+                    <!-- INCOME INTERVAL LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Income_Interval__c1">Per</label>
+                    </section>
+                    
+                    <!-- INCOME INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklistSpace" id="app1_Income_Interval__c1" name="app1_Income_Interval__c1" onchange="calculateTotalIncomeAmount();"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- GOVERNMENT BENEFIT TYPE SECTION -->
+                <div id="benefitTypeSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- BENEFIT TYPE LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Government_Benefit_Type__c1">Benefit type</label>
+                    </section>
+                    
+                    <!-- BENEFIT TYPE PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklist" id="app1_Government_Benefit_Type__c1" name="app1_Government_Benefit_Type__c1"/>
+                        </div>
+                    
+                    </section>
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left"/>
+
+                </div>
+                
+                <!-- EMPLOYER FIELDS -->
+                <div id="employerSection">
+                    <div id="app1employerSection">
+                    <!-- OCCUPATION SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- OCCUPATION LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Occupation__c1">Occupation</label>
+                        </section>
+                        
+                        <!-- OCCUPATION PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select isPicklistSpace" id="app1_Occupation__c1" name="app1_Occupation__c1" onchange="clearValidationMessagesBySection('#app1employerSection');return false;"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                    
+                    <!-- INDUSTRY SECTION -->
+                    <div class="{!IF($ObjectType.Income__c.fields.Industry__c.Accessible, 'slds-show' , 'slds-hide')}">
+                        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                            
+                            <!-- INDUSTRY LABEL -->
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                                <label class="slds-form-element__label" for="app1_Industry__c1" id="app1_Industry__c1_Label">Industry</label>
+                            </section>
+                            
+                            <!-- INDUSTRY PICKLIST -->
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <select class="slds-select isPicklistSpace" id="app1_Industry__c1" name="app1_Industry__c1" onchange="clearValidationMessagesBySection('#app1employerSection');return false;"/>
+                                </div>
+                            </section>
+                            
+                            <!-- EMPTY SECTION -->
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left"/>
+
+                        </div>
+                    </div>
+                    
+                    <!-- EMPLOYER NAME SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- EMPLOYER NAME LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Emp_Bus_Name__c1" id="app1_Emp_Bus_Name__c1_Label">Employer name</label>
+                        </section>
+                        
+                        <!-- EMPLOYER NAME FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Emp_Bus_Name__c1" name="app1_Emp_Bus_Name__c1" class="slds-input isEmployerName isEmployerNameAlpha" type="text" maxlength="30" onkeypress="return isAlphaNumericKey(event)"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                    
+                    <!-- EMPLOYER CONTACT NUMBER SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- EMPLOYER CONTACT NUMBER LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                            <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'AU', 'req' , '')}" for="app1_Employer_Business_Contact_No_WS__c1" id="app1_Employer_Business_Contact_No_WS__c1_Label">Employer contact number</label>
+                        </section>
+                        
+                        <!-- EMPLOYER CONTACT NUMBER FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Employer_Business_Contact_No_WS__c1" name="app1_Employer_Business_Contact_No_WS__c1" class="slds-input isNumericOnly {!IF($CurrentPage.parameters.country == 'AU', 'isEmployerContactNumber' , 'isNZEmployerContactNumber isAlphaNumericOnly')}" type="text" maxlength="{!IF($CurrentPage.parameters.country == 'AU', '10' , '11')}" onkeypress="return isNumberKey(event)"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left"/>
+
+                    </div>
+                    
+                    <!-- TIME WITH EMPLOYER SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- TIME WITH EMPLOYER LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Years_With_Employer__c1">Time with employer</label>
+                        </section>
+                        
+                        <!-- TIME WITH EMPLOYER YEARS PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <!--Mar-18-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                <!--<select class="slds-select" id="app1_Years_With_Employer__c1" name="app1_Years_With_Employer__c1" onchange="setRequiredPreviousFields(1);" onclick="checkEmploymentPeriodIfValid('1')"/>-->
+                                <input class="slds-input digits" id="app1_Years_With_Employer__c1" name="app1_Years_With_Employer__c1" onchange="setRequiredPreviousFields(1);checkEmploymentPeriodIfValid('1')" maxlength="2" placeholder="Years"/>
+                                <label class="slds-hide errClass" id="app1_Time_With_Employer_error">Years and months must not be set to 0</label>
+                            </div>
+                        </section>
+                        
+                        <!-- TIME WITH EMPLOYER MONTHS PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left slds-p-left--small">
+                            <div class="slds-form-element__control">
+                                <!--May-05-2016- Afreen Khan - Fix Pack 2 changing Months Picklist to free txt-->
+                                <!--<select class="slds-select" id="app1_Months_With_Employer__c1" name="app1_Months_With_Employer__c1" onclick="checkEmploymentPeriodIfValid('1')"/>-->
+                                <input class="slds-select digits isRequired isPicklist isValidMonth" id="app1_Months_With_Employer__c1" name="app1_Months_With_Employer__c1" onchange="checkEmploymentPeriodIfValid('1')" maxlength="2" placeholder="Months"/>
+                            </div>
+                        </section>
+
+                    </div>
+                    </div>
+                </div>
+
+                <span class="slds-form-element__static totalAmount slds-hide" id="app1_totalIncomeAmount1"></span>
+
+            </div>
+            
+            <!-- TOTAL INCOME AMOUNT SECTION -->
+            <div class="slds-grid slds-wrap slds-m-top--x-small">
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds"/>
+
+                <!-- TOTAL INCOME AMOUNT -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--4-of-6 slds-text-align--left">
+                    <label class="slds-form-element__label slds-m-right--xx-small">Total Income:</label>
+                    <span class="slds-form-element__static totalAmount" id="app1_overallncomeAmount"></span>
+                </section>
+
+            </div>
+                
+            <!-- ADD BUTTON SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--large">
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6"/>
+                
+                <!--ADD BUTTON-->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6">
+                    <button type="button" id="app1_addIncome" class="slds-button slds-button--brand" style="width:100%" onclick="addRecord('app1_incomeSection', 'app1_incomeDiv', hideSectionIdsIncome, this.id, 1);calculateTotalIncomeAmount();">ADD ANOTHER INCOME</button>
+                </section>
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--left"/>
+
+            </div>
+            
+            <br/>
+             <!-- ResponsibleLending Section -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                     <input type="hidden" id="incomeChangesValue1"/>
+                    <div id="incomeRedundancy" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- AGENT / LANDLORD LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                         <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'NZ', 'req', '')}">Are you aware of any changes in near future that may reduce your income?</label>                                        
+                        </section>
+                        
+                        <!-- AGENT / LANDLORD FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                    <label class="slds-button slds-button--neutral" value="YES" id="incomeChangesYes1" onclick="incomeChangesConfirmation(this);validateIncome();" style="font-weight:normal !important;background-color:#fff;padding:3px 55px;">Yes</label>
+                                    <label class="slds-button slds-button--neutral" value="NO"  id="incomeChangesNo1"  onclick="incomeChangesConfirmation(this);validateIncome();" style="font-weight:normal !important;background-color:#fff;padding:3px 55px;">No</label>                       
+                            </div>     
+                             <div class="slds-form-element__label" id="incomeChangesMessage" style="display:none;"/>
+                              <div id="incomeErr1" style="display:none;color:red;float:right;text-align:center"/>              
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                </div>
+                
+                
+            <!-- PREVIOUS EMPLOYMENT SECTION -->
+            <div id="app1_previousSection">
+            
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- PREVIOUS EMPLOYMENT LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label" for="app1_Previous_Employment_Status__c">Previous employment</label>
+                    </section>
+                    
+                    <!-- PREVIOUS EMPLOYMENT PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select" id="app1_Previous_Employment_Status__c" name="app1_Previous_Employment_Status__c"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--left"/>
+                    
+                </div>
+                
+                <!-- PREVIOUS EMPLOYER NAME SECTION -->
+                <div class="{!IF($ObjectType.Applicant__c.fields.Prev_Emp_Bus_Name__c.Accessible, 'slds-show' , 'slds-hide')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- PREVIOUS EMPLOYER NAME LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                            <label class="slds-form-element__label" for="app1_Prev_Emp_Bus_Name__c">Previous employer name</label>
+                        </section>
+                        
+                        <!-- PREVIOUS EMPLOYER NAME FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Prev_Emp_Bus_Name__c" name="app1_Prev_Emp_Bus_Name__c" class="slds-input isEmployerName isEmployerNameAlpha" type="text" maxlength="30" onkeypress="return isAlphaNumericKey(event)"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                    
+                </div>
+                
+                <!-- TIME WITH PREVIOUS EMPLOYER SECTION -->
+                <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--large">
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                        <label class="slds-form-element__label" for="app1_Time_at_previous_employer_years__c">Time at previous employer</label>
+                    </section>
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER YEARS PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <!--<select class="slds-select" id="app1_Time_at_previous_employer_years__c" name="app1_Time_at_previous_employer_years__c" onclick="checkEmploymentPeriodIfValid('1')"/>-->
+                            <input class="slds-input digits" maxlength="2" id="app1_Time_at_previous_employer_years__c" name="app1_Time_at_previous_employer_years__c" onchange="checkEmploymentPeriodIfValid('1')" placeholder="Years"/>
+                            <label class="slds-hide errClass" id="app1_Time_at_previous_employer_error">Years and months must not be set to 0</label>
+                        </div>
+                    </section>
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER MONTHS PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left slds-p-left--small">
+                        <div class="slds-form-element__control">
+                            <!--May-05-2016 Afreen - Fix Pack 2 , Changing months picklist to text -->
+                            <!--<select class="slds-select" id="app1_Time_at_previous_employer_months__c" name="app1_Time_at_previous_employer_months__c" onclick="checkEmploymentPeriodIfValid('1')"/>-->
+                            <input class="slds-select digits isValidMonth" id="app1_Time_at_previous_employer_months__c" name="app1_Time_at_previous_employer_months__c" onchange="checkEmploymentPeriodIfValid('1')" maxlength="2" placeholder="Months"/>
+                        </div>
+                    </section>
+
+                </div>
+                
+            </div>
+        </div>
+        </section>
+        
+        <section id='Applicant2IncomeSection' class='slds-col slds-size--1-of-2 incomeApplicant2 slds-hide sectionBorder'>
+            <div class="slds-m-bottom--medium slds-box slds-text-align--center incomeHeaderColor">
+                <div id='NavigationImageDiv'>
+                        <img src="{!$Resource.navCircle}"/>
+                    </div>
+                    <div id='NavigationNumberText'>
+                       3
+                    </div>
+                <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Employment and Income</div>
+            </div>
+            <div style="padding-right: 5%;">
+            <!-- <div class ="incomeApplicant2"> -->
+            <!-- PRIMARY EMPLOYMENT SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- PRIMARY EMPLOYMENT LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="app2_Primary_Employment_Status__c">Primary employment type</label>
+                </section>
+                
+                <!-- PRIMARY EMPLOYMENT PICKLIST -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select isPicklistSpace" id="app2_Primary_Employment_Status__c" name="app2_Primary_Employment_Status__c" onchange="removeIgnoreIfValueSelected('#app2_Primary_Employment_Status__c', 'select', '#Applicant2IncomeSection');clearValidationMessagesBySection('#app2_incomeDiv1');return false;"/>
+                    </div>
+                </section>
+                
+            </div>
+            
+            <!-- INCOME SECTION -->
+            <div id="app2_incomeDiv1" class="app2_incomeSection">
+            
+                <!-- INCOME SOURCE SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <!--REMOVE BUTTON-->
+                        <button type="button" id="app2_removeButton1" class="slds-button slds-button--brand slds-button--small slds-hidden slds-m-right--large" onclick="removeRecord(this.id, 'app2_incomeSection', 'app2_incomeDiv', 'app2_addIncome', 2);calculateTotalIncomeAmount();">-</button>
+                        
+                        <!-- INCOME SOURCE LABEL -->
+                        <label class="slds-form-element__label req" for="app2_Income_Source__c1">Income from</label>
+                    </section>
+                    
+                    <!-- INCOME SOURCE PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select category isPicklistSpace" id="app2_Income_Source__c1" name="app2_Income_Source__c1" onchange="showHideIncome(this.id, this.value, 2);setRequiredPreviousFields(2);clearValidationMessagesBySection('#app2_incomeDiv1');return false;"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- INCOME AMOUNT & INTERVAL SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- INCOME AMOUNT LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Income_Amount__c1">Income amount</label>
+                    </section>
+                    
+                    <!-- INCOME AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app2_Income_Amount__c1" name="app2_Income_Amount__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalIncomeAmount();removeIgnoreIfValueSelected('#app2_Income_Amount__c1', 'input', '#Applicant2IncomeSection');"/>
+                        </div>                                                                                                                    <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!-- INCOME INTERVAL LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Income_Interval__c1">Per</label>
+                    </section>
+                    
+                    <!-- INCOME INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklistSpace" id="app2_Income_Interval__c1" name="app2_Income_Interval__c1" onchange="calculateTotalIncomeAmount();"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- GOVERNMENT BENEFIT TYPE SECTION -->
+                <div id="benefitTypeSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- BENEFIT TYPE LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app2_Government_Benefit_Type__c1">Benefit type</label>
+                    </section>
+                    
+                    <!-- BENEFIT TYPE PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklist" id="app2_Government_Benefit_Type__c1" name="app2_Government_Benefit_Type__c1"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- EMPLOYER FIELDS -->
+                <div id="employerSection">
+                    <div id="app2employerSection">
+                    <!-- OCCUPATION SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- OCCUPATION LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Occupation__c1">Occupation</label>
+                        </section>
+                        
+                        <!-- OCCUPATION PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <select class="slds-select isPicklistSpace" id="app2_Occupation__c1" name="app2_Occupation__c1" onchange="clearValidationMessagesBySection('#app2employerSection');return false;"/>
+                            </div>
+                        </section>
+                        
+                    </div>
+                    
+                    <!-- INDUSTRY SECTION -->
+                    <div class="{!IF($ObjectType.Income__c.fields.Industry__c.Accessible, 'slds-show' , 'slds-hide')}">
+                        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                            
+                            <!-- INDUSTRY LABEL -->
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                                <label class="slds-form-element__label" for="app2_Industry__c1" id="app2_Industry__c1_Label">Industry</label>
+                            </section>
+                            
+                            <!-- INDUSTRY PICKLIST -->
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <select class="slds-select isPicklistSpace" id="app2_Industry__c1" name="app2_Industry__c1" onchange="clearValidationMessagesBySection('#app2employerSection');return false;"/>
+                                </div>
+                            </section>
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- EMPLOYER NAME SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- EMPLOYER NAME LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Emp_Bus_Name__c1" id="app2_Emp_Bus_Name__c1_Label">Employer name</label>
+                        </section>
+                        
+                        <!-- EMPLOYER NAME FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app2_Emp_Bus_Name__c1" name="app2_Emp_Bus_Name__c1" class="slds-input isEmployerName isEmployerNameAlpha" type="text" maxlength="30" onkeypress="return isAlphaNumericKey(event)"/>
+                            </div>
+                        </section>
+                        
+                    </div>
+                    
+                    <!-- EMPLOYER CONTACT NUMBER SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- EMPLOYER CONTACT NUMBER LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'AU', 'req' , '')}" for="app2_Employer_Business_Contact_No_WS__c1" id="app2_Employer_Business_Contact_No_WS__c1_Label">Employer contact number</label>
+                        </section>
+                        
+                        <!-- EMPLOYER CONTACT NUMBER FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app2_Employer_Business_Contact_No_WS__c1" name="app2_Employer_Business_Contact_No_WS__c1" class="slds-input isNumericOnly {!IF($CurrentPage.parameters.country == 'AU', 'isEmployerContactNumber' , 'isNZEmployerContactNumber isAlphaNumericOnly')}" type="text" maxlength="{!IF($CurrentPage.parameters.country == 'AU', '10' , '11')}" onkeypress="return isNumberKey(event)"/>
+                            </div>
+                        </section>
+                        
+                    </div>
+                    
+                    <!-- TIME WITH EMPLOYER SECTION -->
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- TIME WITH EMPLOYER LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app2_Years_With_Employer__c1">Time with employer</label>
+                        </section>
+                        
+                        <!-- TIME WITH EMPLOYER YEARS PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <!--Mar-18-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                                <!--<select class="slds-select" id="app2_Years_With_Employer__c1" name="app2_Years_With_Employer__c1" onchange="setRequiredPreviousFields(2);" onclick="checkEmploymentPeriodIfValid('2')"/>-->
+                                <input id="app2_Years_With_Employer__c1" class="slds-input digits"  name="app2_Years_With_Employer__c1" onchange="setRequiredPreviousFields(2);checkEmploymentPeriodIfValid('2')" maxlength="2" placeholder="Years"/>
+                                <label class="slds-hide errClass" id="app2_Time_With_Employer_error">Years and months must not be set to 0</label>
+                            </div>
+                        </section>
+                        
+                        <!-- TIME WITH EMPLOYER MONTHS PICKLIST -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left slds-p-left--small">
+                            <div class="slds-form-element__control">
+                                <!--May-05-2016- Afreen Khan - Fix Pack 2changing Picklist to free txt-->
+                                <!--<select class="slds-select" id="app2_Months_With_Employer__c1" name="app2_Months_With_Employer__c1" onclick="checkEmploymentPeriodIfValid('2')"/>-->
+                                <input class="slds-select digits isValidMonth" id="app2_Months_With_Employer__c1" name="app2_Months_With_Employer__c1" onchange="checkEmploymentPeriodIfValid('2')" maxlength="2" placeholder="Months"/>
+                            </div>
+                        </section>
+                        
+                    </div>
+                    </div>
+                </div>
+                
+                <span class="slds-form-element__static totalAmount slds-hide" id="app2_totalIncomeAmount1"></span>
+
+            </div>
+            
+            <!-- TOTAL INCOME AMOUNT SECTION -->
+            <div class="slds-grid slds-wrap slds-m-top--x-small">
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds"/>
+
+                <!-- TOTAL INCOME AMOUNT -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--9-of-12 slds-text-align--left">
+                    <label class="slds-form-element__label slds-m-right--xx-small">Total Income:</label>
+                    <span class="slds-form-element__static totalAmount" id="app2_overallncomeAmount"></span>
+                </section>
+
+            </div>
+
+            <!-- ADD BUTTON SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--large">
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+                
+                <!--ADD BUTTON-->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5">
+                    <button type="button" id="app2_addIncome" class="slds-button slds-button--brand" style="width:100%" onclick="addRecord('app2_incomeSection', 'app2_incomeDiv', hideSectionIdsIncome, this.id, 2);calculateTotalIncomeAmount();">ADD ANOTHER INCOME</button>
+                </section>                        
+            </div>
+      
+            <br/>
+             <!-- ResponsibleLending Section -->
+                <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                <input type="hidden" id="incomeChangesValue2"/>
+                    <div id="incomeRedundancy" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- AGENT / LANDLORD LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                         <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'NZ', 'req', '')}">Are you aware of any changes in near future that may reduce your income?</label>                                        
+                        </section>
+                        
+                        <!-- AGENT / LANDLORD FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                    <label class="slds-button slds-button--neutral" value="YES" id="incomeChangesA2Yes1" onclick="incomeChangesConfirmation(this);validateIncome();" style="font-weight:normal !important;background:#fff;padding:3px 55px;">Yes</label>
+                                    <label class="slds-button slds-button--neutral" value="NO"  id="incomeChangesA2No1"  onclick="incomeChangesConfirmation(this);validateIncome();" style="font-weight:normal !important;background:#fff;padding:3px 55px;">No</label>                         
+                            </div>     
+                             <div class="slds-form-element__label" id="incomeChangesMessageA2" style="display:none;"/>
+                             <div id="incomeErr2" style="display:none;color:red;float:right;text-align:center"/>              
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                </div>
+            
+            <!-- PREVIOUS EMPLOYMENT SECTION -->
+            <div id="app2_previousSection">
+            
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- PREVIOUS EMPLOYMENT LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label" for="app2_Previous_Employment_Status__c">Previous employment</label>
+                    </section>
+                    
+                    <!-- PREVIOUS EMPLOYMENT PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select" id="app2_Previous_Employment_Status__c" name="app2_Previous_Employment_Status__c"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- PREVIOUS EMPLOYER NAME SECTION -->
+                <div class="{!IF($ObjectType.Applicant__c.fields.Prev_Emp_Bus_Name__c.Accessible, 'slds-show' , 'slds-hide')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- PREVIOUS EMPLOYER NAME LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label" for="app2_Prev_Emp_Bus_Name__c">Previous employer name</label>
+                        </section>
+                        
+                        <!-- PREVIOUS EMPLOYER NAME FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app2_Prev_Emp_Bus_Name__c" name="app2_Prev_Emp_Bus_Name__c" class="slds-input isEmployerName isEmployerNameAlpha" type="text" maxlength="30" onkeypress="return isAlphaNumericKey(event)"/>
+                            </div>
+                        </section>
+                        
+                    </div>
+                    
+                </div>
+                
+                <!-- TIME WITH PREVIOUS EMPLOYER SECTION -->
+                <div class="slds-grid slds-wrap slds-m-top--xx-small slds-m-bottom--large">
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label" for="app2_Years_With_Employer__c">Time at previous employer</label>
+                    </section>
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER YEARS PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <!--Mar-21-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                            <!--<select class="slds-select" id="app2_Time_at_previous_employer_years__c" name="app2_Time_at_previous_employer_years__c" onclick="checkEmploymentPeriodIfValid('2')"/>-->
+                            <input class="slds-input" id="app2_Time_at_previous_employer_years__c" name="app2_Time_at_previous_employer_years__c" onchange="checkEmploymentPeriodIfValid('2')" maxlength="2" placeholder="Years"/>
+                            <label class="slds-hide errClass" id="app2_Time_at_previous_employer_error">Years and months must not be set to 0</label>
+                        </div>
+                    </section>
+                    
+                    <!-- TIME WITH PREVIOUS EMPLOYER MONTHS PICKLIST -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left slds-p-left--small">
+                        <div class="slds-form-element__control">
+                            <!--May-05-2016- Afreen Khan - Userstory 131 changing Picklist to free txt-->
+                            <!--<select class="slds-select" id="app2_Time_at_previous_employer_months__c" name="app2_Time_at_previous_employer_months__c" onclick="checkEmploymentPeriodIfValid('2')"/>-->
+                            <input class="slds-select digits isValidMonth" id="app2_Time_at_previous_employer_months__c" name="app2_Time_at_previous_employer_months__c" onchange="checkEmploymentPeriodIfValid('2')" maxlength="2" placeholder="Months"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+            </div>
+        </div>
+        </section>
+        
+    </div>
+    
+    <script>
+    
+        //Global variable used when adding records. Used for hiding dynamic sections
+        var hideSectionIdsIncome = ['employerSection', 'benefitTypeSection'];
+        
+        var country = '{!JSENCODE($CurrentPage.parameters.country)}';
+        
+        
+       var incomeChangesYes1 = "incomeChangesYes1";
+       var incomeChangesNo1 = "incomeChangesNo1";
+         
+         //Applicant 2
+         var incomeChangesA2Yes1 = "incomeChangesA2Yes1";
+         var incomeChangesA2No1 = "incomeChangesA2No1";
+        
+       
+       var incomeChangesValue;
+       //Applicant 2
+       var incomeChangesValue2;
+       
+          
+       
+          function incomeChangesConfirmation(elem){
+                incomeChangesValue = document.getElementById("incomeChangesValue1");
+                //Applicant 2
+                incomeChangesValue2 = document.getElementById("incomeChangesValue2");
+
+                var incomeChangesMessage = document.getElementById("incomeChangesMessage");               
+                  if(elem.id == incomeChangesYes1){
+                        incomeChangesValue.value = 'true';
+                        incomeChangesMessage.style.display='block';
+                        incomeChangesMessage.innerHTML = 'Please adjust your income to the expected lower amount in the income fields above.';                        
+                    }
+                if(elem.id == incomeChangesNo1){
+                       incomeChangesValue.value = 'false'; 
+                       incomeChangesMessage.style.display= 'none';
+                   }               
+              
+              //Applicant 2
+              if(elem.id == incomeChangesA2Yes1){
+                        incomeChangesValue2.value = 'true';
+                        incomeChangesMessageA2.style.display='block';
+                        incomeChangesMessageA2.innerHTML = 'Please adjust your income to the expected lower amount in the income fields above.';                        
+                    }
+                if(elem.id == incomeChangesA2No1){
+                       incomeChangesValue2.value = 'false'; 
+                       incomeChangesMessageA2.style.display = 'none';
+                   } 
+                   
+                 checkRequiredfields1();
+                 
+                }
+                 var selectedStyle1;
+                var unSelectedStyle1;
+                
+                   selectedStyle1 = "color: #fff; background:#0070D2;font-weight:normal !important;padding:3px 55px;";
+                   unSelectedStyle1 = "color: #0070D2; background:#fff;font-weight:normal !important;padding:3px 55px;";
+      
+                 
+                  function checkRequiredfields1(){
+                     incomeChangesValue = document.getElementById("incomeChangesValue1");
+                  incomeChangesValue2 = document.getElementById("incomeChangesValue2");
+                  
+                    if(incomeChangesValue.value == "true"){
+                        document.getElementById(incomeChangesYes1).setAttribute("style",selectedStyle1);
+                        document.getElementById(incomeChangesNo1).setAttribute("style",unSelectedStyle1);
+                    }else if(incomeChangesValue.value == "false"){
+                        document.getElementById(incomeChangesNo1).setAttribute("style",selectedStyle1);
+                        document.getElementById(incomeChangesYes1).setAttribute("style",unSelectedStyle1);
+                    }
+                    
+                    if(incomeChangesValue2.value == "true"){
+                        document.getElementById(incomeChangesA2Yes1).setAttribute("style",selectedStyle1);
+                        document.getElementById(incomeChangesA2No1).setAttribute("style",unSelectedStyle1);
+                    }else if(incomeChangesValue2.value == "false"){
+                        document.getElementById(incomeChangesA2No1).setAttribute("style",selectedStyle1);
+                        document.getElementById(incomeChangesA2Yes1).setAttribute("style",unSelectedStyle1);
+                    }
+                 
+                } 
+            
+           
+        var employerContactNumberClass = 'isEmployerContactNumber';
+        
+        if(country != 'AU'){
+            employerContactNumberClass = 'isNZEmployerContactNumber isAlphaNumericOnly';
+        }
+        
+        /*  Description: Toggle sections based on income source
+         *  Author: Mike Lasala
+         *  Date Created: 07-OCT-2015
+         *  Input: Element Id (to identify which row), 
+                   Income source, 
+                   Applicant
+         */
+        function showHideIncome(elementId, incomeSource, applicant){
+            
+            //Get record counter
+            var counter = getCounter(elementId);
+            
+            //Identify income element (applicant 1 or 2)
+            var income = $('#Applicant'+applicant+'IncomeSection').find('#app'+applicant+'_incomeDiv'+counter);
+
+            //Hide benefit type section
+            income.find('#benefitTypeSection').hide();
+            
+            //Clear fields
+            income.find('#app'+applicant+'_Income_Amount__c'+counter).val('');
+            income.find('#app'+applicant+'_Income_Interval__c'+counter).val(' ');
+            income.find('#app'+applicant+'_Occupation__c'+counter).val(' ');
+            income.find('#app'+applicant+'_Industry__c'+counter).val(' ');
+            income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter).val('');
+            income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter).val('');
+            //income.find('#app'+applicant+'_Years_With_Employer__c'+counter).val(" "); // Mar-21-2016-AFreen Khan-updated for user story 131, Changing picklist value to text
+            //income.find('#app'+applicant+'_Months_With_Employer__c'+counter).val(" ");
+            $('#app'+applicant+'_Prev_Emp_Bus_Name__c'+counter).val('');
+                
+            if(incomeSource == 'My permanent - full time job' || 
+               incomeSource == 'My permanent - part time job' || 
+               incomeSource == 'My casual/temporary job' || 
+               incomeSource == 'My other source of income' || 
+               incomeSource == 'My seasonal job' || 
+               incomeSource == 'My self-employed business' || 
+               incomeSource == 'My contracting job' || 
+               incomeSource == 'My workers compensation' || 
+               incomeSource == 'Net Salary/Wages' || 
+               incomeSource == 'Self Employed'){
+                
+                //Show employer section
+                income.find('#employerSection').show();
+                
+                //Set fields as required by default
+                //income.find('#app'+applicant+'_Years_With_Employer__c'+counter).addClass('isPicklistSpace');
+                income.find('#app'+applicant+'_Years_With_Employer__c'+counter).addClass('isRequired');
+                income.find('#app'+applicant+'_Years_With_Employer__c'+counter).addClass('isPicklist');// Mar-21-2016-AFreen Khan-updated for user story 131, Changing picklist value to text
+                income.find('#app'+applicant+'_Months_With_Employer__c'+counter).addClass('isPicklistSpace');
+                income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter).addClass('isRequired');
+                income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter+"_Label").addClass('req');
+                income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter+"_Label").html("Employer name" + '<span> *</span>');
+                income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter).addClass(employerContactNumberClass);
+                income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').addClass('req');
+                income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').html("Employer contact number" + '<span> *</span>');
+
+                if(incomeSource == 'My workers compensation'){
+                    
+                    //Time with employer (years and months) is not required when income source = my workers compensation
+                    // income.find('#app'+applicant+'_Years_With_Employer__c'+counter).removeClass('isPicklistSpace');
+                
+                } else if(incomeSource == 'My self-employed business' || 
+                          incomeSource == 'Self Employed'){
+                    
+                    //Employer name and contact number is not required when income source = my self-employed business or self employed
+                  
+                    //income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter).removeClass('isRequired');
+                    if(country == 'NZ'){
+                        income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').removeClass('req');
+                        income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').html("Employer contact number");
+                    }
+                  
+                    //Display Industry as not required
+                    //income.find('#app'+applicant+'_Industry__c'+counter+'_Label').removeClass('req');
+                    //income.find('#app'+applicant+'_Industry__c'+counter+'_Label').html("Industry"); 
+
+                    //Display Employer name as not required
+                    //income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter+"_Label").removeClass('req');
+                    //income.find('#app'+applicant+'_Emp_Bus_Name__c'+counter+"_Label").html("Employer name");
+
+                    /*if(country == 'AU'){
+                    
+                        //Remove required class for employer contact number and add unrequired class
+                        income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter).removeClass('isEmployerContactNumber');
+                        income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter).addClass('isEmployerContactNumberNotRequired');
+                    }*/
+                } else if (incomeSource == 'Net Salary/Wages'){
+                    //Display Industry as required
+                    income.find('#app'+applicant+'_Industry__c'+counter+'_Label').addClass('req');
+                    income.find('#app'+applicant+'_Industry__c'+counter+'_Label').html("Industry" + '<span> *</span>');
+
+                    income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').removeClass('req');
+                    income.find('#app'+applicant+'_Employer_Business_Contact_No_WS__c'+counter+'_Label').html("Employer contact number");
+                }
+                
+            } else {
+                
+                //Hide employer section
+                income.find('#employerSection').hide();
+                
+                if(incomeSource == 'Government Benefit'){
+            
+                    //Show benefit type section
+                    income.find('#benefitTypeSection').show();
+                
+                } else {
+                    
+                    //Clear field
+                    income.find('#app'+applicant+'_Government_Benefit_Type__c'+counter).val('');
+                }
+            }
+            
+            calculateTotalIncomeAmount();
+        }
+        
+        /*  Description: Set required fields for previous employer section for NZ
+         *  Author: Mike Lasala
+         *  Date Created: 13-OCT-2015
+         *  Input: Applicant
+         */
+        function setRequiredPreviousFields(applicant){
+            
+            //Only run for NZ
+            if(country == 'NZ'){
+            
+                var validatePreviousInfo = true;
+                
+                //Length of records
+                var recordLength = $('.app'+applicant+'_incomeSection').length;
+                
+                //Iterate over records and check if validation is needed
+                for(var i=1; i<=recordLength; i++){
+                    
+                    var income = $('#Applicant'+applicant+'IncomeSection').find('#app'+applicant+'_incomeDiv'+i);
+                    
+                    if((income.find('#app'+applicant+'_Income_Source__c'+i).val() != 'Net Salary/Wages' && 
+                        income.find('#app'+applicant+'_Income_Source__c'+i).val() != 'Self Employed') || 
+                       ((income.find('#app'+applicant+'_Years_With_Employer__c'+i).val() != '' ||
+                         income.find('#app'+applicant+'_Years_With_Employer__c'+i).val() != 00) && 
+                        income.find('#app'+applicant+'_Years_With_Employer__c'+i).val() >= 2)){
+                         
+                        validatePreviousInfo = false;
+                    }
+                }
+                console.log('validatePreviousInfo: '+validatePreviousInfo);
+                
+                var previousSection = $('#app'+applicant+'_previousSection');
+                
+                if(validatePreviousInfo){
+                    
+                    //Set previous employment status to required
+                    if(previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').val() == ''){
+                    
+                        previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').addClass('isPreviousEmployment');
+                    } 
+                    
+                    //Set previous employment name to required
+                    if(previousSection.find('#app'+applicant+'_Prev_Emp_Bus_Name__c').val() == '' && 
+                       previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').val() != 'Other'){
+                        
+                        previousSection.find('#app'+applicant+'_Prev_Emp_Bus_Name__c').addClass('isPreviousEmployer');
+                    }
+                    
+                    //Set years with previous employer to required
+                    if(previousSection.find('#app'+applicant+'_Prev_Emp_Bus_Name__c').val() == '' && 
+                       previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').val() != 'Other'){
+                        
+                        previousSection.find('#app'+applicant+'_Time_at_previous_employer_years__c').addClass('isPreviousYear');
+                        previousSection.find('#app'+applicant+'_Time_at_previous_employer_years__c').addClass('isRequired');// Mar-21-2016-Afreen Khan - Added for story 131, changing picklist to text
+                    } 
+                    
+                    //Set months with previous employer to required
+                    if(previousSection.find('#app'+applicant+'_Prev_Emp_Bus_Name__c').val() == '' && 
+                       previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').val() != 'Other'){
+                        
+                        previousSection.find('#app'+applicant+'_Time_at_previous_employer_months__c').addClass('isPreviousMonth');
+                    }
+                    
+                } else {
+                    
+                    //Set all fields to not required
+                    previousSection.find('#app'+applicant+'_Previous_Employment_Status__c').removeClass('isPreviousEmployment');
+                    previousSection.find('#app'+applicant+'_Prev_Emp_Bus_Name__c').removeClass('isPreviousEmployer');
+                    previousSection.find('#app'+applicant+'_Time_at_previous_employer_years__c').removeClass('isPreviousYear');
+                    previousSection.find('#app'+applicant+'_Time_at_previous_employer_months__c').removeClass('isPreviousMonth');
+                    previousSection.find('#app'+applicant+'_Time_at_previous_employer_years__c').removeClass('isRequired');// Mar-21-2016-Afreen Khan - Added for story 131, changing picklist to text
+                }
+            }
+        }
+        
+        /*  Description: Show error message when both period fields are set to "0"
+         *  Author: Marvin David
+         *  Date Created: 01-DEC-2015
+         *  Input: Applicant Number
+         */
+         function checkEmploymentPeriodIfValid(appNum){
+            //Mar-21-2016- rreen Khan - Userstory 131 changing Picklist to free txt-->
+            if(($('#app'+appNum+'_Years_With_Employer__c1').val() == '0' || $('#app'+appNum+'_Years_With_Employer__c1').val() == '00' ) && ( $('#app'+appNum+'_Months_With_Employer__c1').val() == '0'||  $('#app'+appNum+'_Months_With_Employer__c1').val() == '00')){
+                $('#app'+appNum+'_Time_With_Employer_error').show();
+            } else {
+                $('#app'+appNum+'_Time_With_Employer_error').hide();
+            }
+            
+            if(($('#app'+appNum+'_Time_at_previous_employer_years__c').val() == '0' || $('#app'+appNum+'_Time_at_previous_employer_years__c').val() == '00' ) && ($('#app'+appNum+'_Time_at_previous_employer_months__c').val() == '0' || $('#app'+appNum+'_Time_at_previous_employer_months__c').val() == '00')){
+                $('#app'+appNum+'_Time_at_previous_employer_error').show();
+            } else {
+                $('#app'+appNum+'_Time_at_previous_employer_error').hide();
+            }
+         }
+        
+        /*  Description: Create options for time at employer (and previous)
+         *  Author: Mike Lasala
+         *  Date Created: 08-OCT-2015
+         *  Input: HTML element, 
+                   Counter, 
+                   Year or Month
+         */
+        function incomeTimeOptions(element, counter, date){
+
+            //Iterate over elements
+            for(var e=0; e<element.length; e++){
+
+                // Set initial value
+                $("#"+element[e]).append($("<option>").val(' ')
+                                                      .html(date+'s')
+                                        );
+
+                //add 0 value if option for years and months
+                $("#"+element[e]).append($("<option>").val('0')
+                                                      .html('0'));
+
+                //Iterate over desired count
+                for(var i=1; i<counter; i++){
+                    
+                    var c = i;
+                    
+                    //Add + if option is for years
+                    if(date == 'Year'){
+                        if(i>9){
+                            i = i+'+';
+                        }
+                    }
+                    
+                    //Append to element
+                    $("#"+element[e]).append($("<option>").val(c)
+                                                          .html(i)
+                                            );
+                }
+            }
+        }
+        
+        /*  Description: Calculate total income amount
+         *  Author: Mike Lasala
+         *  Date Created: 19-OCT-2015
+         *  Input: None
+         */
+        function calculateTotalIncomeAmount(){
+            
+            var totalIncomeAmount;
+            var applicants = 1;
+            
+            //Identify if application is joint by checking if income 2 section is displayed
+            if($('.incomeApplicant2').css('display') == 'block'){
+                applicants = 2;
+            }
+            
+            //Iterate over each applicant
+            for(var app=1; app<=applicants; app++){
+                
+                totalIncomeAmount = 0;
+                
+                //Length of records
+                var recordLength = $('.app'+app+'_incomeSection').length;
+                
+                //Iterate over income records
+                for(var i=1; i<=recordLength; i++){
+                
+                    //Get income element
+                    var income = $('#app'+app+'_incomeDiv'+i);
+                    var incomeSource = income.find('#app'+app+'_Income_Source__c'+i).val();
+                    var incomeAmount = 0;
+                    
+                    if(incomeSource != ' '){
+                    
+                        incomeAmount = Number(income.find('#app'+app+'_Income_Amount__c'+i).val())
+                    
+                        if(incomeSource == 'Rental Income'){
+                            
+                            //Calculate rent income amount
+                            incomeAmount = incomeAmount * repaymentPercentRentalIncome;
+                        }
+                        
+                        //Calculate income amount by interval
+                        incomeAmount = calculateInterval(Number(incomeAmount), income.find('#app'+app+'_Income_Interval__c'+i).val());
+                        income.find('#app'+app+'_totalIncomeAmount'+i).text(incomeAmount);
+                        
+                        //Summate applicant's total income
+                        totalIncomeAmount += Number(incomeAmount) > 0 ? Number(incomeAmount) : 0;
+                    }
+                }
+                
+                totalIncomeAmount = Number(totalIncomeAmount).toFixed(2);
+                
+                $('#app'+app+'_overallncomeAmount').text('$'+addCommas(totalIncomeAmount));
+            }
+        }
+        
+        /*  Description: Initialize picklist values
+         *  Author: Mike Lasala
+         *  Date Created: 12-OCT-2015
+         *  Input: None
+         */
+        function init(){
+            
+            //Set default picklist values
+            setDefaulPicklistValue('#incomeWrapper');
+            
+            //Load picklist values
+            for(var i=1; i<=2; i++){
+                
+                //MLASALA: 05-APR-2016
+                // incomeTimeOptions(["app"+i+"_Years_With_Employer__c1", 
+                //                   "app"+i+"_Time_at_previous_employer_years__c"], 11, 'Year');
+                               
+                incomeTimeOptions(["app"+i+"_Months_With_Employer__c1", 
+                                   "app"+i+"_Time_at_previous_employer_months__c"], 12, 'Month');
+
+
+                $('#app'+i+'_Government_Benefit_Type__c1').append( $("<option>").val('').html('Please Select'));
+            }
+        }
+    
+        init();
+
+        //Hide dynamic section on load
+        showHideIncome('app1_Income_Source__c1', '', 1);
+        showHideIncome('app2_Income_Source__c1', '', 2);
+        
+        /*********************Toggle Panel************************************/
+        $("#Applicant1IncomeSection").click(function(){
+            
+            $("#incomeWrapper").animate({"left":"0px"}, "slow");
+            $("#Applicant2IncomeSection").css("opacity",0.4);
+            $("#Applicant1IncomeSection").css("opacity",1.0);
+        });
+        
+        $("#Applicant2IncomeSection").click(function(){
+            
+            $("#incomeWrapper").animate({"left":"-30%"}, "slow");
+            $("#Applicant1IncomeSection").css("opacity",0.4);
+            $("#Applicant2IncomeSection").css("opacity",1.0);
+        });
+        
+        /****************************SUBMIT**********************************/
+        /*  Description: Map income records
+         *  Author: Mike Lasala
+         *  Date Created: 01-NOV-2015
+         *  Input: None
+         */
+        function mapIncome(){
+
+            //Iterate over applicant/s
+            for(var app=1; app<=applicant.length; app++){
+                
+                //Get record count per applicant
+                var recordLength = $('.app'+app+'_incomeSection').length;
+                    
+                for(var i=1; i<=recordLength; i++){
+                    
+                    if(getValue('app'+app+'_Income_Source__c'+i) != ' '){
+
+                        //Create object
+                        var income = new sforce.SObject('Income__c');
+                    
+                        //Map the fields
+                        income.Income_Source__c =   getValue('app'+app+'_Income_Source__c'+i);
+                        income.Income_Amount__c =   getValue('app'+app+'_Income_Amount__c'+i);
+                        income.Income_Interval__c = getValue('app'+app+'_Income_Interval__c'+i);
+                        income.Total_Income__c =    $('#app'+app+'_totalIncomeAmount'+i).text();
+                        income.RecordTypeId =       RECORDTYPES['Income__c.'+country];
+                        income.Applicant__c =       applicant[app-1].Id;
+
+                        if(income.Income_Source__c == 'My permanent - full time job' || 
+                           income.Income_Source__c == 'My permanent - part time job' || 
+                           income.Income_Source__c == 'My casual/temporary job' || 
+                           income.Income_Source__c == 'My other source of income' || 
+                           income.Income_Source__c == 'My seasonal job' || 
+                           income.Income_Source__c == 'My self-employed business' || 
+                           income.Income_Source__c == 'My contracting job' || 
+                           income.Income_Source__c == 'My workers compensation' || 
+                           income.Income_Source__c == 'Net Salary/Wages' || 
+                           income.Income_Source__c == 'Self Employed'){
+
+                            income.Occupation__c =           getValue('app'+app+'_Occupation__c'+i);
+                            income.Emp_Bus_Name__c =         getValue('app'+app+'_Emp_Bus_Name__c'+i);
+                            income.Emp_Bus_Contact_No__c =   getValue('app'+app+'_Employer_Business_Contact_No_WS__c'+i);
+                            income.Years_With_Employer__c =  getValue('app'+app+'_Years_With_Employer__c'+i);
+                            income.Months_With_Employer__c = getValue('app'+app+'_Months_With_Employer__c'+i);
+                            
+                            if({!$ObjectType.Income__c.fields.Industry__c.Accessible}){
+                                income.Industry__c = getValue('app'+app+'_Industry__c'+i);
+                            }
+                            
+                            income.Employer_Business_Contact_No_Area_Code__c = income.Emp_Bus_Contact_No__c.substring(0,2);
+                            income.Employer_Business_Contact_No_WS__c =        income.Emp_Bus_Contact_No__c.substring(2);
+
+                        } else if(income.Income_Source__c == 'Government Benefit'){
+
+                            income.Government_Benefit_Type__c = getValue('app'+app+'_Government_Benefit_Type__c'+i);
+                        }
+                        
+                        incomes.push(income);
+                    }
+                }
+                console.log('incomes: '+incomes);
+                debugLog('Incomes Data',incomes);
+            }
+        }
+    </script>
+    
+</apex:component>

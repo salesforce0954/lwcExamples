@@ -1,0 +1,59 @@
+<apex:component >
+    <!------------------------------------------------>
+    <!-- @author  gerome.teodosio@cloudsherpas.com  -->
+    <!-- @desc    Overwrites some styles to fit the -->
+    <!--             mobile version for GEM         -->
+    <!------------------------------------------------>
+    <style>
+    
+    .GPrimary-button,
+    .GAdd-income {
+        background-color: #4465ad !important;
+    }
+    
+    .GPrimary-button:hover,
+    .GAdd-income:hover {
+        background-color: #88cdd3 !important;
+    }
+        @media screen and (max-width: 415px) {
+            .span5.headertitle {
+                width: 100% !important;
+            }
+            
+            .headertitle h3 {
+                color: #4465ad !important;
+            }
+            
+            .minusplusicon.adconad {
+                background-color: #4465ad;
+            }
+            
+            .minusplusicon.miconad {
+                background-color: transparent !important;
+            }
+            
+            .span12.fleft button.btn.btn-block.btn-normalc.btn-large.GPrimary-button {
+                font-size: 14px;
+            }
+            
+            .span12.fleft button.btn.btn-block.btn-normalc.btn-large.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.btnNext.GPrimary-button {
+                background-color: #4465ad !important;
+            }
+            
+            .span12.fleft button.btn.btn-block.btn-normalc.btn-large.GPrimary-button:hover,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.btnNext.GPrimary-button:hover{
+                background-color: #88cdd3 !important;
+            }
+            
+            span.fui-arrow-left {
+                margin-top: 25px;
+            }
+            
+            .maincontent.submitwaitview,
+            .maincontent {
+                margin: 0 auto !important;
+            }
+        }
+    </style>
+</apex:component>

@@ -1,0 +1,11 @@
+<apex:page standardController="Contact" extensions="CheckDMOptOutCls" action="{!CheckOnload}" showHeader="false" sidebar="false" standardStylesheets="false">
+<script>
+setTimeout("call()",1500);
+function call(){
+    
+  if("{!JSENCODE(propAlert)}" == "PRESENT"){ //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+    var ansj=confirm("Warning: This contact has Opted Out of Direct Marketing. Do not Direct Market to them.");
+ }
+}
+</script>
+</apex:page>

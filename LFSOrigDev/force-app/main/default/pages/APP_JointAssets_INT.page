@@ -1,0 +1,241 @@
+<!--
+/**
+* @Description: Joint Application Assets page (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 19.NOV.2013
+* @History:
+  =====================================================================
+      11-19-13: Created - Mike
+      12-02-13: Applied single set of fields - Mike
+      01-14-14: Refactored to cater single and joint application - Mike
+      21-01-15  Added count variable for asset count DBHZL-205 - Vijay
+      04-09-15: Updated - Include client side validations - DYU
+   =====================================================================
+ */ 
+-->
+<apex:page id="assetsPage" cache="false" standardController="Application__c" extensions="APP_JointAssetsExt_INT"
+ showHeader="false">
+ <!-- Added by DYU 04-09-15 - JQUERY Validate Plugin -->
+ <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}" />
+ <script>var jquery1 = jQuery.noConflict( true ); var res = true;</script>
+ <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.valid ate.js')}" />
+ <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}" />
+ <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}" />
+ <apex:includeScript value="{!$Resource.jqueryValidateScript}" />
+
+
+ <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}" />
+ <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.js"></script>
+ <script>
+    
+        function deleteRow(Id){
+            document.getElementById('assetsPage:mainForm:selectedId').value = Id;
+            removeAsset();
+        }
+        
+        function checkAssetFields(action){
+            document.getElementById('assetsPage:mainForm:redirectTxt').value = action;
+            document.getElementById('assetsPage:mainForm:flag').value = false;
+            validateAsset();
+        }
+                
+        function isAlNumeric(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;                          
+            if (((charCode == 08 || charCode == 45 || charCode == 32 || (charCode >= 65 && charCode <= 90) 
+            || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57)))){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        function isNumberKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 46) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
+        function disableOwnership(rowcount){
+            var assetCategory=document.getElementById('assetsPage:mainForm:assetPageBlock:assetRepeat:'+rowcount+':component-1:Asset__c-mycomponent:Asset__c___Asset_Category__c').value;
+            if(assetCategory=='{!AssetDeposit}' || assetCategory == '{!AssetKiwiSaver}'){
+                document.getElementById('assetsPage:mainForm:assetPageBlock:assetRepeat:'+rowcount+':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').setAttribute("disabled", "disabled");
+            }else{
+                document.getElementById('assetsPage:mainForm:assetPageBlock:assetRepeat:'+rowcount+':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').removeAttribute("disabled");
+            }
+            carFieldsAction();
+        }
+
+        //Added by DYU 04-09-15 - Function after client side validations has been triggered
+        function checkApp(val){
+            //save or next button
+            if(val == 'Save' || val == 'Next'){
+                if(validateFormSales()){
+                    checkAssetFields(val);
+                  }else{
+                    document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='hidden';
+                }
+            }
+
+            if(val == 'Add'){
+                if(validateFormSales()){
+                    addMoreAssets();
+                }else{
+                    document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='hidden';
+                }
+            }
+
+            //enable save and next button
+            if(val == 'Next')
+                document.getElementById('assetsPage:mainForm:assetPageBlock:nextBtn').disabled = false;
+            //enable save button
+            if(val == 'Save')
+                document.getElementById('assetsPage:mainForm:assetPageBlock:saveBtn').disabled = false;            
+        }
+    </script>
+ <style>
+.grayborderbtom {
+  border-top: 1px solid gray;
+}
+</style>
+ <apex:form id="mainForm" styleClass="validateLoanForm">
+
+  <apex:inputHidden id="flag" />
+  <apex:inputHidden id="redirectTxt" value="{!redirectTo}" />
+  <apex:inputHidden id="selectedId" value="{!selectedRow}" />
+  <apex:actionFunction name="validateAsset" action="{!pageRedirect}" />
+  <apex:actionFunction name="removeAsset" action="{!removethisAsset}" reRender="assetPageBlock" />
+  <apex:actionFunction name="addMoreAssets" action="{!addAsset}" reRender="assetPageBlock"/> 
+  <apex:actionFunction name="carFieldsAction" reRender="carFields"/>
+  <apex:actionFunction name="getTotal" action="{!getTotalAsset}" reRender="totalAssetId" />
+
+  <apex:pageBlock title="{!if(brand.Country__c=='NZ','Bank Accounts Held','Assets')}" id="assetPageBlock">
+   <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+    <apex:pageMessages />
+    <p>
+     <apex:outputText value="My bank accounts and cards:" rendered="{!applicantList.size==1}" />
+    </p>
+    <p>
+     <apex:outputText value="Our joint bank accounts and cards:" rendered="{!applicantList.size>1}" />
+    </p>
+    <div class="boxincludeFields">
+     <div class="fleftme includeFields grayborderbtom cutfields">
+      <div class="fleft" >
+       <apex:outputLabel styleClass="labelCol">Bank Accounts Held</apex:outputLabel>
+      </div>
+      <div class="fleft" style="width:900px !important">
+       <apex:outputPanel layout="block" styleClass="requiredInput">
+        <apex:outputPanel layout="block" styleClass="requiredBlock2" />
+        <apex:selectList size="1" value="{!bankAccountHeld}" id="Location_validation" styleClass="isPicklist">
+         <apex:selectOptions value="{!bankAccountHeldOptions}" />
+        </apex:selectList>
+        <div class="clearfix" />
+       </apex:outputPanel>
+      </div>
+     </div>
+    </div>
+
+   </apex:outputPanel>
+   <div class="assetsLayout">
+    <p>
+     <apex:outputText value="Assets" rendered="{!brand.Country__c=='NZ'}" />
+    </p>
+    <p>
+     <apex:outputText value="My assets are:" rendered="{!applicantList.size==1}" />
+    </p>
+    <p>
+     <apex:outputText value="Our joint assets are:" rendered="{!applicantList.size>1}" />
+    </p>
+    <!-- Added by vijay -->
+    <apex:variable var="cnt" value="{!0}" />
+    <apex:repeat value="{!assetAddList}" var="assetWrap" id="assetRepeat">
+     <apex:variable var="cnt" value="{!cnt+1}" />
+     <div class="boxincludeFields">
+      <c:APP_JointAssets_INT assetWrap="{!assetWrap}" id="component-1" assetCount="{!cnt}"
+       brandRegion="{!brand.Country__c}" />
+     </div>
+
+    </apex:repeat>
+    <div class="clearfix"></div>
+
+
+    <div class="totalincome">
+     <apex:outputPanel id="totalAssetId">
+      <strong>Total Assets:</strong>
+      <apex:outputText value="${0, number,###,###,##0.00}">
+       <apex:param value="{!totalAssets}" />
+      </apex:outputText>
+     </apex:outputPanel>
+    </div>
+
+    <div class="optionbuttons" align="center">
+     <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;" />
+     <br />
+     <apex:actionStatus id="status5">
+      <apex:facet name="stop">
+       <apex:commandButton value="Add More" rendered="{!assetListSize < $Setup.Application_Wizard_Settings__c.Max_Records__c}"
+        rerender="assetPageBlock" status="status5"
+        onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible'" 
+        oncomplete="checkApp('Add'); return false;"/>
+      </apex:facet>
+      <apex:facet name="start">
+       <apex:commandButton value="Adding..." disabled="true" />
+      </apex:facet>
+     </apex:actionStatus>
+     <apex:actionStatus id="status2">
+      <apex:facet name="stop">
+       <apex:commandButton value="Save & Next" id="nextBtn" styleClass="btnSubmitLoan"
+        rendered="{!IF(Mode == 'Edit', false, true)}" rerender="assetPageBlock"
+        onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible'; this.disabled='true';"
+        onComplete="checkApp('Next'); return false;" status="status2" />
+      </apex:facet>
+      <apex:facet name="start">
+       <apex:commandButton value="Processing..." disabled="true" />
+      </apex:facet>
+     </apex:actionStatus>
+     <apex:actionStatus id="status">
+      <apex:facet name="stop">
+       <apex:commandButton value="Save & Close" rerender="assetPageBlock"
+        id="saveBtn" styleClass="btnSubmitLoan"
+        onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible'; this.disabled='true';"
+        onComplete="checkApp('Save'); return false;" status="status" />
+      </apex:facet>
+      <apex:facet name="start">
+       <apex:commandButton value="Saving..." disabled="true" />
+      </apex:facet>
+     </apex:actionStatus>
+     <apex:actionStatus id="status4">
+      <apex:facet name="stop">
+       <apex:commandButton value="Back" id="backBtn1" oncomplete="checkAssetFields('Back');" reRender="status4"
+        status="status4"
+        onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible'" />
+      </apex:facet>
+      <apex:facet name="start">
+       <apex:commandButton value="Processing..." disabled="true" />
+      </apex:facet>
+     </apex:actionStatus>
+     <apex:actionStatus id="status3">
+      <apex:facet name="stop">
+       <apex:commandButton value="Cancel" id="closeBtn" reRender="status3" status="status3"
+        onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible'"
+        oncomplete="checkAssetFields('Cancel');" />
+      </apex:facet>
+      <apex:facet name="start">
+       <apex:commandButton value="Cancelling..." disabled="true" />
+      </apex:facet>
+     </apex:actionStatus>
+    </div>
+    <!-- end buttons -->
+
+   </div>
+   <!-- end container Layout -->
+
+  </apex:pageBlock>
+ </apex:form>
+
+</apex:page>

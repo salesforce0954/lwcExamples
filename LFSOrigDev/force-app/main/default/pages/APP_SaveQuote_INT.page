@@ -1,0 +1,65 @@
+<apex:page id="appId" controller="APP_SaveQuote_INTCC" showHeader="false" sidebar="false" standardStylesheets="true" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+  <apex:includeScript value="/support/console/28.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+        <apex:form id="formId">
+        
+           <apex:outputPanel id="errMsg">
+               <apex:pageMessages />     
+            </apex:outputPanel>
+            
+        <apex:pageBlock title="Save Quote" id="SaveQuote-1">
+            
+            <table width="100%" border="0" cellpadding="3" class="cancelapplication">
+                 <tr>
+                    <td colspan="2">
+                        <b>Please select one of the reason before saving the quote</b>
+                    </td>
+                 </tr>
+                <tr>
+                    <td align="right">
+                       <apex:outputLabel value="Save Reason" for="reason"/>
+                    </td>
+                    <td align="left">
+                  <apex:selectList id="Status__c" value="{!saveQuoteReasonStr}" size="1" styleClass="width283">
+                           <apex:SelectOptions value="{!saveReason}"/>
+                  </apex:selectList>
+                        
+                   </td>
+                </tr>
+                <tr>
+                    <td align="right">
+                        <apex:outputLabel value="Comment" for="comment"/>
+                    </td>
+                    <td align="left">
+                        <apex:inputTextarea id="Application__c_save_quote_comment__c" value="{!QuoteComment}" cols="52" 
+                        style="height:100px;"/>
+                    </td>
+                </tr>
+              <tr>
+                    <td align="right">
+                        &nbsp;
+                    </td>
+                    <td align="left">
+                    
+                      <apex:commandButton value="Save"  onclick="ClearProp();return false;"/>
+                      <apex:commandButton value="Cancel" action="{!cancel}"/>
+                      
+                    </td>
+              </tr>
+            </table>
+            <apex:actionFunction action="{!clearProp}" name="ClearProp"  oncomplete="SaveQuote_DB();" />            
+            <apex:actionFunction action="{!Save}" name="SaveQuote_DB" rerender="errMsg,Status" rendered="{!!errorFlag}"  status="StatusDB" oncomplete="CallUpdateService_WS();"/>
+            <apex:actionFunction action="{!CallUpdatebService}" name="CallUpdateService_WS" rerender="errMsg,Status" status="StatusDB" rendered="{!!errorFlag}"/> 
+            
+            <apex:outputPanel ID="Status" rendered="{!!errorFlag}">
+               <b> 
+               <div class="midmaintab">
+                <apex:actionStatus ID="StatusDB" startText="Please wait Save In Progress....."/>
+                </div>
+               </b> 
+            </apex:outputPanel>
+             
+                            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

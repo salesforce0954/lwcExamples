@@ -1,0 +1,12 @@
+<apex:page standardController="Account" extensions="CheckABZBankReferredCls" action="{!CheckOnload}" showHeader="false" sidebar="false" standardStylesheets="false">
+<head>
+<script type="text/javascript">
+setTimeout("call()",1500);
+function call(){
+  if("{!JSENCODE(conAlert)}" == "PRESENT"){ //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+    var ans = confirm("WARNING: This Account has been flagged by the accreditations team with the following comments: \n"  +"{!JSENCODE(consComment)}");  //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+  }
+}
+</script>
+</head>
+</apex:page>

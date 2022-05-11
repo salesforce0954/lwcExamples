@@ -1,0 +1,75 @@
+<template>
+
+
+        <div class="slds-var-m-around_x-small">
+            <lightning-card title="Review your Application" icon-name="standard:care_request_reviewer" class="slds-var-p-bottom_xx-small">
+                <div class="slds-var-p-around_xx-small">
+                    <lightning-tabset variant="scoped">
+                        <div class="slds-var-p-around_xx-small">
+                            <lightning-tab label={primaryApplicantName}>
+                            
+                                <lightning-tabset variant="vertical">
+                                    
+                                    <lightning-tab icon-name="standard:drafts" label="Loan Details">
+                                        <c-loan-app-consent loan-details-obj={loanDetailsObj} original-product-type={originalProductType} selected-loan-term-values={loanDetailsObj.SelectedLoanTermValues} is-better-start-active={loanDetailsObj.IsBetterStartActive} input-mode="review"></c-loan-app-consent>
+                                    </lightning-tab>
+                                    <lightning-tab icon-name="standard:employee_contact" label="About">
+                                        <c-loan-personal-details personal-details-obj={personalDetailsObj} input-mode="review" ></c-loan-personal-details>
+                                    </lightning-tab>
+                                    <lightning-tab icon-name="standard:employee_organization" label="Employment">
+                                        <c-loan-employment-details employment-details-obj={employmentDetailsObj} input-mode="review" is-joint-application={isJointApplication} ></c-loan-employment-details>
+                                    </lightning-tab>
+                                    <lightning-tab icon-name="standard:expense" label="Expense">
+                                        <c-loan-expense-details expense-details-obj={expenseDetailsObj} is-joint-application={isJointApplication} input-mode="review" ></c-loan-expense-details>
+                                    </lightning-tab>
+                                    <lightning-tab icon-name="standard:home" label="Asset">
+                                        <c-loan-asset-details asset-details-obj={assetDetailsObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-asset-details>
+                                    </lightning-tab>
+                                    <lightning-tab icon-name="standard:lead_list" label="Debt">
+                                        <c-loan-debt-details debt-details-obj={debtDetailsObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-debt-details>
+                                    </lightning-tab>
+                                </lightning-tabset>
+
+                            </lightning-tab> 
+                            <template if:true={isJointApplication}>
+                                <lightning-tab label={jointApplicantName}>
+                                
+                                    <lightning-tabset variant="vertical">
+                                        
+                                        <lightning-tab icon-name="standard:contact" label="About">
+                                            <c-loan-personal-details-joint personal-details-joint-obj={personalDetailsJointObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-personal-details-joint>
+                                        </lightning-tab>
+                                        <lightning-tab icon-name="standard:employee_organization" label="Employment">
+                                            <c-loan-employment-details-joint employment-details-joint-obj={employmentDetailsJointObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-employment-details-joint>
+                                        </lightning-tab> 
+                                        <lightning-tab icon-name="standard:expense" label="Expense">
+                                            <c-loan-expense-details expense-details-obj={expenseDetailsObj} is-joint-application={isJointApplication} input-mode="review" ></c-loan-expense-details>
+                                        </lightning-tab>
+                                        <lightning-tab icon-name="standard:home" label="Asset">
+                                            <c-loan-asset-details asset-details-obj={assetDetailsObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-asset-details>
+                                        </lightning-tab>
+                                        <lightning-tab icon-name="standard:lead_list" label="Debt">
+                                            <c-loan-debt-details debt-details-obj={debtDetailsObj} input-mode="review" is-joint-application={isJointApplication}></c-loan-debt-details>
+                                        </lightning-tab>
+                                    </lightning-tabset>
+                                </lightning-tab>
+                            </template>
+                        </div>
+                    </lightning-tabset>
+                </div>
+            
+
+
+
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleReviewDetailsPrev}></lightning-button>
+
+                        <lightning-button class="slds-float_right" label="Submit Application" variant="brand" icon-name="action:submit_for_approval" icon-position="right" onclick={hanldeApplicationSubmit}></lightning-button>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </lightning-card>
+        </div>
+    
+</template>

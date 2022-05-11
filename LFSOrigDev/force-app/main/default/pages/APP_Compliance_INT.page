@@ -1,0 +1,526 @@
+<!--
+/**
+* @Description: Digitized Compliance Checklist page (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 13.DEC.2013
+* @History:
+  =====================================================================
+      12-13-13: Created - Mike
+      12-16-13: Added rendering of columns - Mike
+      12-17-13: Added latest version of questions upon load - Mike
+      01-22-13: Added Acceptance Channel - Mike
+   =====================================================================
+ */ 
+-->
+<apex:page id="pageId" standardController="Application__c" extensions="APP_ComplianceExt_INT" showHeader="false" 
+sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+    
+    <apex:form id="formId">
+        
+        <apex:pageMessages />
+        
+        <apex:outputPanel id="tablePanel" rendered="{!!formState}">
+            <div style="text-align:center">
+                <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+                style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="status">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="{!IF(isNew, 'New', 'Edit')}" action="{!showForm}" 
+          rendered="{!!formState}" reRender="formId" status="status"
+    onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif').style.visibility='visible'" 
+           disabled="{!newEditComplianceButton}"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>
+
+                <apex:actionStatus id="status7">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Refresh" action="{!refreshComplianceCheckList}"
+                         rendered="{!!formState}" reRender="formId" status="status7" 
+ onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Refreshing..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </div>            
+            <br/>
+            
+            <apex:pageBlock title="Compliance Checklist">
+                
+                <strong>Pre Contract Acceptance Checklist</strong>
+                                
+                <apex:pageBlockTable value="{!checklistMap}" var="fieldKey">
+                
+                    <apex:column headerValue="To be completed and acknowledged by Sales Agent and Manager prior to contract acceptance">
+                        <apex:pageBlockTable value="{!checklistMap[fieldKey]}" var="keyvalue">
+                            <apex:column headerValue="{!fieldKey}" width="70%">
+                                <apex:outputField value="{!keyvalue.mccLineItem.Checklist__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Yes/NA" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Check__c}" 
+                                rendered="{!NOT(keyvalue.mccLineItem.BM_Only__c)}"/>
+                                <apex:outputText value="NA" rendered="{!keyvalue.mccLineItem.BM_Only__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Username" width="5%" rendered="{!!isNew}">
+                                <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Yes/NA" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Check__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Username" width="5%" rendered="{!!isNew}">
+                                <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                            </apex:column>
+                        
+                        </apex:pageBlockTable>
+                        
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <apex:outputPanel rendered="{!IF(OR(app.Collateral_Count__c>0, 
+                 app.Acceptance_Channel__c == 'Offline Acceptance', 
+                 brandCountry == 'NZ'),true,false)}">  
+                    <br/>
+                    <strong>Pre Settlement Checklist</strong>
+                                                            
+                    <apex:pageBlockTable value="{!preChecklistMap}" var="fieldKey">
+                    
+                        <apex:column headerValue="To be completed and acknowledged by Sales Agent and Manager prior to loan creation">
+                        
+                            <apex:pageBlockTable value="{!preChecklistMap[fieldKey]}" var="keyvalue">
+                                
+                                <apex:column headerValue="{!fieldKey}" width="70%">
+                                    <apex:outputField value="{!keyvalue.mcpreLineItem.Checklist__c}"/>
+                                    &nbsp;
+                                    <apex:outputField value="{!app.TC_Version_Number__c}" 
+               rendered="{!IF(CONTAINS(keyvalue.mcpreLineItem.Checklist__c, 'T&C Version Number'), true, false)}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Sales Agent Yes/NA" width="5%" rendered="{!!isNew}">
+                                    <apex:outputField value="{!keyvalue.compCheck.PFR_Check__c}" rendered="{!NOT(keyvalue.mcpreLineItem.BM_Only__c)}"/>
+                                    <apex:outputText value="NA" rendered="{!keyvalue.mcpreLineItem.BM_Only__c}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Sales Agent Username" width="5%" rendered="{!!isNew}">
+                                    <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                    {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                    <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="BM Yes/NA" width="5%" rendered="{!!isNew}">
+                                    <apex:outputField value="{!keyvalue.compCheck.BM_Check__c}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="BM Username" width="5%" rendered="{!!isNew}">
+                                    <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                    {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                    <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                                </apex:column>
+                            
+                            </apex:pageBlockTable>
+                            
+                        </apex:column>
+                        
+                    </apex:pageBlockTable>
+                    
+                    <!-- Collateral Table -->
+                    <apex:outputPanel rendered="{!IF(collateralList.size>0,true,false)}">
+                        <br/>
+                        <strong>Secured Loans: PPSR registration number(s)</strong>
+                        <apex:pageBlockTable value="{!CollateralRecords}" var="collateralVar">
+                            <apex:column headerValue="Type" width="300px">
+                                <apex:outputField value="{!collateralVar.RecordType.Name}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Reg #" width="300px">
+                                <apex:outputField value="{!collateralVar.Collateral_Reg_No__c}"/>
+                            </apex:column>
+                        
+                            <apex:column headerValue="PPSR Ref. #" width="300px">
+                                 <apex:outputField value="{!collateralVar.PPSR_Reference_Number_1__c}"/>
+                            </apex:column>                 
+                         </apex:pageBlockTable>
+                    </apex:outputPanel>
+
+                </apex:outputPanel>
+
+                <br/>
+                <strong>Post Settlement Checklist</strong>
+                
+                <apex:pageBlockTable value="{!postChecklistMap}" var="fieldKey">
+                
+                    <apex:column headerValue="To be completed by Sales Agent and Manager after loan has been created">
+                    
+                        <apex:pageBlockTable value="{!postChecklistMap[fieldKey]}" var="keyvalue">
+                            
+                            <apex:column headerValue="{!fieldKey}" width="70%">
+                                <apex:outputField value="{!keyvalue.mcpostLineItem.Checklist__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Yes/NA" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Check__c}" 
+                                rendered="{!NOT(keyvalue.mcpostLineItem.BM_Only__c)}"/>
+                                <apex:outputText value="NA" rendered="{!keyvalue.mcpostLineItem.BM_Only__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Username" width="5%" rendered="{!!isNew}">
+                                <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Yes/NA" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Check__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Username" width="5%" rendered="{!!isNew}">
+                                <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%" rendered="{!!isNew}">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                            </apex:column>
+                        
+                        </apex:pageBlockTable>
+                        
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+            </apex:pageBlock>
+                
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="formPanel" rendered="{!formState}">
+
+            <div align="center">
+                <apex:image id="loadingGif2" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+                style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="status2">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Save & Close" action="{!save}" reRender="formId" 
+                        status="status2" 
+onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif2').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Saving..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+
+                <apex:actionStatus id="status3">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Cancel" action="{!Cancel}" reRender="formId"
+                         status="status3"
+ onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif2').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Cancelling..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </div>
+            <br/>
+            
+            <apex:pageBlock title="Compliance Checklist">
+                <br/>
+                <strong>Pre Contract Acceptance Checklist</strong>
+                
+                <apex:pageBlockTable value="{!checklistMap}" var="fieldKey">
+                
+                    <apex:column headerValue="To be completed and acknowledged by Sales Agent and Manager prior to contract acceptance">
+                    
+                        <apex:pageBlockTable value="{!checklistMap[fieldKey]}" var="keyvalue">
+                            <apex:column headerValue="{!fieldKey}" width="80%">
+                                <apex:outputField value="{!keyvalue.mccLineItem.Checklist__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Yes/NA" width="10%">
+                                <apex:selectList size="1" value="{!keyvalue.compCheck.PFR_Check__c}"
+                 disabled="{!OR(keyvalue.mccLineItem.BM_Only__c, 
+                 AND(keyvalue.compCheck.PFR_User_ID__c != null, currentUser.Id != keyvalue.compCheck.PFR_User_ID__c),
+                  app.Response_Code__c == 'Pending FIA')}">
+                                    <apex:selectOptions value="{!PFRCheck}"/>
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Username" width="5%">
+                                <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Yes/NA" width="10%">
+                                <apex:selectList size="1" value="{!keyvalue.compCheck.BM_Check__c}" 
+                                disabled="{!IF(OR(currentUser.Id == keyvalue.compCheck.PFR_User_ID__c,
+                                 keyvalue.mccLineItem.PFR_Only__c, AND(keyvalue.compCheck.PFR_Check__c == null, 
+                                 NOT(keyvalue.mccLineItem.BM_Only__c)), app.Response_Code__c == 'Pending FIA', isPFR),
+                                  true, false)}">
+                                    <apex:selectOptions value="{!PFRCheck}"/>
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Username" width="5%">
+                                <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                            </apex:column>
+                        
+                        </apex:pageBlockTable>
+                        
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <apex:outputPanel rendered="{!IF(OR(app.Collateral_Count__c>0, 
+                app.Acceptance_Channel__c == 'Offline Acceptance', brandCountry == 'NZ'),true,false)}">  
+                    <br/>
+                    <strong>Pre Settlement Checklist</strong>
+                    
+                    <apex:pageBlockTable value="{!preChecklistMap}" var="fieldKey">
+                    
+                        <apex:column headerValue="To be completed and acknowledged by Sales Agent and Manager prior to loan creation">
+                        
+                            <apex:pageBlockTable value="{!preChecklistMap[fieldKey]}" var="keyvalue">
+                                
+                                <apex:column headerValue="{!fieldKey}" width="70%">
+                                    <apex:outputField value="{!keyvalue.mcpreLineItem.Checklist__c}"/>
+                                    &nbsp;
+                                    <apex:inputField value="{!app.TC_Version_Number__c}" 
+                   rendered="{!IF(CONTAINS(keyvalue.mcpreLineItem.Checklist__c, 'T&C Version Number'), true, false)}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Sales Agent Yes/NA" width="5%">
+                                    <apex:selectList size="1" value="{!keyvalue.compCheck.PFR_Check__c}" 
+                            disabled="{!OR(keyvalue.mcpreLineItem.BM_Only__c, 
+                            AND(keyvalue.compCheck.PFR_User_ID__c != null, 
+                            currentUser.Id != keyvalue.compCheck.PFR_User_ID__c),
+                             NOT(isDocsReceived))}">    <!--MLASALA 30-JUN-16 DEFECT 922 FIX-->
+                                        <apex:selectOptions value="{!PFRCheck}"/>
+                                    </apex:selectList>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Sales Agent Username" width="5%">
+                                    <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                    {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Date" width="5%">
+                                    <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                                </apex:column>
+                                
+                                <apex:column headerValue="BM Yes/NA" width="5%">
+                                    <apex:selectList size="1" value="{!keyvalue.compCheck.BM_Check__c}"
+                            disabled="{!OR(currentUser.Id == keyvalue.compCheck.PFR_User_ID__c,
+                             keyvalue.mcpreLineItem.PFR_Only__c, AND(keyvalue.compCheck.PFR_Check__c == null, 
+                             NOT(keyvalue.mcpreLineItem.BM_Only__c)), 
+                             NOT(isDocsReceived), isPFR)}"> <!--MLASALA 30-JUN-16 DEFECT 922 FIX-->
+                                        <apex:selectOptions value="{!PFRCheck}"/>
+                                    </apex:selectList>
+                                </apex:column>
+                                
+                                <apex:column headerValue="BM Username" width="5%">
+                                    <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                    {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                                </apex:column>
+                                
+                                <apex:column headerValue="Date" width="5%">
+                                    <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                                </apex:column>
+                            
+                            </apex:pageBlockTable>
+                            
+                        </apex:column>
+
+                    </apex:pageBlockTable>
+                    
+                    <!-- Collateral Table -->
+                    <apex:outputPanel rendered="{!IF(collateralList.size>0,true,false)}">
+                        <br/>
+                        <strong>Secured Loans: Record the PPSR registration number(s)</strong>
+                        <apex:pageBlockTable value="{!CollateralRecords}" var="collateralVar">
+                            <apex:column headerValue="Type" width="300px">
+                                <apex:outputField value="{!collateralVar.RecordType.Name}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Reg #" width="300px">
+                                <apex:outputField value="{!collateralVar.Collateral_Reg_No__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="PPSR Ref. #" width="300px">
+                                 <apex:inputField value="{!collateralVar.PPSR_Reference_Number_1__c}"/>
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    </apex:outputPanel>
+
+                </apex:outputPanel>
+
+                <br/>
+                <strong>Post Settlement Checklist</strong>
+                
+                <apex:pageBlockTable value="{!postChecklistMap}" var="fieldKey">
+                
+                    <apex:column headerValue="To be completed by Sales Agent and Manager after loan has been created">
+                    
+                        <apex:pageBlockTable value="{!postChecklistMap[fieldKey]}" var="keyvalue">
+                            
+                            <apex:column headerValue="{!fieldKey}" width="70%">
+                                <apex:outputField value="{!keyvalue.mcpostLineItem.Checklist__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Yes/NA" width="5%">
+                                <apex:selectList size="1" value="{!keyvalue.compCheck.PFR_Check__c}" 
+                                disabled="{!OR(keyvalue.mcpostLineItem.BM_Only__c,
+                                 AND(keyvalue.compCheck.PFR_User_ID__c != null,
+                                  currentUser.Id != keyvalue.compCheck.PFR_User_ID__c),
+                                  NOT(isDocsReceived))}">   <!--MLASALA 30-JUN-16 DEFECT 922 FIX-->
+                                    <apex:selectOptions value="{!PFRCheck}"/>
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Sales Agent Username" width="5%">
+                                <apex:outputLink value="/{!keyvalue.compCheck.PFR_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.PFR_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%">
+                                <apex:outputField value="{!keyvalue.compCheck.PFR_Date__c}"/>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Yes/NA" width="5%">
+                                <apex:selectList size="1" value="{!keyvalue.compCheck.BM_Check__c}" 
+                          disabled="{!IF(OR(currentUser.Id == keyvalue.compCheck.PFR_User_ID__c, 
+                          keyvalue.mcpostLineItem.PFR_Only__c, AND(keyvalue.compCheck.PFR_Check__c == null,
+                           NOT(keyvalue.mcpostLineItem.BM_Only__c)),
+                           NOT(isDocsReceived), isPFR), true, false)}"> <!--MLASALA 30-JUN-16 DEFECT 922 FIX-->
+                                <apex:selectOptions value="{!PFRCheck}"/>
+                                </apex:selectList>
+                            </apex:column>
+                            
+                            <apex:column headerValue="BM Username" width="5%">
+                                <apex:outputLink value="/{!keyvalue.compCheck.BM_User_ID__c}?noredirect=1">
+                                {!keyvalue.compCheck.BM_ID__c}</apex:outputLink>
+                            </apex:column>
+                            
+                            <apex:column headerValue="Date" width="5%">
+                                <apex:outputField value="{!keyvalue.compCheck.BM_Date__c}"/>
+                            </apex:column>
+                        
+                        </apex:pageBlockTable>
+                        
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+            </apex:pageBlock>            
+                
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!!acceptanceState}">
+
+            <div align="center">
+                <apex:image id="loadingGif3" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                 style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="status4">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Edit" action="{!showAcceptance}" rendered="{!!acceptanceState}"
+                         disabled="{!app.Response_Code__c == 'Pending FIA'}" reRender="formId" status="status4" 
+ onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif3').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>
+            </div>
+            <br/>
+            
+            <apex:pageBlock >
+            
+                <apex:pageBlockSection >
+                    <apex:outputField value="{!app.Acceptance_Channel__c}"/>
+                </apex:pageBlockSection>
+            
+            </apex:pageBlock>
+        
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!acceptanceState}">
+
+            <div align="center">
+                <apex:image id="loadingGif4" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+                style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="status5">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Save & Close" action="{!updateAcceptance}"
+                         reRender="formId" status="status5" 
+ onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif4').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Saving..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+
+                <apex:actionStatus id="status6">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Cancel" action="{!cancelAcceptance}"
+                         reRender="formId" status="status6"
+ onclick="document.getElementById('appPageId:complianceInclude:pageId:formId:loadingGif4').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Cancelling..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </div>
+            <br/>
+
+            <apex:pageBlock >
+            
+                <apex:pageBlockSection >
+                    <apex:outputLabel >Acceptance Channel</apex:outputLabel>
+                    <apex:selectList size="1" value="{!acceptanceChannel}" >
+                        <apex:selectOptions value="{!AcceptanceChannels}"/>
+                    </apex:selectList>
+                </apex:pageBlockSection>
+                
+            </apex:pageBlock>
+        </apex:outputPanel>
+                
+    </apex:form>
+    
+</apex:page>

@@ -1,0 +1,247 @@
+<apex:page controller="APP_LoginCC" sidebar="false" cache="false"  showHeader="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0">
+
+    <apex:composition template="{!$Site.Template}">
+    
+        <style>
+
+            .message, .message h4 {
+            float:left;display:block;margin-right:5px; }
+
+        </style>        
+
+        <apex:define name="GEDDBody">
+        <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+            <section>
+
+                <div class="maincontent">
+
+                    <div class="row-fluid">
+                    
+                        <!-- Start of Content Here -->
+                        
+                        <apex:form forceSSL="true">                         
+                        <apex:actionFunction name="login" action="{!login}"/>
+                        <apex:pageBlock id="User-1">
+
+                        <div class="row-fluid span12 page-login">
+
+                            <div class="span5 loginbox">
+
+                                <h3>Account Login</h3>
+
+                                <apex:pageMessages id="error" />
+
+                                <div class="clearfix"></div>
+
+                                <div class="divider10"></div>
+
+                                <apex:outputLabel value="Email Address" for="username" />
+                                <apex:inputText id="User___Email" value="{!username}" styleclass="input-block-level number" />
+                                
+                                <apex:outputLabel value="Password" for="password" />
+                                <apex:inputSecret id="password" value="{!password}" styleClass="input-block-level number" />
+                                
+                                <div class="divider20"></div>
+
+                                <!--Commented out by MDAVID - 03/01/2016 TQLQW - 104 Rebranding -->
+                                <!--<apex:commandButton styleClass="btn btn-activec btn-block removelmargin btn" value="Login" action="{!login}"/>-->
+                                <button type="submit" class="btn btn-large btn-activec btn-block removelmargin" onclick="login(); return false;">Login<span class="arrowrighticon" style="margin-left:20px"></span></button>
+                                <div class="divider10"></div>
+
+                                <div class="span12 lblink removelmargin"><i class="fui-info" style="padding-right: 5px"></i><apex:commandLink value="Forgotten Password" action="{!passwordReset}" style="{!if($Site.name==$Label.Kiwibank_Site_Name,'color:#6AB421','')}"/></div>
+                                
+                                <div class="clearfix"></div>
+
+                                <div class="divider10"></div>
+
+                            </div><!-- loginpage -->
+
+                            <div class="divider30 rimview"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="divider20 rimview"></div>
+
+                    <input id="PRS_Save" type="hidden" name="PRS_Save" value="Save"/>
+                    </apex:pageBlock>
+
+                    </apex:form>
+
+                    <div class="divider10"></div>   
+                    
+                    <!-- created a separate header title for mobile version -->
+                    <!-- Matthew Gould (13/10/2016): Commented out as not doing anything and located in the wrong position -->
+                    <!--<div class="headertitle GHeader-title" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                        <h3 class="droid-normal dark">Personal loan <span class="clearright"></span>application</h3>
+                    </div>-->
+                        
+                    </div><!-- End of Content -->
+
+                </div><!-- end maincontent -->
+
+            </section>
+
+        </apex:define>
+
+    </apex:composition>
+
+    <apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1" width="1" rendered="{!customer}"/>
+    
+    
+    
+    <!-- @title     Design OverRide for APP_Login VF Page -->
+    <!-- @author    gerome.teodosio@cloudsherpas.com      -->
+    <!--            gerome.h.teodosio@Accenture.com       -->
+        
+    <!-- Include MobileStyles component to fix general mobile style issues -->
+    <c:APP_GSD_MobileStyles />
+    
+    <style>
+        @media screen and (max-width: 415px) {
+            .pbBody > .span12 {
+              display: block !important;
+            }
+        }
+    </style>
+    
+    <!-- Include StylePicker component to fix general brand style issues -->
+    <c:APP_GSD_StylePicker />
+    
+    <!-- Latitude brand styling specific for APP_Login VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+    <style>
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px)  and (orientation: portrait) {
+                .themelogo {
+                    margin-left: 0px;
+                }
+                .headertitle {
+                    position: absolute;
+                    width: 50% !important;
+                    margin-left: 115px;
+                }
+            }
+            
+            /*For Iphone 6 and 6+*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .themelogo {
+                    margin-top: 10px;
+                }
+                .headertitle {
+                    margin-left: 140px;
+                } 
+            }
+            
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .themelogo {
+                    margin-top: 10px;
+                }
+                .headertitle {
+                    margin-left: 150px;
+                }
+            }
+    </style>   
+    </apex:outputPanel>
+    
+    <!-- Kiwibank brand styling specific for APP_Login VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <style>
+            @media screen and (min-width: 415px) {
+                h3.droid-normal.center.dark {
+                    font-size: 35px !important;
+                    margin: 30px 0px 0px -120px;
+                }
+            }
+    
+            @media screen and (max-width: 415px) {
+                .row-fluid.header-inner {
+                    padding: 0 !important;
+                }
+                
+                div#header-logo {
+                    height: 100px;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px)  and (orientation: portrait) {
+                .themelogo {
+                    margin-top: 10px;
+                }
+                .span5.headertitle {
+                    top: 5px;
+                }
+            }
+            
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .themelogo {
+                    margin-top: 10px;
+                }
+                div#header-logo {
+                    padding-top: 10px;
+                }
+                .span5.headertitle {
+                    top: 5px;
+                }
+            }
+            
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .themelogo {
+                    margin-top: 10px;
+                }
+                div#header-logo {
+                    padding-top: 10px;
+                }
+                .span5.headertitle {
+                    top: 5px;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <!-- Latitude brand styling specific for APP_Login VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+    <style>
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px)  and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                    margin-top: 5px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                }
+            }
+            
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                    margin-top: 10px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                }
+            }
+            
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 45px !important;
+                    margin-top: 15px;
+                }
+                .themelogo {
+                    margin-top: 15px;
+                }
+                
+            }
+    
+    
+    
+    </style>
+    </apex:outputPanel>
+    
+</apex:page>

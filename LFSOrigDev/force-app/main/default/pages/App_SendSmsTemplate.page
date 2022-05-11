@@ -1,0 +1,790 @@
+<apex:page standardController="Application__c" extensions="App_SendSmsTemplate" id="start" standardStylesheets="false"  docType="html-5.0">
+<script type="text/javascript" src="/canvas/sdk/js/publisher.js"/>
+     
+     
+     <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+
+   <script>var jquery1 = jQuery.noConflict( true );</script> 
+
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+
+     <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/> 
+
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/> 
+    <apex:includeScript value="{!$Resource.jqueryValidateScript}"/> 
+    
+<script>
+ function refreshFeed() {
+      Sfdc.canvas.publisher.publish({name:'publisher.refresh',payload:{feed:true}});
+    }
+        function clearFields(){
+          document.getElementById("start:frm:pB:pbs:pbsi_two:input_one").value = '';   
+          document.getElementById("start:frm:pB:pbs:pbsi_three:selApp").value =  ''; 
+          
+          var brand = '{!application.Brand_String__c}';
+          
+          if(brand == 'Latitude'){
+          document.getElementById("start:frm:pB:pbs:pbsi_four:empTypes").value= ''; 
+          }
+          if(brand == 'GEM' || brand == 'Kiwibank'){
+          document.getElementById("start:frm:pB:pbs:pbsi_five:empTypes1").value = '';
+          }
+          
+          document.getElementById("start:frm:pB:pbs:pbsi_six:documentType").value = '';   
+          document.getElementById("start:frm:pB:pbs:pbsi_nine:additionalDocument").value =  '';  
+          
+          document.getElementById("start:frm:pB:pbs:pbsi_seven:templates").value='';  
+          
+          document.getElementById("start:frm:pB:pbs:templateReview").value =  '';
+          
+          document.getElementById("start:frm:pB:pbs:pbsi_eight:input_two").value = '';  
+        }
+       
+       function getSMSForm(){
+        var selectTemplate = document.getElementById('start:frm:pB:Section:pbsi_sixteen:templateSelected');
+        
+        var date =      document.getElementById('start:frm:pB:Section7');
+        
+        var refNumber = document.getElementById('start:frm:pB:Section5');
+        
+        var agentName = document.getElementById('start:frm:pB:Section0');
+        
+        var emailNZ = document.getElementById('start:frm:pB:Section1');
+        
+        
+        var emailAddr = document.getElementById('start:frm:pB:Section2');
+       
+        var mobile =    document.getElementById('start:frm:pB:Section3');
+        
+        var billerCode = document.getElementById('start:frm:pB:Section4');
+        
+        var frequency = document.getElementById('start:frm:pB:Section6');
+        
+        var empType = document.getElementById('start:frm:pB:Section9');
+        
+        var empTypeNZ = document.getElementById('start:frm:pB:Section10');
+        
+        var docType = document.getElementById('start:frm:pB:Section11');
+        
+        var addDocType = document.getElementById('start:frm:pB:Section12');
+        
+        var applicantType = document.getElementById('start:frm:pB:Section8');
+        
+        var smsTemplate = document.getElementById('start:frm:pB:Section13');
+        
+        var tempPreview = document.getElementById('start:frm:pB:Section14');
+        
+        var dayValue = document.getElementById('start:frm:pB:Section15');
+        
+       
+        if(selectTemplate.value == ''){
+        
+           
+         <!-- document.getElementById('start:frm:pB:Section5:pbsi_thirteen:input_two').value = ''; -->  
+         refNumber.style.display = 'none';
+         
+         dayValue.style.display = 'none';
+          
+      <!--  document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = ''; -->
+         agentName.style.display = 'none';
+          
+        <!--  document.getElementById('start:frm:pB:Section7:pbsi_eleven:dateValue').value = ''; -->
+          date.style.display = 'none';
+         
+          emailAddr.style.display = 'none';
+          
+       <!--   document.getElementById('start:frm:pB:Section3:pbsi_fourteen:input_one').value = ''; -->
+          mobile.style.display = 'none';
+          
+       <!--   document.getElementById('start:frm:pB:Section6:pbsi_ten:empTypes2').value = ''; -->
+          frequency.style.display = 'none';
+                    
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'none';
+          
+          addDocType.style.display = 'none';
+          
+       <!--   document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = ''; -->
+          applicantType.style.display = 'none';
+          
+        <!--  document.getElementById('start:frm:pB:Section13:pbsi_seven:templates').value = ''; -->
+          smsTemplate.style.display = 'none';
+          
+       <!--   document.getElementById('start:frm:pB:Section14:templateReview').value = ''; -->
+          tempPreview.style.display = 'none';
+          
+          emailNZ.style.display = 'none';
+          
+          empTypeNZ.style.display = 'none';
+          
+          
+          
+        }else
+        
+        if(selectTemplate.value == 'Loan Settled Without DD'){
+          
+          date.style.display = 'none';
+          
+          refNumber.style.display = 'block';
+         
+          emailAddr.style.display = 'none';
+                    
+          mobile.style.display = 'none';
+          
+          frequency.style.display = 'none';
+          
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'none';
+          
+          addDocType.style.display = 'none';
+          
+           applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+          dayValue.style.display = 'block';
+          
+          
+        document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+        document.getElementById('start:frm:pB:Section7:pbsi_eleven:dateValue').value = '';
+        document.getElementById('start:frm:pB:Section5:pbsi_thirteen:input_two').value = '';
+        document.getElementById('start:frm:pB:Section14:templateReview').value = ''; 
+          
+        }else
+        
+        if(selectTemplate.value == 'TM Remediation'){
+          
+          agentName.style.display = 'block';
+          mobile.style.display = 'block';
+          
+          date.style.display = 'none';
+          refNumber.style.display = 'none';         
+          emailAddr.style.display = 'none';          
+          frequency.style.display = 'none';
+          
+           applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+          dayValue.style.display = 'none';
+          
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section3:pbsi_fourteen:input_one').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+          
+        }else
+        
+        if(selectTemplate.value == 'Loan Settled With DD'){
+             
+             agentName.style.display = 'none';
+             date.style.display = 'block';
+             frequency.style.display = 'block';
+             
+              mobile.style.display = 'none';
+              refNumber.style.display = 'none';         
+              emailAddr.style.display = 'none'; 
+              
+               applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          dayValue.style.display = 'none';
+          
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section7:pbsi_eleven:dateValue').value = '';
+          document.getElementById('start:frm:pB:Section6:pbsi_ten:empTypes2').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+          
+        }else
+        
+        if(selectTemplate.value == 'BPAY'){
+             
+          
+           refNumber.style.display = 'block';
+          
+          agentName.style.display = 'block';
+          
+          date.style.display = 'none';
+          
+         
+          emailAddr.style.display = 'none';
+          
+          mobile.style.display = 'none';
+          
+          frequency.style.display = 'none';
+          
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'none';
+          
+          addDocType.style.display = 'none';
+          
+           applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+          dayValue.style.display = 'none';
+          
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section5:pbsi_thirteen:input_two').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+          
+        }else
+       
+       if(selectTemplate.value == 'No Response Application is Closed'){
+       
+          refNumber.style.display = 'none';
+          
+          agentName.style.display = 'block';
+          
+          date.style.display = 'none';
+          dayValue.style.display = 'none';
+         
+          emailAddr.style.display = 'none';
+          
+          mobile.style.display = 'none';
+          
+          frequency.style.display = 'none';
+          
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'none';
+          
+          addDocType.style.display = 'none';
+          
+           applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+       }else
+           if(selectTemplate.value == 'Unable to Contact Customer'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'block';
+              
+              date.style.display = 'none';
+              dayValue.style.display = 'none';
+             
+              emailAddr.style.display = 'none';
+              
+              mobile.style.display = 'none';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'none';
+              
+              docType.style.display = 'none';
+              
+              addDocType.style.display = 'none';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+          
+              
+           }else
+           if(selectTemplate.value == 'No Response – Will Close in 48 Hours'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'block';
+              
+              dayValue.style.display = 'none';
+              date.style.display = 'none';
+              
+             
+              emailAddr.style.display = 'none';
+              
+              mobile.style.display = 'none';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'none';
+              
+              docType.style.display = 'none';
+              
+              addDocType.style.display = 'none';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+              
+           }else
+           if(selectTemplate.value == 'Missing Documents Request'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'block';
+              
+              date.style.display = 'none';
+              dayValue.style.display = 'none';
+             
+              emailAddr.style.display = 'none';
+              
+              mobile.style.display = 'none';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'block';
+              
+              docType.style.display = 'block';
+              
+              addDocType.style.display = 'block';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section9:pbsi_four:empTypess').value = '';
+          document.getElementById('start:frm:pB:Section11:pbsi_six:documentType').value = '';
+          document.getElementById('start:frm:pB:Section12:pbsi_nine:additionalDocument').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+              
+           }else
+           if(selectTemplate.value == 'Document Request'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'block';
+              
+              date.style.display = 'none';
+              dayValue.style.display = 'none';
+             
+              emailAddr.style.display = 'none';
+              
+              mobile.style.display = 'none';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'block';
+              
+              docType.style.display = 'block';
+              
+              addDocType.style.display = 'block';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+              document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section9:pbsi_four:empTypess').value = '';
+          document.getElementById('start:frm:pB:Section11:pbsi_six:documentType').value = '';
+          document.getElementById('start:frm:pB:Section12:pbsi_nine:additionalDocument').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+              
+           }else 
+           if(selectTemplate.value == 'Team Email SMS'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'block';
+              
+              date.style.display = 'none';
+              dayValue.style.display = 'none';
+             
+              emailAddr.style.display = 'block';
+              
+              mobile.style.display = 'block';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'none';
+              
+              docType.style.display = 'none';
+              
+              addDocType.style.display = 'block';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+          document.getElementById('start:frm:pB:Section8:pbsi_three:selApp').value = '';
+          document.getElementById('start:frm:pB:Section0:pbsi_two:input_one').value = '';
+          document.getElementById('start:frm:pB:Section2:pbsi_fifteen:input_two').value = '';
+          
+          document.getElementById('start:frm:pB:Section3:pbsi_fourteen:input_one').value = '';
+          document.getElementById('start:frm:pB:Section12:pbsi_nine:additionalDocument').value = '';
+          document.getElementById('start:frm:pB:Section14:templateReview').value = '';
+              
+           }else
+           if(selectTemplate.value == 'Accepting Contracts'){
+             refNumber.style.display = 'none';
+          
+              agentName.style.display = 'none';
+              
+              date.style.display = 'none';
+              dayValue.style.display = 'none';
+             
+              emailAddr.style.display = 'none';
+              
+              mobile.style.display = 'none';
+              
+              frequency.style.display = 'none';
+              
+              billerCode.style.display = 'none';
+              
+              empType.style.display = 'none';
+              
+              docType.style.display = 'none';
+              
+              addDocType.style.display = 'none';
+              
+               applicantType.style.display = 'block';
+              
+              smsTemplate.style.display = 'block';
+              
+              tempPreview.style.display = 'block';
+              
+           }else
+           if(selectTemplate.value == 'In case of missing documents​'){
+          refNumber.style.display = 'none';
+          
+          agentName.style.display = 'none';
+          
+          date.style.display = 'none';
+          dayValue.style.display = 'none';
+         
+          emailAddr.style.display = 'none';
+          
+          mobile.style.display = 'none';
+          
+          frequency.style.display = 'none';
+          
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'block';
+          
+          addDocType.style.display = 'block';
+          
+          applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+          emailNZ.style.display = 'block';
+          
+          empTypeNZ.style.display = 'block';
+           }else 
+           if(selectTemplate.value == 'If no prior discussion'){
+             refNumber.style.display = 'none';
+          
+          agentName.style.display = 'none';
+          
+          date.style.display = 'none';
+          dayValue.style.display = 'none';
+         
+          emailAddr.style.display = 'none';
+          
+          mobile.style.display = 'none';
+          
+          frequency.style.display = 'none';
+          
+          billerCode.style.display = 'none';
+          
+          empType.style.display = 'none';
+          
+          docType.style.display = 'block';
+          
+          addDocType.style.display = 'block';
+          
+          applicantType.style.display = 'block';
+          
+          smsTemplate.style.display = 'block';
+          
+          tempPreview.style.display = 'block';
+          
+          emailNZ.style.display = 'block';
+          
+          empTypeNZ.style.display = 'block';
+           }
+           
+               }
+        
+   window.addEventListener('load', function() {
+    getSMSForm();
+   });
+   
+   function preview(){
+   templateReview();
+   }
+   
+   function enableTempPreview(){
+     document.getElementById('start:frm:pB:Section14:templateReview').style.display = 'block';
+   }
+    </script>
+         
+       
+  <apex:form id="frm" styleClass="validateMainForm theForm stui_PD">
+  <apex:actionFunction name="templateReview" action="{!getSelectTemplateReview}" rerender="templateReview" status="myStatus"/>
+    <apex:pageBlock id="pB">
+    <apex:pageMessages id="showmsgTop"></apex:pageMessages>
+        <apex:tabPanel switchType="client" selectedTab="Send SMS" id="theListTabPanel">
+        <apex:tab label="Send SMS" name="Applicant 1" id="tabListOne" styleClass="subtab"> 
+     
+     
+          
+     <apex:pageBlockSection >
+          <apex:pageBlockSectionItem id="pbsi_one">
+               <apex:outputLabel value="Application" />
+                  <apex:inputField value="{!OSC.Application__c}" />
+          </apex:pageBlockSectionItem>
+     </apex:pageBlockSection>
+          <apex:outputText /> 
+      <apex:pageBlockSection id="Section">         
+          <apex:pageblockSectionItem id="pbsi_sixteen" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),false,true)}">
+                    <apex:outputLabel value="Select template" style="margin-left:22px"/>
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selTemp">
+                  <div class="requiredBlock"></div>
+                    <apex:selectList size="1" value="{!templateSelected}" id="templateSelected" onChange="getSMSForm();" style="width:216%;" >                      
+                        <apex:selectOptions value="{!TemplateValues}"/>
+                        <apex:actionSupport event="onchange" reRender="templates"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+                </apex:pageblockSectionItem>
+        </apex:pageBlockSection>
+                <apex:outputText /> 
+         
+         <apex:pageBlockSection id="Section8"> 
+          <apex:pageBlockSectionItem id="pbsi_three">
+               <apex:outputLabel value="Applicants" style="margin-left:1px;"/>
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="applicants">
+                  <div class="requiredBlock"></div>
+                <apex:selectList size="1" value="{!selectedApplicant}" id="selApp"> 
+                        <apex:selectOptions value="{!selectedApplicants}"/>  
+                            
+                            <apex:actionSupport event="onchange" reRender="templateReview,empTypess,empTypes1,templates" action="{!getSelectTemplateReview}"/> 
+
+                    </apex:selectList>                       
+              </apex:outputPanel>
+              </apex:pageBlockSectionItem> 
+            </apex:pageBlockSection>
+            
+          <apex:outputText />
+            
+          <apex:pageBlockSection id="Section0">
+           <apex:pageblockSectionItem id="pbsi_two">
+                  <apex:outputLabel value="Agent Name" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')};margin-left:23px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selName">
+                  <div class="requiredBlock"></div>
+                   <apex:inputText value="{!ownerName}" size="15" onkeyup="preview()" onblur="preview();" onkeypress="preview();" html-placeholder="Enter Agent Name" id="input_one" styleClass="isName isRequired" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}"/>                    
+                </apex:outputPanel>
+                </apex:pageblockSectionItem>                 
+          </apex:pageBlockSection> 
+          
+          <apex:outputText />
+    
+          
+          <apex:pageBlockSection id="Section1" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}">    
+                <apex:pageblockSectionItem id="pbsi_eight" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}">
+                  <apex:outputLabel value="Agent Email Address" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}" style="margin-left:22px;"/> 
+                    <apex:inputText value="{!emailId}" size="30" html-placeholder="Enter Email" id="input_two" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}" styleClass="isEmail"/>
+                </apex:pageblockSectionItem> 
+           </apex:pageBlockSection>
+     
+           
+           <apex:pageBlockSection id="Section2">      
+                 <apex:pageblockSectionItem id="pbsi_fifteen" rendered="{!if(AND(OR(application.Status__c != 'Accepted',application.Status__c != 'Closed'),application.Brand_String__c == 'Latitude'),true,false)}">
+                  <apex:outputLabel value="Email Address" rendered="{!if(AND(OR(application.Status__c != 'Accepted',application.Status__c != 'Closed'),application.Brand_String__c == 'Latitude'),true,false)}" style="margin-left:24px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selTemp">
+                  <div class="requiredBlock"></div>
+                    <apex:inputText value="{!emailId}" onkeyup="preview();" size="30" html-placeholder="Enter Email" id="input_two" rendered="{!if(AND(OR(application.Status__c != 'Accepted',application.Status__c != 'Closed'),application.Brand_String__c == 'Latitude'),true,false)}" styleClass="isEmail"/>
+                </apex:outputPanel>
+                </apex:pageblockSectionItem> 
+            </apex:pageBlockSection>     
+             
+             <apex:outputText />
+             
+             <apex:pageBlockSection id="Section3">   
+                <apex:pageblockSectionItem id="pbsi_fourteen" rendered="{!if(AND(application.Status__c != 'Closed',application.Brand_Country__c == 'AU'),true,false)}">
+                  <apex:outputLabel value="Mobile" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')};margin-left:19px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selTemp">
+                  <div class="requiredBlock"></div>
+                   <apex:inputText value="{!mobileNumber}" size="15" html-placeholder="Enter Mobile number" id="input_one"  style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}" onkeypress="return event.charCode >= 48 && event.charCode <= 57" maxlength="10" onkeyup="preview();"/>                    
+                </apex:outputPanel>
+                </apex:pageblockSectionItem> 
+              </apex:pageBlockSection> 
+              <apex:outputText />
+              <apex:pageBlockSection id="Section4"> 
+                <apex:pageblockSectionItem id="pbsi_twelve" rendered="{!if(AND(OR(application.Status__c == 'Accepted',application.Response_Code__c =='PCO'),application.Brand_Country__c == 'AU'),true,false)}">
+                  <!-- <apex:outputLabel value="Biller code" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}"/> -->
+                   <apex:inputHidden value="{!billerCode}" html-placeholder="Enter Biller code" id="input_one"/>                    
+                </apex:pageblockSectionItem>
+               </apex:pageBlockSection>
+               
+               <apex:outputText />
+                                       
+               <apex:pageBlockSection id="Section7">
+                <apex:pageblockSectionItem id="pbsi_eleven" rendered="{!if(AND(application.Status__c == 'Accepted',application.Brand_Country__c == 'AU'),true,false)}">
+                  <apex:outputLabel value="Date" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')};margin-left:30px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selDate">
+                  <div class="requiredBlock"></div>
+                   <apex:input type="date" value="{!debitedDate}" size="15" id="dateValue" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}" onblur="preview();"/>                    
+                </apex:outputPanel>
+                </apex:pageblockSectionItem> 
+               </apex:pageBlockSection>
+            <apex:outputText />
+            
+             <apex:pageBlockSection id="Section15">
+                <apex:pageblockSectionItem id="pbsi_fifteen" rendered="{!if(AND(application.Status__c == 'Accepted',application.Brand_Country__c == 'AU'),true,false)}">
+                  <apex:outputLabel value="Day" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')};margin-left:30px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selDate">
+                  <div class="requiredBlock"></div>
+                   <apex:inputText value="{!dayValue}" size="15" id="dayValue" html-placeholder="Enter the day" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}" onkeyup="preview();"/>                    
+                </apex:outputPanel>
+                </apex:pageblockSectionItem> 
+               </apex:pageBlockSection>
+            <apex:outputText />
+            
+             <apex:pageBlockSection id="Section5">
+                <apex:pageblockSectionItem id="pbsi_thirteen" rendered="{!if(AND(application.Status__c == 'Accepted',application.Brand_Country__c == 'AU'),true,false)}">                 
+                  <apex:outputLabel value="Reference number" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')};margin-left:4px;"/> 
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="refNum">
+                  <div class="requiredBlock"></div>
+                   <apex:inputText value="{!refNumber}" size="15" html-placeholder="Enter last digit" id="input_two" style="display : {!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'none','block')}" onkeypress="return event.charCode >= 48 && event.charCode <= 57" maxlength="1" onkeyup = "preview();" />
+                </apex:outputPanel>
+                </apex:pageblockSectionItem> 
+               </apex:pageBlockSection>
+              
+             <apex:outputText />
+
+
+             <apex:pageBlockSection id="Section6">
+              <apex:pageblockSectionItem id="pbsi_ten" rendered="{!if(AND(application.Status__c == 'Accepted',application.Brand_Country__c == 'AU'),true,false)}">
+                 <apex:outputLabel value="Frequency" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),false,true)}" />
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selTemp">
+                  <div class="requiredBlock"></div>
+                    <apex:selectList size="1" value="{!selectedFrequency}" id="empTypes2" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),false,true)}" onchange="preview();">
+                        <apex:selectOptions value="{!SelectFrequencyAU}"/>                        
+                    </apex:selectList>  
+               </apex:outputPanel>
+               </apex:pageblockSectionItem>
+              </apex:pageBlockSection> 
+           <apex:outputText />    
+         
+             
+             
+             <apex:pageBlockSection id="Section9">
+              <apex:pageblockSectionItem id="pbsi_four" rendered="{!if(AND(application.Status__c != 'Accepted',application.Status__c != 'Closed',application.Brand_Country__c == 'AU'),true,false)}">
+                    <apex:outputLabel value="Employment Type" rendered="{!if(application.Brand_String__c == 'Latitude',true,false)}" style="margin-left:-9px;"  />
+                   <apex:outputPanel layout="block" styleClass="requiredInput" id="selTemp">
+                  <div class="requiredBlock"></div>
+                    <apex:selectList value="{!selectedEmpType}" id="empTypess" rendered="{!if(application.Brand_String__c == 'Latitude',true,false)}" size="1">
+                        <apex:selectOptions value="{!SelectEmploymentType}"/>
+                        <apex:actionSupport event="onchange" reRender="templates,documentType"/>
+                    </apex:selectList>                    
+                </apex:outputPanel>
+                </apex:pageblockSectionItem>
+              </apex:pageBlockSection> 
+               
+            <apex:outputText />  
+               
+            <apex:pageBlockSection id="Section10">  
+              <apex:pageblockSectionItem id="pbsi_five" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}">
+                    <apex:outputLabel value="Employment Type" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}" style="margin-left:-10px;" />
+                    <apex:selectList size="1" value="{!selectedEmpType}" id="empTypes1" rendered="{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),true,false)}">
+                        <apex:selectOptions value="{!SelectEmploymentTypeNZ}"/>
+                        <apex:actionSupport event="onchange" reRender="templates,documentType"/>
+                    </apex:selectList>                    
+                </apex:pageblockSectionItem>
+              </apex:pageBlockSection> 
+             <apex:outputText />
+           
+             <apex:pageBlockSection id="Section11">   
+                <apex:pageblockSectionItem id="pbsi_six" helpText="To select multiple documents, press 'Ctrl' and select the applicable documents" rendered="{!if(OR(AND(application.Status__c != 'Accepted',application.Status__c != 'Closed',application.Brand_Country__c == 'AU'),application.Brand_Country__c == 'NZ'),true,false)}">
+                    <apex:outputLabel value="Document Type" style="margin-left:4px;"/>
+                    <apex:selectList size="7" value="{!selectDocumentType}" id="documentType" multiselect="true" onclick="preview();">
+                        <apex:selectOptions value="{!DocumentTypes}"/>
+                    </apex:selectList>                    
+                </apex:pageblockSectionItem>
+             </apex:pageBlockSection> 
+             <apex:outputText />
+             
+             
+             <apex:pageBlockSection id="Section12">  
+               <apex:pageBlockSectionItem id="pbsi_nine" helpText="Enter Additional Document Types separated by semi colon(;) (For ex: abc;xyz)" rendered="{!if(OR(AND(application.Status__c != 'Accepted',application.Status__c != 'Closed',application.Brand_Country__c == 'AU'),application.Brand_Country__c == 'NZ'),true,false)}">
+              <apex:outputLabel value="Additional Document Type/Insert Documents"/>
+               <apex:inputTextarea value="{!additionalDocType}" label="Additional Document Type" id="additionalDocument" rows="7" cols="25" html-placeholder="Enter Additional Document Types separated by semi colon(;) (For ex: abc;xyz)" onkeyup="preview();" onblur="preview();" onkeypress="preview();" style="margin-left:-4px;"/> 
+               </apex:pageblockSectionItem>
+             </apex:pageBlockSection>
+             
+            <apex:outputText />
+              
+                
+                <apex:pageBlockSection id="Section13">      
+                 <apex:pageblockSectionItem id="pbsi_seven">
+                    <apex:outputLabel value="SMS Templates" style="display:{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'block','none')}"/>
+                    <apex:selectList size="1" value="{!selectedTemplate}" id="templates" style="display:{!if(OR(application.Brand_String__c == 'GEM',application.Brand_String__c == 'Kiwibank'),'block','none')}">
+                        <apex:selectOptions value="{!SelectTemplate}"/>
+                        <apex:actionSupport event="onchange" reRender="templateReview" action="{!getSelectTemplateReview}"/>
+                    </apex:selectList>
+                </apex:pageblockSectionItem> 
+               </apex:pageBlockSection>
+               <apex:outputText />
+      <!--  <apex:outputLink value="#" onclick="enableTempPreview();">Preview</apex:outputLink> -->  
+       
+       <apex:pageBlockSection id="Section14"> 
+      <apex:inputTextarea value="{!content}" label="Template Preview:" id="templateReview" rows="15" cols="30" readonly="true" style="margin-left:8px;" /> 
+      </apex:pageBlockSection>
+     
+    
+                <apex:commandButton value="Send" action="{!save}" oncomplete="refreshFeed();clearFields();" id="end" reRender="showmsg,showmsgTop"/>
+                <apex:commandButton value="Refresh" action="{!refresh}" oncomplete="window.location.reload( true );" id="end1" reRender="showmsg,showmsgTop"/>
+                <br/><br/><apex:outputLabel value="Note : Please click on Refresh button after each entry" style="color:#A0522D ;font-weight: bold;"/>
+          </apex:tab>
+          </apex:tabPanel>
+          <apex:pageMessages id="showmsg"></apex:pageMessages>
+           </apex:pageBlock>
+          
+  </apex:form>
+</apex:page>

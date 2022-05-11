@@ -1,0 +1,59 @@
+<apex:page id="creditFileCheckPage" standardController="Application__c" extensions="APP_Credit_File_Check_EXT_INT" 
+showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    
+    <apex:form id="cfcForm" styleClass="">
+
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!refreshCFCList}" reRender="cfcForm" 
+                    status="status" onclick="document.getElementById('appPageId:creditFileCheckInclude:'+
+                    'creditFileCheckPage:cfcForm:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>                         
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="cfcPageBlock" title="Credit File Check">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Applicant</th>
+                    <th class="headerRow">Surname</th>
+                    <th class="headerRow">Date of Birth</th>
+                    <th class="headerRow">Licence</th>
+                    <th class="headerRow">Address</th>
+                    <th class="headerRow">Prior Address</th>
+                    <th class="headerRow">Created By</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!cfcList}" var="c" id="cfcPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!c.Applicant__r.First_Name__c} {!c.Applicant__r.Last_Name__c}</td>
+                        <td class="dataCell">{!c.Surname_Check__c}</td>
+                        <td class="dataCell">{!c.DOB_Check__c}</td>
+                        <td class="dataCell">{!c.Drivers_License_Check__c}</td>
+                        <td class="dataCell">{!c.Address_Check__c}</td>
+                        <td class="dataCell">{!c.Prior_Address_Check__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!c.CreatedById}"/>
+                        </td>
+                        <td class="dataCell">
+	                        <!-- MLASALA 08-SEPT-2016 Stored XSS Code Scan fix -->
+                            <a onclick="openSubtab('/{!JSENCODE(c.Id)}','{!JSENCODE(c.Name)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

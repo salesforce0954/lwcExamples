@@ -1,0 +1,80 @@
+<apex:page showHeader="false" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0" controller="App_SocietyOne_ErrorExt">
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="GEDDBody">
+            <apex:form id="formId"> 
+            <hr class="hr-solid-border"></hr> 
+            <div class="container">
+                <div class="row center-block" >
+                    <span  class="intro-label  large-text lat-dark-grey">{!currentmsg.Error_Message__c}</span><br/>
+                    <span  class="intro-label fine-text lat-dark-grey">{!currentmsg.Error_Description__c}</span><br/>
+                </div>
+                
+                <div class="row center-block bottom-block center-imgBlock">
+                <div>
+                    <span class="imgLoading"><apex:image url="{!$Resource.MobileIcon2}" width="40px" height="40px"/></span>
+                </div>
+                    <div>
+                    <span class="med-text lat-dark-grey">We're here to help on <u>{!currentmsg.Contact_Point__c}</u></span><br/>
+                    <span class="fine-text lat-dark-grey">Please call us and quote this reference No. {!externalAppId}</span><br/>
+                    </div>
+                     
+                </div>
+            </div>
+        	</apex:form>
+    	</apex:define>
+	</apex:composition>
+	 <style>
+        .bottom-block{
+           margin-bottom: 280px;
+         }
+         
+        .center-block {
+            margin-left: 0px;
+            text-align: center;	
+            margin-top: 50px;
+         
+        	font-size: 22px;
+        }
+
+        .med-text {
+            font-size: 18px;
+        }
+        .fine-text {
+            font-size: 15px;
+        }
+        .large-text{
+         	font-size: 28px;
+         }
+        
+        img {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .center-imgBlock {
+            margin-left: 30%;
+            margin-right: 30%;
+        }
+        
+        .imgLoading {
+            display: inline-block;
+            float: left;
+        }
+        
+        @media screen and (max-width: 415px) {
+            hr {
+                border-top: none;
+            }
+            .center-imgBlock {
+               margin-left: 10%;
+               margin-right: 10%;
+            }
+            .imgLoading {
+                display: inline-block;
+                float: none;
+            }
+    </style>
+</apex:page>

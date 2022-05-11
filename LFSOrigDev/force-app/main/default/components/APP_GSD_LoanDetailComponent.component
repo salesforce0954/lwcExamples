@@ -1,0 +1,719 @@
+<!--
+* @Description: 
+* @Author: Afreen Khan
+* @Date Created: Jan-22-2016
+* @History:
+====================================================================================================================================
+    Jan-22-2016: Created - Afreen Khan
+    Jan-25-2016: Updated - Afreen Khan - Added JS methods getApplicationData() and setComponentData()
+    Apr-28-2016: Updated - Russell Cadapan - Added a couple of white spaces for Min. monthly repayment textx
+====================================================================================================================================
+
+-->
+<apex:component allowDML="true" controller="APP_GSD_LoadDetailHeader" id="APP_GSD_LoanDetail">
+    
+    <!-- BEGIN MLASALA 12-JUL-2016 TQLQW-59 Web Analytics - Ensighten -->
+    <apex:outputPanel >
+        <script src="{!omnitureURL}"></script>
+    </apex:outputPanel>
+    
+    <script>
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        var s_applicationID             = '{!JSENCODE(applicationNumber)}';
+        var eAppsOutcome                = '{!eAppsOutcome}';
+        var S_loanAmount                = '{!loanAmount}';
+        // AFREEN 28-SEPT-2016 TQLQW-519 Web Analytics - Ensighten
+        var S_isAcceptedContract_App1   = '{!isAcceptedContract_App1}';
+        var S_isAcceptedContract_App2   = '{!isAcceptedContract_App2}';
+        
+        
+        if('{!isSocietyOne}' == true){
+            var S_borker = 'SocietyOne';
+        }
+        // AFREEN 23-SEPT-2016 TQLQW-519 Web Analytics - Ensighten
+        if('{!isPicStarter}'  == true){
+            var S_broker = 'PicStarter';
+        }
+        if('{!isVeda}' == true){
+            var S_broker = 'Veda Quote';
+        }
+        
+        /*console.log('S_isAcceptedContract_App1' + S_isAcceptedContract_App1);
+        console.log('S_isAcceptedContract_App2' + S_isAcceptedContract_App2);
+        console.log('S_borker' + S_broker);*/
+
+        // console.log('s_applicationID: '+s_applicationID+', '+eAppsOutcome+', '+S_loanAmount);
+    </script>
+    <!-- END MLASALA 12-JUL-2016 TQLQW-59 Web Analytics - Ensighten -->
+    
+    <style>
+        /* LOADER */
+        /* Absolute Center Spinner */
+        .loading {
+            position: fixed;
+            z-index: 999;
+            height: 2em;
+            width: 2em;
+            overflow: show;
+            margin: auto;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+        
+        /* Transparent Overlay */
+        .loading:before {
+            content: '';
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #FFF;
+        }
+        
+        /* :not(:required) hides these rules from IE9 and below */
+        .loading:not(:required) {
+            /* hide "loading..." text */
+            font: 0/0 a;
+            color: transparent;
+            text-shadow: none;
+            background-color: transparent;
+            border: 0;
+        }
+        
+        .loading:not(:required):after {
+            content: '';
+            display: block;
+            font-size: 10px;
+            width: 1em;
+            height: 1em;
+            margin-top: -0.5em;
+            -webkit-animation: spinner 1500ms infinite linear;
+            -moz-animation: spinner 1500ms infinite linear;
+            -ms-animation: spinner 1500ms infinite linear;
+            -o-animation: spinner 1500ms infinite linear;
+            animation: spinner 1500ms infinite linear;
+            border-radius: 0.5em;
+            -webkit-box-shadow: rgba(0, 0, 0, 0.75) 1.5em 0 0 0, rgba(0, 0, 0, 0.75) 1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) 0 1.5em 0 0, rgba(0, 0, 0, 0.75) -1.1em 1.1em 0 0, rgba(0, 0, 0, 0.5) -1.5em 0 0 0, rgba(0, 0, 0, 0.5) -1.1em -1.1em 0 0, rgba(0, 0, 0, 0.75) 0 -1.5em 0 0, rgba(0, 0, 0, 0.75) 1.1em -1.1em 0 0;
+            box-shadow: rgba(0, 0, 0, 0.75) 1.5em 0 0 0, rgba(0, 0, 0, 0.75) 1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) 0 1.5em 0 0, rgba(0, 0, 0, 0.75) -1.1em 1.1em 0 0, rgba(0, 0, 0, 0.75) -1.5em 0 0 0, rgba(0, 0, 0, 0.75) -1.1em -1.1em 0 0, rgba(0, 0, 0, 0.75) 0 -1.5em 0 0, rgba(0, 0, 0, 0.75) 1.1em -1.1em 0 0;
+        }
+        
+        /* Animation */
+        
+        @-webkit-keyframes spinner {
+        0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+       @-moz-keyframes spinner {
+        0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @-o-keyframes spinner {
+        0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        
+        .small-text2 {
+            font-family: Lexia;
+            line-height: 18px;
+            font-size: 12px;
+        }
+         
+    </style>
+
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <!-- Bootstrap Core CSS -->
+        <link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+        
+        <!--apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/-->
+      
+        <!--link href="{!URLFOR($Resource.getheme, '/css/style.default.css')}" rel="stylesheet" media="screen" id="stylelink" /-->
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+      <![endif]-->
+      
+    <!--
+    Latitude: <apex:inputCheckbox value="{!lTFlag}"/> <br/>
+    GEM <apex:inputCheckbox value="{!lTFlag}"/> <br/>
+    Aussie: <apex:inputCheckbox value="{!lTFlag}"/> <br/>
+    Kiwibank <apex:inputCheckbox value="{!lTFlag}"/> <br/>
+    -->
+    <!-- Custom CSS -->
+   
+    <apex:outputPanel rendered="{!($Site.Name=='Latitude'&&controlStyle==false) || (brandString=='Latitude'&&controlStyle==true)}">
+        
+        <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!($Site.Name=='Gem'&&controlStyle==false) || (brandString=='Gem'&&controlStyle==true)}">
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!($Site.Name=='Aussie'&&controlStyle==false) || (brandString=='Aussie'&&controlStyle==true)}">
+        <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!($Site.Name=='Kiwibank'&&controlStyle==false) || (brandString=='Kiwibank'&&controlStyle==true)}">
+        <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+        <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    </apex:outputPanel>
+
+      
+      
+    </head>
+    
+    <script>
+        var registered = '{!$User.isRegistered__c}'; //Added by DYU 03-MAR-2016 TQLQW 100 - Identify if user already registered
+        // console.log('registered: '+registered);
+    </script>
+    
+    <div class="loading"/>
+        
+    <!-- Navigation -->
+    <nav class="navbar navbar-default">
+        <!--navbar-fixed-top-->
+        <div class="container margin-top">
+            <div id="toprow" class="row hdr">
+                <div id="toplogo" class="col-xs-2">
+                    <div class="img-responsive">
+                        <i class="icon_logo logo_lg_size pull-left img-responsive"></i>
+                    </div>
+                </div>
+                <div id="progresslbl" class="col-xs-8 vertical-align center-block">
+                    <div class="text-center img-responsive pad_left">
+                        <span class="small-text lat-dark-grey" id="pbar-text1">You're 
+                            <span class="module4-label lat-yellow"  id="pbar-text2">
+                                <span id="percentText"/>
+                            </span> of the way there! 
+                        </span>
+                        <div id="pbar" class="progress progress_style img-responsive">
+                            <div id="bar" class="progress-bar" role="progressbar"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="logout" class="aligntext">
+                    <div class="text-center img-responsive pull-right" onclick="redirect('APP_Logout');">
+                        <div class="img-responsive vertical-align">
+                            <i class="icon_profile icon_prof_lg_size"/>
+                        </div>
+                            <apex:outputPanel rendered="{!OR($Site.Name=='Latitude',$Site.Name=='Gem',$Site.Name=='Kiwibank')}">
+                                <span id="profile" style="display: block; {!if($site.Name = 'Kiwibank', 'color: #528224;', '')}" class="small-text {!if($site.Name = 'Latitude', 'lat-dark-grey', 'lat-blue')}">Logout</span>
+                            </apex:outputPanel>
+                    </div>
+                </div> 
+            </div>
+        </div>
+        <div class="padding-top"></div>
+        <!-- margin after the nav bar -->
+        <!-- Header -->
+        <header class="drop-shadow-header" id="hdrLoan">
+            <div class="container hidden-xs">
+                <div class="row vertical-align" id="loanRow">
+                    <div class="col-xs-12 loanDetails pull-left" id="loanCol">
+                        <span id="loanlbl" class="col-xs-12 module5-label pull-left {!if($site.Name = 'Latitude', 'lat-dark-grey', 'lat-white')}">Loan Summary</span>
+                        <span id="appNo" class="col-xs-12 small-text {!if($site.Name = 'Latitude', 'lat-dark-grey', 'lat-white')}">Application No:
+                            <span id="geApplicationNumber" class="body-label-bold {!if($site.Name = 'Latitude', 'lat-blue', 'lat-white')}"/>
+                        </span>
+                    </div>
+                    <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                     <!-- Below Style Attribute added by Suneel 18/04/2018 -->
+                     <div class="col-xs-9 vertical-align-left" id="loanSummary" style="{!if($site.Name = 'Latitude', 'margin-left: 168px;', '')}">
+                        <div class="icon-gaps">
+                            <svg width="140" height="140" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                <style type="text/css">
+                                    .lat-dark-grey {
+                                        fill: #75787b;
+                                    }
+                                </style>
+                                <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50" />
+                                <text x="10" y="50" text-anchor="middle">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey" id="loanamtdollar"/>
+                                </text>
+                                <text x="52" y="49" text-anchor="middle" id="loanamtText">
+                                    <tspan class="module4-label lat-dark-grey" id="loanamt" style="font-size:medium;font-weight:bold"/>
+                                </text>
+                                 <text x="90" y="51" text-anchor="middle">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey"/>
+                                </text>
+                                <text x="50" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Loan Amount</text>
+                            </svg>
+                        </div>
+                        <!-- Added rendered attribute by Suneel Hide Interest Rate bar on Community page for Switch and save 1% pa. loan purpose 5/01/2018 
+                        <apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}">-->
+                        <apex:outputPanel rendered="{!isLPBB}">
+                        <div class="icon-gaps">
+                            <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                <style type="text/css">
+                                    .lat-dark-grey {
+                                        fill: #75787b;
+                                    }
+                                </style>
+                                <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50" />
+                                <text x="40" y="55" text-anchor="middle">
+                                    <tspan class="module4-label lat-dark-grey" id="interestrate"/>
+                                </text>
+                                <text x="73" y="50" text-anchor="middle">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey">%</tspan>
+                                </text>
+                                <text x="88" y="50" text-anchor="middle">
+                                    <tspan class="small-text2 lat-dark-grey">p.a.</tspan>
+                                </text>
+                                <text x="55" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Interest rate</text>
+                            </svg>
+                        </div>                                   
+                         </apex:outputPanel>
+                  <!--<apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}">-->
+                  <apex:outputPanel rendered="{!isLPBB}">
+                        <div class="icon-gaps">
+                            <svg width="125" height="125" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                <style type="text/css">
+                                    .lat-dark-grey {
+                                        fill: #75787b;
+                                    }
+                                </style>
+                                <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50" />
+                               
+                                <text x="23" y="68" text-anchor="middle" id="minmonrepayText">
+                                    <tspan style="baseline-shift: super;" class="small-text lat-dark-grey" id="minmonrepayDollar">$</tspan>
+                                </text>
+                                
+                                 <text x="48" y="55" text-anchor="middle">
+                                   <tspan class="module4-label lat-dark-grey" id="minmonrepay"/>
+                                </text>
+                                <text x="85" y="51" text-anchor="middle" id="minmonrepaycentsText">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey" id="minmonrepaycents"/>
+                                </text>
+                                
+                               
+                                <!-- 
+                                 <text x="10" y="50" text-anchor="middle">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey">$</tspan>
+                                </text>
+                                
+                                  <text x="48" y="55" text-anchor="middle" id="minmonrepayText">
+                                    <tspan class="module4-label lat-dark-grey" id="minmonrepay"/>
+                                </text>
+                                
+                                 <text x="90" y="51" text-anchor="middle" id="minmonrepaycentsText">
+                                    <tspan style="baseline-shift: super;" class="small-text2 lat-dark-grey" id="minmonrepaycents"/>
+                                </text>
+                                -->
+                                
+                                <text x="55" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Min. monthly</text>
+                                <text x="52" y="85" text-anchor="middle" class="small-text2 lat-dark-grey">repayment</text>
+                            </svg>
+                        </div>
+                        </apex:outputPanel>
+                        <div>
+                            <svg width="140" height="140" viewBox="0 0 103 103" version="1.1" class="img-responsive">
+                                <style type="text/css">
+                                    .lat-dark-grey {
+                                        fill: #75787b;
+                                    }
+                                </style>
+                                <circle fill="#ffffff" stroke="#fab700" stroke-dasharray="3, 3" stroke-width="3" cx="50%" cy="50%" r="50" />
+                                <text x="51" y="49" text-anchor="middle">
+                                    <tspan class="module4-label lat-dark-grey" id="loanterm" style = "font-size:10.6px;font-weight:bold"/>
+                                </text>
+                                <text x="52" y="70" text-anchor="middle" class="small-text2 lat-dark-grey">Loan term</text>
+                            </svg>
+                        </div>
+                    </div>
+                    </apex:panelGroup>
+                    <!-- GEM -->
+                    <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', 'false', 'true')}">
+                    <div class="col-xs-9 vertical-align-left" id="loanSummary">
+                        <div class="">
+                            <div class="GEMLoanSummary">
+                                <span class="small-text lat-white" style="font-size: 24px;" id="loanamtdollar"/>
+                                <span class="module4-label lat-white" id="loanamt"/>
+                                <div class="small-text lat-white" >Loan Amount</div>
+                            </div>
+                        </div>
+                        <div class="">
+                           <!-- <apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}"> -->
+                           <apex:outputPanel rendered="{!isLPBB}">
+                            <div class="GEMLoanSummary"> 
+                                <span class="module4-label lat-white" id="interestrate"/>
+                                <span style="baseline-shift: super;" class="small-text2 lat-white">%</span>
+                                <!-- Afreen 26/04/2016- Fix for the incident CAPINC0774740 -->
+                                <text x="88" y="50" text-anchor="middle">
+                                    <tspan class="small-text2 lat-white" style="font-family:Calibri">p.a.</tspan>
+                                </text>
+                                <div class="small-text lat-white">Interest rate</div>
+                            </div>
+                            </apex:outputPanel>
+                        </div>
+                        <div class="">
+                          <!-- <apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}"> -->
+                          <apex:outputPanel rendered="{!isLPBB}">
+                            <div class="GEMLoanSummary">
+                                <span style="baseline-shift: super;" class="module4-label lat-white" id="minmonrepayDollar">$</span>
+                                <span class="module4-label lat-white" id="minmonrepay"/>
+                                <span class="module4-label lat-white" id="minmonrepaycents"/>
+                                <div class="small-text lat-white">Min. monthly</div>
+                                <div class="small-text lat-white">repayment</div>
+                            </div>
+                          </apex:outputPanel>
+
+                        </div>
+                        <div class="">
+                            <div class="GEMLoanSummary">
+                                <span style="font-size: large;font-weight: bold;" class="module4-label lat-white" id="loanterm"/>
+                                <div class="small-text lat-white">Loan term</div>
+                            </div>
+                        </div>
+                    </div>
+                    </apex:panelGroup>
+                </div>
+            </div>
+            <!-- /container -->
+        </header>
+        <!--/end header -->
+        <!-- Mobile -->
+
+        <header class="drop-shadow-header">
+            <div class="container visible-xs" id="hiddenDiv">
+                <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                    <div class="vertical-align2">
+                        <div class="row">
+                            <div class="col-xs-12 pull-left loanDtlMargin">
+                                <span class="col-xs-12 small-text lat-dark-grey">Application No:
+                                    <span id="geApplicationNumberMobile" class="body-label-bold lat-blue"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </apex:panelGroup>
+                <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', 'false', 'true')}">
+                    <div class="col-xs-12">
+                    <div class="vertical-align2">
+                        <div class="row">
+                            <div class="col-xs-12 pull-left loanDtlMargin">
+                                <span class="col-xs-12 module5-label lat-white pull-left">Loan Summary</span>
+                                <span class="col-xs-12 small-text lat-white">Application No:
+                                    <span id="geApplicationNumberMobile" class="body-label-bold lat-white"/>
+                                </span>
+                            </div>
+                            <span id="hdrLoanMobile">
+                                <div class="col-xs-3 GEMLoanSummaryMobile">
+                                    <span class="small-text lat-white" style="font-size: 18px;"><!--$--></span>
+                                    <span class="module4-label lat-white" id="loanamtmobile"/>
+                                    <div class="GNo-Line-height">
+                                        <span class="small-text lat-white">Loan Amount</span>
+                                    </div>
+                                </div>
+                             <!-- Added by Suneel - Beat the Banks Mobile - 23/01/2018 
+                             <apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}">-->
+                             <apex:outputPanel rendered="{!isLPBB}">
+                                <div class="col-xs-3 GEMLoanSummaryMobile">
+                                    <span class="module4-label lat-white" id="interestrate"/>
+                                    <span style="baseline-shift: super;" class="small-text2 lat-white">%</span>
+                                    <div class="small-text lat-white" >Interest rate</div>
+                                </div>
+                            
+                            
+                                <div class="col-xs-3 GEMLoanSummaryMobile">
+                                    <span style="baseline-shift: super; font-size: 18px;" class="module4-label lat-white" id="minmonrepayDollarOtherBrand">$</span>
+                                    <span class="module4-label lat-white" id="minmonrepay"/>
+                                    <span class="module4-label lat-white" id="minmonrepaycents"/>
+                                    <div class="small-text lat-white">Min. monthly</div>
+                                    <div class="small-text lat-white">repayment</div>
+                                </div>
+                                </apex:outputPanel>
+                                <div class="col-xs-3 GEMLoanSummaryMobile">
+                                    <span class="module4-label lat-white" id="loanterm"/>
+                                    <div class="small-text lat-white">Loan term</div>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                    </div>
+                </apex:panelGroup>
+            </div>
+        </header>
+
+            <apex:panelGroup rendered="{!if($Site.Name = 'Latitude', 'true', 'false')}">
+                <div class="col-xs-12 dotted_border visible-xs" id="hdrLoanMobile">
+                <div id="hiddenL1" class="col-xs-3 img-responsive text-center">
+                    <span id="hL1a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                        <sup id="hL1b" class="small-text lat-dark-grey" style="font-size: 18px;"><!--$--></sup>
+                        <span id="loanamtmobile"/>
+                        <div class="GNo-Line-height">
+                            <span id="hL1c" class="small-text lat-dark-grey">Loan Amount</span>
+                        </div>
+                    </span>
+                </div>
+            <!-- Added by Suneel - Beat the Banks Mobile - 23/01/2018 
+           <apex:outputPanel rendered="{!IF(loanPurpose != 'Beat Your Rate; Switch Now',true,false)}">-->
+           <apex:outputPanel rendered="{!isLPBB}">
+               <div id="hiddenL2" class="col-xs-3 img-responsive text-center">
+                    <span id="hL2a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                        <span id="interestrate"/>
+                        <sup id="hL2b" class="small-text lat-dark-grey">%</sup>
+                        <span id="hL2d" class="small-text lat-dark-grey">p.a.</span>
+                        <span id="hL2c" class="small-text lat-dark-grey">Interest rate</span>
+                    </span>
+                </div>
+                <div id="hiddenL3" class="col-xs-3 responsive text-center">
+                    <span id="hL3a" class="module4-label lat-dark-grey mobile-spacing vertical-align2">
+                        <span id="minmonrepay"/>
+                        <sup id="hL3b" class="small-text lat-dark-grey">
+                            <span id="minmonrepaycents"/>
+                        </sup>
+                        <div class="GNo-Line-height">
+                            <span id="hL3c" class="small-text lat-dark-grey">Min. monthly repayment</span>
+                        </div>
+                    </span>
+                </div>
+            </apex:outputPanel>
+                <div id="hiddenL4" class="col-xs-3 img-responsive text-center vertical-align2">
+                    <span id="hL4a" class="module4-label lat-dark-grey">
+                        <span id="loanterm"/>
+                        <span id="hL4b" class="small-text lat-dark-grey">Loan term</span>
+                    </span>
+                </div>
+                </div>
+            </apex:panelGroup>
+            
+        
+
+        <!--/end Mobile -->
+    </nav>
+    <!--/end nav -->
+
+    <!-- Back to Loan and Contact Us -->
+    <c:APP_GSD_ContactUSComponent />
+
+    <script>
+        /*
+         * Description : Fetch the application data
+         */
+        function getApplicationData() {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_LoadDetailHeader.retrieveApplication}',
+                '{!JSENCODE($CurrentPage.parameters.id)}',
+                function(result, event) {
+                    if (event.status) {
+                        setComponentData(result.application);
+                        //driveLoanDetailsViaRiskGrade(result.displayLoanDetails);
+                    } else if (event.type === 'exception') {
+                        console.log('exception: ' + event.message + ', ' + event.where);
+                    } else {
+                        console.log(event.message);
+                    }
+                }, {
+                    escape: true
+                }
+            );
+        }
+
+        /*
+         * Description : Set the component values using application's data
+         */
+        function setComponentData(currentApplication) {
+            if (currentApplication.Total_Loan_Amount__c != null) {
+                if(currentApplication.Total_Loan_Amount__c > 99999.99 && 
+                   currentApplication.Total_Loan_Amount__c % 1 == 0){
+                    //More than 100,000 without decimal
+                    $('#loanamtText').attr('x', '53');
+                    if("{!$Site.Name}" == "Latitude"){
+                        $("#loanamt").attr('class','module5-label lat-dark-grey');
+                    }
+                } else if(currentApplication.Total_Loan_Amount__c > 99999.99 && 
+                          currentApplication.Total_Loan_Amount__c % 1 != 0){
+                    //More than 100,000 with decimal          
+                    // $('#loanamtText').attr('x', '30');
+                    if("{!$Site.Name}" == "Latitude"){
+                        $("#loanamt").attr('class','module5-label lat-dark-grey');
+                    }
+                } else if(currentApplication.Total_Loan_Amount__c < 99999.99 && 
+                          currentApplication.Total_Loan_Amount__c > 9999.99 && 
+                          currentApplication.Total_Loan_Amount__c % 1 == 0){
+                    //Less than 100,000 and more than 10,000 without decimal
+                    $('#loanamtText').attr('x', '52');
+                } else if(currentApplication.Total_Loan_Amount__c < 99999.99 && 
+                          currentApplication.Total_Loan_Amount__c > 9999.99 && 
+                          currentApplication.Total_Loan_Amount__c % 1 != 0){
+                    //Less than 100,000 and more than 10,000 with decimal
+                    $('#loanamtText').attr('x', '48');
+                    if("{!$Site.Name}" == "Latitude"){
+                        $("#loanamt").attr('class','module5-label lat-dark-grey');
+                    }
+                } else if(currentApplication.Total_Loan_Amount__c < 9999.99 && 
+                          currentApplication.Total_Loan_Amount__c % 1 == 0){
+                    //Less than 10,000 without decimal
+                    $('#loanamtText').attr('x', '50');
+                } else if(currentApplication.Total_Loan_Amount__c < 9999.99 && 
+                          currentApplication.Total_Loan_Amount__c % 1 != 0){
+                    //Less than 10,000 with decimal
+                    $('#loanamtText').attr('x', '52');
+                }
+                if(currentApplication.Total_Loan_Amount__c % 1 != 0){
+                    //With decimal, parse to 2 decimal places
+                    $('#loanamtdollar').text('$');
+                    jQuery('[id$=loanamt]').text(addCommas(currentApplication.Total_Loan_Amount__c.toFixed(2)));
+                } else {
+                    //Whole number
+                    //Removed decimal values for whole number - Modified by MDAVID - 07/18/2016
+                    jQuery('[id$=loanamt]').text('$'+addCommas(currentApplication.Total_Loan_Amount__c.toFixed()));
+                }
+                
+                //Mobile
+                $('#loanamtmobile').text('$'+addCommas(currentApplication.Total_Loan_Amount__c).split('.')[0]);
+                
+            } else {
+                jQuery('[id$=loanamt]').text('0.00');
+            }
+
+            if (currentApplication.Offered_Interest_Rate__c != null) {        
+                jQuery('[id$=interestrate]').text(parseFloat(currentApplication.Offered_Interest_Rate__c).toFixed(2));
+            } else {
+                jQuery('[id$=interestrate]').text('0.00');
+            }
+            if (currentApplication.Loan_Term__c != null) {
+                jQuery('[id$=loanterm]').text(currentApplication.Loan_Term__c);
+               
+            } else {
+                jQuery('[id$=loanterm]').text('0.00 years');
+            }
+
+            if (currentApplication.EMI_with_Service_Fee__c != null) {
+                var emiAmount = parseFloat(currentApplication.EMI_with_Service_Fee__c).toFixed(2).toString().split(".");
+                if(currentApplication.EMI_with_Service_Fee__c < 999.99){
+                    //Less than 1,000
+                    if(currentApplication.EMI_with_Service_Fee__c % 1 == 0){
+                        //Without decimal
+                        $('#minmonrepayText').attr('x', '23');
+                        $('#minmonrepayText').attr('y', '68');
+                    } else {
+                        //With decimal
+                        $('#minmonrepaycentsText').attr('x', '85');
+                        $('#minmonrepaycentsText').attr('y', '51');
+                    }
+                    jQuery('[id$=minmonrepay]').text('$'+addCommas(emiAmount[0]));
+                    $('#minmonrepayDollar').text('');
+                    $('#minmonrepayDollarOtherBrand').text('');
+                } else {
+                    //More than 1,000
+                    $('#minmonrepayText').attr('x', '10');
+                    $('#minmonrepayText').attr('y', '50');
+                    
+                    $('#minmonrepaycentsText').attr('x', '90');
+                    $('#minmonrepaycentsText').attr('y', '51');
+                    jQuery('[id$=minmonrepay]').text(addCommas(emiAmount[0]));
+                }
+                
+                if(emiAmount[1] != 00){
+                // if(emiAmount[1] < 10){
+                    $('#minmonrepaycents').text('.'+emiAmount[1]);
+                // } else if(emiAmount[1] > 10){
+                //     $('#minmonrepaycents').text('.'+emiAmount[1]);
+                } else {
+                    $('#minmonrepaycents').text('.00');
+                }
+                
+                if(emiAmount[1] === undefined){
+                    $('#minmonrepaycents').text('.00');
+                }
+            } else {
+                jQuery('[id$=minmonrepay]').text('$ 0.00');
+                $('#minmonrepaycents').text('.00');
+           }
+
+            //BEGIN: MLASALA 09-FEB-16
+            //Update on TQLQW-20 Templates & Configuration: to include ge application number
+            if (currentApplication.UID__c != null) {
+                $('#geApplicationNumber').text(currentApplication.UID__c);
+                $('#geApplicationNumberMobile').text(currentApplication.UID__c);
+            }
+            //END: MLASALA 09-FEB-16
+            
+            //BEGIN: TXU 2016-04-09
+            //Hide Logout Button for declined Apps
+            if(currentApplication.Response_Code__c == 'FID'){
+                $('#logout').css('visibility','hidden');
+            }
+            //END: TXU 2016-04-09
+        }
+
+        function driveLoanDetailsViaRiskGrade(showLoanDetails) {
+            if (showLoanDetails) {
+                $('#loanSummary').css('visibility', 'visible');
+                //TODO: DISPLAY FOR MOBILE
+            } else {
+                $('#loanSummary').css('visibility', 'hidden');
+                //TODO: HIDE FOR MOBILE
+            }
+        }
+    
+        getApplicationData();
+    </script>
+    
+</apex:component>

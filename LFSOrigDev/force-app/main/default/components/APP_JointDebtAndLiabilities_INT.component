@@ -1,0 +1,539 @@
+<!--
+/**
+* @Description: Debts component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 30.JAN.2014
+* @History:
+  =====================================================================
+      01-30-14: Created - Mike
+      04-09-15: Updated - Include client side validations - DYU
+      04-13-15: Updated - Update validation in outstanding balance to accept - forboth NZ and AU applicable for Credit Card, store card and overdraft type - DYU
+      04-14-15: Updated Defect 830 - Make the debt type and financial institution required - DYU
+      04-17-15: Updated Defect 830 - Update text type 'Kiwi bank' to 'Kiwibank'
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointDebtAndLiabilities" id="Liability__c-mycomponent">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('[id*=Liability__c___Debt_Category__c] option[value=""]').text("Please Select");
+            $('[id*=Liability__c___type_of_credit_card__c] option[value=""]').text("Please Select");    
+        });
+
+    </script>
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="debtWrap" description="This is the value for the component." type="MyBudgetsDebtWrapper" required="true" />
+    <apex:attribute name="brandRegion" description="This is the value of the brand country" type="String" required="true"/>
+
+    <div class="clearfix">
+        <br/>
+    </div>
+
+    <div class="fleftme grayborderbtom">
+        <div class="clearfix"/>
+
+        <!-- REMOVE BUTTON -->
+        <div class="width60 fleft" colspan="8">
+            <apex:actionStatus id="status6">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Remove" onclick="document.getElementById('GETheme:theForm:Liability__c-1:loadingGif').style.visibility='visible';deleteRow('{!debtWrap.rowCount}'); return false;" rerender="status6"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Removing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <div class="fleft">
+            <label  class="width130 txtright">
+                I have a
+            </label>
+            <div class="requiredBlock2"/>
+        </div>
+
+        <!-- CATEGORY FIELD -->
+        <div class="fleft">  
+            <apex:inputField value="{!debtWrap.debt.Debt_Category__c}" id="Liability__c___Debt_Category__c" styleClass="" onchange="debtCateg();checkFinancialInstitution();">
+                <apex:actionSupport event="onchange" status="pleasewait" oncomplete="setMortgage();"/>
+            </apex:inputField>
+            <div class="clearfix"/>
+                <apex:outputText styleClass="warningMessage width160" escape="false" rendered="{!!debtWrap.categoryValid}" value="Error: Please select your debt category"/>
+            </div>
+        <apex:outputPanel id="financialInst"> 
+            <apex:outputPanel rendered="{!IF(debtWrap.debt.Type_of_Credit_Card__c == 'Kiwibank' && debtWrap.debt.Debt_Category__c == 'Credit card',false,true)}">
+                <div class="fleft">
+                    <label class="width120 txtright">
+                        Financial Institution
+                    </label>
+                    <div class="requiredBlock2"/>
+                </div>
+                <!-- FINANCIER FIELD -->
+              
+              
+               <apex:outputPanel rendered="{!brandRegion == nz_Country}">
+                <div class="fleft">
+                   <apex:outputPanel >
+                    <apex:inputField value="{!debtWrap.debt.Financier_List__c}" styleClass="isPicklistFinacierType" id="Liability__c___Financier_List__c"  onblur="$j(this).valid();">
+                        <apex:actionSupport event="onchange" status="pleasewait" reRender="showHideFinancierName" oncomplete="setMortgage();"/>
+                   </apex:inputField>
+                     <div class="clearfix"></div>
+                     <apex:outputPanel id="showHideFinancierName">
+                      <apex:outputPanel rendered="{!debtWrap.debt.Financier_List__c == 'Other'}" >
+                     <label class="pix40 labeldark">
+                            Other Financial institution
+                        </label>
+                        
+                     <apex:inputField styleClass="input-block-level isFinancialInstitution" style="text-transform: capitalize;" value="{!debtWrap.debt.Financier_Name__c}" id="Liability__c___Financier_Name_NZ__c" />
+                    </apex:outputPanel>
+                     </apex:outputPanel>  
+                     </apex:outputPanel> 
+                </div>
+              </apex:outputPanel>
+              
+              
+              
+              <apex:outputPanel rendered="{!brandRegion == au_Country}">
+                <div class="fleft">
+                    <apex:inputText value="{!debtWrap.debt.Financier_Name__c}" styleClass="{!IF(debtWrap.debt.Debt_Category__c != null, 'isRequired', '')}" id="Liability__c___Financier_Name__c" onkeypress="return isAlNumericWithHyphen(event,this)" maxlength="20"/>
+                    <div class="clearfix"/>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.financierValid}" value="Error: Please select your Financier Name"/>
+                </div>
+              </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <div class="fleft">
+            <apex:outputPanel rendered="{!debtWrap.isJoint}">
+                <label class="width70 txtright">
+                    Debt Owner
+                </label>
+                <div class="requiredBlocknull"/>
+            </apex:outputPanel>
+        </div>
+
+        <!-- APPLICABLE PARTY -->
+        <div class="fleft">
+            <apex:selectList size="1" styleClass="adjust_sec1" value="{!debtWrap.debt.Applicable_Party__c}" id="applicableParty" rendered="{!debtWrap.isJoint}">
+                <apex:selectOptions value="{!ApplicablePartyOptions}"/>
+                <apex:actionSupport event="onchange" rerender="false" status="pleasewait"/>
+            </apex:selectList>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="clearfix"/>
+        
+    </div><!-- fleftme grayborderbtom -->
+
+    <div class="clearfix"/>
+    
+    <!-- DYNAMIC FIELDS PER CATEGORY -->
+    <div class="fleftme">
+        
+        <div>
+            
+            <apex:outputPanel id="extraFieldsOutputPanel">
+
+                <!-- CREDIT CARD/STORE CARD/OVERDRAFT -->
+                <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Credit card', 
+                                                 debtWrap.debt.Debt_Category__c == 'Store card',
+                                                 debtWrap.debt.Debt_Category__c == 'Charge card', 
+                                                 debtWrap.debt.Debt_Category__c == 'Overdraft')}" >
+                    
+                    <div>
+                       <!-- credit card type field for NZ --> 
+                        <apex:outputPanel rendered="{!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable && debtWrap.debt.Debt_Category__c == 'Credit card'}">
+                            <div class="fleft">
+                                <label class="width190 txtright"
+                                    >type
+                                </label>
+                                <div class="requiredBlock2"/>
+                            </div>
+                            
+                            <!-- CREDIT CARD TYPE FIELD -->
+                            <div class="fleft">
+                                <apex:inputField value="{!debtWrap.debt.Type_of_Credit_Card__c}" styleClass="isPicklist" id="Liability__c___Type_of_Credit_Card__c"  onchange="getTotalDebtMethod();checkFinancialInstitution();" />
+                                <div class="clearfix"/>
+                                <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.typeOfCreditCard}" value="Error: Please select credit card type"/>
+                            </div>
+                            <div class="clearfix"/>
+                        </apex:outputPanel>
+                        
+                        <div class="fleft">
+                            <label class="width190 txtright"
+                                >with a limit of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- CREDIT LIMIT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Credit_Limit_Amt__c}" styleClass="isRequired isAmount vNumberAmount" id="Liability__c___Credit_Limit_Amt__c" onchange="getTotalDebtMethod();"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.creditLimitValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label class="width190 txtright">
+                                and an outstanding balance of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- BALANCE AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Card_Overdraft_Bal_Amt__c}" id="Liability__c___Card_Overdraft_Bal_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.cardOverdraftValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                       </div>
+
+                       <div class="clearfix"/>
+
+                    </div>
+
+                    <div class="clearfix"/>
+
+                </apex:outputPanel>
+
+                <!-- DEBT CONSOLIDATION FOR CREDIT CARD/STORE CARD/OVERDRAFT -->
+                <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Credit card', 
+                                                 debtWrap.debt.Debt_Category__c == 'Store card',
+                                                 debtWrap.debt.Debt_Category__c == 'Charge card', 
+                                                 debtWrap.debt.Debt_Category__c == 'Overdraft')}">
+                    
+                     <div Id= "ConsDebtRedLim">
+                        
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                Consolidate Debt / Reduce Limit
+                            </label>
+                            <div class="requiredBlocknull"/>
+                        </div> 
+                        
+                        <!-- CONSOLIDATE DEBT FIELD -->
+                        <div class="fleft">    
+                            <apex:selectList size="1" styleClass="width170" value="{!debtWrap.debt.Consolidate_Debt_Reduce_Limit__c}" id="Liability__c___Consolidate_Debt_Reduce_Limit__c"  onchange="extraFields();">
+                                <apex:selectOptions value="{!ConsolidatedDebtCategory}"/>
+                                <apex:actionSupport event="onchange" status="pleasewait"/>
+                            </apex:selectList>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.consolidateValid}" value="Error: Please select a value."/>
+                        </div>
+
+                    </div>
+   
+                    <div class="clearfix"/>
+
+                </apex:outputPanel>
+
+                <!-- OVERDRAFT APR/REDUCE CREDIT LIMIT -->
+                <apex:outputPanel id="output2" rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Credit card', 
+                                                              debtWrap.debt.Debt_Category__c == 'Store card',
+                                                              debtWrap.debt.Debt_Category__c == 'Charge card', 
+                                                              debtWrap.debt.Debt_Category__c == 'Overdraft')}">
+                    <div>
+                       <apex:outputPanel rendered="{!brandRegion == au_Country}">
+                       <div class="fleft">
+                            <label  class="width190 txtright">
+                                <apex:outputText value="Overdraft APR" rendered="{!IF(debtWrap.debt.Debt_Category__c == 'Overdraft', true,false)}"/>
+                            </label>
+                            <apex:outputPanel rendered="{!IF(debtWrap.debt.Debt_Category__c == 'Overdraft' ,true,false)}" styleClass="requiredBlock2"/>
+                        </div>
+
+                        <!-- OVERDRAFT APR FIELD -->
+                        
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Overdraft_APR__c}" id="Liability__c___Overdraft_APR__c" onchange="getTotalDebtMethod();" rendered="{!IF(debtWrap.debt.Debt_Category__c == 'Overdraft' ,true,false)}" styleClass="isRequired isAmount vNumberAmount"/>
+                            <label>
+                                <apex:outputText value="%" rendered="{!IF(debtWrap.debt.Debt_Category__c == 'Overdraft' ,true,false)}"/>
+                            </label>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.overdraftAPRValid}" value="{!debtWrap.overdraftInvalidMsg}"/>
+                        </div>
+                       </apex:outputPanel>
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <apex:outputLabel styleClass="width190 txtright rbarlabeladd" value="Reduced Credit Limit" rendered="{!IF(debtWrap.debt.Consolidate_Debt_Reduce_Limit__c == 'Reduce the credit limit' ,true,false)}"/>
+                        </div>
+                        
+                        <!-- REDUCE CREDIT LIMIT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Reduced_Credit_Limit__c}" id="Liability__c___Reduced_Credit_Limit__c"  onchange="getTotalDebtMethod();" rendered="{!IF(debtWrap.debt.Consolidate_Debt_Reduce_Limit__c == 'Reduce the credit limit' ,true,false)}" styleClass="isRequired"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!AND(!debtWrap.reducedCreditValid,debtWrap.debt.Consolidate_Debt_Reduce_Limit__c == 'Reduce the credit limit')}" value="Error: Please enter reduced credit limit."/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                    </div>
+
+                    <div class="clearfix"/>
+
+                </apex:outputPanel>
+
+                <!-- MORTGAGE -->
+                <apex:outputPanel rendered="{!debtWrap.debt.Debt_Category__c == 'Mortgage'}">
+                    <div class="mainlist3">
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                with an outstanding balance of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- BALANCE AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Mortgage_Bal_Amt__c}" id="Liability__c___Mortgage_Bal_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageBalanceValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                and amount borrowed was $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div> 
+
+                        <!-- BORROWED AMOUNT FIELD -->
+                         <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Mortgage_Borrowed_Amt__c}" id="Liability__c___Mortgage_Borrowed_Amt__c" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageBorrowedValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                and repayments of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div> 
+                        
+                        <!-- REPAYMENT AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Mortgage_Repayment_Amt__c}" id="Liability__c___Mortgage_Repayment_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageRepayValid }" value="Error: Please enter mortgage repayment amount."/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                <apex:outputText value="each"/>
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+                        
+                        <!-- REPAYMENT INTERVAL FIELD -->
+                        <div class="fleft">
+                            <apex:selectList size="1" value="{!debtWrap.debt.Mortgage_Repayment_Interval__c}" id="Liability__c___Mortgage_Repayment_Interval__c" onchange="getTotalDebtMethod();" styleClass="isPicklistNone">
+                                <apex:selectOptions value="{!MortgageRepayInterval}"/>
+                            </apex:selectList>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageRepayIntValid }" value="Error: Please enter mortgage repayment interval."/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                    </div>
+
+                    <div class="clearfix"/>
+
+                </apex:outputPanel>
+                
+                <!-- PERSONAL/CAR LOAN -->
+                <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Personal loan',
+                                                 debtWrap.debt.Debt_Category__c == 'Hire purchase',
+                                                 debtWrap.debt.Debt_Category__c == 'Car loan')}" >
+                    <div class="mainlist3">
+                    
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                with an outstanding balance of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- BALANCE AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Car_Personal_Bal_Amt__c}" id="Liability__c___Car_Personal_Bal_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carBalanceValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                and repayments of $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- REPAYMENT AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Car_Personal_Repay_Amt__c}" id="Liability__c___Car_Personal_Repay_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carRepayAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                         <div class="fleft">
+                            <label  class="width190 txtright">
+                                each
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- REPAYMENT INTERVAL FIELD-->
+                        <div class="fleft">
+                            <apex:selectList size="1" value="{!debtWrap.debt.Car_Personal_Repay_Int__c}" id="Liability__c___Car_Personal_Repay_Int__c" onchange="getTotalDebtMethod();" styleClass="isPicklistNone">
+                                    <apex:selectOptions value="{!CarPersonalInterval}"/>
+                             </apex:selectList>
+                            <div class="clearfix"/>
+                             <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carRepayIntervalValid }" value="Error: Please enter your repayment interval for your car loan or personal loan"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                and amount borrowed was $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div> 
+                        
+                        <!-- BORROWED AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Car_Personal_Borrowed_Amt__c}" id="Liability__c___Car_Personal_Borrowed_Amt__c" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carBorrowedAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                    </div>
+                </apex:outputPanel>
+                
+                <!-- OTHER -->
+                <apex:outputPanel rendered="{!debtWrap.debt.Debt_Category__c == 'Other'}">
+                    <div class="mainlist3">
+                        <!--Updated by DYU 04-22-15 - Removed the condition to show the type of debt label when category is other.  The condition is already set to the parent panel-->
+                        <!--<apex:outputPanel rendered="{!NOT(debtWrap.debt.Debt_Category__c == 'Other')}">-->
+                        <apex:outputPanel >
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                type of Debt
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+                        </apex:outputPanel>
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Type_of_Debt__c}" id="Liability__c___Type_of_Debt__c" styleClass="isRequired isPersonalName isMaxLength20"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.typeOfDebt}" value="Error: Please enter the type of your debt."/>
+                        </div>
+                        
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                and amount borrowed was $
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+                        
+                        <!-- BORROWED AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Other_Borrowed_Amt__c}" id="Liability__c___Other_Borrowed_Amt__c" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherBalanceDescValid }" value="Error: Please enter your Other debt"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label class="width190 txtright">
+                                and repayments of $
+                                </label>
+                            <div class="requiredBlock2"/>
+                        </div> 
+
+                        <!-- REPAYMENT AMOUNT FIELD -->
+                        <div class="fleft">
+                            <apex:inputField value="{!debtWrap.debt.Other_Repay_Amt__c}" id="Liability__c___Other_Repay_Amt__c" onchange="getTotalDebtMethod();" styleClass="isRequired isAmount vNumberAmount"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherRepayAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label  class="width190 txtright">
+                                each
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div> 
+                        
+                        <!-- REPAYMENT INTERVAL FIELD -->
+                        <div class="fleft">
+                            <apex:selectList size="1" value="{!debtWrap.debt.Other_Repay_Int__c}" id="Liability__c___Other_Repay_Int__c" onchange="getTotalDebtMethod();" styleClass="isPicklistNone">
+                                <apex:selectOptions value="{!OtherRepayInterval}"/>
+                            </apex:selectList>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherRepayIntervalValid }" value="Error: Please enter your Other debt payment interval"/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                    </div>
+
+                    <div class="clearfix"/>
+
+                </apex:outputPanel>
+                
+                <!-- ACKNOWLEDGE PAYOUT SECTION AND FIELD -->
+                <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Other', 
+                                                 debtWrap.debt.Debt_Category__c == 'Mortgage', 
+                                                 debtWrap.debt.Debt_Category__c == 'Personal loan',
+                                                 debtWrap.debt.Debt_Category__c == 'Hire purchase', 
+                                                 debtWrap.debt.Debt_Category__c == 'Car loan')}">
+                    <div>
+                        <div>
+                            <label class="width190 txtright"> 
+                                &nbsp;
+                            </label>
+                        </div>
+                        <div>
+                            <apex:inputField styleClass="marginl7" value="{!debtWrap.debt.Acknowledge_Payout__c}" id="Liability__c___Acknowledge_Payout__c" onchange="getTotalDebtMethod();"/>
+                            &nbsp; I want to pay out this debt
+                        </div>
+                    </div>
+                    <div class="clearfix"/>
+                </apex:outputPanel>
+                
+                <!-- FOR PERSPECSYS -->
+                <div>
+                    <div>
+                        <apex:inputHidden value="{!debtWrap.debt.PRS_RECORD_ID__c}" id="Liability__c___PRS_RECORD_ID__c" />
+                        <apex:inputHidden value="{!debtWrap.debt.id}" id="Liability__c___id" />
+                    </div>
+                </div>
+                
+            </apex:outputPanel>
+
+        </div>
+
+    </div><!-- fleftme -->
+    
+</apex:component>

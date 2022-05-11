@@ -1,0 +1,141 @@
+<apex:page standardController="Account_Opener_Training__c" extensions="AccountOpenerTrainingCls" sidebar="true">
+    <apex:form id="InformationId">
+    <apex:actionFunction action="{!showHideGoGemSection}" name="showHideGOGEMSection"  reRender="pageId,goGemSecId,GOInformation,GoQuiz,GEMInformation,GEMQuiz">
+        <apex:param assignTo="{!cardVal}" name="cardValue" value=""/>
+    </apex:actionFunction>
+       
+       <apex:pageBlock title="Account Opener Training Edit" >
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton action="{!save}" value="Save" reRender="pageId"/>
+                <apex:commandButton action="{!cancel}" value="Cancel" reRender="pageId"/>
+            </apex:pageBlockButtons>
+            <apex:pageMessages id="pageId" /> 
+            
+            <apex:pageBlockSection title="Monitor Details" columns="2">
+                <apex:inputField value="{!acOpTr.Account__c}" required="true" />
+                <apex:inputField value="{!acOpTr.Account_Manager__c}" required="true" / >
+                <apex:inputField value="{!acOpTr.Team_Member_Name__c}" required="true" / >
+                <apex:inputField value="{!acOpTr.Visit_Date__c}" required="true" />
+                <apex:inputField value="{!acOpTr.Team_Member_No_longer_with_business__c}" / >
+                <apex:inputField value="{!acOpTr.Card__c}" required="true"  onchange="showHideGOGEMSection(this.value);"/>
+            </apex:pageBlockSection>
+            
+            <apex:outputPanel id="goGemSecId">
+            <apex:pageBlockSection id="GOInformation" title="Step 1: Present key GO information to sales staff"  columns="1" rendered="{!showGOSection}" >
+                 <apex:pageBlockSectionItem labelStyle="width:50%;text-align:left;"  >
+                    <apex:outputLabel value="{!$Label.Go_Acknowledge_c}" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:inputCheckbox id="Go_Acknowledge_c" value="{!acOpTr.Go_Acknowledge__c}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="GoQuiz" title="Step 2: Complete GO quiz with sales person" columns="1" rendered="{!showGOSection}"  >
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_Go_Q1}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.Go_Q1__c}" >
+                        <apex:selectOptions value="{!goQ1}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_Go_Q2}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.Go_Q2__c}">
+                        <apex:selectOptions value="{!goQ2}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>      
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_Go_Q3}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.Go_Q3__c}">
+                        <apex:selectOptions value="{!goQ3}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>       
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_Go_Q4}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GO_Q4__c}">
+                        <apex:selectOptions value="{!goQ4}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_Go_Q5}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GO_Q5__c}">
+                        <apex:selectOptions value="{!goQ5}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>   
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_Go_Q6}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GO_Q6__c}" >
+                        <apex:selectOptions value="{!goQ6}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>   
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_Go_Q7}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GO_Q7__c}" style="width:90%; word-wrap:break-word;">
+                        <apex:selectOptions value="{!goQ7}"></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>   
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" dataStyle="width:25%; text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_Go_Q8}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio rendered="true" value="{!acOpTr.GO_Q8__c}" layout="pageDirection" >
+                        <apex:selectOptions value="{!goQ8}"  ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>                                                                                                           
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection id="GEMInformation" title="Step 1: Present key GEM information to sales staff"  columns="1" rendered="{!showGEMSection}" >
+                 <apex:pageBlockSectionItem labelStyle="width:50%;text-align:left;"  >
+                    <apex:outputLabel value="{!$Label.Go_Acknowledge_c}" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:inputCheckbox id="GEM_Acknowledge_c" value="{!acOpTr.GEM_Acknowledge__c}"   />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="GEMQuiz" title="Step 2: Complete GEM quiz with sales person" columns="1" rendered="{!showGEMSection}" >
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q1}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q1__c}" >
+                        <apex:selectOptions value="{!gemQ1}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q2}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q2__c}">
+                        <apex:selectOptions value="{!gemQ2}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>      
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q3}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q3__c}">
+                        <apex:selectOptions value="{!gemQ3}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>       
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q4}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q4__c}">
+                        <apex:selectOptions value="{!gemQ4}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q5}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q5__c}">
+                        <apex:selectOptions value="{!gemQ5}" ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>   
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;">
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q6}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio layout="pageDirection" rendered="true" value="{!acOpTr.GEM_Q6__c}" style="width:90%; word-wrap:break-word;">
+                        <apex:selectOptions value="{!gemQ6}"></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>   
+                <apex:pageBlockSectionItem labelStyle="width:45%;text-align:left;" dataStyle="width:25%; text-align:left;" >
+                    <apex:outputLabel value="{!$Label.Con_GEM_Q7}" escape="false" style="font-family:calibri; font-weight:bold; font-size:13px;"></apex:outputLabel>
+                    <apex:selectRadio rendered="true" value="{!acOpTr.GEM_Q7__c}" layout="pageDirection" >
+                        <apex:selectOptions value="{!gemQ7}"  ></apex:selectOptions>   
+                    </apex:selectRadio>
+                </apex:pageBlockSectionItem>                                                                                                           
+            </apex:pageBlockSection>            
+            </apex:outputPanel>
+       
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton action="{!save}" value="Save" reRender="pageId"/>
+                <apex:commandButton action="{!cancel}" value="Cancel" reRender="pageId"/>
+            </apex:pageBlockButtons>  
+        </apex:pageBlock>                 
+    </apex:form>
+</apex:page>

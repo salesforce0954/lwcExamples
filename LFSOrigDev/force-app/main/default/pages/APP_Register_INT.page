@@ -1,0 +1,81 @@
+<apex:page id="pageId" standardController="Application__c" extensions="APP_Register_INTCC" showHeader="false" sidebar="false">    
+    <apex:form id="formId">
+        <apex:pageBlock id="pageBlockId">
+            <div align="center">
+                <apex:pageMessages />
+                <br/>
+                <h1>APPLICANT 1</h1>
+                <br/>
+                <apex:outputText value="{!email}"/>
+                <br/>
+                <br/>
+                <apex:outputText value="{!dob}"/>
+                <br/>
+                <br/>
+                <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="createUser">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Create User 1" action="{!createUser}" rendered="{!hideCreateUser}" disabled="{!disableCreateUser}" reRender="createUser" status="createUser" onclick="document.getElementById('pageId:formId:pageBlockId:loadingGif').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+                <!-- Defect 291- START -->
+               <!--  <apex:actionStatus id="cancel">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Cancel" action="{!cancel}" reRender="cancel" onclick="document.getElementById('pageId:formId:pageBlockId:loadingGif').style.visibility='visible'" status="cancel"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Cancelling..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus> -->
+                <!-- Defect 291- START -->
+            </div>
+            <div align='center' style="display:{!if(isJoint, 'block', 'none')}">
+                <br/>
+                <h1>APPLICANT 2</h1>
+                <br/>
+                <apex:outputText value="{!email2}"/>
+                <br/>
+                <br/>
+                <apex:outputText value="{!dob2}"/>
+                <br/>
+                <br/>
+                <apex:image id="loadingGif2" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="createUser2">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Create User 2" action="{!createUser2}" rendered="{!hideCreateUser2}" disabled="{!disableCreateUser2}" reRender="createUser2" status="createUser2" onclick="document.getElementById('pageId:formId:pageBlockId:loadingGif2').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+                <!-- Defect 291- START -->
+<!--                 <apex:actionStatus id="cancel2">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Cancel" action="{!cancel}" reRender="cancel" onclick="document.getElementById('pageId:formId:pageBlockId:loadingGif').style.visibility='visible'" status="cancel"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Cancelling..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus> -->
+              <!-- Defect 291- END -->
+            </div>
+            
+            <!--Defect - 291 -Fix  -->
+             <div align="center">
+            <apex:actionStatus id="cancel">
+                   <apex:facet name="stop">
+                       <apex:commandButton value="Cancel" action="{!cancel}" reRender="cancel" onclick="document.getElementById('pageId:formId:pageBlockId:loadingGif').style.visibility='visible'" status="cancel" />
+                   </apex:facet>
+                   <apex:facet name="start">
+                       <apex:commandButton value="Cancelling..." disabled="true"/>
+                   </apex:facet>
+               </apex:actionStatus>
+            </div>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

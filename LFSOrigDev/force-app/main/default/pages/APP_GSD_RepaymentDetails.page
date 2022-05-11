@@ -1,0 +1,888 @@
+<!--
+* @Description: Repayment Details Page
+* @Author: Marvin David
+* @Date Created: 03-FEB-2016
+* @History:
+=====================================================================
+29-JAN-16: Created - Marvin David
+09-FEB-16: Updated - Afreen Khan - Added all validation methods
+10-Feb-16: Updated - Afreen Khan - Updated Validation methods and added save repaymnet functionality
+===================================================================== 
+-->
+<apex:page showHeader="false" sidebar="false"  controller="APP_GSD_RepaymentDetails_Ext" id="pageId"  standardStylesheets="false" docType="html-5.0" >
+  <apex:includeScript value="{!$Resource.jquery_ui}"/>
+
+  <link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/font-awesome/css/font-awesome.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    <style>
+        .hidden { display: none; }
+        .notifyjs-wrapper {display: none;}
+        div.text label{ 
+        margin: 0; 
+        padding: 0; 
+        display: inline-block; 
+        font-size: 100%; 
+        padding-top: .5em; 
+        padding-right: .5em; 
+        width: 15%; 
+        text-align: right; 
+        font-weight: bold;
+        }
+        
+        .notifyjs-text{ 
+        margin: 0; 
+        padding: 0; 
+        display: inline-block; 
+        font-size: 100%; 
+        padding-top: .5em; 
+        padding-right: .5em; 
+        width: 15%; 
+        text-align: right; 
+        font-weight: bold;
+        }
+        
+        input:-moz-read-only { 
+            background-color:#BDBDBD;
+        }
+        
+        input:read-only { 
+            background-color: #BDBDBD;
+        }
+        
+        .fieldLabel:after {
+        color: #e32;
+        content: ' *';
+        display:inline;
+        }
+        
+
+        .notifyjs-text{
+        color: #e32;
+        font-weight: bold;
+        margin-left: 100%;
+        }
+        div#msgDiv label{
+        text-align: center; 
+        color: red; 
+        font-weight: bold;
+        margin-bottom: .5cm;
+        }
+        div#msgDiv label.success{
+        text-align: center; 
+        color: green;   
+        font-weight: bold;
+        margin-bottom: .5cm;
+        }
+        
+    
+        /* newly added */
+         .ui-datepicker {
+            width:315px;
+         }
+         .calHeight{
+            height: 50px;
+        }
+        /* end newly added */
+            
+    </style>
+    
+    <html>
+        <form class="validateRepaymentForm" action="#">
+            <div>
+                <div id="msgDiv" class="hidden centerAlignText"></div>
+                    <div class="accordion-heading paymentDtldCenterWidth">
+                 <!--       <div id="NZstaticMsg" class="body-label lat-dark-grey">{!$Label.APP_GSD_Repayments_SubHeader_AU}</div> -->
+                    </div>
+                    <br/>
+                <div class="paddingLR80 GDepad">
+                    <div id="auDiv" class="centerAlignText hidden">
+                    <div class="GForm-group leftAlignText">
+                        <label for="acctName" class="fieldLabel body-label lat-dark-grey ">Account name</label>
+                        <br/>
+                        <input type="text" id="acctName" name="acctName"  class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal" maxlength="30" />
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText"  id="bsbDiv">
+                        <label for="bsb" class="fieldLabel body-label lat-dark-grey ">BSB number</label>
+                        <br/>
+                        <input type="text" id="bsb" name="bsb"  class="GForm-field body-label GForm-half noOutline forms_lbl_margin bsbVal bsbLength genericVal" onkeyup="getBSBdata();" onchange="getBSBdata();" maxlength="6"  autocomplete="off"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="acctNum" class="fieldLabel body-label lat-dark-grey ">Account number</label>
+                        <br/>
+                        <input type="text" id="acctNum" name="acctNum"  class="GForm-field body-label GForm-half noOutline forms_lbl_margin acctNumDebitVal" maxlength="15"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="bankName" class="fieldLabel body-label lat-dark-grey ">Bank name</label>
+                        <br/>
+                        <input type="text" id="bankName" class="GForm-field body-label GForm-half noOutline forms_lbl_margin bankNameVal genericVal" name="bankName"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="branch" class="fieldLabel body-label lat-dark-grey ">Branch location</label>
+                        <br/>
+                        <input type="text" id="branch" name="branch" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal"/>
+                    </div> 
+                    <br/>
+                    <div class="GForm-group leftAlignText" >
+                        <label for="freq" class="fieldLabel body-label lat-dark-grey ">Repayment frequency</label>
+                        <br/>
+                        <select id="freq" name="freq"  class="GForm-field body-label GForm-half icon_dropdown noOutline forms_lbl_margin genericVal GSelect" onchange="setCommencementVal()"/>
+                    </div>
+                    
+                   
+                    
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="repaymentLevel" class="fieldLabel body-label lat-dark-grey ">Minimum repayment amount or higher ?</label>
+                        <br/>
+                        <select id="repaymentLevel" name="repaymentLevel"  class="GForm-field body-label icon_dropdown GForm-half noOutline forms_lbl_margin genericVal GSelect"/>
+                    </div>
+                    <br/> 
+                    <div class="GForm-group leftAlignText" id ="higherAmountDiv">
+                        <label for="higherAmt" class="body-label lat-dark-grey "> Higher payment amount</label>
+                        <br/>
+                        <input type="text" id="higherAmt" name="higherAmt" class="GForm-field body-label GForm-half noOutline forms_lbl_margin higherAmtVal"/>
+                    </div>
+                    <br/>
+
+                  
+                      <div class="GForm-group leftAlignText demo" id="commencementDateDiv" style ="display:none"> 
+                        <label for="commencementDate" class="fieldLabel body-label lat-dark-grey ">Repayment commencement date</label>
+                         <br/>
+                         <div class="form-group1">
+                            
+                            <div class='input-group date' style="width: 100%">
+                              <input type='text' id='commencementDate' name="commencementDate"  class="GForm-field body-label
+                              GForm-half noOutline forms_lbl_margin dateVal lat-dark-grey icon_calendar calHeight" />
+                            </div>
+                        </div>
+                    </div>                           
+                
+                    <!-- BEGIN MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                    <!--<button type="button" onclick="redirect(‘APP_GSD_Response’);"> Back </button>-->
+                    <!--<button type="button" onclick="updateRepayment();"> Confirm </button>-->
+                    <!-- END MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                </div>
+                <div id="nzDiv" class="hidden centerAlignText">
+                    <div class="GForm-group leftAlignText">
+                        <label for="acctName" class="fieldLabel body-label lat-dark-grey">Account name</label>
+                        <br/>
+                        <input type="text" id="acctNameNZ" name="acctName" maxlength="30" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText" id="bankNumDiv">
+                        <label for="bankNumNZ" class="fieldLabel body-label lat-dark-grey ">Bank number</label>
+                        <br/>
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : specified mixing max lenght of 2 -->
+                        <input type="text" id="bankNumNZ" name="bankNumNZ" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal" maxlength="2" onchange="searchBankNumber();" autocomplete="off" readonly="readonly" />
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText" id="branchNumDiv">
+                        <label for="branchNumNZ" class="fieldLabel body-label lat-dark-grey ">Branch number</label>
+                        <br/>
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : specified mixing max lenght of 4 -->
+                        <input type="text" id="branchNumNZ" name="branchNumNZ" class="GForm-field body-label GForm-half noOutline forms_lbl_margin branchVal genericVal" maxlength="4" onchange="searchBranchNumber();" autocomplete="off" readonly="readonly" />
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText">
+                        <label for="acctNum" class="fieldLabel body-label lat-dark-grey ">Account number</label>
+                        <br/>
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : updated maxlength from 8 to 7 -->
+                        <input type="text" id="acctNumNZ" name="acctNum" class="GForm-field body-label GForm-half noOutline forms_lbl_margin acctNumDebitNZVal" maxlength="7" readonly="readonly" />
+                    </div>
+                    <br/>
+                    <div class="GForm-group required leftAlignText">
+                        <label for="sufNum" class="fieldLabel body-label lat-dark-grey ">Suffix number</label>
+                        <br/>
+                        <!-- Adrian Recio: Fix Pack(10/5/2016) : specified mixing max lenght of 3 -->
+                        <input type="text" id="sufNumNZ" name="sufNum" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal" maxlength="3" readonly="readonly"/>
+                    </div>
+                  <!--  <br/> -->
+                    <div class="GForm-group required leftAlignText" style="display:none">
+                        <label for="bankName" class="body-label lat-dark-grey ">Bank name</label>
+                        <br/>
+                        <input type="text" id="bankNameNZ" class="GForm-field body-label GForm-half noOutline forms_lbl_margin bankNameVal alphaNumeric genericVal" name="bankName"/>
+                    </div>
+                  <!--  <br/> -->
+                    <div class="GForm-group leftAlignText" style="display:none">
+                        <label for="branch" class="body-label lat-dark-grey ">Branch location</label>
+                        <br/>
+                        <input type="text" id="branchNZ" name="branch" class="GForm-field body-label GForm-half noOutline forms_lbl_margin alphaNumeric"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText">
+                        <label for="freq" class="fieldLabel body-label lat-dark-grey ">Repayment frequency</label>
+                        <br/>
+                        <select id="freqNZ" name="freq" class="GForm-field body-label GForm-half icon_dropdown noOutline forms_lbl_margin genericVal" onchange="computeRepaymentAmt(this.value);setCommencementVal()"/>
+                    </div>
+                    <br/>
+                    <!--[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Commented out by MDAVID - 7/5/2016
+                    <div class="GForm-group leftAlignText">
+                        <label for="repaymentLevel" class="fieldLabel body-label lat-dark-grey ">Repayment Level</label>
+                        <br/>
+                        <select id="repaymentLevelNZ" name="repaymentLevel" class="GForm-field icon_dropdown body-label GForm-half noOutline forms_lbl_margin genericVal"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText" id="higherAmountDivNZ">
+                        <label for="higherAmtNZ" class="body-label lat-dark-grey">Higher Amount</label>
+                        <br/>
+                        <input type="text" id="higherAmtNZ" name="higherAmtNZ" class="GForm-field body-label GForm-half noOutline forms_lbl_margin higherAmtVal"/>
+                    </div>-->
+                    <!--[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Added by MDAVID - 7/5/2016-->
+                    <div class="GForm-group leftAlignText">
+                        <label for="repaymentLevel" class="fieldLabel body-label lat-dark-grey ">Repayment amount</label>
+                        <br/>
+                        <input type="text" id="repaymentAmtNZ" name="repaymentAmtNZ" class="GForm-field body-label GForm-half noOutline forms_lbl_margin genericVal" readonly="readonly"/>
+                    </div>
+                    <div class="hidden">
+                        <input type="number" id="monthlyMinPayment"/>
+                    </div>
+                    <br/>
+                    <div class="GForm-group leftAlignText demo" id="commencementDateDiv" style="display:none">
+                        <label for="commencementDateNZ" class="fieldLabel body-label lat-dark-grey ">Repayment commencement date</label>
+                        <br/>
+                        <div class="date" style="width: 100%">
+                            <input type='text' class="GForm-field body-label GForm-half noOutline forms_lbl_margin form-control lat-dark-grey icon_calendar dateValNZ calHeight" id='commencementDateNZ' name="commencementDateNZ"/>
+                        </div>
+                        <br/>
+                        <!--div class="form-group">
+                            <div class='input-group date' id='datetimepicker1'>
+                                <input type="text" data-date-format="mm/dd/yyyy" id="datepicker" name="commencementDate" class="GForm-field body-label GForm-half noOutline forms_lbl_margin dateVal"/>
+                                    <i class="glyphicon glyphicon-calendar form-control-feedback repaymentsCalendarIcon"></i>
+                            </div>
+                        </div-->
+                    </div>
+                    <!-- BEGIN MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                    <!--<button type="button" onclick="redirect(‘APP_GSD_Response’);"> Back </button>-->
+                    <!--<button type="button" onclick="updateRepayment();"> Confirm </button>-->
+                    <!-- END MLASALA 23-FEB-16 COMMENTED OUT AND REPLACED BY BUTTONS ON PARENT PAGE -->
+                </div>
+                </div>
+                <!--[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Added by MDAVID - 7/5/2016-->
+                <div class="accordion-heading paymentDtldCenterWidth">
+                    <div id="GEMstaticMsg" class="hidden body-label lat-dark-grey">{!$Label.APP_GSD_Repayments_HigherPayment_GEM}</div>
+                </div> <br/>
+                <div class="accordion-heading paymentDtldCenterWidth">
+                    <div id="KIWIstaticMsg" class="hidden body-label lat-dark-grey">{!$Label.APP_GSD_Repayments_HigherPayment_Kiwibank}</div>
+                </div> <br/>
+            </div>
+        </form>
+    </html>
+    <script src="../../soap/ajax/36.0/connection.js" type="text/javascript"></script>
+    <script>
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+    var repaymnetG = new sforce.SObject("Debit__c");
+    var $ = jQuery.noConflict();
+    var currentApplication;
+    var appDivision;
+    
+    $(function() {
+        $( "#commencementDate" ).datepicker({ dateFormat: 'dd/mm/yy' });
+        $( "#commencementDateNZ" ).datepicker({ dateFormat: 'dd/mm/yy' });
+    });
+    
+
+    function init(){
+        //Add Repayment Level option
+        repaymentLevelOptions();
+        
+        
+        //Add Frequency option
+        frequencyOptions();
+
+        //Populate Dates
+        var daysIDArray =['commencement_dd','commencement_dd_NZ'];
+        var monIDArray =['commencement_months','commencement_months_NZ'];
+        addMonthOptions(monIDArray);
+        addDayOptions(daysIDArray);
+    }
+    
+    //[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Added by MDAVID - 7/5/2016
+    function computeRepaymentAmt(frequency) {
+        var MMP = $('#monthlyMinPayment').val();
+        if (frequency == 'Monthly') {
+            $('#repaymentAmtNZ').val(MMP);
+        } else if (frequency == 'Fortnightly') {
+            $('#repaymentAmtNZ').val((MMP/2).toFixed(2));
+        } 
+    }
+
+    function addMonthOptions(monElementId){
+        for(var i = 0; i < monElementId.length; i++){
+            $('#'+monElementId[i]).append( $("<option>").val('').html('Please Select')); 
+            $('#'+monElementId[i]).append( $("<option>").val('01').html('January')); 
+            $('#'+monElementId[i]).append( $("<option>").val('02').html('February')); 
+            $('#'+monElementId[i]).append( $("<option>").val('03').html('March')); 
+            $('#'+monElementId[i]).append( $("<option>").val('04').html('April')); 
+            $('#'+monElementId[i]).append( $("<option>").val('05').html('May')); 
+            $('#'+monElementId[i]).append( $("<option>").val('06').html('June')); 
+            $('#'+monElementId[i]).append( $("<option>").val('07').html('July')); 
+            $('#'+monElementId[i]).append( $("<option>").val('08').html('August')); 
+            $('#'+monElementId[i]).append( $("<option>").val('09').html('September')); 
+            $('#'+monElementId[i]).append( $("<option>").val('10').html('October')); 
+            $('#'+monElementId[i]).append( $("<option>").val('11').html('November')); 
+            $('#'+monElementId[i]).append( $("<option>").val('12').html('December')); 
+        }
+    }
+
+    function addDayOptions(optionNames){
+        var dateNum = 31;
+          for(var i = 0; i < optionNames.length; i++){
+                $('#'+optionNames[i]).append( $("<option>").val('').html('Please Select'));
+                for (var j = 1; j <= dateNum; j++) {
+                    var d;
+                    if(j<10){
+                        d = '0'+j;
+                        $('#'+optionNames[i]).append( $("<option>").val(String(d)).html(String(j)));
+                        continue;
+                    }
+                    $('#'+optionNames[i]).append( $("<option>").val(String(j)).html(String(j))); 
+                }
+          } 
+    }
+    
+    function repaymentLevelOptions(){
+        $('select#repaymentLevel').append( $('<option>').val('').html('--Please select an option--'));
+        $('select#repaymentLevel').append( $("<option>").val('Minimum').html('Minimum monthly payment'));
+        $('select#repaymentLevel').append( $('<option>').val('Higher').html('Higher payment'));
+        $('select#repaymentLevelNZ').append( $('<option>').val('').html('--None--'));
+        $('select#repaymentLevelNZ').append( $('<option>').val('Higher').html('Higher'));
+        $('select#repaymentLevelNZ').append( $("<option>").val('Minimum').html('Minimum'));
+    }
+    
+    function frequencyOptions(){
+        $('select#freq').append( $('<option>').val('').html('--Please select an option--'));
+        $('select#freq').append( $("<option>").val('Weekly').html('Weekly'));
+        $('select#freq').append( $("<option>").val('Fortnightly').html('Fortnightly'));
+        $('select#freq').append( $("<option>").val('Monthly').html('Monthly'));
+        $('select#freqNZ').append( $('<option>').val('').html('--Please select an option--'));
+        $('select#freqNZ').append( $("<option>").val('Fortnightly').html('Fortnightly'));
+        $('select#freqNZ').append( $("<option>").val('Monthly').html('Monthly'));
+        //$('select#freqNZ').append( $("<option>").val('Weekly').html('Weekly'));
+    }
+    
+    function setCommencementVal(){
+        const d = new Date();
+   if(currentApplication.Brand_Country__c == 'AU'){
+     if($('#freq').val() == 'Weekly'){
+        var res = d.setDate(d.getDate() + 7);
+        var weekly = new Date(res);
+        var weeklydate = ("0" + weekly.getDate()).slice(-2) + '/' + ("0" + (weekly.getMonth() + 1)).slice(-2) + '/' + (+ weekly.getFullYear());
+        document.getElementById("commencementDate").value = weeklydate;
+     }
+     if($('#freq').val() == 'Fortnightly'){
+        var resFornightly = d.setDate(d.getDate() + 14);
+        var Fornightly = new Date(resFornightly);
+        var Fornightlydate = ("0" + Fornightly.getDate()).slice(-2) + '/' + ("0" + (Fornightly.getMonth() + 1)).slice(-2) + '/' + (+ Fornightly.getFullYear());
+        document.getElementById("commencementDate").value = Fornightlydate;
+     }
+     if($('#freq').val() == 'Monthly'){
+        var resMonthly = d.setDate(d.getDate() + 30);
+        var Monthly = new Date(resMonthly);
+        var Monthlydate = ("0" + Monthly.getDate()).slice(-2) + '/' + ("0" + (Monthly.getMonth() + 1)).slice(-2) + '/' + (+ Monthly.getFullYear());
+        document.getElementById("commencementDate").value = Monthlydate;
+     }
+  } else if(currentApplication.Brand_Country__c == 'NZ'){ 
+     if($('#freqNZ').val() == 'Fortnightly'){
+        var resFornightly = d.setDate(d.getDate() + 14);
+        var Fornightly = new Date(resFornightly);
+        var Fornightlydate = ("0" + Fornightly.getDate()).slice(-2) + '/' + ("0" + (Fornightly.getMonth() + 1)).slice(-2) + '/' + (+ Fornightly.getFullYear());
+        document.getElementById("commencementDateNZ").value = Fornightlydate;
+     }
+     if($('#freqNZ').val() == 'Monthly'){
+        var resMonthly = d.setDate(d.getDate() + 30);
+        var Monthly = new Date(resMonthly);
+        var Monthlydate = ("0" + Monthly.getDate()).slice(-2) + '/' + ("0" + (Monthly.getMonth() + 1)).slice(-2) + '/' + (+ Monthly.getFullYear());
+        document.getElementById("commencementDateNZ").value = Monthlydate;
+     }   
+    }
+  }
+    /*
+    * @Description: Get the current application Details
+    *
+    */
+    function getApplicationDetail(){
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_RepaymentDetails_Ext.queryApplicationRecord}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    console.log('application: '+JSON.stringify(result));
+                    currentApplication = result;
+                    resultValidation(result);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+        );
+    }
+    
+    /*
+    * @Description: Look for valid BSB on user input
+    *
+    */
+    function getBSBdata(){
+        var searchValue = $('#bsb').val();
+        console.log('BSB 1: '+$('#bsb').val());
+        
+        //BEGIN MLASALA 25-FEB-16 - Added validation before validating bsb in the database
+        //1. All characeters are numeric
+        //2. Does not consist of only zeros
+        //3. Length = 6
+        var regexNumbers = /^\d+$/;
+        var regerZeros = /^0*$/;
+        
+        if(searchValue != null && 
+           searchValue != '' && 
+           regexNumbers.test(searchValue) && 
+           !regerZeros.test(searchValue) && 
+           searchValue.length == 6){
+           //END MLASALA 25-FEB-16 - Added validation before validating bsb in the database
+            Visualforce.remoting.Manager.invokeAction(
+                
+                '{!$RemoteAction.APP_GSD_RepaymentDetails_Ext.searchBSB}',
+                searchValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('BSB: '+JSON.stringify(result));
+                        if(result != null){
+                            console.log('trest');
+                            $('label:contains("Please enter a valid BSB")').remove();
+                        }else{
+                            $('label:contains("Please enter a valid BSB")').remove();
+                            console.log($("#bsbDiv").parent().find("label:hidden").length + '::::'+ ($("#bsbDiv").parent().find("label.customError").length));
+                            if(($("#bsbDiv").parent().find("label:hidden").length) >=1 || 
+                               ($("#bsbDiv").parent().find("label.customError").length) == 0 && 
+                               ($("#bsbDiv").parent().find("label.error").length) == 0){
+                                $( "<label class='customError'> Please enter a valid BSB</label>" ).appendTo( "#bsbDiv" );
+                           }
+                        }
+                        
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true}
+            );
+        }else{
+            $('label:contains("Please enter a valid BSB")').remove();
+            return true;
+        }
+    }
+
+    /*
+    * @Description: Look for valid Bank Number on user input
+    *
+    */
+    
+    function searchBankNumber(){
+        var searchValue = $('#bankNumNZ').val();
+        if(searchValue.length == 1){
+            searchValue = 0+''+ searchValue;
+        }
+        
+        if(searchValue != null && searchValue != ''){
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_RepaymentDetails_Ext.searchBankNumber}',
+                searchValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('Bank Number'+JSON.stringify(result));
+                        if(result != null){
+                            $('label:contains("Invalid bank number.")').remove();
+                            return true;
+                        }else{
+                            $('label:contains("Invalid bank number.")').remove();
+                            console.log($("#bankNumNZ").parent().find("label:hidden").length + '::::'+ ($("#bankNumNZ").parent().find("label.customError").length));
+                            if(($("#bankNumNZ").parent().find("label:hidden").length) >=1  || ($("#bankNumNZ").parent().find("label.customError").length) == 0){
+                                $( "<label class='customError'>Invalid bank number.</label>" ).appendTo( "#bankNumDiv" );                 }
+                        }
+                        return false;
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true}
+            );
+        }else{
+            $('label:contains("Invalid bank number.")').remove();
+            return true;
+        }
+    }
+
+    /*
+    * @Description: Look for valid Branch Number on user input
+    *
+    */
+    
+    
+    function searchBranchNumber(){
+        var bankValue = $('#bankNumNZ').val();
+        var searchValue = $('#branchNumNZ').val();
+        if(bankValue.length == 1){
+            bankValue = 0+''+ bankValue;
+        }
+        console.log(bankValue +':::'+searchValue );
+        if(bankValue != null && (searchValue != null && searchValue != '') ){
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_RepaymentDetails_Ext.searchBranchNumber}',
+                searchValue, bankValue,
+                function(result, event){
+                    if(event.status ){
+                        console.log('Branch Number'+JSON.stringify(result));
+                        if(result != null){
+                            
+                            $('label:contains("Invalid branch number.")').remove();
+                            return true;
+                        }else{
+                            $('label:contains("Invalid branch number.")').remove();
+                            console.log($("#branchNumDiv").parent().find("label:hidden").length);
+                            
+                            if(($("#branchNumDiv").parent().find("label:hidden").length) >=1 || ($("#branchNumDiv").parent().find("label.customError").length) == 0){
+                                $( "<label class='customError'>Invalid branch number.</label>" ).appendTo( "#branchNumDiv" );                 
+                            }
+                            
+                            return false;
+                        }
+                    } else if(event.type === 'exception'){
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                {escape: true, buffer:false}
+            );
+        }else{
+            $('label:contains("Invalid branch number.")').remove();
+            return true;
+        }
+    }
+    
+    /*
+    * @Description: Process the result if no error encountered in JS remoting to get the application details. 
+    *
+    */
+    function resultValidation(currentApplication){
+        var currentRepayment;
+        var isRepaymentNew;
+        var recordTypeString;
+        var relatedDisbursement;
+        
+        //Check the application division
+        if(currentApplication.Brand_Country__c == 'AU'){
+            $('#repayments_Content').find('#auDiv').removeClass('hidden');
+            appDivision = 'AU';
+        }else{
+            $('#repayments_Content').find('#nzDiv').removeClass('hidden');
+            $('#repayments_Content').find('#NZstaticMsg').removeClass('hidden');
+            appDivision = 'NZ';
+        }
+        
+        //[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Added by MDAVID - 7/5/2016
+        if(currentApplication.Brand_String__c == 'GEM'){
+            $('#repayments_Content').find('#GEMstaticMsg').removeClass('hidden');
+        }else if(currentApplication.Brand_String__c == 'Kiwibank'){
+            $('#repayments_Content').find('#KIWIstaticMsg').removeClass('hidden');
+        }
+
+        currentRepayment = geRepaymenttobject(currentApplication);
+        relatedDisbursement = getDisbursementobject(currentApplication);
+       
+        setFieldValues(currentRepayment, appDivision, currentApplication, relatedDisbursement);
+        showHideHigherAmount();
+    }
+
+    function getDisbursementobject(currentApplication){
+        var currentDisbursement;
+        var disbursement = currentApplication.Disbursements__r;
+        if(disbursement != null){
+            currentDisbursement = currentApplication.Disbursements__r[0];
+           
+        }else{
+            currentDisbursement =  new sforce.SObject("Disbursement__c");
+        }
+
+        return currentDisbursement;
+    }
+
+
+    function geRepaymenttobject(currentApplication){
+        var repaymentCurrent;
+         //Checking the repayment details
+        var repayment = currentApplication.Debits__r;
+        if(repayment != null){
+            repaymentCurrent = currentApplication.Debits__r[0];
+            repaymnetG.Id = repaymentCurrent.Id;
+        }else{
+            repaymentCurrent =  new sforce.SObject("Debit__c");
+        }
+
+        return repaymentCurrent;
+    }
+
+    /*
+    * @Description: Formats the HTML form depening on the application region.
+    *
+    */
+    
+    function setFieldValues(currentRepayment, currentDiv, currentApplication, disburesementRecord){
+
+        var mydate = new Date(currentRepayment.Commencement_Date__c);
+        var dateString ;
+        var day = ("0" + mydate.getDate()).slice(-2);
+        var month = ("0" + (mydate.getMonth() + 1)).slice(-2);
+        if(currentRepayment.Commencement_Date__c != null){
+           dateString = mydate.getDate()+'/'+month+'/'+ mydate.getFullYear();
+         }
+         
+        if(currentDiv == 'AU'){
+            $('#acctName').val(currentRepayment.Account_Holders__c);
+            $('#bsb').val(currentRepayment.BSB_Number__c);
+            $('#acctNum').val(currentRepayment.Account_Number__c);
+            $('#bankName').val(currentRepayment.Bank_Name__c);
+            $('#branch').val(currentRepayment.Branch_Location__c);
+            $('#freq').val(currentRepayment.Frequency__c);
+            $('#repaymentLevel').val(currentRepayment.Repayment_Level__c);
+            $('#higherAmt').val(currentRepayment.Specify_Higher_Amount__c   );       
+            $('#commencementDate').val( dateString);      
+            $('#commencement_dd').val( day);
+            $('#commencement_months').val( month);
+            //$('#commencement_year').val( year);
+        }else if(currentDiv == 'NZ'){
+            $('#acctNameNZ').val(currentRepayment.Account_Holders__c);
+            $('#bankNumNZ').val(disburesementRecord.Bank_Number__c);
+            $('#branchNumNZ').val(disburesementRecord.Branch_Number__c);
+            $('#acctNumNZ').val(disburesementRecord.Bank_Acc_No_NZ__c);
+            $('#sufNumNZ').val(disburesementRecord.Suffix_Number__c);
+            $('#bankNameNZ').val(currentRepayment.Bank_Name__c);
+            $('#branchNZ').val(currentRepayment.Branch_Location__c);
+            $('#higherAmtNZ').val(currentRepayment.Specify_Higher_Amount__c );
+            $('select#freqNZ').val(currentRepayment.Frequency__c);
+            $('select#repaymentLevelNZ').val(currentRepayment.Repayment_Level__c);
+            $('#commencementDateNZ').val( dateString);      
+            $('#commencement_dd_NZ').val( day);
+            $('#commencement_months_NZ').val( month);
+            //$('#commencement_year_NZ').val( year);
+            //[TQLQW-168] [PL - NZ] Repayments & Disbursement Pages Changes- Added by MDAVID - 7/5/2016
+            $('#monthlyMinPayment').val(currentApplication.EMI_with_Service_Fee__c);
+            computeRepaymentAmt(currentRepayment.Frequency__c);
+        }
+    }
+
+    /*
+    * @Description: Method to revalidate the form again on submit and process different fields based on region. 
+    *
+    */
+    
+    
+    function updateRepayment(){
+        if($('.validateRepaymentForm').valid()  ){
+            getBSBdata();
+            searchBranchNumber();
+            searchBankNumber();
+            if(appDivision == 'AU' && $('.validateRepaymentForm').find('label.customError').length <=0 ){
+                repaymnetG.Application__c               = '{!$CurrentPage.parameters.id}';
+                repaymnetG.Account_Holders__c           = $('#acctName').val();
+                repaymnetG.BSB_Number__c                = $('#bsb').val();
+                repaymnetG.Account_Number__c            = $('#acctNum').val();
+                repaymnetG.Bank_Name__c                 = $('#bankName').val();
+                repaymnetG.Branch_Location__c           = $('#branch').val();
+                repaymnetG.Frequency__c                 = $('#freq').val();
+                repaymnetG.Repayment_Level__c           = $('#repaymentLevel').val();
+                repaymnetG.Specify_Higher_amount__c     = $('#higherAmt').val();
+                if($('#commencementDate').val() != ''){
+                repaymnetG.Commencement_Date__c         = convertToDateFromString($('#commencementDate').val() );
+                }                
+                recordTypeString                        = 'Direct Debit';
+                
+                saveRecord(repaymnetG, recordTypeString);
+            }else if(appDivision == 'NZ' && $('.validateRepaymentForm').find('label.customError').length <=0 ){
+                repaymnetG.Application__c               = '{!$CurrentPage.parameters.id}';
+                repaymnetG.Account_Holders__c           = $('#acctNameNZ').val();
+                repaymnetG.Bank_Number__c               = $('#bankNumNZ').val();
+                repaymnetG.Branch_Number__c             = $('#branchNumNZ').val();
+                repaymnetG.Account_Number_NZ__c         = $('#acctNumNZ').val();
+                repaymnetG.Suffix_Number__c             = $('#sufNumNZ').val();
+                repaymnetG.Bank_Name__c                 = $('#bankNameNZ').val();
+                repaymnetG.Suffix_Number__c             = $('#sufNumNZ').val();
+                repaymnetG.Branch_Location__c           = $('#branchNZ').val();
+                repaymnetG.Specify_Higher_amount__c     = $('#higherAmtNZ').val();
+                repaymnetG.Commencement_Date__c         = convertToDateFromString($('#commencementDateNZ').val() );
+                repaymnetG.Frequency__c                 = $('#freqNZ').val();
+                repaymnetG.Repayment_Level__c           = $('#repaymentLevelNZ').val();
+                recordTypeString                        = 'Direct Debit NZ';
+                
+                saveRecord(repaymnetG, recordTypeString);
+            }
+        }       
+
+        function convertToDate(year, month, date){
+            console.log(year +' :'+ month+' : '+ date);
+            var dateVar = new Date();
+            dateVar.setFullYear(year, month-1, date);
+            
+            return Date.parse(dateVar);
+        }
+
+        function convertToDateFromString(dateString){
+            var dateComponenetArray = dateString.split('/');
+            var dateVar = new Date(Date.UTC(dateComponenetArray[2],dateComponenetArray[1]-1 , dateComponenetArray[0], 0, 0,0));
+            //dateVar.setFullYear(dateComponenetArray[2],dateComponenetArray[1]-1 , dateComponenetArray[0]);
+            return Date.parse(dateVar)//Date.parse(dateVar);          
+        }
+
+    /*
+    * @Description: Method to do save the repaymnet details 
+    *
+    */
+        
+        function saveRecord(repaymentG, recordTypeString){
+            delete repaymnetG.type;
+            console.log('Repayment Details'+ repaymnetG);
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.APP_GSD_RepaymentDetails_Ext.confirmRepaymentDetails}',
+                repaymnetG, recordTypeString, 
+                function(result, event){
+                    if(event.status ){
+                        console.log('Disbursement id '+JSON.stringify(result));
+                        
+                        if(result.length == 18){
+                            //BEGIN MLASALA 23-FEB-16: Commented out and replaced with message div on parent page
+                            // $("#msgDiv").empty();
+                            // $('#msgDiv').removeClass('hidden');
+                            // $( "<label class='success'> Repayment Details saved successfully.</label>" ).appendTo( "#msgDiv" );
+                            // $( "<label class='msg success'> Repayment Details saved successfully.</label>" ).appendTo("#dmlStatus");
+                            repaymnetG.Id = result;
+                            console.log('Disbursement saved successfully');
+                            
+                        }else{
+                  
+                            $('#repayments_Content').find("#msgDiv").empty();
+                            $('#repayments_Content').find('#msgDiv').removeClass('hidden');
+                            $( "<label > Error encountered. "+result+"</label>" ).appendTo( "#msgDiv" );
+                            console.log('Error while saving Repayment ');
+                        }   
+                        
+                    } else if(event.type === 'exception'){
+                        // $("#msgDiv").empty();
+                        // $('#msgDiv').removeClass('hidden');
+                        // $( "<label > Error encountered while saving the details.</label>" ).appendTo( "#msgDiv" ); 
+                        $( "<label class='msg'> Error encountered while saving the Repayment Details.</label>" ).appendTo("#dmlStatus");
+                        console.log('Error while saving details ');
+                        
+                    } else {
+                        return false;
+                    }
+                    
+                    validateRepaymentFormToNavigate();
+                },
+                {escape: true}
+            );
+        }
+    }
+
+    function validateRepaymentFormToNavigate(){
+        if($('.validateRepaymentForm').valid() && $('.validateRepaymentForm').find('label.customError').length <=0 && $('div#msgDiv').find('label').length <=0){
+                    
+            //Set flag to true if data is valid
+            isValid = true;
+        }
+
+       // doNavigate();
+        skipAndRedirect();
+    }
+
+    function showHideHigherAmount(){
+
+            if($('#repaymentLevel').val() == 'Higher'){
+                $('#higherAmountDiv').show();
+            }else{
+                $('#higherAmountDiv').hide();
+            }
+
+            if($('#repaymentLevelNZ').val() == 'Higher'){
+                $('#higherAmountDivNZ').show();
+            }else{
+                $('#higherAmountDivNZ').hide();
+            }
+
+    }
+    
+    
+    $( document ).ready(function() {
+        init();
+        getApplicationDetail();
+
+        $('.validateRepaymentForm').validate({
+            onchange:function(element) {
+                this.element(element);
+            }
+        });
+        
+        $('#btnDone').click(function(e) {
+            $('input[type="text"].required').each(function() {
+                if ($.trim($(this).val()) == '') {
+                    isValid = false;
+                    $(this).css({
+                        "border": "1px solid red"
+                    });
+                }
+                else {
+                    $(this).css({
+                        "border": "",
+                        "background": ""
+                    });
+                }
+            });
+        });
+        
+        $('#personalReference_Tab').click(function(e) {
+            $('input[type="text"].required').each(function() {
+                if ($.trim($(this).val()) == '') {
+                    isValid = false;
+                    $(this).css({
+                        "border": "1px solid red"
+                    });
+                }
+                else {
+                    $(this).css({
+                        "border": "",
+                        "background": ""
+                    });
+                }
+            });
+        });
+
+        $('#repaymentLevel').change(showHideHigherAmount);
+        $('#repaymentLevelNZ').change(showHideHigherAmount);
+
+    });
+
+
+
+    </script>
+    
+    <script>
+    
+     $(window).resize(function() {
+      var field = $(document.activeElement);
+          if (field.is('.hasDatepicker')) {
+                field.datepicker('hide');
+          }
+    });
+    </script>
+
+</apex:page>

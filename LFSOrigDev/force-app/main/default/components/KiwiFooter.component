@@ -1,0 +1,45 @@
+<apex:component >
+    <style>
+        .footer-bottom, .footer-bottom-inner {
+            background-color: #ffffff !important;
+            color: #4b4b4b !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        .footer-bottom a {
+            text-decoration: underline !important;
+        }
+        .footer-bottom p, .footer-bottom a {
+            font-size: 18px !important;
+            color: #4b4b4b !important;
+        }
+    </style>
+    <footer style="position:relative !important;">
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <div>
+                    <!-- Matthew Gould (4/10/2016): Start of redesign -->
+                    Contact us &nbsp;<apex:outputLink value="tel:0800588002">0800 58 80 02</apex:outputLink>
+                    <br />
+                    Personal loans and car loans are provided by Latitude Financial Services Limited (‘Latitude’). Kiwibank receives remuneration for referring these loans to Latitude. Latitude’s lending criteria, terms and conditions and fees apply. Where new lending is consolidated with an existing Kiwibank or Latitude provided personal loan, a blended interest rate will apply.<br />
+                    <br />
+                    <a href="https://www.kiwibank.co.nz/privacy-policy/" target="_blank">Privacy Policy</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="https://www.kiwibank.co.nz/about-us/legal-docs/" target="_blank">Terms and Conditions</a>
+                    <br />
+                    <!-- Matthew Gould (4/10/2016): End of redesign -->
+                    
+                    <!--<a href="https://www.kiwibank.co.nz/privacy-policy/" target="_blank">Privacy Policy</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="https://www.kiwibank.co.nz/about-us/legal-docs/" target="_blank">Terms and Conditions</a> 
+                    <br />
+                    <br />-->
+                    <!--Updated by mmand on 07-28-15 NZ Rebranding -  updated footer -->
+                    <!-- MLASALA 31-MAR-16 DEFECT 448 FIX -->
+                    <!--<p>Kiwibank personal loans and car loans are provided by Latitude Financial Services Limited ("Latitude"). Kiwibank may receive a commission for referring a personal loan or car loan to Latitude. Latitude's lending criteria, terms and conditions, and fees apply.</p>
+                    <br/>
+                    <apex:outputPanel rendered="{!$CurrentPage.Name=='app_main_postsubmit'}">
+                    <div class="timeOpenId">*Monday to Friday 8am - 6pm, Saturday 9am - 5pm</div></apex:outputPanel>-->
+                </div>
+            </div><!-- footer-bottom-inner -->     
+        </div><!-- footer-bottom -->
+    </footer>
+</apex:component>

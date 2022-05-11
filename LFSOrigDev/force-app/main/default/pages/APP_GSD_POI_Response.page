@@ -1,0 +1,1196 @@
+<!--
+    * @Description: PL Transformation POI Response Page
+    * @Author: Davey Yu
+    * @Date Created: 02-FEB-2016
+    * @History:
+    =====================================================================
+        02-FEB-16: Created - Davey
+    ===================================================================== 
+-->
+<apex:page controller="APP_GSD_POI_Response_Ext" showHeader="false" sidebar="false" standardStylesheets="false">
+
+
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+
+     <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/>
+  
+    <!-- Bootstrap Core JavaScript -->
+    <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+
+<!-- Bootstrap Core CSS -->
+
+<link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_POI_Response_Ext';
+                  
+        //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+    </script>    
+    <style>
+        /*----- Accordion -----*/
+        .accordion, .accordion * {
+            -webkit-box-sizing:border-box; 
+            -moz-box-sizing:border-box; 
+            box-sizing:border-box;
+        }
+        .accordion {
+            /*overflow:hidden;*/
+            box-shadow:0px 1px 3px rgba(0,0,0,0.25);
+            border-radius:3px;
+            /*background:#f7f7f7;*/
+        }
+         
+        /*----- Section Titles -----*/
+        .accordion-section-title {
+            width:100%;
+            padding:15px;
+            display:inline-block;
+            border-bottom:1px solid #848484 !important;
+            background:#6E6E6E;
+            transition:all linear 0.15s;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section-title.active, .accordion-section-title:hover {
+            background:#848484;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section:last-child .accordion-section-title {
+            border-bottom:none;
+        }
+        
+        /*----- Section Content -----*/
+        .accordion-section-content {
+            padding:15px;
+            display:none;
+        }
+
+        .GIdentity-panel-buttons {
+            width: 560px;
+            display: inline-block;
+            text-align: left;
+            border-left: 2px dotted #75787b!important;
+            padding-left: 20px !important;
+        }
+         /* Header/Logo Title */
+        .incomeHeaderLatitude {
+            padding: 10px;
+            padding-left: 5px
+            text-align: left;
+            background-color: #EBEBEB;
+            color: #006AC6;
+            font-size: 18px;
+            font-family: Lexia;
+         }
+         .incomeHeaderKiwibank {
+            padding: 10px;
+            padding-left: 5px
+            text-align: left;
+            background-color: #EBEBEB;
+            color: #89c54e;
+            font-size: 18px;
+            font-family: Lexia;
+         }
+         .incomeHeaderGEM {
+            padding: 10px;
+            padding-left: 5px
+            text-align: left;
+            background-color: #EBEBEB;
+            color: #006AC6;
+            font-size: 18px;
+            font-family: Lexia;
+         }
+
+    </style>
+    <!--
+    <html>
+        <form>
+            PAGE TITLE
+            <title>Confirm Your Income</title>
+
+            LOAN DETAILS COMPONENT
+            <div style="text-align: center;width: 83%; padding-left: 12%;">  
+                
+                <c:APP_GSD_LoanDetailComponent_Clone />
+            </div>
+            
+            GREETING
+            <div id="greetings" style="text-align: center;width: 83%; padding-left: 12%;">
+                <h1>Hi {!$User.FirstName}!</h1>
+            </div>
+            
+            MESSAGE HEADERS
+            <div id="poiMessage" style="text-align: center;width: 70%; padding-left: 24%;">
+                <h1 id="poiMessageHeader"></h1>
+                <p id="poiSubHeader"></p>
+            </div>
+            <br/>
+
+            POI DETAILS
+            <div style="width: 100%;">
+
+                <div id="poiDocuments" class="accordion">
+                        <div id="applicantDiv" class="accordion-section">
+
+                        </div>
+                </div>
+            </div>
+        
+             <apex:include pageName="APP_GSD_FileUpload"/>
+         
+        </form>
+    </html>
+    -->
+    
+     <html>
+
+        <form>
+            <apex:include pageName="APP_GSD_BrandScript"/>
+            <!-- PAGE TITLE -->
+            <title>Confirm Your Income</title>
+
+            <!-- LOAN DETAILS COMPONENT -->
+            <div > 
+            <c:APP_GSD_LoanDetailComponent />
+            </div>
+            
+            <div id="poiMessage" class="container">
+                <div class="row" id="thumbsRow">
+                <!-- Commented as part of ODDS-12336 --> 
+                   <!--<div class="thumbsup_margin middle-content-margin">
+                       <span id="thumbsUp" class="icon_confirm_income icon_middle_width_lg center-block img-responsive"/>
+                    </div>-->
+                    
+                    <!-- GREETINGS -->
+                    <!--<div id="greetings" class="text-center center-block">
+                        <span class="module1-label lat-blue" >Hi {!$User.FirstName}!</span>
+                    </div>-->
+            
+                    <div class="secondary-margin text-left left-block">
+                      <span id="" class="module1-label lat-blue"><span id="poiMessageHeader"></span></span>
+                    </div>
+                    <div class="center-block left-content">
+                      <span class="intro-label lat-dark-grey"><span id="poiSubHeader"></span></span><br/><br/>
+                    </div>
+                    <!--Added as part of ODDS-12336-->
+                    <div class="left-block left-content">
+                      <div class="intro-label lat-dark-grey"><div id="poiSubAlterHeader"></div></div><br/>
+                    </div>
+                    <div class="left-block left-content">
+                      <b><div class="intro-label lat-dark-grey"><div id="poiSubQuestionHeader"></div></div></b><br/>
+                    </div>
+                    
+                </div>
+            </div>
+            <!-- Commented as part of ODDS-12336 --> 
+            <!--<div class="container">
+              <div class="text-center">
+                <div class="middle-content-margin">
+                  <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                </div>
+                <div class="gap-content"></div>
+              </div>
+            </div>-->
+            
+            <!-- POI DETAILS -->
+                        
+            <div class="container">
+                <div class="row">
+                    
+                    <div id="poiDocuments">
+                        <div id="applicantDiv" class="panel-group container" role="tablist" aria-multiselectable="true">
+                    <!--        
+                    <div id="poiDocuments" class="accordion">
+                            <div id="applicantDiv" class="accordion-section">
+                            -->
+    
+                            </div>
+                    </div>
+                    
+                     <!-- BUTTONS CONTAINER -->
+                    <div class="container" id="toprow"> 
+                        <div class="hidden-xs">
+                            <div class="row">
+                                <div class="pull-right confirmMarginB btnLRMargin paymentDetailsBtnRMargin vertical-align">
+                                    <button class="GSecondary-button module5-label lat-blue noOutline btnText btnBMargin"
+                                      style="line-height:30px;" onclick="redirect('APP_GSD_Response'); return false;">
+                                        <i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button>
+                                    <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn btnText" 
+                                    id="btnDone" style="line-height:30px;" onclick="redirect('APP_GSD_Response'); return false;">Done<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hiddenDiv visible-xs">
+                            <div>
+                                <button class="GPrimary-button module5-label lat-white btnBMargin" 
+                                    id="btnDone" style="line-height:30px;width:100%;display:inline !important" onclick="redirect('APP_GSD_Response'); return false;">Done</button>
+                            </div>
+                            <div>
+                                <button class="GTertiary-button module5-label lat-white "
+                                      style="line-height:30px;width:100%;display:inline !important" onclick="redirect('APP_GSD_Response'); return false;">Back</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        
+             <apex:include pageName="APP_GSD_FileUpload"/>
+             <br/>
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+          
+        </form>
+
+
+    </html>
+
+    
+    <script src="../../soap/ajax/36.0/connection.js" type="text/javascript"></script>
+
+  <!--
+     <c:APP_GSD_Scripts />
+     -->
+    <script>
+      
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+        var appPOI = [];
+        var appPOIObject  = new Object();
+    
+        function toggleCollapse(chevCount) {
+     
+            var chev1 = $('#iconCAcceptArrUpDown' + chevCount);
+            chev1.toggleClass('icon_arrow_up icon_arrow_down');
+            var chev2 = $('#iconCAcceptEdit' + chevCount);
+            chev2.toggleClass('icon_edit_white icon_edit');
+            
+            var chev3 = $('#accordCAccept' + chevCount + 'Lbla1'); 
+            chev3.toggleClass('module5-label lat-blue module5-label lat-white');
+            var chev4 = $('#accordCAccept' + chevCount + 'Lbla2');
+            chev4.toggleClass('small-text-bold lat-white small-text-bold lat-blue');  
+
+            $('i.icon_arrow_up').not(chev1).removeClass('icon_arrow_up').addClass('icon_arrow_down');
+            $('i.icon_edit_white').not(chev2).removeClass('icon_edit_white').addClass('icon_edit');
+            $('span.module5-label').not(chev3).removeClass('lat-white').addClass('lat-blue');
+            $('span.small-text-bold').not(chev4).removeClass('lat-white').addClass('lat-blue');
+
+            currentFCount = parseInt(chevCount) + 1;
+        } 
+    
+        /*  Description: Retrieve and Display Applicant(s) 
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Modified as part of NZ epoi changes :ODDS-12372 and ODDS-12373
+         *  Modified as part of LM-2216 (Remove Proviso option for cusotmers already verified income )
+        */
+        function getApplicationDetail(){
+             Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POI_Response_Ext.queryApplicationRecord}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    
+                    // ADDED by RCADAPAN for TQLQW-534 for ePOI
+                    var isePOIOn = false;
+                    
+                    if(brand == "Latitude" & {!hideShowEPOI} & {!!ePOI_ShowHide}){
+                        isePOIOn = true;
+                    }
+                    if((brand == "GEM" || brand == "Kiwibank") & ({!ePOI_Eligible_NZ}==true || {!ePOI_Eligible_NZ_Secondary}==true) & {!!ePOI_ShowHide}){
+                        isePOIOn = true;
+                    }
+                    var applicants =  result.Applicant__r;
+                                    
+                   
+                    //CREATE APPLICANTS ACCORDION
+                    //AU only Applicants
+                    if (result.Brand_Country__c == 'AU' & isePOIOn == true){
+                          var ePOIblock = "";
+                        
+                            for(var i =0; i < applicants.length; i++){  
+                          
+                                if(!applicants[i].Is_e_POI_eligible__c){
+                                   
+                                   ePOIblock = "hidden";
+                                  
+                                    $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + i + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + i + ")' id='poiApplicant"+i+"' href='#poiApplicantDIV"+i+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + i + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ i + "Lbla1' class='module5-label'>For " + applicants[i].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + i + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + i + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+i+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+i+"' class='"+ePOIblock+"'>"+
+                                                                        "<div class='incomeHeader"+brand+"' id='ePOI"+i+"incomeHeader'><b>Online Bank Connect</b></div><br/>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"Heading'><b>{!$Label.APP_GSD_ePOI_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+i+"Heading' style='word-wrap: break-word'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[i].First_Name__c+"','"+applicants[i].Last_Name__c+"','"+applicants[i].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                     "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + i + "'></div>" + 
+                                                                    "<div id='poiUpload"+i+"'></div>" + 
+                                                                "</div>" +
+                                                      "</div>"); 
+                                }
+                                else{
+                                 var ePOISecblock = "";
+                               
+                                $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + i + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + i + ")' id='poiApplicant"+i+"' href='#poiApplicantDIV"+i+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + i + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ i + "Lbla1' class='module5-label'>For " + applicants[i].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + i + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + i + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+i+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+i+"' class='"+ePOISecblock+"'>"+
+                                                                        "<div class='incomeHeader"+brand+"' id='ePOI"+i+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"Heading'><b>{!$Label.APP_GSD_ePOI_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+i+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[i].First_Name__c+"','"+applicants[i].Last_Name__c+"','"+applicants[i].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Income Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                    
+                                                                    "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div class='body-label lat-dark-grey' Id='poiMainMessage" + i + "'></div>"+
+                                                                    "<div id='poiUpload"+i+"'></div>" + 
+                                                                "</div>" +
+                                                      "</div>");
+                                
+                                }
+                                
+                               
+                               
+                        }   
+                    
+                }
+                else if(result.Brand_Country__c == 'NZ' & isePOIOn == true & ({!ePOI_Eligible_NZ}==true || {!ePOI_Eligible_NZ_Secondary}==true)){
+                    // NZ one Applicant 
+                   
+                    if(applicants.length ==1 & {!ePOI_Eligible_NZ}){
+                         var ePOINZPriblock = "";
+                         
+                        $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + 0 + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + 0 + ")' id='poiApplicant"+i+"' href='#poiApplicantDIV"+0+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + 0 + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ 0 + "Lbla1' class='module5-label'>For " + applicants[0].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + 0 + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + 0 + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+0+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+0+"' class='"+ePOINZPriblock+"'>"+
+                                                                         "<div class='incomeHeader"+brand+"' id='ePOI"+i+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+0+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[0].First_Name__c+"','"+applicants[0].Last_Name__c+"','"+applicants[0].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                     "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + 0 + "'></div>" + 
+                                                                    "<div id='poiUpload"+0+"'></div>" + 
+                                                                "</div>" +
+                                                     "</div>"); 
+                         
+                        
+                    }
+                    // NZ joint Applicants 
+                    else if(applicants.length ==2 & ({!ePOI_Eligible_NZ} || {!ePOI_Eligible_NZ_Secondary})){
+                                            
+                        var ePOINZSecblock = ""; 
+                        var ePOINZPriblock = "";
+                        if( {!ePOI_Eligible_NZ} == true &  {!ePOI_Eligible_NZ_Secondary} == false){
+                         
+                             ePOINZSecblock = "hidden";
+                             $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + 0 + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + 0 + ")' id='poiApplicant"+0+"' href='#poiApplicantDIV"+0+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + 0 + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ 0 + "Lbla1' class='module5-label'>For " + applicants[0].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + 0 + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + 0 + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+0+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+0+"' class='"+ePOINZPriblock+"'>"+
+                                                                    "<div class='incomeHeader"+brand+"' id='ePOI"+0+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+0+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[0].First_Name__c+"','"+applicants[0].Last_Name__c+"','"+applicants[0].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                     "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + 0 + "'></div>" + 
+                                                                    "<div id='poiUpload"+0+"'></div>" + 
+                                                                "</div>" +
+                                                     "</div>");
+                                 
+                             $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + 1 + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + 1 + ")' id='poiApplicant"+1+"' href='#poiApplicantDIV"+1+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + 1 + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ 1 + "Lbla1' class='module5-label'>For " + applicants[1].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + 1 + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + 1 + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+1+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+1+"' class='"+ePOINZSecblock+"'>"+
+                                                                    "<div class='incomeHeader"+brand+"' id='ePOI"+1+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+1+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+1+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[1].First_Name__c+"','"+applicants[1].Last_Name__c+"','"+applicants[1].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+1+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                     "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + 1 + "'></div>" + 
+                                                                    "<div id='poiUpload"+1+"'></div>" + 
+                                                                "</div>" +
+                                                     "</div>");   
+          
+                        }
+                        else if( {!ePOI_Eligible_NZ} == false &  {!ePOI_Eligible_NZ_Secondary} == true){
+                           
+                            ePOINZPriblock = "hidden";
+                            $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + 0 + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + 0 + ")' id='poiApplicant"+0+"' href='#poiApplicantDIV"+0+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + 0 + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ 0 + "Lbla1' class='module5-label'>For " + applicants[0].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + 0 + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + 0 + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+0+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+0+"' class='"+ePOINZPriblock+"'>"+
+                                                                    "<div class='incomeHeader"+brand+"' id='ePOI"+0+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+0+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[0].First_Name__c+"','"+applicants[0].Last_Name__c+"','"+applicants[0].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+0+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                    "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + 0 + "'></div>" + 
+                                                                    "<div id='poiUpload"+0+"'></div>" + 
+                                                                "</div>" +
+                                                     "</div>");
+                                 
+                             $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + 1 + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + 1 + ")' id='poiApplicant"+1+"' href='#poiApplicantDIV"+1+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + 1 + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ 1 + "Lbla1' class='module5-label'>For " + applicants[1].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + 1 + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + 1 + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+1+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+1+"' class='"+ePOINZSecblock+"'>"+
+                                                                        "<div class='incomeHeader"+brand+"' id='ePOI"+1+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+1+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+1+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[1].First_Name__c+"','"+applicants[1].Last_Name__c+"','"+applicants[1].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+1+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                    "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + 1 + "'></div>" + 
+                                                                    "<div id='poiUpload"+1+"'></div>" + 
+                                                                "</div>" +
+                                                     "</div>");   
+           
+                        }
+                        else if({!ePOI_Eligible_NZ}==true & {!ePOI_Eligible_NZ_Secondary} ==true){
+                                
+                               for(var i =0; i < applicants.length; i++){  
+                               
+                                $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + i + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + i + ")' id='poiApplicant"+i+"' href='#poiApplicantDIV"+i+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + i + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ i + "Lbla1' class='module5-label'>For " + applicants[i].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + i + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + i + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+i+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+i+"' class='"+ePOIblock+"'>"+
+                                                                        "<div class='incomeHeader"+brand+"' id='ePOI"+i+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+i+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[i].First_Name__c+"','"+applicants[i].Last_Name__c+"','"+applicants[i].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                    "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + i + "'></div>" + 
+                                                                    "<div id='poiUpload"+i+"'></div>" + 
+                                                                "</div>" +
+                                                      "</div>"); 
+                            }   
+                        }   
+ 
+                   }
+                }   
+                else{ 
+                    ePOIblock ="hidden"; 
+                    for(var i =0; i < applicants.length; i++){  
+                               
+                                $("#applicantDiv").append("<div class='panel accordion-heading hidden' id='appDiv" + i + "'>" + 
+                                                            "<div class='accordion'>" + 
+                                                             "<a onclick='toggleCollapse(" + i + ")' id='poiApplicant"+i+"' href='#poiApplicantDIV"+i+"' class='accordion-toggle down up collapsed' data-parent='#applicantDiv' data-toggle='collapse' tabindex='-1'>" + 
+                                                             "<i id='iconCAcceptEdit" + i + "' class='icon_edit icon_size pull-left'></i>" +
+                                                                "<div class='accordion-header-text1 gap-text'>" +
+                                                                "<span id='accordCAccept"+ i + "Lbla1' class='module5-label'>For " + applicants[i].First_Name__c  + "</span>" +
+                                                                "</div>" + 
+                                                                "<div class='accordion-header-text1a'>" + 
+                                                                "<i id='iconCAcceptArrUpDown" + i + "' class='icon_arrow_down icon_size pull-right'></i>" + 
+                                                                "<span id='accordCAccept" + i + "Lbla2' class='small-text-bold uppercase pull-right GAccordion-status gap-right-text'>REQUIRED</span>" + 
+                                                                
+                                                                "</div>" + 
+                                                         "</a>" + 
+                                                        "</div>" + 
+                                                        "<div class='accordion-body collapse' id='poiApplicantDIV"+i+"'>" +
+                                                                "<div class='accordion-inner'>" +
+                                                                    // Added by RCADAPAN for TQLQW-534 - ePOI
+                                                                    "<div id='epoidiv"+i+"' class='"+ePOIblock+"'>"+
+                                                                        "<div class='incomeHeader"+brand+"' id='ePOI"+i+"incomeHeader'><b>Online Bank Connect</b></div><br>"+
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"Heading'><b>{!$Label.APP_GSD_ePOI_NZ_Heading}</b></div><br>" +
+                                                                        "<div id='ePOI"+i+"Heading' style='word-wrap: break-word;text-align: center;'><button onClick=generateEPOIDocs('"+result.UID__c+"','"+applicants[i].First_Name__c+"','"+applicants[i].Last_Name__c+"','"+applicants[i].Id+"','"+result.Brand_Lookup__r.File_Upload_Product__c+"','"+result.Id+"','"+brand+"'); type='button' class='GPrimary-button module5-label lat-white'>Verify Online Now</button></div><br><br>" +
+                                                                        "<div class='body-label lat-dark-grey' id='ePOI"+i+"SubHeading'><b>{!$Label.APP_GSD_ePOI_SubHeading}</b></div><br>" +
+                                                                    "</div>"+
+                                                                    "<div class='incomeHeader"+brand+"'><b>Upload Documents<b/></div><br/>" +
+                                                                    "<div class='body-label lat-dark-grey'>{!$Label.APP_GSD_POI_Doc_SubHeader}</div><br>" +
+                                                                    "<div Id='poiMainMessage" + i + "'></div>" + 
+                                                                    "<div id='poiUpload"+i+"'></div>" + 
+                                                                "</div>" +
+                                                      "</div>"); 
+                
+                     }          
+                 }
+                 //FORMULATE APPLICANT IDS 
+                    var appIds = applicants[0].Id;
+                    if(applicants.length > 1)
+                        appIds += ','+applicants[1].Id;
+
+                    for(var i=0; i < applicants.length; i++){
+                        setPOIMessages(applicants[i].Response_Code__c, applicants[i].First_Name__c, result.Brand_Country__c, applicants, i, applicants[i].Email_Address__c);  // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                    }
+                    //setPOIMessages(applicants, result.Brand_Country__c);
+
+                    //ADD FILE UPLOAD OPTION TO PAGE
+                    //$('#poiUpload0').append($('#sectionId_POI1'));
+                    //$('#poiUpload1').append($('#sectionId_POI2'));
+
+                   
+                    //DISPLAY INCOME SOURCE PER APPLICANT
+                    var score = '';
+                    if(result.Credit_Score__c != null){
+                        score = result.Credit_Score__c;
+                    }
+                    displayIncomeSource(appIds, result.Brand_Country__c, score);
+                        $("#poiSubHeader").html("{!$Label.APP_GSD_POI_SubHeader_AU}");
+                        $("#poiSubAlterHeader").html("{!$Label.APP_GSD_POI_SubAlterHeader}");
+                        $("#poiSubQuestionHeader").html("{!$Label.APP_GSD_POI_SubQuestionHeader}");
+         
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+
+        /*  Description: Dynamically set greetings and header messages
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *          Updated: 28/04/2016 -  Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+        */
+        function setPOIMessages(resCode, applicantName, brandCountry, applicants, c, applicantEmail){
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.APP_GSD_POI_Response_Ext.retrieveResponseMeta}',resCode,brandCountry,
+            function(result, event){
+                if(event.status){
+                    if(result.POI__c){
+                        appPOI.push(applicantEmail + "/" + applicantName);
+                        appPOIObject[c] = result.POI__c;
+                    }
+                    setHeaders(applicants, brandCountry);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true});
+        }
+        
+        /*  Description: Dynamically set greetings and header messages depending on the current logged in user.
+         *  Author: Russell Cadapan
+         *  Date Created: 29-FEB-2016
+         *          Updated: 28/04/2016 -  Updated Email validation to point out user for headers by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+        */
+        function setHeaders(applicants, bCountry){
+            // Point out the greeting's header to which applicant is logged in
+            if(appPOI.length == 1){
+                if(appPOI[0].split("/")[0] == "{!$User.Email__c}"){
+                    $("#poiMessageHeader").html("{!$Label.APP_GSD_POI_Header_Single}");
+                }
+                else{
+                    $("#poiMessageHeader").html("We need to confirm " + appPOI[0].split("/")[1] + "'s income.");
+                }
+
+            }
+            // Point greetings to both applicants
+            else{
+                $("#poiMessageHeader").html("{!$Label.APP_GSD_POI_Header_Joint}");
+            }
+            
+            // Show relevant divs for the applicant that has the outstanding requirement.
+            for(var key in appPOIObject){
+                $("#appDiv"+key).removeClass("hidden");
+            }
+        }
+        
+        /*  Description: Retrieved and Display Income Source Per Applicant
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Input: apps - Applicant IDs Comma Delimited
+         *  Input: brandCountry - Application Brand Country AU/NZ
+         *  Input: creditScore - Application Credit Score
+        */
+        function displayIncomeSource(apps, brandCountry, creditScore){
+            
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POI_Response_Ext.queryIncomeSource}', apps,
+            function(result, event){
+                if(event.status){
+                    //CREATE INCOME SOURCE DIV PER APPLICANT
+                    for(var i=0; i< result.length; i++){
+                        //VALIDATE IF APPLICANT IS PRIMARY FOR APPLICANT 1
+                        if( result[i].Applicant__r.Is_Primary_Applicant__c) {
+                            //$("#poiApplicantDIV0").append("<div id='app1"+result[i].Income_Source_Code__c+"'><h3>"+result[i].Income_Source__c.toUpperCase()+"</h3></div></div><br></br>");
+                            $("#poiMainMessage0").append("<div id='app1"+result[i].Income_Source_Code__c+"' class='body-label lat-dark-grey'><div class='body-label lat-dark-grey'><h4><b>"+result[i].Income_Source__c+"</b></h4></div></div></div><br/>");
+                        }
+                        else{
+                            // $("#poiApplicantDIV1").append("<div id='app2"+result[i].Income_Source_Code__c+"'><h3>"+result[i].Income_Source__c.toUpperCase()+"</h3></div></div><br></br>");
+                            $("#poiMainMessage1").append("<div id='app2"+result[i].Income_Source_Code__c+"' class='body-label lat-dark-grey'><div class='body-label lat-dark-grey'><h4><b>"+result[i].Income_Source__c+"</b></h4></div></div></div><br/>");
+                        }
+                    }
+
+                    //DISPLAY POI DOCUMENTS  
+                   displayPOIDocuments(brandCountry, result, creditScore);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            ); 
+
+        }
+         // ODDS-12373: Code changes start as part of NZ eopi to add brand as parameter
+        function generateEPOIDocs(appId, fName, lName, applicantId, product, applicationId, brand){
+        
+            console.log("appId: " + appId);
+            console.log("fName: " + fName);
+            console.log("lName: " + lName);
+            console.log("applicantId: " + applicantId);
+            console.log("product: " + product);
+            console.log("applicationId: " + applicationId);
+            console.log("brand: " + brand);
+            $('.loading').show();
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POI_Response_Ext.generateRelatedDocuments}', appId, fName, lName, applicantId, product, applicationId, brand,
+            function(result, event){
+                if(event.status){
+                    console.log(result);
+                    if(result == null || result == undefined || result == ''){
+                        alert("An error has occured. Please contact Latitude support.");
+                    }
+                    else{
+                        window.open(result);
+                    }
+                    $('.loading').hide();
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+
+        }
+        /*  Description: Retrieved and Display POI Documents and Description
+                         Per Income Source
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Input: brandCountry - Application Brand Country AU/NZ
+         *  Input: incomes - List of Incomes
+         *  Input: creditScore - Application creditScore
+        */
+        function displayPOIDocuments(brandCountry, incomes, creditScore){
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POI_Response_Ext.queryPOIDocuments}', brandCountry, incomes, creditScore,
+            function(result, event){
+                if(event.status){
+                    console.log('poiresults: '+result.length);
+                    //Income source headers and footers
+                    var neMessage = false;
+                    var gbMessage = false;
+                    var otMessage = false;
+                    var seMessage = false;
+                    var reMessage = false;
+                    var withNE = false;
+                    var withOT = false;
+                    var withRE = false;
+
+                    //Applicant 2
+                    var neMessage2 = false;
+                    var gbMessage2 = false;
+                    var otMessage2 = false;
+                    var seMessage2 = false;
+                    var reMessage2 = false;
+                    var withNE2 = false;
+                    var withOT2 = false;
+                    var withRE2 = false;
+                   //CREATE DIVS FOR POI DOCUMENT TYPE AND DOCUMENT DESCRIPTION
+                    for(var i=0; i< result.length;i++){
+                        console.log('primary: '+i+'-'+result[i].primary);
+                        
+                        //Validate IF INCOME SOURCE BELONGS TO THE PRIMARY APPLICANT
+                        if(result[i].primary == true){
+
+                            if(brandCountry == 'NZ'){
+                                //Start of setting income type headers and footers
+                                if(result[i].scode == 'NE'){
+                                    withNE = true;
+                                    if(!neMessage){
+                                        $("#app1"+result[i].scode).append("<h4><br/>Please provide ONE of the following:</h4><br/>");
+                                        neMessage = true;
+                                    }
+                                }
+
+                                if(result[i].scode == 'SE'){
+                                    if(!seMessage){
+                                        $("#app1"+result[i].scode).append("<h4><br/>Please provide ONE of the following:</h4><br/>");
+                                        seMessage = true;
+                                    }
+                                }
+
+                                if(result[i].scode == 'GB'){
+                                    if(!gbMessage){
+                                        $("#app1"+result[i].scode).append("<h4><br/>If you are receiving <b>Superannuation</b>, please provide a statement of superannuation benefit.</br><br/> If you are on <b>ACC</b> please provide ONE of the following:</h4><br/>");
+                                        gbMessage = true;
+                                    }
+
+                                    //create document types and income for government benefit
+                                    if(result[i].poiType == 'Letter from WINZ/IRD specifying the type of benefit and amount'){
+                                         $("#app1"+result[i].scode).append("<br/><h4>For all <b>other types</b>, please provide ONE of the following:</h4><br/><div id='poiIncomeType"+i+"' style='width: 50%'><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><div class='small-text'><h4>"+result[i].poiType+"</h4></div></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+                                }
+
+                                if(result[i].scode == 'RE'){
+                                    withRE = true;
+                                    if(!reMessage){
+                                        $("#app1"+result[i].scode).append("<h4><br/>If your rental is managed through a Real Estate Agent, please provide one of the following:</h4><br/>");
+                                        reMessage = true;
+                                    }
+                                    //create document types and description for rental income
+                                    if(result[i].poiType == 'A 60 day bank statement, showing a minimum of three consecutive rental income entries'){
+                                         $("#app1"+result[i].scode).append("<br/><h4>If you have not gone through a Real Estate Agent, please provide: </h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+result[i].poiType+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+
+                                }
+
+                                if(result[i].scode == 'OT'){
+                                    if(!otMessage){
+                                        withOT = true;
+                                        $("#app1"+result[i].scode).append("<h4><br/>Please provide a summary of Earnings, issued by IRD within the last 30 days<br/>Plus ONE of the following:</h4><br/>");
+                                        otMessage = true;
+                                    }
+                                }
+
+                                //END of setting income type headers and footers
+
+
+                                //Create Document Types and Description
+                                $("#app1"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                
+                            }else{
+                                
+                                if(result[i].scode == 'RE'){
+                                    withRE = true;
+                                    if(!reMessage){
+                                        $("#app1"+result[i].scode).append("<h4><br/>Rental through Real Estate</h4><br/>");
+                                        reMessage = true;
+                                    }
+
+                                      //My Rental Income
+                                    if(result[i].poiType == 'Current Lease Agreement Private Rental'){
+                                         $("#app1"+result[i].scode).append("<br/><h4>Private Rental </h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Current Lease Agreement, or </h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+
+                                    //Individual Tax Return
+                                    if(result[i].poiType == 'Individual Tax Return Private Rental'){
+                                         $("#app1"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Individual Tax Return</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+                                }
+
+                                if(result[i].poiType == 'Statement or letter from Veterans Affairs'){
+                                     $("#app1"+result[i].scode).append("<br/><h4><b>For Veterans Affairs Only</b></h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                     continue;
+                                }
+
+                                if(result[i].poiType == 'Letter from Fund Manager'){
+                                    console.log('*******Letter from Fund Manager');
+                                    $("#app1"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Letter From Fund Manager/Insurer</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                }
+                                
+                                $("#app1"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                            }
+
+                        }else{
+                            if(brandCountry == 'NZ'){
+                                //Start of setting income type headers and footers APP2
+                                if(result[i].scode == 'NE'){
+                                    withNE2 = true;
+                                    if(!neMessage2){
+                                        $("#app2"+result[i].scode).append("<h4><br/>Please provide ONE of the following:</h4><br/>");
+                                        neMessage2 = true;
+                                    }
+                                }
+
+                                if(result[i].scode == 'SE'){
+                                    if(!seMessage2){
+                                        $("#app2"+result[i].scode).append("<h4><br/>Please provide ONE of the following:</h4><br/>");
+                                        seMessage2 = true;
+                                    }
+                                }
+
+                                if(result[i].scode == 'GB'){
+                                    if(!gbMessage2){
+                                        $("#app2"+result[i].scode).append("<h4><br/>If you are receiving <b>Superannuation</b>, please provide a statement of superannuation benefit.</br><br/> If you are on <b>ACC</b> please provide ONE of the following:</h4><br/>");
+                                        gbMessage2 = true;
+                                    }
+
+                                    //create document types and income for government benefit
+                                    if(result[i].poiType == 'Letter from WINZ/IRD specifying the type of benefit and amount'){
+                                         $("#app2"+result[i].scode).append("<br/><h4>For all <b>other types</b>, please provide ONE of the following:</h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+                                }
+
+                                if(result[i].scode == 'RE'){
+                                    withRE2 = true;
+                                    if(!reMessage2){
+                                        $("#app2"+result[i].scode).append("<h4><br/>If you're rental is managed through a Real Estate Agent, please provide one of the following:</h4><br/>");
+                                        reMessage2 = true;
+                                    }
+                                    //create document types and description for rental income
+                                    if(result[i].poiType == 'A 60 day bank statement, showing a minimum of three consecutive rental income entries'){
+                                         $("#app2"+result[i].scode).append("<br/><h4>If you have not gone through a Real Estate Agent, please provide: </h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+
+                                }
+
+                                if(result[i].scode == 'OT'){
+                                    if(!otMessage2){
+                                        withOT2 = true;
+                                        $("#app2"+result[i].scode).append("<h4><br/>Please provide a summary of Earnings, issued by IRD within the last 30 days<br/>Plus ONE of the following:</h4><br/>");
+                                        otMessage2 = true;
+                                    }
+                                }
+
+                                //END of setting income type headers and footers APP2
+
+
+                                //Create Document Types and Description
+                                $("#app2"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                
+                            }else{
+
+                                if(result[i].scode == 'RE'){
+                                    withRE2 = true;
+                                    if(!reMessage2){
+                                        $("#app2"+result[i].scode).append("<h4><br/>Rental through Real Estate</h4><br/>");
+                                        reMessage2 = true;
+                                    }
+
+                                      //Current Lease Agreement
+                                    if(result[i].poiType == 'Current Lease Agreement Private Rental'){
+                                         $("#app2"+result[i].scode).append("<br/><h4>Private Rental </h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Current Lease Agreement, or </h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+
+                                    //Individual Tax Return
+                                    if(result[i].poiType == 'Individual Tax Return Private Rental'){
+                                         $("#app2"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Individual Tax Return</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                    }
+                                }
+
+                                if(result[i].poiType == 'Statement or letter from Veterans Affairs'){
+                                     $("#app2"+result[i].scode).append("<br/><h4><b>For Veterans Affairs Only</b></h4><br/><div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                     continue;
+                                }
+
+                                if(result[i].poiType == 'Letter from Fund Manager'){
+                                    $("#app2"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>Letter From Fund Manager/Insurer</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                                         continue;
+                                }
+
+                                $("#app2"+result[i].scode).append("<div id='poiIncomeType"+i+" style='width: 50%''><a style='text-decoration:underline;cursor:pointer;' href='javascript:displayPOIDescription(poidesc"+i+");'><h4>"+unescapeHtml(result[i].poiType)+"</h4></a><div style='display:none' id='poidesc"+i+"'>"+unescapeHtml(result[i].poiDesc)+"</div></div>");
+                            }
+                        }
+                    }
+
+                    if(brandCountry == 'NZ'){
+                        //set additional messages Applicant 1
+                        if(withNE){ //Net Salary Wages
+                            $("#app1NE").append("<br/><h4><b>PLUS</b> if you have been employed for less than 1 month we will also require a copy of your Employment Contract</h4>");
+                        }
+                        if(withOT){ //Other
+                            $("#app1OT").append("<br/><h4><b>Note</b> Additional proof my be required if income cannot be confirmed using above methods</h4>");
+                        }
+                        if(withRE){// Rental Income
+                            $("#app1RE").append("<br/><h4>If the rental is for <b>property</b> you reside in, a Tenancy Agreement must also be supplied.</h4>");
+                        }
+                        //set additional messages Applicant 2
+                        if(withNE2){ //Net Salary Wages
+                            $("#app2NE").append("<br/><h4><b>Plus</b> if you have been employed for less than 1 month we will also require a copy of your Employment Contract</h4>");
+                        }                   
+                        if(withOT2){//Other
+                            $("#app2OT").append("<br/><h4><b>Note</b> Additional proof my be required if income cannot be confirmed using the above methods</h4>");
+                        }
+                        if(withRE2){//Rental Income
+                            $("#app2RE").append("<br/><h4>If the rental is for <b>property</b> you reside in, a Tenancy Agreement must also be supplied.</h4>");
+                        }
+                    }
+                    //ACCORDION HIDE/DISPLAY FUNCTIONALITY
+                    applyAccordionScript();
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            ); 
+            
+             $('#poiUpload0').append($('#sectionId_POI1'));
+             $('#poiUpload1').append($('#sectionId_POI2'));
+        }
+
+        /*  Description: Toggle Document Description
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Input: divId - DIV Element that Contains the Document Description
+         *  Input: incomes - List of Incomes
+        */
+        function displayPOIDescription(divId){
+             $("#"+divId.id).toggle();
+        }
+
+        /*  Description: Format Long TEXT with HTML Tags
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Input: Safe: Document Description
+        */
+        function unescapeHtml(safe) {
+            return $('<div />').html(safe).text();
+        }
+
+        /*  Description: Accordion Hide/Display Functionality
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         *  Input: Safe: Document Description
+        */
+        function applyAccordionScript(){
+            function close_accordion_section(){
+                $('.accordion .accordion-section-title').removeClass('active');
+                $('.accordion .accordion-section-content').slideUp(300).removeClass('open');
+            }
+         
+            $('.accordion-section-title').click(function(e){
+                
+                // Grab current anchor value
+                var currentAttrValue = $(this).attr('href');
+         
+                if($(e.target).is('.active')) {
+                    close_accordion_section();
+                }else {
+                    close_accordion_section();
+         
+                    //Add active class to section title
+                    $(this).addClass('active');
+                    
+                    //Open up the hidden content panel
+                    $('.accordion '+currentAttrValue).slideDown(300).addClass('open');  
+                }
+         
+                e.preventDefault();
+            });
+        }
+        
+        /*  Description: Onload functions
+         *  Author: Davey Yu
+         *  Date Created: 09-FEB-2016
+         */
+        $( document ).ready(function() {
+            getApplicationDetail();
+            
+            $('#contId').removeClass('container');
+        });
+        
+        var siteName = "{!$Site.Name}"; 
+        if (siteName == 'Gem') {
+            
+            //for poiApplicant0
+            
+                $('#poiApplicant0').hover(function() {
+                    alert('in');
+                    if ($("#poiApplicant0").attr("class") == 'accordion-toggle down up collapsed') {
+                        $("#iconCAcceptArrUpDown0").removeClass('icon_arrow_down');
+                        $("#iconCAcceptArrUpDown0").addClass('icon_arrow_down_white');
+                        $("#iconCAcceptEdit0").removeClass('icon_edit');
+                        $("#iconCAcceptEdit0").addClass('icon_edit_white');
+                    }
+                }, function() {
+                    $("#iconCAcceptArrUpDown0").removeClass('icon_arrow_down_white');
+                    $("#iconCAcceptArrUpDown0").addClass('icon_arrow_down');
+                    $("#iconCAcceptEdit0").removeClass('icon_edit_white');
+                    $("#iconCAcceptEdit0").addClass('icon_edit');
+                });
+    
+            
+            $('#poiApplicant0').hover(function() {
+                if ($("#poiApplicant0").attr("class") == 'accordion-toggle down up') {
+                    $("#iconCAcceptArrUpDown0").removeClass('icon_arrow_down_white');
+                    $("#iconCAcceptArrUpDown0").addClass('icon_arrow_down_white');
+                    $("#iconCAcceptEdit0").removeClass('icon_edit_white');
+                    $("#iconCAcceptEdit0").addClass('icon_edit_white');
+                }
+            });
+            
+            //for poiApplicant1
+            if ($("#poiApplicant1").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#poiApplicant1').hover(function() {
+                    $("#iconCAcceptArrUpDown1").removeClass('icon_arrow_down');
+                    $("#iconCAcceptArrUpDown1").addClass('icon_arrow_down_white');
+                    $("#iconCAcceptEdit1").removeClass('icon_edit');
+                    $("#iconCAcceptEdit1").addClass('icon_edit_white');
+                
+                }, function() {
+                    $("#iconCAcceptArrUpDown1").removeClass('icon_arrow_down_white');
+                    $("#iconCAcceptArrUpDown1").addClass('icon_arrow_down');
+                    $("#iconCAcceptEdit1").removeClass('icon_edit_white');
+                    $("#iconCAcceptEdit1").addClass('icon_edit');
+                });
+            }
+            
+            $('#poiApplicant1').hover(function() {
+                if ($("#poiApplicant1").attr("class") == 'accordion-toggle down up') {
+                    $("#iconCAcceptArrUpDown1").removeClass('icon_arrow_down_white');
+                    $("#iconCAcceptArrUpDown1").addClass('icon_arrow_down_white');
+                    $("#iconCAcceptEdit1").removeClass('icon_edit_white');
+                    $("#iconCAcceptEdit1").addClass('icon_edit_white');
+                }
+            });
+        }
+        
+    </script>    
+</apex:page>

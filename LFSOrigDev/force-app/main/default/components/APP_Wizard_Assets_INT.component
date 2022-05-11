@@ -1,0 +1,524 @@
+<!--
+    * @Description: Contains asset details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+    ===================================================================== 
+-->
+<apex:component >
+    
+    <style type="text/css">
+        .assetHeader{
+            border-style: solid;
+            border-width: 1px; 
+            width: 90%;
+        }
+        #assetWrapper{
+            padding-right: 40%;
+        }
+        .assetHeaderColor{
+            background-color: #1a5d6d;
+        }
+    </style>
+    <section class='slds-col slds-size--2-of-2 assetHeader sectionBorder'>
+    <!-- ASSET HEADER -->
+        <div class="slds-m-bottom--medium slds-box slds-text-align--center assetHeaderColor">
+            <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+            </div>
+            <div id='NavigationNumberText'>
+            5
+            </div>
+            <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Assets</div>
+        </div>
+        <div id="assetWrapper">
+    
+        <div class="{!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+        
+            <!-- BANK ACCOUNTS HELD HEADER 
+            <div class="slds-m-vertical--x-large">
+                <h2 class="slds-text-heading--large slds-m-vertical--large">Bank Accounts Held</h2>
+            </div>-->
+            
+            <!-- STATIC TEXT SECTION-->
+            <div class="slds-grid slds-wrap slds-m-bottom--x-large">
+                <section class="slds-col slds-size--5-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--right">    
+                </section>
+                <!-- STATIC TEXT -->
+                <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                    <div class="slds-text-body--regular">
+                        <label class="slds-form-element__label" id="bankAccountsText"/>
+                    </div>
+                </section>
+                <section class="slds-col slds-size--5-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--right">    
+                </section>
+            </div>
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                <!-- BANK ACCOUNTS HELD LABEL -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="app_Bank_Accounts_Held__c">Bank accounts held</label>
+                </section>
+                
+                <!-- BANK ACCOUNTS HELD PICKLIST -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select isPicklistSpace" id="app_Bank_Accounts_Held__c" name="app_Bank_Accounts_Held__c"/>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- STATIC TEXT SECTION-->
+        <div class="slds-grid slds-wrap slds-m-vertical--medium">
+            
+            <!-- STATIC TEXT -->
+            <section class="slds-col slds-size--5-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-6 slds-text-align--right">    
+                </section>
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--left">
+                <div class="slds-text-body--regular">
+                    <label class="slds-form-element__label" id="assetsText"/>
+                </div>
+            </section>
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6"/>
+            
+        </div>
+        
+        <!-- ASSET SECTION -->
+        <div id="assetDiv1" class="assetSection">
+                        
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <!--REMOVE BUTTON-->
+                    <button type="button" id="app1_removeButton1" class="slds-button slds-button--brand slds-button--small slds-hidden slds-m-right--large" onclick="removeRecord(this.id, 'assetSection', 'assetDiv', 'addAsset', 1);calculateTotalAssetAmount();">-</button>
+                    
+                    <!-- ASSET CATEGORY LABEL -->    
+                    <label class="slds-form-element__label" for="app1_Asset_Category__c1">Asset type</label>
+                </section>
+                
+                <!-- ASSET CATEGORY PICKLIST -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select category" id="app1_Asset_Category__c1" name="app1_Asset_Category__c1" onchange="showHideDisableAsset(this.id, this.value);removeIgnoreIfValueSelected('#app1_Asset_Category__c1', 'select', '#assetWrapper');clearValidationMessagesBySection('#assetDiv1');addAssetDebt(this.id);return false;"/>
+                    </div>
+                </section>
+                
+            </div>
+            
+            <!-- CAR/MOTOR VEHICLE SECTION -->
+            <div id="carSection">
+            
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- VEHICLE MAKE LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Vehicle_Make__c1">Vehicle make</label>
+                    </section>
+                    
+                    <!-- VEHICLE MAKE PICKLIST -->
+                    <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <!-- <input id="app1_Vehicle_Make__c1" class="slds-input isRequired isAlphaNumericWithHiphen" type="text" maxlength="20"/> <!-- isMaxLength20 -->
+                            <select class="slds-select category isPicklistSpace" id="app1_Vehicle_Make__c1" name="app1_Vehicle_Make__c1" onchange="clearValidationMessagesBySection('#assetDiv1');return false;"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right"/>
+                    
+                </div>
+                
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- VEHICLE MODEL LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Vehicle_Model__c1">Vehicle model</label>
+                    </section>
+                    
+                    <!-- VEHICLE MODEL PICKLIST -->
+                    <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Vehicle_Model__c1" name="app1_Vehicle_Model__c1" class="slds-input isRequired isAlphaNumericWithHiphen" type="text" maxlength="20"/> <!-- isMaxLength20 -->
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right"/>
+                    
+                </div>
+                
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- VEHICLE YEAR LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Vehicle_Year__c1">Year of manufacture</label>
+                    </section>
+                    
+                    <!-- VEHICLE YEAR PICKLIST -->
+                    <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Vehicle_Year__c1" name="app1_Vehicle_Year__c1" class="slds-input number isRequired isYear" type="text" maxlength="4" onkeypress="return isNumberKey(event)"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right"/>
+                    
+                </div>
+                
+            </div>
+            <!-- END CAR/MOTOR VEHICLE SECTION -->
+            
+            <!-- ASSET SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- ASSET VALUE LABEL -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label" for="app1_Asset_Value__c1" id="app1_Asset_Value__c1_Label">Asset value</label>
+                </section>
+                
+                <!-- ASSET VALUE FIELD -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <input id="app1_Asset_Value__c1" name="app1_Asset_Value__c1" class="slds-input" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalAssetAmount();"/>
+                    </div>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right"/>
+                
+            </div>
+            
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- ASSET OWNERSHIP LABEL -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label" for="app1_Ownership_Status__c1" id="app1_Ownership_Status__c1_Label">Asset ownership</label>
+                </section>
+                
+                <!-- ASSET OWNERSHIP FIELD -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select" id="app1_Ownership_Status__c1" name="app1_Ownership_Status__c1" onchange="addAssetDebt(this.id);"/>
+                    </div>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right"/>
+                
+            </div>
+            
+            <div id="assetOwnerSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- ASSET OWNER LABEL -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label" id="app1_asset_Applicable_Party__c1_Label" for="app1_asset_Applicable_Party__c1">Asset owner</label>
+                </section>
+                
+                <!-- ASSET OWNER FIELD -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select" id="app1_asset_Applicable_Party__c1" name="app1_asset_Applicable_Party__c1"/>
+                    </div>
+                </section>
+
+            </div>
+            
+        </div>
+        
+        <!-- TOTAL ASSET SECTION -->
+        <div class="slds-grid slds-wrap slds-m-top--x-small">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+            
+            <!--TOTAL ASSET AMOUNT-->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5">
+                <label class="slds-form-element__label slds-m-right--xx-small">Total Assets:</label>
+                <span class="slds-form-element__static totalAmount" id="totalAssetAmount" name="totalAssetAmount"></span>
+            </section>
+  
+        </div>
+
+        <!-- ADD BUTTON SECTION -->
+        <div class="slds-grid slds-wrap slds-m-vertical--large">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+            
+            <!--ADD BUTTON-->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5">
+                <button type="button" id="addAsset" class="slds-button slds-button--brand" style="width:100%" onclick="addRecord('assetSection', 'assetDiv', hideSectionIdsAsset, this.id, 1);calculateTotalAssetAmount();">ADD ANOTHER ASSET</button>
+            </section>
+  
+        </div>
+        
+    </div>
+    </section>
+    
+    <script>
+    //Global variable used when adding records. Used for hiding dynamic sections
+    var country = '{!JSENCODE($CurrentPage.parameters.country)}';
+    var hideSectionIdsAsset = ['carSection', 'app1_Ownership_Status__c1'];
+        var assetDebtMap = new Object();
+    
+    /*  Description: Toggle sections and disable asset ownership based on asset category
+ *  Author: Mike Lasala
+ *  Date Created: 07-OCT-2015
+ *  Input: Element Id (to identify which row), 
+		   Asset category
+ */
+    function showHideDisableAsset(elementId, assetCategory){
+        
+        //Get record counter
+        var counter = getCounter(elementId);
+        var asset = $('#assetDiv'+counter);
+        
+        //Set fields to not required as asset is not a required record
+        $('#app1_Asset_Value__c'+counter).removeClass('isRequired isNumberAmount isAmount isDecimalAmount');
+        $('#app1_Ownership_Status__c'+counter).removeClass('isPicklistSpace');
+        
+        //Clear fields
+        $('#app1_Asset_Value__c'+counter).val('');
+        $('#app1_Ownership_Status__c'+counter).val(' ');
+        $('#app1_Vehicle_Make__c'+counter).val(' ');
+        $('#app1_Vehicle_Year__c'+counter).val('');
+        $('#app1_Vehicle_Model__c'+counter).val('');
+        
+        if($('#app_Application_Type__c').val() == 'Joint'){
+            $('#app1_asset_Applicable_Party__c'+counter).val(' ');
+        }
+        
+        //Hide car section
+        asset.find('#carSection').hide();
+        
+        //Enable asset ownership field
+        $('#app1_Ownership_Status__c'+counter).prop('disabled', false);
+        
+        if(assetCategory != ' ' && 
+           assetCategory != null){
+            //Display asset value and asset ownership as required
+            asset.find('#app1_Asset_Value__c1_Label').addClass('req');
+            asset.find('#app1_Asset_Value__c1_Label').html("Asset value" + '<span> *</span>');
+            
+            asset.find('#app1_Ownership_Status__c1_Label').addClass('req');
+            asset.find('#app1_Ownership_Status__c1_Label').html("Asset ownership" + '<span> *</span>');
+            
+            if($('#app_Application_Type__c').val() == 'Joint'){
+                asset.find('#app1_asset_Applicable_Party__c1_Label').addClass('req');
+                asset.find('#app1_asset_Applicable_Party__c1_Label').html("Asset owner" + '<span> *</span>');
+                $('#app1_asset_Applicable_Party__c'+counter).addClass('isPicklistSpace ');
+            }
+            
+            if(assetCategory == 'Car' || 
+               assetCategory == 'Motor vehicle'){
+                
+                //Show car section
+                asset.find('#carSection').show();
+                
+            } else {
+                
+                if(assetCategory == 'Deposits' ||
+                   assetCategory == 'Kiwisaver/Other Superannuation'){
+                    
+                    //Disable asset ownership field
+                    asset.find('#app1_Ownership_Status__c1_Label').removeClass('req');
+                    asset.find('#app1_Ownership_Status__c1_Label').html("Asset ownership"); 
+                    $('#app1_Ownership_Status__c'+counter).prop('disabled', true);
+                }
+                
+                //Hide car section
+                asset.find('#carSection').hide();
+            }
+            
+            //Set fields to required when asset category is not null
+            $('#app1_Asset_Value__c'+counter).addClass('isRequired isNumberAmount isAmount isDecimalAmount');
+            $('#app1_Ownership_Status__c'+counter).addClass('isPicklistSpace');
+            
+        } else {
+            //Display asset value and asset ownership as not required
+            asset.find('#app1_Asset_Value__c1_Label').removeClass('req');
+            asset.find('#app1_Asset_Value__c1_Label').html("Asset value");
+            
+            asset.find('#app1_Ownership_Status__c1_Label').removeClass('req');
+            asset.find('#app1_Ownership_Status__c1_Label').html("Asset ownership");
+            
+            asset.find('#app1_asset_Applicable_Party__c1_Label').removeClass('req');
+            asset.find('#app1_asset_Applicable_Party__c1_Label').html("Asset owner");
+            $('#app1_asset_Applicable_Party__c'+counter).removeClass('isPicklistSpace ');
+        }
+        clearValidationMessagesBySection('#assetDiv'+counter);
+        calculateTotalAssetAmount();
+    }
+    
+    /*  Description: Calculate total asset amount
+ *  Author: Mike Lasala
+ *  Date Created: 19-OCT-2015
+ *  Input: None
+ */
+    function calculateTotalAssetAmount(){
+        
+        //Length of records
+        var recordLength = $('.assetSection').length;
+        
+        var totalAssetAmount = 0;
+        
+        //Iterate over records and summate asset amount
+        for(var i=1; i<=recordLength; i++){
+            
+            if($('#app1_Asset_Category__c'+i).val() != ' '){
+                totalAssetAmount += Number($('#app1_Asset_Value__c'+i).val()) > 0 ? Number($('#app1_Asset_Value__c'+i).val()) : 0;
+            }
+        }
+        
+        //Display total amount
+        $('#totalAssetAmount').text('$'+addCommas(totalAssetAmount.toFixed(2)));
+    }
+    
+        /*  Description: Add debt based on category and ownership
+         *  Author: Mike Lasala
+         *  Date Created: 10-DEC-2015
+         *  Input: Element Id (to identify which row)
+         */
+        function addAssetDebt(elementId){
+            
+            //Get asset record counter
+            var assetCounter = getCounter(elementId);
+
+            //Get asset category and ownership
+            var assetCategory = $('#app1_Asset_Category__c'+assetCounter).val();
+            var assetOwnership = $('#app1_Ownership_Status__c'+assetCounter).val();
+            
+            //If category is car/house and ownership is owe money on
+            if((assetCategory == 'Car' || 
+                assetCategory == 'House') && 
+               assetOwnership == 'Owe money on'){
+
+                //Get length of debt records
+                var recordLength = $('.debtSection').length;
+                
+                //The numeric id of the new hidden input field being added
+                var debtCounter  = recordLength + 1;
+                
+                //Display remove button when records are > 1
+                $('.debtSection').find('#app1_removeButton1').addClass('slds-visible').removeClass('slds-hidden');
+                
+                //Clone element and append counter value on section (div) id
+                var newElem = $('#debtDiv'+recordLength).clone().insertAfter('#debtDiv'+recordLength).attr('id', 'debtDiv'+debtCounter);
+                
+                //Set default debt category based on asset category
+                newElem.find('.category').val((assetCategory == 'Car') ? 'Car loan' : 'Mortgage');
+                
+                //Add counter to elements needed for show hide
+                newElem.find('.totalAmount').attr('id', constructInputIds('totalDebtAmount1', debtCounter));
+                newElem.find('.payout').attr('for', constructInputIds('app1_Acknowledge_Payout__c1', debtCounter));
+                
+                //Clear total amount value of new element
+                newElem.find('.totalAmount').html(null);
+                
+                //Set input id for new element
+                setInputIds(newElem, debtCounter);
+                
+                //Show hide depending on debt category
+                showHideDebts(newElem.find('.category').attr('id'), (assetCategory == 'Car') ? 'Car loan' : 'Mortgage');
+                
+                if(debtCounter == maxRecord){
+                
+                    //Hide add button when max number of records is reached (count based on custom settings)
+                    $('#addDebt').hide();
+                    
+                    //When max records for other debts is reached, show validation message
+                    $('#maxDebtValidationMessage').show();
+                }
+                
+                //Put asset counter and debt counter (added) in object for removal if conditions are not met
+                assetDebtMap['asset'+assetCounter] = 'debt'+debtCounter;
+                
+            } else {
+                
+                //Remove debt created when conditions are not met
+                //removeAssetDebt(elementId);
+            }
+            console.log('assetDebtMap: '+JSON.stringify(assetDebtMap));
+        }
+        
+        /*  Description: Remove debt based on category and ownership
+         *  Author: Mike Lasala
+         *  Date Created: 10-DEC-2015
+         *  Input: Element Id (to identify which row)
+         */
+        function removeAssetDebt(elementId){
+            
+            //Get asset record counter
+            var assetCounter = getCounter(elementId);
+            
+            if(typeof assetDebtMap['asset'+assetCounter] !== 'undefined'){
+                console.log('assetDebtMap[]: '+assetDebtMap['asset'+assetCounter]);
+                removeRecord('app1_removeButton'+getCounter(assetDebtMap['asset'+assetCounter]), 'debtSection', 'debtDiv', 'addDebt', 1);
+            }
+            
+            //Recalculate overall total debt amount
+            calculateTotalDebt();
+        }
+        
+        //Set default picklist values
+        setDefaulPicklistValue('#assetWrapper');
+        
+        //Hide car section on load
+        showHideDisableAsset('app1_Asset_Category__c1', ' ');
+    
+    
+    /****************************SUBMIT**********************************/
+    
+    /*  Description: Create Asset records
+*  Author: Tony Xu
+*  Date Created: 2015-10-28
+*  Input: None
+*/
+    function mapAsset(){
+        
+        //This is to loop through the current asset records and add them to the container
+        var recordLength = $('.assetSection').length;
+        
+        for(var i=1; i<=recordLength; i++){
+            
+            if(getValue('app1_Asset_Category__c'+i) != ' '){
+                
+                //create object
+                var asset = new sforce.SObject('Asset__c');
+                
+                
+                
+                    //Mapping the fields        
+                    asset.Asset_Category__c =   getValue('app1_Asset_Category__c'+i);
+                    asset.Asset_Value__c =      getValue('app1_Asset_Value__c'+i);
+                    asset.Ownership_Status__c = getValue('app1_Ownership_Status__c'+i);
+                    asset.Total_Assets__c =     asset.Asset_Value__c;
+                    asset.RecordTypeId =        RECORDTYPES['Asset__c.'+country];
+                    asset.Applicant__c =        applicant[0].Id;
+                    
+                    if(asset.Asset_Category__c == 'Car' || 
+                       asset.Asset_Category__c == 'Motor vehicle'){
+                        
+                        asset.Vehicle_Make__c =  getValue('app1_Vehicle_Make__c'+i);
+                        asset.Vehicle_Model__c = getValue('app1_Vehicle_Model__c'+i);
+                        asset.Vehicle_Year__c =  getValue('app1_Vehicle_Year__c'+i);
+                    }
+
+                    if(applicant.length>1){
+                        asset.Applicable_Party__c = getValue('app1_asset_Applicable_Party__c'+i);
+                    }
+                    
+                    assets.push(asset);
+                }
+            }
+            console.log('assets: '+assets);
+            debugLog('Assets Data', assets);
+        }   
+    
+    </script>
+</apex:component>

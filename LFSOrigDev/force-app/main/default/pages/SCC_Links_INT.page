@@ -1,0 +1,34 @@
+<apex:page standardStylesheets="true">
+<h1>Custom Links</h1>
+<apex:outputPanel rendered="{!NOT($Setup.Profile_Country__c.NZ__c)}">
+<ul>
+    <!-- BEGIN MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+    <li><a href="https://www.latitudefinancial.com.au/security/" target="_blank">Latitude Information Security</a></li>
+    <!-- Commented by Suneel for the Task TASK1066055 - RITM1066680 -->
+    <!--<li><a href="http://www.autoedgenet5.com.au/login.aspx?ReturnUrl=%2fMain.aspx" target="_blank">AutoEdge</a></li>--> 
+    <li><a href="http://www.autoedgenet.com.au/Home.aspx" target="_blank">AutoEdge</a></li>
+    <li><a href="https://ecommerce.disconline.com.au/links/geportal" target="_blank">MVI Portal</a></li>
+   <li><a href="http://www.infochoice.com.au/distributions/flash9/10229/Custom/personalCustom.asp?version=21042010"
+    target="_blank">Loan Calculator</a></li>
+   <li><a href="http://www.infochoice.com.au/distributions/flash9/10229/custom/debtCustom.asp?version=11052011"
+    target="_blank">Consolidation Calculator</a></li>
+    <li><a href="http://www.abr.business.gov.au/" target="_blank">ABN Search</a></li>
+    <li><a href="http://www.whitepages.com.au/" target="_blank">White Pages</a></li>
+</ul>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+<ul>
+    <li><a href="https://www.nzpost.co.nz/tools/address-postcode-finder" target="_blank">{!$Label.AnPostcodelink}</a></li>
+    <li><a href="https://whitepages.co.nz/#/" target="_blank">White Pages</a></li>
+    <li><a href="http://yellow.co.nz/" target="_blank">Yellow Pages</a></li>
+    <li><a href="http://www.veda.co.nz/" target="_blank">Veda</a></li>
+    <li><a href="http://dnb.co.nz/" target="_blank">{!$Label.DnB}</a></li>
+    <li><a href="http://www.business.govt.nz/companies/" target="_blank">Companies Office</a></li>
+    <li><a href="http://mercado.au.money.ge.com/sites/nz?site=u" target="_blank">Mercado</a></li>
+    <li><a href="https://www.gemfinance.co.nz/insurance/personal-loan-insurance.html" target="_blank">Personal Loan
+     Calculator</a></li>
+    <li><a href="https://www.gemfinance.co.nz/loans/car-loans.html" target="_blank">Car Loan Calculator</a></li>
+    <!-- END MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+</ul>
+</apex:outputPanel>
+</apex:page>

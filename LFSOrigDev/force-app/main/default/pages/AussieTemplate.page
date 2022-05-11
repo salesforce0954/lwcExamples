@@ -1,0 +1,12 @@
+<!-- showHeader is turned off so we won't see any Salesforce standard tabs or sidebar -->
+<apex:page showHeader="false" id="GETemplate" standardStylesheets="false">
+<c:AussieSuperTag />
+<!-- CSS and JS files -->
+<c:AussieScripts />
+<!-- A section is reserved for header of the site -->
+<c:AussieHeader />
+<!-- This section is where you can include the content of each page of your site-->
+<apex:insert name="GEDDBody"/>
+<!-- A section is reserved for footer of the site -->
+<c:AussieFooter />
+</apex:page>

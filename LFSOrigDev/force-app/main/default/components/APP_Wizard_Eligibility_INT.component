@@ -1,0 +1,1074 @@
+<!--
+    * @Description: Contains eligibility details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+        02-JUNE-16: Modified for Story 369, converted checkbox into yes/no buttons - Marvin
+    ===================================================================== 
+-->
+<apex:component >
+    <style>
+         .eligibilityApplicant2{
+            display: none !important;
+        }        
+        
+        label#app1_consent_error,#app2_consent_error,#app1_poiconsent_error,#app2_poiconsent_error,#app1_poiconsent_error_yes,#app2_poiconsent_error_yes{
+        color:red;
+        }
+    </style>
+
+     <section class='slds-col slds-size--2-of-2 sectionBorder'>
+        <!-- ELIGIBILITY HEADER -->
+        <div class="slds-m-bottom--medium slds-theme--inverse slds-page-header slds-box slds-text-align--left sectionHeading">
+            <div class="slds-text-heading slds-m-vertical--small">Eligibility</div>
+        </div>
+            
+        <!-- APPLICATION TYPE SECTION -->
+        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+            
+            <!-- APPLICATION TYPE LABEL -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                <label class="slds-form-element__label req" for="app_Application_Type__c">Applicants</label>
+            </section>
+            
+            <!-- APPLICATION TYPE PICKLIST -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                <div class="slds-form-element__control">
+                    <select class="slds-select isPicklistSpace" id="app_Application_Type__c" onchange="showHideSingleJointFields(this.value);"/>
+                </div>
+            </section>
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left"/>
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left"/>     
+        </div>
+
+        <!-- STATIC TEXT SECTION -->
+        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4"/>
+            
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-4">
+                <div class="slds-text-longform slds-m-vertical--small">
+                    <h3 class="slds-text-heading--small">Sales Agent has confirmed the following:</h3>
+                    
+                    <!-- AU -->
+                    <ul class="slds-list--dotted {!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                        <li>Be over the age of 18</li>
+                        <li>Be a permanent Australian Resident</li>
+                        <li>Currently be working and earning an annual gross income of more than $24,000</li>
+                        <li>Have had a good credit history for the last 5 years</li>
+                        <li>Not have been bankrupt in the last 7 years</li>
+                    </ul>
+                    
+                    <!-- NZ -->
+                    <ul class="slds-list--dotted {!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+                        <li>Be over the age of 18</li>
+                        <li>Be a permanent New Zealand Resident</li>
+                        <li>Have a stable income</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+        
+        <div class="slds-grid" >
+        
+            <section id="app1Eligibility" class='slds-col slds-size--1-of-2'>
+                <!-- CHECKBOXES SECTION APPLICANT 1 -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small slds-grid--vertical-align-center">
+                    
+                    <!-- MEETS ELIGIBILITY CRITERIA CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app1_Meets_Eligibility_Criteria__c">
+                                <input name="app1_Meets_Eligibility_Criteria__c" type="checkbox" id="app1_Meets_Eligibility_Criteria__c" class="isCBEligibility"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                    <!-- MEETS ELIGIBILITY CRITERIA LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label req">{!$Label.APP_LoanPage_Confirmation1}</span>
+                    </section>
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- MEETS ELIGIBILITY CRITERIA YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Meets_Eligibility_Criteria__c_Yes" style="width:40%" onclick="toggleYesNoOption('Meets_Eligibility_Criteria__c', '1', this); return false;">Yes</a>
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Meets_Eligibility_Criteria__c_No" style="width:40%" onclick="toggleYesNoOption('Meets_Eligibility_Criteria__c', '1', this); return false;">No</a>
+                        </div>
+                    </section>
+                    
+                </div>
+        
+                <!-- AU -->
+                <div class="{!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+        
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- AGREES TO FEES CHECKBOX -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                            <div class="slds-form-element__control slds-m-right--small">
+                                <label class="slds-checkbox" for="app1_Agrees_to_Fees__c">
+                                    <input name="app1_Agrees_to_Fees__c" type="checkbox" id="app1_Agrees_to_Fees__c" class="isCBEligibility"/>
+                                    <span class="slds-checkbox--faux"></span>
+                                </label>
+                            </div>
+                        </section>
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        </section>
+                        <!-- AGREES TO FEES LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                            <span class="slds-form-element__label req">{!$Label.APP_LoanPage_Confirmation2}</span>
+                        </section>
+                        <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                        <!-- AGREES TO FEES YES/NO OPTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                            <div class="slds-form--inline" style="width:100%;">
+                                <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Fees__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Fees__c', '1', this); return false;">Yes</a>
+                                <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Fees__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Fees__c', '1', this); return false;">No</a>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+        
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- PRIVACY POLICY CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app1_Agrees_to_Privacy_Policy__c">
+                                <input name="app1_Agrees_to_Privacy_Policy__c" type="checkbox" id="app1_Agrees_to_Privacy_Policy__c" class="isCBEligibility"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                    <!-- PRIVACY POLICY LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label req">{!$Label.APP_LoanPage_Confirmation3}</span>
+                    </section>
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- PRIVACY POLICY YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Privacy_Policy__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Privacy_Policy__c', '1', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Privacy_Policy__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Privacy_Policy__c', '1', this); return false;">No</a>
+                    </div>
+                    </section>
+                </div>
+                    
+                
+                <!-- BEGIN ARSHAD: 25/05/2018 -  BDR-105 -->
+                <apex:outputpanel rendered="{!IF($CurrentPage.parameters.country == 'AU',true,false)}">
+                 <div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideEligibility"> 
+                <!--     <div class="slds-grid slds-wrap slds-m-vertical--xx-small">  -->
+                    
+                    <!-- CONSENT TO LPI CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app1_Consent_to_Lpi__c">
+                               <input name="app1_Consent_to_Lpi__c" type="checkbox" id="app1_Consent_to_Lpi__c"/> <!-- class="slds-input isCBEligibility isRequired"/> -->
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                    <!-- CONSENT TO LPI LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label req">{!$Label.APP_LoanPage_Confirmation8}</span>
+                    </section>
+                    <!-- CONSENT TO LPI YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Consent_to_Lpi__c_Yes" style="width:40%" onclick="toggleYesNoOption('Consent_to_Lpi__c', '1', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Consent_to_Lpi__c_No" style="width:40%" onclick="toggleYesNoOption('Consent_to_Lpi__c', '1', this); return false;" onblur="checkConsent('1',this);return false;">No</a>
+                        <!-- Added by Arshad on 7 june on lines 186,188 -->
+                            <label  class="slds-hide" id="app1_consent_error">Please select an option.</label>
+                    </div>
+                    </section>
+                </div>
+                </apex:outputpanel>
+                <!-- END   ARSHAD: 25/05/2018 -  BDR-105 -->  
+                                                                                                           
+                <!-- Added for POI Automation by Arshad: 9/06/2020 -->
+                <apex:outputpanel rendered="{!IF($CurrentPage.parameters.country == 'AU',true,false)}">
+                 <!-- <div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideEligibility"> -->
+                     <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- CONSENT TO Online Verification -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app1_Agrees_to_Income_Verification__c">
+                               <input name="app1_Agrees_to_Income_Verification__c" type="checkbox" id="app1_Agrees_to_Income_Verification__c"/> <!-- class="slds-input isCBEligibility isRequired"/> -->
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                    <!-- CONSENT TO Online Verification LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation9}</span>
+                    </section>
+                    <!-- CONSENT TO POI YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Income_Verification__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Income_Verification__c', '1', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app1Agrees_to_Income_Verification__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Income_Verification__c', '1', this); return false;" onblur="checkConsent('1',this);return false;">No</a>
+                        <!-- Added by Arshad on 7 june on lines 186,188 -->
+                            <label  class="slds-hide" id="app1_poiconsent_error">Please select an option.</label>
+                          <!-- <label  class="slds-hide" id="app1_poiconsent_error_yes">Please select the 'Yes' option.</label> -->
+                    </div>
+                    </section>
+                </div>
+                </apex:outputpanel>
+                <!-- END   ARSHAD: 9/06/2020 -->
+                
+                <!-- AU -->
+                <div class="{!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small" >
+                         
+                        <!-- APPLICANT EIDV CHECKBOX -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                            <div class="slds-form-element__control slds-m-right--small">
+                                <label class="slds-checkbox" for="app1_EIDV__c">
+                                    <input name="app1_EIDV__c" type="checkbox" id="app1_EIDV__c"/>
+                                    <span class="slds-checkbox--faux"></span>
+                                </label>
+                            </div>
+                        </section>
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        </section>
+                        <!-- APPLICANT EIDV LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                            <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation5}</span>
+                        </section>
+                        <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                        <!-- APPLICANT EIDV YES/NO OPTION -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                            <div class="slds-form--inline" style="width:100%;">
+                                <a href="#" class="slds-button slds-button--neutral" id="app1EIDV__c_Yes" style="width:40%" onclick="toggleYesNoOption('EIDV__c', '1', this); return false;">Yes</a>
+                                <a href="#" class="slds-button slds-button--neutral" id="app1EIDV__c_No" style="width:40%" onclick="toggleYesNoOption('EIDV__c', '1', this); return false;">No</a>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+        <!--Commenting as part of NZ stopsell insurance-->
+               <!-- <div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideLoanInsuranceConsent">-->
+              <!--  <div class="slds-grid slds-wrap slds-m-vertical--xx-small"> -->
+                    
+                    <!-- LOAN INSURANCE CONSENT CHECKBOX -->
+                    <!--<section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app1_Loan_Insurance_Consent__c">
+                                <input name="app1_Loan_Insurance_Consent__c" type="checkbox" id="app1_Loan_Insurance_Consent__c"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>-->
+                    <!-- LOAN INSURANCE CONSENT LABEL -->
+                    <!-- BEGIN MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                    <!--<section id="section3" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left {!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+                        <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation4}</span>
+                    </section>
+                    
+                    <section  id="section1" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left {!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                        <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation4_AU}</span>
+                    </section>-->
+                    <!-- END MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- LOAN INSURANCE CONSENT YES/NO OPTION -->
+                    <!--<section  id="section2" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Loan_Insurance_Consent__c_Yes" style="width:40%" onclick="toggleYesNoOption('Loan_Insurance_Consent__c', '1', this); return false;">Yes</a>
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Loan_Insurance_Consent__c_No" style="width:40%" onclick="toggleYesNoOption('Loan_Insurance_Consent__c', '1', this); return false;">No</a>
+                        </div>
+                    </section>
+                </div>-->
+        <!--End Commenting as part of NZ stopsell insurance-->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- HIGHER APPROVAL CONSENT CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app_Higher_Approval_Consent__c">
+                                <input name="app_Higher_Approval_Consent__c" type="checkbox" id="app_Higher_Approval_Consent__c"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                    <!-- HIGHER APPROVAL CONSENT LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label">{!$ObjectType.Application__c.fields.Higher_Approval_Consent__c.label}</span>
+                    </section>
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- HIGHER APPROVAL CONSENT YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Higher_Approval_Consent__c_Yes" style="width:40%" onclick="toggleYesNoOption('Higher_Approval_Consent__c', '1', this); return false;">Yes</a>
+                            <a href="#" class="slds-button slds-button--neutral" id="app1Higher_Approval_Consent__c_No" style="width:40%" onclick="toggleYesNoOption('Higher_Approval_Consent__c', '1', this); return false;">No</a>
+                        </div>
+                    </section>
+                    
+                </div>
+            </section>
+            
+            <section id="app2Eligibility" class='slds-col slds-size--1-of-2 eligibilityApplicant2'>
+             <!-- CHECKBOXES SECTION APPLICANT 2 -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- MEETS ELIGIBILITY CRITERIA CHECKBOX -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                    <div class="slds-form-element__control slds-m-right--small">
+                        <label class="slds-checkbox" for="app2_Meets_Eligibility_Criteria__c">
+                            <input name="app2_Meets_Eligibility_Criteria__c" type="checkbox" id="app2_Meets_Eligibility_Criteria__c"/>
+                            <span class="slds-checkbox--faux"></span>
+                        </label>
+                    </div>
+                </section>
+                
+                <!-- MEETS ELIGIBILITY CRITERIA LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                    <span class="slds-form-element__label isRequired">{!$Label.APP_LoanPage_Confirmation1} </span>
+                </section>
+                <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                <!-- MEETS ELIGIBILITY CRITERIA YES/NO OPTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Meets_Eligibility_Criteria__c_Yes" style="width:40%" onclick="toggleYesNoOption('Meets_Eligibility_Criteria__c', '2', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Meets_Eligibility_Criteria__c_No" style="width:40%" onclick="toggleYesNoOption('Meets_Eligibility_Criteria__c', '2', this); return false;">No</a>
+                    </div>
+                </section>
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                </section>
+            </div>
+    
+            <!-- AU -->
+            <div class="{!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+    
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- AGREES TO FEES CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app2_Agrees_to_Fees__c">
+                                <input name="app2_Agrees_to_Fees__c" type="checkbox" id="app2_Agrees_to_Fees__c"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <!-- AGREES TO FEES LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation2} </span>
+                    </section>
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- AGREES TO FEES YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                            <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Fees__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Fees__c', '2', this); return false;">Yes</a>
+                            <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Fees__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Fees__c', '2', this); return false;">No</a>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                </div>
+            </div>
+    
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- PRIVACY POLICY CHECKBOX -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                    <div class="slds-form-element__control slds-m-right--small">
+                        <label class="slds-checkbox" for="app2_Agrees_to_Privacy_Policy__c">
+                            <input name="app2_Agrees_to_Privacy_Policy__c" type="checkbox" id="app2_Agrees_to_Privacy_Policy__c"/>
+                            <span class="slds-checkbox--faux"></span>
+                        </label>
+                    </div>
+                </section>
+                <!-- PRIVACY POLICY LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                    <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation3} </span>
+                </section>
+                <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                <!-- PRIVACY POLICY YES/NO OPTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Privacy_Policy__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Privacy_Policy__c', '2', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Privacy_Policy__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Privacy_Policy__c', '2', this); return false;">No</a>
+                    </div>
+                </section>
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                </section>
+            </div>
+
+            <!-- BEGIN ARSHAD: 25/05/2018 -  BDR-105 -->
+            <apex:outputpanel rendered="{!IF($CurrentPage.parameters.country == 'AU', true, false)}">
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideEligibilitytwo">
+                
+                <!-- CONSENT TO LPI CHECKBOX -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                    <div class="slds-form-element__control slds-m-right--small">
+                        <label class="slds-checkbox" for="app2_Consent_to_Lpi__c">
+                            <input name="app2_Consent_to_Lpi__c" type="checkbox" id="app2_Consent_to_Lpi__c"/>
+                            <span class="slds-checkbox--faux"></span>
+                        </label>
+                    </div>
+                </section>
+                <!-- CONSENT TO LPI LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                    <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation8} </span>
+                </section>
+                <!-- CONSENT TO LPI YES/NO OPTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Consent_to_Lpi__c_Yes" style="width:40%" onclick="toggleYesNoOption('Consent_to_Lpi__c', '2', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Consent_to_Lpi__c_No" style="width:40%" onclick="toggleYesNoOption('Consent_to_Lpi__c', '2', this); return false;" onblur="checkConsent('1',this);return false;">No</a>
+                        <!-- Added by Arshad on 7 june on lines 396,398 -->
+                            <label  class="slds-hide" id="app2_consent_error">Please select an option.</label>
+                    </div>
+                </section>
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                </section>
+            </div>                      
+        </apex:outputpanel>
+        <!-- END   ARSHAD: 25/05/2018 -  BDR-105 -->   
+        
+              <!-- Added for POI Automation by Arshad: 9/06/2020 -->
+            <!-- <apex:outputpanel rendered="{!IF($CurrentPage.parameters.country == 'AU', true, false)}"> -->
+            <apex:outputpanel rendered="{!IF($CurrentPage.parameters.country == 'AU',true,false)}">
+            <!-- <div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideEligibilitytwo"> -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- CONSENT TO POI CHECKBOX -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                    <div class="slds-form-element__control slds-m-right--small">
+                        <label class="slds-checkbox" for="app2_Agrees_to_Income_Verification__c">
+                            <input name="app2_Agrees_to_Income_Verification__c" type="checkbox" id="app2_Agrees_to_Income_Verification__c"/>
+                            <span class="slds-checkbox--faux"></span>
+                        </label>
+                    </div>
+                </section>
+                <!-- CONSENT TO POI LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                    <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation9} </span>
+                </section>
+                <!-- CONSENT TO POI YES/NO OPTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Income_Verification__c_Yes" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Income_Verification__c', '2', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Agrees_to_Income_Verification__c_No" style="width:40%" onclick="toggleYesNoOption('Agrees_to_Income_Verification__c', '2', this); return false;" onblur="checkConsent('1',this);return false;">No</a>
+                        <!-- Added by Arshad on 7 june on lines 396,398 -->
+                            <label  class="slds-hide" id="app2_poiconsent_error">Please select an option.</label>
+                       <!-- <label  class="slds-hide" id="app2_poiconsent_error_yes">Please select the 'Yes' option.</label>-->
+                    </div>
+                </section>
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                </section>
+            </div>                      
+        </apex:outputpanel>
+        <!-- END   ARSHAD: 9/06/2020 -->
+  
+            <!-- AU -->
+            <div class="{!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                     
+                    <!-- APPLICANT EIDV CHECKBOX -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                        <div class="slds-form-element__control slds-m-right--small">
+                            <label class="slds-checkbox" for="app2_EIDV__c">
+                                <input name="app2_EIDV__c" type="checkbox" id="app2_EIDV__c"/>
+                                <span class="slds-checkbox--faux"></span>
+                            </label>
+                        </div>
+                    </section>
+                    <!-- APPLICANT EIDV LABEL -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left">
+                        <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation5}</span>
+                    </section>
+                    <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                    <!-- APPLICANT EIDV YES/NO OPTION -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form--inline" style="width:100%;">
+                            <a href="#" class="slds-button slds-button--neutral" id="app2EIDV__c_Yes" style="width:40%" onclick="toggleYesNoOption('EIDV__c', '2', this); return false;">Yes</a>
+                            <a href="#" class="slds-button slds-button--neutral" id="app2EIDV__c_No" style="width:40%" onclick="toggleYesNoOption('EIDV__c', '2', this); return false;">No</a>
+                        </div>
+                    </section>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    </section>
+                </div>
+                
+            </div>
+    <!--Commenting as part of NZ stopsell insurance-->
+            <!--<div class="slds-grid slds-wrap slds-m-vertical--xx-small" id="showNHideLoanInsuranceConsenttwo">-->
+                
+                <!-- LOAN INSURANCE CONSENT CHECKBOX 
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right slds-hide">
+                    <div class="slds-form-element__control slds-m-right--small">
+                        <label class="slds-checkbox" for="app2_Loan_Insurance_Consent__c">
+                            <input name="app2_Loan_Insurance_Consent__c" type="checkbox" id="app2_Loan_Insurance_Consent__c"/>
+                            <span class="slds-checkbox--faux"></span>
+                        </label>
+                    </div>
+                </section>
+                <!-- LOAN INSURANCE CONSENT LABEL -->
+                <!-- BEGIN MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION 
+                <section id="section3" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left {!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+                    <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation4}</span>
+                </section>
+                
+                <section id="section1" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4 slds-text-align--left {!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                    <span class="slds-form-element__label">{!$Label.APP_LoanPage_Confirmation4_AU}</span>
+                </section>
+                <!-- END MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                <!--TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID -06/02/2016-->
+                <!-- LOAN INSURANCE CONSENT YES/NO OPTION
+                <section id="section2" class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                    <div class="slds-form--inline" style="width:100%;">
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Loan_Insurance_Consent__c_Yes" style="width:40%" onclick="toggleYesNoOption('Loan_Insurance_Consent__c', '2', this); return false;">Yes</a>
+                        <a href="#" class="slds-button slds-button--neutral" id="app2Loan_Insurance_Consent__c_No" style="width:40%" onclick="toggleYesNoOption('Loan_Insurance_Consent__c', '2', this); return false;">No</a>
+                    </div>
+                </section>
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                </section>
+            </div>-->
+            <!--End Commenting as part of NZ stopsell insurance-->
+        </section>
+    </div>
+    </section>
+    
+    <script>
+        var countryComp = '{!JSENCODE($CurrentPage.parameters.country)}';
+        <!-- BEGIN ARSHAD: 07/06/2018 -  BDR-105 -->
+        var Selected1 = false;
+        var Selected2 = false;
+         function checkConsent(appNum,elem){
+            if(appNum == '1'){
+                if(!Selected1){
+                    if(Selected1 == false && csConsent == 'true'){
+                        $('#app1_poiconsent_error').hide();    
+                    }else{
+                        $('#app1_poiconsent_error').show();                    
+                    }
+                }
+            }else{
+                if(!Selected2){
+                    $('#app2_consent_error').show();
+                    $('#app2_poiconsent_error').show();
+                }
+            }
+         }
+         function checkConsentSubmit(){
+            var res = true;
+            if(!Selected1){
+                res = false;
+                $('#app1_consent_error').show();
+            }else{
+                $('#app1_consent_error').hide();
+            }
+
+            if($('select#app_Application_Type__c').val() == 'Joint'){
+                if(!Selected2){
+                    res = false;
+                    $('#app2_consent_error').show();
+                }else{
+                    $('#app2_consent_error').hide();
+                }
+            }
+
+            return res;
+        }
+           function checkPoiConsentSubmit(){
+            var res = true;
+            if(!Selected1){
+                res = false;
+                $('#app1_poiconsent_error').show();                
+            }else{
+                $('#app1_poiconsent_error').hide();
+            }
+
+            if($('select#app_Application_Type__c').val() == 'Joint'){
+                if(!Selected2){
+                    res = false;
+                    $('#app2_poiconsent_error').show();
+                }else{
+                    $('#app2_poiconsent_error').hide();
+                }
+            }
+
+            return res;
+        }
+      function checkCustomSettings(){
+          var poiQuery = "SELECT name,value__c from Admin_Settings__c where name='Staff UI Verification'";
+          var pVer = sforce.connection.query(poiQuery);
+          var poirecords = pVer.getArray('records');
+          var pValue = poirecords[0].Value__c;
+
+          return pValue;
+        }
+       var csConsent = checkCustomSettings();
+        
+        <!-- END   ARSHAD: 07/06/2018 -  BDR-105 --> 
+        /*  Description: Rename html of application type picklist
+         *  Author: Mike Lasala
+         *  Date Created: 21-OCT-2015
+         *  Input: None
+         */
+        function updateApplicationTypeHTML(){
+            
+            //Iterate over each option
+            $("#app_Application_Type__c > option").each(function() {
+                
+                //Rename html based on value
+                if($(this).val() == 'Single'){
+                    $(this).html('One Person');
+                } else if($(this).val() == 'Joint'){
+                    $(this).html('Two People');
+                }
+            });
+            
+            //Iterate over each option
+            $("#app_Business_Source__c > option").each(function() {
+                
+                //Rename html based on value
+                if($(this).val() == 'INTERNET APPLICATION' && 
+                   countryComp == 'NZ'){
+                    $(this).html('Internet');
+                }
+            });
+        }
+        
+        //Set default picklist values
+        initPicklist('#app_Application_Type__c');
+        
+        /****************************SUBMIT**********************************/
+        /*  Description: Map application record and fields to corresponding 
+                         values in the form which will be used for insert
+         *  Author: Mike Lasala
+         *  Date Created: 29-OCT-2015
+         *  Input: None
+         */
+        function mapApplication(){
+            console.log('************HERE');
+            console.log('isSubmit: '+isSubmit);
+            //Show the progress bar
+            $('#myModal').modal('show');
+            
+            //Get blackbox
+            setBlackBox();
+            
+            //Map fields
+            app.Brand_Lookup__c                 = getValue('app_Brand_Lookup__c');
+            app.Channel__c                      = getValue('app_Channel__c');
+            app.Type_of_Product__c              = getValue('app_Type_of_Product__c');
+            app.Mirror__c                       = getValue('app_Mirror__c');
+            app.Business_Source__c              = getValue('app_Business_Source__c');
+            app.Branch__c                       = getValue('app_Branch__c');
+            //Added by Suneel - Better Start
+            app.Product_SubType__c              = getValue('app_SubType__c');
+            
+           //if(getValue('app_Channel__c') == '3rd Party Application'){ // valid only for Latitude Brand 
+            if( countryComp == 'AU'){
+                if(getValue('3rdPartyAppNum') != null && getValue('3rdPartyAppNum') != ''){
+                    app.X3rd_Party_Application_Number__c= getValue('3rdPartyAppNum');
+                 }   
+                if(getValue('3rdPartyQuotedRisk') != null && getValue('3rdPartyQuotedRisk') != ''){
+                    app.X3rd_Party_Quoted_Rate__c   = getValue('3rdPartyQuotedRisk');
+                }
+                if(getValue('3rdPartyRiskGrade') != null && getValue('3rdPartyRiskGrade') != ''){    
+                    app.X3rd_Party_Quoted_Risk_Grade__c = getValue('3rdPartyRiskGrade');
+                }
+            }
+            app.Application_Type__c             = getValue('app_Application_Type__c');
+            app.Higher_Approval_Consent__c      = getValue('app_Higher_Approval_Consent__c');
+            <!--Commenting as part of NZ stopsell insurance-->
+            //app.Loan_Insurance_Consent__c       = getValue('app1_Loan_Insurance_Consent__c');
+            app.Payment_Frequency__c            = getValue('app_Payment_Frequency__c');
+            // app.Total_Loan_Amount__c       = getTotalAmount('loanSection', 'loan_Amount__c');
+            app.Total_Loan_Amount__c            = Number(totalLoanAmount).toFixed(2);
+            //MLASALA: 16-JUN-16 TQLQW-33 Upsell Eligibility, Offer and Acceptance
+            app.Initial_Requested_Amount__c     = Number(totalLoanAmount).toFixed(2);
+            app.Fingerprint_Step__c             = 'app.submit';
+            app.iOvation_Type__c                = brandiOvationMap[app.Brand_Lookup__c];
+            app.FP_IP_Address__c                = IPAddress;
+            app.Applicant_1_Name__c             = getValue('app1_first_name__c')+' '+getValue('app1_last_name__c');
+            if(app.Application_Type__c == 'Joint'){
+                app.Applicant_2_Name__c         = getValue('app2_first_name__c')+' '+getValue('app2_last_name__c');
+            }
+            
+            if(app.FP_IP_Address__c == null){
+                app.FP_IP_Address__c = 'ERR1';
+            }
+            
+            var settlementDate = getValue('app_Settlement_Date__c');
+            
+            if(settlementDate != ''){
+                
+                settlementDate = settlementDate.split("/");
+                app.Settlement_Date__c = new Date(settlementDate[2],settlementDate[1]-1,settlementDate[0]);
+            }
+            
+            var brandString = $('#app_Brand_Lookup__c option:selected').text();
+
+            if(brandString != 'Please Select'){
+                app.Brand_String__c = brandString;
+            }
+                       
+            app.Loan_Term__c = getValue('app_Loan_Term__c');
+            
+            if(app.Loan_Term__c != ''){
+            //Added by Arshad for Better start
+            if(app.Product_SubType__c != 'Better Start PL'){
+                //Calculate loan term in months
+                app.Loan_Term_Months__c = app.Loan_Term__c.split(" ")[0] * (app.Loan_Term__c.split(" ")[1] == 'months' ? 1 : 12);
+            }else{
+                app.Loan_Term_Months__c = app.Loan_Term__c.split(" ")[0] * 12;            
+            }
+         }
+
+            //NZ specific fields
+            if(countryComp == 'NZ'){
+                    
+                app.Bank_Accounts_Held__c = getValue('app_Bank_Accounts_Held__c');
+                
+                //MLASALA 26-SEPT-16 TQLQW-487 Promo engine
+                app.Promo_ID__c = getValue('app_Promo_ID__c');
+                
+                //Kiwibank specific fields
+                if(app.Brand_String__c == 'Kiwibank'){
+                    app.PBUID__c = getValue('app_PBUID__c');
+                }
+            }
+                
+            //Set Application_Source__c based on Channel
+            if(app.Channel__c == 'Broker'){
+                
+                app.Application_Source__c = 'BROKER LOAN';
+                app.Broker__c = getValue('app_Broker__c');
+                    
+            } else if(app.Channel__c == 'Sales'){
+                
+                app.Application_Source__c = 'WALK-IN';
+                    
+            } else if(app.Channel__c == 'Online' || app.Channel__c == '3rd Party Application'){ // Afreen - Added condition to populate the application source when it is PicStarter
+                    
+                app.Application_Source__c = 'INTERNET';   
+            }
+
+            //BEGIN MLASALA 22-SEPT-16 TQLQW-487 Promo Engine
+            if(undefinedChecker('searchFromSalesAndLeads') != false){
+                
+                //Added prepop for special promotion
+                if(undefinedChecker('promoCampaign') == 'Conditionally Approved Offer' || 
+                   undefinedChecker('promoCampaign') == 'Special Promotion'){
+                
+                    app.Promotional_Campaign__c = undefinedChecker('promoCampaign');
+                }
+                
+                if(undefinedChecker('promoCampaign') == 'Conditionally Approved Offer'){
+                
+                    app.Promotional_Campaign__c = undefinedChecker('promoCampaign');
+                    app.Business_Source__c = '60 DAY CERTIFICATE';
+                    app.Promo_Loan_Offer_Amount__c = undefinedChecker('promoAmount');
+                }
+            }
+            //END LASALA 22-SEPT-16 TQLQW-487 Promo Engine
+            /* Removed by RCADAPAN - Business_Source not to be defaulted via code
+            //Afreen- changes for picstarter 481- prepopulates the fields. 
+            if(undefinedChecker('searchFromSalesAndLeads') != false ){
+                
+                //app.Business_Source__c = 'INTERNET APPLICATION';
+            }
+            */
+            console.log('app: '+app);
+            
+            app.FP_Black_Box__c = iOvationData.blackbox;
+            
+            debugLog('Application Data', app);
+            
+            createRecord(app);
+        }
+        
+        /*  Description: Create Product Item and ONR 
+         *  Author: Mike Lasala
+         *  Date Created: 29-OCT-2015
+         *  Input: None
+         */
+        function createProductItemAndONR(){
+        
+            //Retrieve GEProduct__c Id
+            var queryProductId = sforce.connection.query("SELECT Id, GEProduct__c FROM Product_Version__c WHERE GEProduct__r.Type__c = '"+app.Type_of_Product__c+"' AND (Start_Date__c = null OR Start_Date__c <= TODAY) AND (End_Date__c = null OR End_Date__c >= TODAY) AND GEProduct__r.Brands__c = '"+app.Brand_Lookup__c+"'",{
+                    
+                onSuccess: function(result){
+                    callCount++;
+                    if(result.size > 0){
+                            
+                        var productResult = result.getArray('records');
+                        
+                        //TODO: SHOULD BE BEFORE INSERT    
+                        app.Product_Id__c = productResult[0].GEProduct__c;
+                        console.log('app.Product_Id__c: '+app.Product_Id__c);
+                        
+                        //Map Product_Item__c
+                        productItem.Product_Version__c = productResult[0].Id;
+                        productItem.Application__c = app.Id;
+                        console.log('productItem: '+productItem);
+                        debugLog('Product Items Data', productItem);
+                        
+                        createRecord(productItem);
+                    }
+                },
+                    
+                onFailure: function(error){
+                    console.log('Product_Version__c query error: '+error);
+                    debugLog('Product Version Query Error', error);
+                }
+            });
+
+            //Retrieve Meta_ONR__c Prompt__c
+            var queryPrompt = sforce.connection.query("SELECT Prompt__c FROM Meta_ONR__c WHERE Type__c = 'YesOrNo' AND ONR_Type__c =  'General' AND geID__c = '/personal/need/openToOtherProduct'",{
+                    
+                onSuccess: function(result){
+                    callCount++;
+                    
+                    if(result.size > 0){
+                        
+                        var onrResult = result.getArray('records');
+                        
+                        var onr = new sforce.SObject('ONR__c');
+                        
+                        //Map ONR__c
+                        onr.RecordTypeId = RECORDTYPES['ONR__c.General'];
+                        onr.Prompt__c = onrResult[0].Prompt__c;
+                        onr.Type__c = 'YesOrNo';
+                        onr.Value__c = 'No';
+                        onr.geID__c = '/personal/need/openToOtherProduct';
+                        onr.Application__c = app.Id;
+                        onrs.push(onr);
+                        
+                        var onrTable = new sforce.SObject('ONR__c');
+                            
+                        //Map ONR__c
+                        onrTable.RecordTypeId = RECORDTYPES['ONR__c.General'];
+                        onrTable.Type__c = 'Table';
+                        onrTable.geID__c = '/personal/need/purposeTable';
+                        onrTable.Application__c = app.Id;
+                        onrs.push(onrTable);
+                        
+                        console.log('onrs: '+onrs);
+                        
+                        debugLog('ONRs Data:',onrs);
+                        
+                        //Create ONR
+                        createRecord(onrs);
+                    }
+                },
+                    
+                onFailure: function(error){
+                    console.log('ONR__c query error: '+error);
+                    debugLog('ONR Query Error',error);
+                }
+            });
+            
+            if({!$ObjectType.Application__c.Createable} && 
+               undefinedChecker('searchFromSalesAndLeads') != false){
+
+                var opp = new sforce.SObject('Opportunity');
+                
+                opp.Id = undefinedChecker('oppId');
+                opp.Application__c = app.Id;
+                
+                updateRecord(opp);
+            }
+        }
+        
+        /*  User Story: [PL - AU] PTDI Insurance Email & YES/ NO Buttons 
+         *  Description: Highlight selected option
+         *  Author: Marvin David
+         *  Date Created: JUNE-01-2016
+         *  Input Parameters: Button Id
+         *  Input Parameters: Applicant Number
+         *  Input Parameters: Option Selected  
+         */
+        function toggleYesNoOption(id, appNum, value){
+            var yesOption = document.getElementById('app'+appNum+id+'_Yes');
+            var noOption = document.getElementById('app'+appNum+id+'_No');
+    
+            if(value.text == 'Yes'){
+                yesOption.className='slds-button slds-button--brand';
+                noOption.className='slds-button slds-button--neutral';
+            }else{
+                noOption.className='slds-button slds-button--brand';
+                yesOption.className='slds-button slds-button--neutral';
+            }
+            
+            assignCheckboxValue(id, appNum, value);
+        }
+        
+        /*  User Story: [PL - AU] PTDI Insurance Email & YES/ NO Buttons 
+         *  Description: Convert yes/no option to checkbox value
+         *  Author: Marvin David
+         *  Date Created: JUNE-01-2016
+         *  Input Parameters: Button Id
+         *  Input Parameters: Option Selected
+         */
+        function assignCheckboxValue(id, appNum, value){
+            
+            if (id == 'Higher_Approval_Consent__c') {
+                if (value.text =='Yes') {
+                    document.getElementById('app_Higher_Approval_Consent__c').checked = true;
+                } else {
+                    document.getElementById('app_Higher_Approval_Consent__c').checked = false;
+                }
+            }
+            if (id == 'Agrees_to_Fees__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Fees__c').checked = true;
+                    } else {
+                        document.getElementById('app2_Agrees_to_Fees__c').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Privacy_Policy__c').checked = false;
+                    } else {
+                        document.getElementById('app2_Agrees_to_Privacy_Policy__c').checked = false;
+                    }
+                }
+            }
+            /*if (id == 'Loan_Insurance_Consent__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Loan_Insurance_Consent__c').checked = true;
+                    } else {
+                        document.getElementById('app2_Loan_Insurance_Consent__c').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Loan_Insurance_Consent__c').checked = false;
+                    } else {
+                        document.getElementById('app2_Loan_Insurance_Consent__c').checked = false;
+                    }
+                }
+            }*/
+            if (id == 'Meets_Eligibility_Criteria__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Meets_Eligibility_Criteria__c').checked = true;
+                    } else {
+                        document.getElementById('app2_Meets_Eligibility_Criteria__c').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Meets_Eligibility_Criteria__c').checked = false;
+                    } else {
+                        document.getElementById('app2_Meets_Eligibility_Criteria__c').checked = false;
+                    }
+                }
+            }
+            if (id == 'EIDV__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_EIDV__c').checked = true;
+                    } else {
+                        document.getElementById('app2_EIDV__c').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_EIDV__c').checked = false;
+                    } else {
+                        document.getElementById('app2_EIDV__c').checked = false;
+                    }
+                }
+            }
+            if (id == 'Agrees_to_Privacy_Policy__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Privacy_Policy__c').checked = true;
+                    } else {
+                        document.getElementById('app2_Agrees_to_Privacy_Policy__c').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Privacy_Policy__c').checked = false;
+                    } else {
+                        document.getElementById('app2_Agrees_to_Privacy_Policy__c').checked = false;
+                    }
+                }
+            }
+            
+            <!-- Added for POI Automation by Arshad: 9-06-2020 -->
+            if (id == 'Agrees_to_Income_Verification__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Income_Verification__c').checked = true;
+                        Selected1 = true;
+                        $('#app1_poiconsent_error').hide();
+                        $('#app1_poiconsent_error_yes').hide();
+                    } else {
+                        document.getElementById('app2_Agrees_to_Income_Verification__c').checked = true;
+                        Selected2 = true;
+                        $('#app2_poiconsent_error').hide();
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Agrees_to_Income_Verification__c').checked = false;
+                        Selected1 = true;
+                        if(Selected1 == true && csConsent == 'true'){
+                            $('#app1_poiconsent_error_yes').show();
+                            $('#app1_poiconsent_error').hide();
+                            Selected1 = false;
+                        }
+                        else if(Selected1 == true && csConsent == 'false'){
+                            $('#app1_poiconsent_error').hide();
+                            $('#app1_poiconsent_error_yes').hide();
+                        }
+                    } else {
+                        document.getElementById('app2_Agrees_to_Income_Verification__c').checked = false;
+                        Selected2 = true;
+                        $('#app2_poiconsent_error').hide();
+                    }
+                }
+            }
+             <!-- END -->            
+             <!-- BEGIN ARSHAD: 25/05/2018 -  BDR-105 -->            
+             if (id == 'Consent_to_Lpi__c') {
+                if (value.text =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Consent_to_Lpi__c').checked = true;
+                        Selected1 = true;
+                        $('#app1_consent_error').hide();
+                    } else {
+                        document.getElementById('app2_Consent_to_Lpi__c').checked = true;
+                        Selected2 = true;
+                        $('#app2_consent_error').hide();
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('app1_Consent_to_Lpi__c').checked = false;
+                        Selected1 = true;
+                        $('#app1_consent_error').hide();
+                    } else {
+                        document.getElementById('app2_Consent_to_Lpi__c').checked = false;
+                        Selected2 = true;
+                        $('#app2_consent_error').hide();
+                    }
+                }
+            }             
+           <!-- END   ARSHAD: 25/05/2018 -  BDR-105 -->            
+        }
+
+    </script>
+    
+</apex:component>

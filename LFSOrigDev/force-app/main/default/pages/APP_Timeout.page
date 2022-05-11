@@ -1,0 +1,46 @@
+<!--
+/**
+ * @Description: Timeout page for session expired
+ * @Author: Mike Lasala
+ * @Date Created: 10.OCT.2013
+ * @History:
+   =====================================================================
+       10-01-13: Created - Mike
+   =====================================================================
+ */ 
+-->
+<apex:page sidebar="false" showHeader="false" cache="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0">
+    
+    <style>
+        .headertitle, .fuihelp {display:none !important;}
+    </style>
+
+    <apex:composition template="{!$Site.Template}">
+
+        <apex:define name="GEDDBody">
+
+            <section>
+
+                <div class="maincontent">
+
+                    <div class="row-fluid">
+                    
+                        <div class="alert alert-info">
+                            <apex:pageMessage summary="For security reasons your session has timed out." severity="warning" strength="3" />
+                        </div>
+
+                        <div class="divider10"></div>
+                        
+                    </div>
+
+                </div>
+
+            </section>
+
+        </apex:define>
+
+    </apex:composition>
+
+<apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1" width="1" />
+
+</apex:page>

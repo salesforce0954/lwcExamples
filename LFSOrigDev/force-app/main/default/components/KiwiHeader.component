@@ -1,0 +1,37 @@
+<apex:component >
+<style>
+input:focus, select:focus, textarea:focus {
+          outline-color: #6AB421  !important;
+        }
+        </style>
+    <!-- start of header -->
+    <header>
+        <div id="topheader" class="topheader">
+            <div class="row-fluid topheader-inner">
+                <div class="span8 topheader-left">
+                    <ul>
+                        <li><span><a href="http://www.kiwibank.co.nz/about-us/contact-us/#personal-loans" target="_blank">Contact Us</a></span></li>
+                    </ul>
+                </div> 
+            </div><!-- topheader-inner -->
+        </div><!-- topheader -->
+        
+        <div id="header" class="header headbborder">
+            <div class="row-fluid header-inner">
+                <div id="header-logo" class="span3">
+                    <apex:outputLink target="_blank" value="https://www.kiwibank.co.nz/personal-banking/personal-loans/" styleClass="logodsk"><span class="themelogo"></span></apex:outputLink>
+                    <apex:outputLink id="backLink" styleClass="falmob" value="{!URLFOR($Page.APP_Main)}?id={!$CurrentPage.parameters.id}">
+                    <span class="fui-arrow-left" rerender="false"></span>
+                    </apex:outputLink>
+                </div><!-- span3 -->
+                
+                <div id="headerText" class="span5 headertitle">
+                    <h3 class="droid-normal center dark">Kiwibank <span class="clearright"></span>Personal Loan <span class="clearright"></span>Application</h3>
+                </div>
+
+            </div><!-- header-inner -->
+        </div><!-- row-fluid -->
+        <div class="divider10 mv_hidetotally"></div>
+    </header>
+    <!-- end of header -->
+</apex:component>

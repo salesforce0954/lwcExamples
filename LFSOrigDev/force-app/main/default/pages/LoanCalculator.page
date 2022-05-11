@@ -1,0 +1,22 @@
+<apex:page showHeader="False" Sidebar="False">
+<p></p>
+<p></p>
+<apex:pageBlock >
+<p style="font-size:25px;font-weight:bold">Australia</p>
+
+<p></p>     <!-- BEGIN MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+<apex:form ><apex:commandButton value="Click to go to Australia Loan Calculator" onClick="window.open('https://www.latitudefinancial.com.au/loans/loan-repayment-calculator.html', '_blank')"></apex:commandButton></apex:form>
+<br/>
+</apex:pageBlock>
+<br/>
+<br/>
+<br/>
+<apex:pageBlock >
+<p style="font-size:25px;font-weight:bold">New Zealand</p>
+<p></p>
+<apex:form ><apex:commandButton value="Click to go to New Zealand Personal Loan Calculator" onClick="window.open('https://www.gemfinance.co.nz/loans/loan-repayment-calculator.html', '_blank')"></apex:commandButton></apex:form>
+<p><br/><br/></p>
+<apex:form ><apex:commandButton value="Click to go to New Zealand Car Loan Calculator" onClick="window.open('https://www.gemfinance.co.nz/loans/car-loan-repayment-calculator.html', '_blank')"></apex:commandButton></apex:form>
+            <!-- END MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+</apex:pageBlock>
+</apex:page>

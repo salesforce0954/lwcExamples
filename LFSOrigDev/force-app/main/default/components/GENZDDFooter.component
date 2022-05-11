@@ -1,0 +1,52 @@
+<!--04-20-15: Updated Defect 977 - Remove @GE Money in the footer - DY-->
+<apex:component >
+    <style>
+        .footer-bottom, .footer-bottom-inner {
+            background-color: #ffffff !important;
+            color: #4b4b4b !important;
+            font-size: 16px !important;
+            text-align: center !important;
+        }
+        .footer-bottom a {
+            text-decoration: underline !important;
+        }
+        
+        .footer-bottom p, .footer-bottom a {
+            font-size: 14px !important;
+            color: #4b4b4b !important;
+        }
+        
+        .flseparator{
+            background: url(../images/flseparator.gif) center center no-repeat;
+            padding: 0 10px;
+            width: 1px;
+        }
+    </style>
+    <footer style="position:relative !important;">
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <div>
+                    <!-- Matthew Gould (4/10/2016): Start of redesign -->
+                    Contact us &nbsp;<apex:outputLink value="tel:0800422898">0800 422 898</apex:outputLink>
+                    <br />
+                    Gem Personal Loans are provided by Latitude Financial Services Limited<br />
+                     <a href="https://www.gemfinance.co.nz/privacy/" target="_blank">Privacy Policy</a> <span class="flseparator">|</span><a href="https://www.gemfinance.co.nz/security/" target="_blank">Security</a> <span class="flseparator">|</span><a href="https://www.gemfinance.co.nz/terms-and-conditions/" target="_blank">Terms and Conditions</a><br />
+                    <br />
+                    <!-- Matthew Gould (4/10/2016): End of redesign -->
+                    <!--Updated by mmand on 07-28-15 NZ Rebranding -  updated footer -->
+                    <!-- Commented out by MDAVID - 03/01/2016 TQLQW - 104 Rebranding
+                    <p>GE Money Personal Loans are provided by Latitude Financial Services Limited.</p>-->
+                    <!--<p>Gem Personal Loans are provided by Latitude Financial Services Limited.</p>-->
+                    <!--Updated by Dyu 04-22-15 Defect 977 - Remove @GE Money in the footer -->
+                    <!--<p>&copy; GE Money</p>-->
+                    <!--Added by FSaliba Defect ID 133 fix -->
+                    <!-- BEGIN MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                    <!--<a href="https://www.gemfinance.co.nz/privacy/" target="_blank">Privacy &amp; Credit Reporting policy</a> &nbsp; &nbsp;
+                    <a href="https://www.gemfinance.co.nz/security/" target="_blank">Security</a> &nbsp; &nbsp;
+                    <a href="https://www.gemfinance.co.nz/terms-and-conditions/" target="_blank">Terms and Conditions</a>-->
+                    <!-- END MLASALA: 24-MAR-16 TQLQW-127 Re-brand -->
+                </div>
+            </div><!-- footer-bottom-inner -->
+        </div><!-- footer-bottom -->
+    </footer>
+</apex:component>

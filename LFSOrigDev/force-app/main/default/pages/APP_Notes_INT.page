@@ -1,0 +1,69 @@
+<apex:page id="notesPage" standardController="Application__c" extensions="APP_Notes_EXT_INT" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+    
+    <style>
+        .midbutton {padding-top:3px; padding-bottom:3px; color: #333;  margin: 1px; border: 1px solid #b5b5b5; border-bottom-color: 
+         #7f7f7f; background: #e8e8e9 url('/img/alohaSkin/btn_sprite.png') repeat-x right top;font-weight: bold; font-size: 11px; 
+         -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px;}
+    </style> 
+     
+    <apex:form id="notesForm">
+
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!refreshNotesTabTable}" reRender="notesForm" status="status" onclick="document.getElementById('appPageId:notesInclude:notesPage:notesForm:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="notesPageBlock" title="Notes">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Assigned To</th>
+                    <th class="headerRow">Type</th>
+                    <th class="headerRow">Subject</th>
+                    <th class="headerRow">Comments</th>
+                    <th class="headerRow">Status</th>
+                    <th class="headerRow">Due Date</th>
+                    <th class="headerRow">Created By</th>
+                    <th class="headerRow">Created Date</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!taskList}" var="t" id="notesPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">
+                            <apex:outputField value="{!t.OwnerId}"/>
+                        </td>
+                        <td class="dataCell">{!t.RecordType.Name}</td>
+                        <td class="dataCell">{!t.Subject}</td>
+                        <td class="dataCell">{!t.Description}</td>
+                        <td class="dataCell">{!t.Status}</td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                <apex:param value="{!t.ActivityDate}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!t.CreatedById}"/>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!t.CreatedDate}"/>
+                        </td>
+                        <td class="dataCell">
+                            <a onclick="openSubtab1('/{!URLENCODE(t.Id)}','{!URLENCODE(t.Subject)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>   
+    </apex:form>
+</apex:page>

@@ -1,0 +1,172 @@
+<apex:component >
+    
+    <style type="text/css">
+        #Navigationontainer{
+            width: 150px;
+            border-style: solid;
+            border-width: 1px;
+            position: absolute;
+            text-align: center;
+        }
+        
+        .NavigationWrapper{
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+            cursor: hand;
+        }    
+            
+        .NavigationWrapper1{
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        #NavigationNumberText{
+            position:absolute;
+            z-index:100;   
+            color:white;
+            font-size:16px;
+            text-align:center;
+            width: 61px;
+            line-height: 53px;
+        }
+        
+        #NavigationImageWrapper{
+            width: 63px;
+            height:61px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        #NavigationImageDiv{
+            position:absolute;
+            height:63px;
+        }
+        
+        #NavigationTextWrapper{
+            margin-top:3px;
+        }
+        
+        #NavigationText{
+            margin-top:3px;
+            font-family: 'Arial Regular', 'Arial';
+            font-weight: 400;
+            font-style: normal;
+            font-size: 13px;
+            color: #333333;
+            text-align: center;
+            line-height: normal;
+        }
+            
+        #NavigationButton{
+            margin-top: 10px;
+        }
+    </style>
+    
+    <div id='NavigationContainer'>
+    
+        <div id="NavigateToLoanDetails" class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>1</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Loan Details</p>
+            </div>
+        </div>
+        
+        <div id="NavigateToPersonalDetails"  class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>2</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Personal Details</p>
+            </div>
+        </div>
+        
+        <div id="NavigateToIncome"  class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>3</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Employment&amp;Income</p>
+            </div>
+        </div>
+        
+        <div id="NavigateToExpenses"  class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>4</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Expenses</p>
+            </div>
+        </div>
+        
+        <div id="NavigateToAssets"  class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>5</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Assets</p>
+            </div>
+        </div>
+        
+        <div id="NavigateToDebts"  class="NavigationWrapper">
+            <div id='NavigationImageWrapper'>
+                <div id='NavigationImageDiv'>
+                <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                    <p>6</p>
+                </div>
+            </div>
+            <div id='NavigationTextWrapper'>
+                <p id='NavigationText'>Debts</p>
+            </div>
+        </div>
+        <!--Added as part of Soft quote Changes-->
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.qid == '',true,false)}">
+            <div class="NavigationWrapper">
+            <button type="button" id="saveApplication" class="slds-button slds-button--brand" style="width:60%" onclick="saveApp();return false;">SAVE</button>
+        </div>
+        </apex:outputPanel>        
+        
+        
+        <!-- NZ CR Code Changes
+            Changing Submit button to Get Quote Button -->
+        <!--Added the Softquote check to display the Submit button as part of Soft quote Changes-->
+        <div class="NavigationWrapper">
+            <button type="button" id="submitApplication" class="slds-button slds-button--brand" 
+                    style="width:60%" onclick="submitApp(); return false;" 
+                    > {!IF(AND($CurrentPage.parameters.country == 'NZ', $CurrentPage.parameters.qid == ''),  'GET QUOTE', 'SUBMIT')}
+               </button>
+        </div>
+        
+    </div>
+    
+        
+</apex:component>

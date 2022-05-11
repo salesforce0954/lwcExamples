@@ -1,0 +1,65 @@
+<!--
+/*
+ * @Description: Conditionally approved post submit page (Customer UI)
+ * @Author: Mike Lasala
+ * @Date Created: 20.MAR.2014
+ * @History:
+  =====================================================================
+      03-20-14: Created - Mike
+  =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_Main_PostSubmitExt" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+<style>
+	.table td, .table th {
+	    border: none;
+	}
+	
+	table{
+	    border: 2px solid #a1a1a1;
+	}
+	.textBlue{
+	 	color:#00ADEF;
+	}
+	.textGreen{
+	 	color:#2AA948;
+	}
+	.textAlmostBlue{
+		 color:#007EB3 !important;
+		 font-family: Arial, Verdana, sans-serif;
+		 font-weight: bolder;
+	}
+	.textNavyBlue{
+	 color:#6D5BCD;
+	}
+	.textOrange{
+	 	color:#FF875E;
+	}
+	
+	.pPadding{
+	 	padding:3px;
+	}
+	.btnText{
+		white-space: normal;
+		color:#000;
+	}
+	
+	
+</style>
+	<apex:outputpanel >
+	    <section>
+	        <div class="divider10"></div>
+	        <div class="txtalignc">
+	
+	        <h2>Finalise your loan</h2>
+	        
+	        <div class="divider30 clearfix"></div>
+	        
+	        <p>To finalise your Application, we may need you to provide some documents before you can accept your contact. These options will become available on this page once you have discussed these with your sales representative</p>
+	        
+	        <div class="divider20 clearfix"></div>
+	        
+	        </div>
+	    </section>
+    </apex:outputpanel>
+</apex:page>

@@ -1,0 +1,1873 @@
+<!--
+    * @Description: Contains debt/liability details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+    ===================================================================== 
+-->
+<apex:component >
+    
+    <style>
+        .debtHeader{
+            border-style: solid;
+            border-width: 1px; 
+            width: 90%;
+        }
+        #debtWrapper{
+            padding-right: 40%;
+            padding-top: 2.5%;
+        }
+        .debtHeaderColor{
+            background-color: #17242f;
+        }
+    </style>
+    <script>
+      function enableOtherFinancierName(elementId){
+      var counter = getCounter(elementId);
+      for(var debtItem = counter; debtItem <11 ;debtItem++){
+                var debtTypeCategory = document.getElementById('app1_Debt_Category__c'+debtItem);
+               if(debtTypeCategory.value == 'Personal loan' || debtTypeCategory.value =='Hire purchase') {
+                       if(document.getElementById('app1_Financier_List_PerHir__c'+debtItem).value == 'Other'){
+                          document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'block';
+                        }else{
+                          document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'none';
+                        }               
+                }
+              if(debtTypeCategory.value == 'Car loan'){
+                if(document.getElementById('app1_Financier_List_Car__c'+debtItem).value == 'Other'){
+                  document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'block';
+                }else{
+                  document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'none';
+                }
+               }
+               
+               if(debtTypeCategory.value == 'Credit card' || debtTypeCategory.value == 'Store card' || debtTypeCategory.value == 'Charge card'){
+                    if(document.getElementById('app1_Financier_List_CreditChargeStore__c'+debtItem).value == 'Other'){
+                      document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'block';
+                    }else{
+                      document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'none';
+                    }
+                }
+               if(debtTypeCategory.value == 'Overdraft'){ 
+                if(document.getElementById('app1_Financier_List_Overdraft__c'+debtItem).value == 'Other'){
+                  document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'block';
+                }else{
+                  document.getElementById('app1_Financier_Name__c'+debtItem).style.display = 'none';
+                }
+              }  
+            }
+        }
+
+    
+    function populateFinacierList(elementId){
+    
+    var counter = getCounter(elementId);
+    
+    
+    for(var debtItem = counter; debtItem <11 ;debtItem++){
+          var debtTypeCategory = document.getElementById('app1_Debt_Category__c'+debtItem);
+        if(debtTypeCategory.value == 'Personal loan' || debtTypeCategory.value =='Hire purchase') {
+                   document.getElementById('app1_Financier_List_PerHir__c'+debtItem).style.display = 'block'; 
+                   document.getElementById('app1_Financier_List_Car__c'+debtItem).style.display = 'none';
+                    document.getElementById('app1_Financier_List_CreditChargeStore__c'+debtItem).style.display = 'none'; 
+                    document.getElementById('app1_Financier_List_Overdraft__c'+debtItem).style.display = 'none';
+       
+        }     
+        if(debtTypeCategory.value == 'Car loan'){      
+                   document.getElementById('app1_Financier_List_Car__c'+debtItem).style.display = 'block';
+                   document.getElementById('app1_Financier_List_PerHir__c'+debtItem).style.display = 'none'; 
+                    document.getElementById('app1_Financier_List_CreditChargeStore__c'+debtItem).style.display = 'none'; 
+                    document.getElementById('app1_Financier_List_Overdraft__c'+debtItem).style.display = 'none';
+         }
+         if(debtTypeCategory.value == 'Credit card' || debtTypeCategory.value == 'Store card' || debtTypeCategory.value == 'Charge card'){
+                  document.getElementById('app1_Financier_List_CreditChargeStore__c'+debtItem).style.display = 'block'; 
+                   document.getElementById('app1_Financier_List_Car__c'+debtItem).style.display = 'none';
+                   document.getElementById('app1_Financier_List_PerHir__c'+debtItem).style.display = 'none'; 
+                   document.getElementById('app1_Financier_List_Overdraft__c'+debtItem).style.display = 'none';
+         }
+         if(debtTypeCategory.value == 'Overdraft'){
+                   document.getElementById('app1_Financier_List_CreditChargeStore__c'+debtItem).style.display = 'none'; 
+                   document.getElementById('app1_Financier_List_Car__c'+debtItem).style.display = 'none';
+                   document.getElementById('app1_Financier_List_PerHir__c'+debtItem).style.display = 'none';
+                   document.getElementById('app1_Financier_List_Overdraft__c'+debtItem).style.display = 'block';
+         }
+    
+    }
+       
+}  
+
+    </script>
+
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <section class='slds-col slds-size--2-of-2 debtHeader sectionBorder'>
+        <!-- DEBTS HEADER -->
+            <div class="slds-m-bottom--medium slds-box slds-text-align--center debtHeaderColor">
+                <div id='NavigationImageDiv'>
+                    <img src="{!$Resource.navCircle}"/>
+                </div>
+                <div id='NavigationNumberText'>
+                6
+                </div>
+                <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Debts</div>
+            </div>
+    
+        <!-- START OF DEBT CLV -->
+        <div id="app_debt_results_clv" class="slds-grid--align-center"></div>
+        <!-- END OF DEBT CLV -->
+    </section>
+    
+    <section class='slds-col slds-size--2-of-2 slds-m-vertical--x-large debtHeader sectionBorder'>
+    <!-- OTHER DEBTS HEADER -->
+        <div class="slds-m-bottom--medium slds-box slds-text-align--center debtHeaderColor">
+            <div class="slds-text-heading slds-m-vertical--small sectionHeadingJoint">Other Debts</div>
+        </div>
+        
+    <div id='debtWrapper'>
+    
+        <!-- DEBT CONSOLIDATION ACKNOWLEDGEMENT SECTION -->
+        <div class="slds-grid slds-wrap slds-m-bottom--x-large">
+            
+            <!-- DEBT CONSOLIDATION ACKNOWLEDGEMENT LABEL -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <div class="slds-form-element">
+                            <div class="slds-form-element__label slds-m-bottom--x-small">
+                                <label class="slds-align-middle" for="form-help">Debt Consolidation Acknowledgement?</label>
+            
+                            </div>
+                        </div>
+                    </section>
+    
+            <!-- DEBT CONSOLIDATION ACKNOWLEDGEMENT CHECKBOX -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                <div class="slds-form-element__control slds-m-right--small">
+                            <button class="slds-button slds-button--icon-bare">
+                                <svg aria-hidden="true" class="slds-button__icon" data-toggle="tooltip" title="{!$ObjectType.Applicant__c.fields.Debt_Consolidation_Acknowledgement__c.InlineHelpText}" onclick="return false">
+                                    <use xlink:href="{!URLFOR($Resource.SLDS090,'assets/icons/utility-sprite/svg/symbols.svg#info')}" id="a" class="a"/>
+                                </svg>
+                                <span class="slds-assistive-text">Help</span>
+                            </button>
+                    <label class="slds-checkbox" for="app1_Debt_Consolidation_Acknowledgement__c">
+                        <input name="checkbox" type="checkbox" id="app1_Debt_Consolidation_Acknowledgement__c"/>
+                        <span class="slds-checkbox--faux"></span>
+                    </label>
+                </div>
+            </section>
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+            
+        </div>
+        
+        <!-- DEBT SECTION -->
+        <div id="debtDiv1" class="debtSection">
+        
+            <!-- DEBT TYPE/CATEGORY SECTION -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <!--REMOVE BUTTON-->
+                    <button type="button" id="app1_removeButton1" class="slds-button slds-button--brand slds-button--small slds-hidden slds-m-right--large" onclick="removeRecord(this.id, 'debtSection', 'debtDiv', 'addDebt', 1);calculateTotalDebt();">-</button>
+                    
+                    <!-- DEBT TYPE/CATEGORY LABEL -->
+                    <label class="slds-form-element__label" for="app1_Debt_Category__c1">I have</label>
+                </section>
+                
+                <!-- DEBT TYPE/CATEGORY PICKLIST -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select category" id="app1_Debt_Category__c1" name="app1_Debt_Category__c1" onchange="showHideDebts(this.id, this.value);hideFinancialInstitution(this.id);clearValidationMessagesBySection('#debtDiv1');enableLumpsum();populateFinacierList(this.id);return false;"/>
+                    </div>
+                </section>
+                
+            </div>
+            
+            <!-- FINANCIAL INSTITUTION SECTION -->
+            <div id="financialInstitutionSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label" for="app1_Financier_Name__c1" id="app1_Financier_Name__c1_Label">Financial institution</label>
+                </section>
+                 
+                 <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control" style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                            <select class="slds-select category" id="app1_Financier_List_PerHir__c1" name="app1_Financier_List_PerHir__c1" onchange="enableOtherFinancierName(this.id);" style="display:none;"/>
+                        </div>
+                    </section>
+             
+                  <section  class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control" style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')};width:389px;margin-left: 257px;">
+                        <select class="slds-select category" id="app1_Financier_List_Car__c1" name="app1_Financier_List_Car__c1" onchange="enableOtherFinancierName(this.id);" style="display:none;"/>
+                    </div>
+                </section>
+                <section  class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control" style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')};width:389px;margin-left: 257px;">
+                        <select class="slds-select category" id="app1_Financier_List_CreditChargeStore__c1" name="app1_Financier_List_CreditChargeStore__c1" onchange="calculateTotalDebt();enableOtherFinancierName(this.id);" style="display:none;"/>
+                    </div>
+                </section>
+                <section  class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control" style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')};width:389px;margin-left: 257px;">
+                        <select class="slds-select category" id="app1_Financier_List_Overdraft__c1" name="app1_Financier_List_Overdraft__c1" onchange="enableOtherFinancierName(this.id);" style="display:none;"/>
+                    </div>
+                </section>
+                
+                                                
+                <!-- FINANCIAL INSTITUTION FIELD -->
+                <section class="slds-col slds-size--3-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control slds-grid slds-wrap slds-m-vertical--xx-small" style="width:389px;margin-left: 257px;">
+                        <input id="app1_Financier_Name__c1" name="app1_Financier_Name__c1" class="slds-input isName"  type="text" maxlength="20" style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'none', 'block')};text-transform: capitalize;"/>
+                    </div>
+                </section>
+                
+            </div>
+            
+            <!-- DEBT OWNER SECTION -->
+            <div id="debtOwnerSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- DEBT OWNER LABEL -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="app1_debt_Applicable_Party__c1">Debt owner</label>
+                </section>
+                
+                <!-- DEBT OWNER FIELD -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select" id="app1_debt_Applicable_Party__c1" name="app1_debt_Applicable_Party__c1"/>
+                    </div>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                
+            </div>
+            
+            <!-- MORTGAGE SECTION -->
+            <div id="mortgageSection">
+            
+                <!-- AMOUNTS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- MORTGAGE BALANCE AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Mortgage_Bal_Amt__c1">with an outstanding balance of $</label>
+                    </section>
+                    
+                    <!--  MORTGAGE BALANCE AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Mortgage_Bal_Amt__c1" name="app1_Mortgage_Bal_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" ontype="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                     <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!--  MORTGAGE BORROWED AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Mortgage_Borrowed_Amt__c1">and the amount borrowed was $</label>
+                    </section>
+                    
+                    <!-- MORTGAGE BORROWED AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" id="app1_Mortgage_Borrowed_Amt__c1" name="app1_Mortgage_Borrowed_Amt__c1" onchange="calculateTotalDebt();"/>
+                        </div>                                                     <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                </div>
+                
+                <!-- REPAYMENT & INTERVAL SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- MORTGAGE REPAYMENT AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Mortgage_Repayment_Amt__c1">and repayments of $</label>
+                    </section>
+                    
+                    <!-- MORTGAGE REPAYMENT AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Mortgage_Repayment_Amt__c1" name="app1_Mortgage_Repayment_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                                 <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!-- MORTGAGE REPAYMENT INTERVAL LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Mortgage_Repayment_Interval__c1">each</label>
+                    </section>
+                    
+                    <!-- MORTGAGE REPAYMENT INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklistSpace" id="app1_Mortgage_Repayment_Interval__c1" name="app1_Mortgage_Repayment_Interval__c1" onchange="calculateTotalDebt();"/>
+                        </div>
+                    </section>
+                    
+                </div>
+            </div>
+            <!-- END MORTGAGE SECTION -->
+            
+            <!-- CAR/PERSONAL/HIRE PURCHASE LOAN SECTION -->
+            <div id="loanSection">
+            
+                <!-- AMOUNTS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- CAR/PERSONAL LOAN BALANCE AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Car_Personal_Bal_Amt__c1">with an outstanding balance of $</label>
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN BALANCE AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Car_Personal_Bal_Amt__c1" name="app1_Car_Personal_Bal_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                             <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN REPAYMENT AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Car_Personal_Repay_Amt__c1">and repayments of $</label>
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN REPAYMENT AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Car_Personal_Repay_Amt__c1" name="app1_Car_Personal_Repay_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                                 <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                </div>
+                
+                <!-- REPAYMENT & INTERVAL SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- CAR/PERSONAL LOAN REPAYMENT INTERVAL LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Car_Personal_Repay_Int__c1">each</label>
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN REPAYMENT INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklistSpace" id="app1_Car_Personal_Repay_Int__c1" name="app1_Car_Personal_Repay_Int__c1" onchange="calculateTotalDebt();"/>
+                        </div>
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN BORROWED AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Car_Personal_Borrowed_Amt__c1">and the amount borrowed was $</label>
+                    </section>
+                    
+                    <!-- CAR/PERSONAL LOAN BORROWED AMOUNT PICKLIST -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" id="app1_Car_Personal_Borrowed_Amt__c1" name="app1_Car_Personal_Borrowed_Amt__c1" onchange="calculateTotalDebt();"/>
+                        </div>                                                     <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                </div>
+            </div>
+            <!-- END CAR/PERSONAL/HIRE PURCHASE LOAN SECTION -->
+            
+            <!-- CREDIT/STORE/CHARGE CARD & OVERDRAFT SECTION SECTION -->
+            <div id="cardSection">
+            
+                <!-- CREDIT CARD TYPE SECTION -->
+                <div id="creditCardTypeSection" class="{!IF($ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable, 'slds-show' , 'slds-hide')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- CREDIT CARD TYPE LABEL -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Type_of_Credit_Card__c1">Type</label>
+                        </section>
+                        
+                        <!-- CREDIT CARD TYPE PICKLIST -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                        <select class="slds-select isPicklistSpace" id="app1_Type_of_Credit_Card__c1" name="app1_Type_of_Credit_Card__c1" onchange="calculateTotalDebt();hideFinancialInstitution(this.id);"/>
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                        
+                    </div>
+                
+                </div>
+                
+                <!-- AMOUNTS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- CREDIT LIMIT AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Credit_Limit_Amt__c1">with a limit of</label>
+                    </section>
+                    
+                    <!-- CREDIT LIMIT AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Credit_Limit_Amt__c1" name="app1_Credit_Limit_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                     <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!-- CREDIT BALANCE AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Card_Personal_Bal_Amt__c1">and an outstanding balance of $</label>
+                    </section>
+                    
+                    <!-- CREDIT BALANCE AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Card_Personal_Bal_Amt__c1" name="app1_Card_Personal_Bal_Amt__c1" class="slds-input isRequired isNumberAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                      <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                </div>
+                
+                <!-- CONSOLIDATE DEBT/REDUCE LIMIT SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- CONSOLIDATE DEBT/REDUCE LIMIT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label" for="app1_Consolidate_Debt_Reduce_Limit__c1">Consolidate debt / reduce limit</label>
+                    </section>
+                    
+                    <!-- CONSOLIDATE DEBT/REDUCE LIMIT PICKLIST -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select" id="app1_Consolidate_Debt_Reduce_Limit__c1" name="app1_Consolidate_Debt_Reduce_Limit__c1" onchange="calculateTotalDebt();showCreditLimit(this.id, this.value);clearValidationMessagesByElem('#app1_Reduced_Credit_Limit__c1');return false;"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                    
+                </div>
+                
+                <!-- OVERDRAFT APR SECTION -->
+                <div class="{!IF($CurrentPage.parameters.country == 'AU', 'slds-show' , 'slds-hide')}">
+                        <div id="overdraftAPRSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                            
+                            <!-- OVERDRAFT APR LABEL -->
+                            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                                <label class="slds-form-element__label req" for="app1_Overdraft_APR__c1">Overdraft APR %</label>
+                            </section>
+                            
+                            <!-- OVERDRAFT APR FIELD -->
+                            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <input id="app1_Overdraft_APR__c1" name="app1_Overdraft_APR__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount {!IF($CurrentPage.parameters.country == 'NZ', 'isAPR', '')}" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                                </div>
+                            </section>
+                            
+                            <!-- EMPTY SECTION -->
+                            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                            
+                        </div>
+                </div>
+                
+                <!-- REDUCED CREDIT LIMIT SECTION -->
+                <div id="reducedCreditLimitSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- REDUCED CREDIT LIMIT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Reduced_Credit_Limit__c1">Reduced Credit Limit</label>
+                    </section>
+                    
+                    <!-- REDUCED CREDIT LIMIT FIELD -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Reduced_Credit_Limit__c1" name="app1_Reduced_Credit_Limit__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                    
+                </div>
+                
+            </div>
+            <!-- END CREDIT/STORE/CHARGE CARD & OVERDRAFT SECTION -->
+            
+            <!-- OTHER SECTION -->
+            <div id="otherDebtSection">
+            
+                <!-- TYPE OF DEBT SECTION -->
+                <div class="{!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+                    
+                    <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- TYPE OF DEBT LABEL -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                            <label class="slds-form-element__label req" for="app1_Type_of_Debt__c1">Type of debt</label>
+                        </section>
+                        
+                        <!-- TYPE OF DEBT FIELD -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <input id="app1_Type_of_Debt__c1" name="app1_Type_of_Debt__c1" class="slds-input isRequired isPersonalName" type="text" maxlength="20"/> <!-- isMaxLength20 -->
+                            </div>
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                        
+                    </div>
+                    
+                </div>
+                
+                <!-- AMOUNTS SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- OTHER BORROWED AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Other_Borrowed_Amt__c1">and amount borrowed was $</label>
+                    </section>
+                    
+                    <!--  OTHER BORROWED AMOUNT FIELD -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Other_Borrowed_Amt__c1" name="app1_Other_Borrowed_Amt__c1" class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="calculateTotalDebt();"/>
+                        </div>                                                                                                                         <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                    <!--  OTHER REPAYMENT AMOUNT LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Other_Repay_Amt__c1">and repayments of $</label>
+                    </section>
+                    
+                    <!-- OTHER REPAYMENT AMOUNT PICKLIST -->
+                    <section class="slds-col slds-size--1-of-6 slds-medium-size--1-of-2 slds-large-size--1-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input class="slds-input isRequired isNumberAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" id="app1_Other_Repay_Amt__c1" name="app1_Other_Repay_Amt__c1" onchange="calculateTotalDebt();"/>
+                        </div>                                                     <!-- {!IF($CurrentPage.parameters.country == 'NZ', 'isDecimalAmount', '')} -->
+                    </section>
+                    
+                </div>
+                
+                <!-- REPAYMENT & INTERVAL SECTION -->
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- OTHER REPAYMENT INTERVAL LABEL -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5 slds-text-align--right">
+                        <label class="slds-form-element__label req" for="app1_Other_Repay_Int__c1">each</label>
+                    </section>
+                    
+                    <!-- OTHER REPAYMENT INTERVAL PICKLIST -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isPicklistSpace" id="app1_Other_Repay_Int__c1" name="app1_Other_Repay_Int__c1" onchange="calculateTotalDebt();"/>
+                        </div>
+                    </section>
+                    
+                    <!-- EMPTY SECTION -->
+                    <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                    
+                </div>
+                
+            </div>
+            <!-- END OTHER SECTION -->
+            
+            <!-- PAY OUT OF THIS DEBT SECTION -->
+            <div id="payOutSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+            
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+                
+                <!-- PAY OUT OF THIS DEBT CHECKBOX -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <label class="slds-checkbox payout" for="app1_Acknowledge_Payout__c1">
+                        <input name="checkbox" type="checkbox" id="app1_Acknowledge_Payout__c1" onchange="calculateTotalDebt();"/>
+                        <span class="slds-checkbox--faux"></span>
+                        <span class="slds-form-element__label">I want to pay out this debt and consolidate</span>
+                    </label>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                
+            </div>
+            
+            <!-- TOTAL MONTHLY DEBT AMOUNT -->
+            <!--  Description: Total Amount section in Other debt section must be hidden for all debt types FRD-CCR02 PL&ML Credit Assessment
+                  Author: Suneel Desiraju
+                  Date Created: 01-04-2019                 
+             -->        
+            <div class="{!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+                
+                <!-- TOTAL MONTHLY DEBT AMOUNT OUTPUT -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                    <label class="slds-form-element__label slds-m-right--xx-small">Total Amount:</label>
+                    <span class="slds-form-element__static totalAmount" id="totalDebtAmount1" name="totalDebtAmount1"></span>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+                
+            </div>
+            </div>
+            
+        </div>
+        
+        <!-- OVERALL TOTAL DEBT AMOUNT SECTION -->
+          <!--    Description: MONTHLY REPAYMENT section in Other debt section must be hidden at the time of application  FRD-CCR02 PL&ML Credit Assessment
+                  Author: Suneel Desiraju
+                  Date Created: 01-04-2019                 
+             -->  
+        <div class="{!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+        <div class="slds-grid slds-wrap">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+
+            <!-- OVERALL TOTAL DEBT AMOUNT -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left">
+                <label class="slds-form-element__label slds-m-right--xx-small">Monthly Repayments:</label>
+                <span class="slds-form-element__static totalAmount" id="overalltotalDebtAmount" name="overalltotalDebtAmount"></span>
+            </section>
+
+        </div>
+        </div>
+
+        <!-- ADD BUTTON SECTION -->
+        <div class="slds-grid slds-wrap slds-m-vertical--large">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--2-of-5"/>
+            
+            <!--ADD BUTTON-->
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5">
+                <button type="button" id="addDebt" class="slds-button slds-button--brand" style="width:100%" onclick="addRecord('debtSection', 'debtDiv', hideSectionIdsDebt, this.id, 1);calculateTotalDebt();">ADD ANOTHER DEBT</button>
+                <label class="slds-hide" id="maxDebtValidationMessage" style="color:red;">
+                    Maximum number of debts per application is {!$Setup.Application_Wizard_Settings__c.Max_Records__c}.
+                    <!-- There is a max of {!$Setup.Application_Wizard_Settings__c.Max_Records__c} debts that can be entered per Application, please review these debts and combine where you can. -->
+                </label>
+            </section>
+            <section class="slds-col slds-size--2-of-6 slds-medium-size--1-of-2 slds-large-size--3-of-5 slds-text-align--left"/>
+            
+        </div>
+       
+       <!-- BalloonPayment Section -->
+       <div style="display:none;" id="lumpSumPay">
+        <div style="display:{!IF($CurrentPage.parameters.country == 'NZ', 'block', 'none')}">
+                     <input type="hidden" id="lumSumConfirm"/>
+                    <div id="balloonPayment" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                        
+                        <!-- AGENT / LANDLORD LABEL -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-6 slds-text-align--right">
+                         <label class="slds-form-element__label {!IF($CurrentPage.parameters.country == 'NZ', 'req', '')}">Do any of your loans require a lump sum payment either during or at the end of the loan?</label>                                        
+                        </section>
+                        
+                        <!-- AGENT / LANDLORD FIELD -->
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-6 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                    <label class="slds-button slds-button--neutral" value="YES" id="lumpSumYes1" onclick="applicantConfirmation(this);validateDebt();" style="font-weight:normal !important;background:#fff;padding:3px 55px;">Yes</label>
+                                    <label class="slds-button slds-button--neutral" value="NO" id="lumpSumNo1" onclick="applicantConfirmation(this);validateDebt();" style="font-weight:normal !important;background:#fff;padding:3px 55px;">No</label>
+                                                              
+                            </div>     
+                              <div id="lumpSumErr" style="display:none;color:red;float:right;text-align:center"/> 
+                                         
+                        </section>
+                        
+                        <!-- EMPTY SECTION -->
+                        <section class="slds-col slds-size--1-of-6 slds-text-align--left"/>
+                        
+                    </div>
+                </div>
+          </div>
+        
+    </div>
+    </section>
+    </html>
+    
+    <script>
+        var countryComp = '{!JSENCODE($CurrentPage.parameters.country)}';
+        
+         var debtLumpSumYes1 =  "lumpSumYes1";  
+         
+        var debtLumpSumNo1  =  "lumpSumNo1";
+       var lumSumConfirm;
+       
+      
+        <!-- Start -->
+                function applicantConfirmation(elem){
+                
+                lumSumConfirm = document.getElementById("lumSumConfirm");
+                
+                
+                  if(elem.id == debtLumpSumYes1){
+                        lumSumConfirm.value = 'true';
+                        
+                    }
+                if(elem.id == debtLumpSumNo1){
+                       lumSumConfirm.value = 'false'; 
+                   }
+                
+                   
+                 checkRequiredfields();
+                }
+                
+                var selectedStyle;
+                var unSelectedStyle;
+                
+                   selectedStyle = "color: #fff; background:#0070D2;font-weight:normal !important;padding:3px 55px;";
+                   unSelectedStyle = "color: #0070D2; background:#fff;font-weight:normal !important;padding:3px 55px;";
+                
+                 
+                
+                 
+                  function checkRequiredfields(){
+                  lumSumConfirm = document.getElementById("lumSumConfirm");
+                    if(lumSumConfirm.value == "true"){
+                        document.getElementById(debtLumpSumYes1).setAttribute("style",selectedStyle);
+                        document.getElementById(debtLumpSumNo1).setAttribute("style",unSelectedStyle);
+                    }else{
+                        document.getElementById(debtLumpSumNo1).setAttribute("style",selectedStyle);
+                        document.getElementById(debtLumpSumYes1).setAttribute("style",unSelectedStyle);
+                    }
+                    
+                   
+            }
+            <!-- End -->
+            
+        
+        
+        
+        //Used when adding records and hiding dynamic sections
+        var hideSectionIdsDebt = ['mortgageSection', 'loanSection', 'cardSection', 'creditCardTypeSection', 'reducedCreditLimitSection', 'overdraftAPRSection', 'otherDebtSection', 'payOutSection', 'financialInstitutionSection'];
+        
+        /*  Description: Toggle sections based on debt type/category
+         *  Author: Mike Lasala
+         *  Date Created: 07-OCT-2015
+         *  Input: Element id (to identify which row), 
+                   Debt type
+         */
+        function showHideDebts(elementId, debtCategory){
+            
+            //Get record counter
+            var counter = getCounter(elementId);
+
+            var debt = $('#debtDiv'+counter);
+            
+            //Set field to not required as debt is not a required record
+            debt.find('#app1_Financier_Name__c'+counter).removeClass('isRequired isMaxLength20');
+            
+            clearFields(debt);
+            
+            //Hide all sections
+            debt.find('#mortgageSection').hide();
+            debt.find('#loanSection').hide();
+            debt.find('#cardSection').hide();
+            debt.find('#creditCardTypeSection').hide();
+            debt.find('#reducedCreditLimitSection').hide();
+            debt.find('#overdraftAPRSection').hide();
+            debt.find('#otherDebtSection').hide();
+            debt.find('#payOutSection').hide();
+            
+            debt.find('#financialInstitutionSection').hide();
+            
+            if(debtCategory != ' '){
+                //Display Financial institution as required
+                debt.find('#app1_Financier_Name__c1_Label').addClass('req');
+                debt.find('#app1_Financier_Name__c1_Label').html("Financial institution" + '<span> *</span>'); 
+                debt.find('#app1_debt_Applicable_Party__c'+counter).addClass('isPicklistSpace');
+                
+                
+                if(debtCategory == 'Mortgage' || 
+                   debtCategory == 'Personal loan' || 
+                   debtCategory == 'Hire purchase' ||
+                   debtCategory == 'Car loan' ||
+                   debtCategory == 'Other'){
+                   
+                    //Show pay out section
+                    debt.find('#payOutSection').show();
+                    
+                    debt.find('#financialInstitutionSection').show();
+                    
+                    if(debtCategory == 'Mortgage'){
+                    
+                        //Show mortgage section
+                        debt.find('#mortgageSection').show();
+                        
+                        debt.find('#financialInstitutionSection').show();
+                        
+                        
+                    } else if(debtCategory == 'Personal loan' || 
+                              debtCategory == 'Hire purchase' ||
+                              debtCategory == 'Car loan'){
+                        
+                        debt.find('#financialInstitutionSection').show();
+                        
+                        //Show loan section
+                        debt.find('#loanSection').show();
+                        
+                    } else if(debtCategory == 'Other'){
+                    
+                    
+                        debt.find('#financialInstitutionSection').show();
+                        
+                        //Show other section
+                        debt.find('#otherDebtSection').show();
+                    
+                    }
+                    
+                } else if(debtCategory == 'Credit card' || 
+                          debtCategory == 'Store card' || 
+                          debtCategory == 'Charge card' || 
+                          debtCategory == 'Overdraft'){
+                    
+                    debt.find('#financialInstitutionSection').show();
+                    
+                    //Show card section
+                    debt.find('#cardSection').show();
+                    
+                    //Toggles reduced credit limit section based on value
+                    showCreditLimit('app1_Consolidate_Debt_Reduce_Limit__c'+counter, debt.find('#app1_Consolidate_Debt_Reduce_Limit__c'+counter).val());
+                    
+                    if(debtCategory == 'Credit card' && 
+                       {!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable}){
+                        
+                        //Show credit card type section
+                        debt.find('#creditCardTypeSection').show();
+                        
+                    } else if(debtCategory == 'Overdraft'){
+                    
+                        //Show overdraft APR section
+                        debt.find('#overdraftAPRSection').show();
+                    }
+                }
+            
+                //Set fields to required when debt category is not null
+                debt.find('#app1_Financier_Name__c'+counter).addClass('isRequired');        //isMaxLength20
+                
+            } else {
+                //Display Financial institution as not required
+                debt.find('#app1_Financier_Name__c1_Label').removeClass('req');
+                debt.find('#app1_Financier_Name__c1_Label').html("Financial institution");
+                debt.find('#app1_debt_Applicable_Party__c'+counter).removeClass('isPicklistSpace');
+            }
+            
+            calculateTotalDebt();
+        }
+        
+        /*  Description: Toggle reduced credit limit section based on consolidate debt or reduce limit
+         *  Author: Mike Lasala
+         *  Date Created: 08-OCT-2015
+         *  Input: Element Id (to identify which row), 
+                   Consolidate debt or reduce limit value
+         */
+        function showCreditLimit(elementId, debtReduce){
+            
+            //Get record counter
+            var counter = getCounter(elementId);
+            var debt = $('#debtDiv'+counter);
+            
+            if(debtReduce == 'Reduce the credit limit'){
+            
+                //Show reduced credit limit section
+                debt.find('#reducedCreditLimitSection').show();
+                
+            } else {
+                
+                //Hide reduced credit limit section
+                debt.find('#reducedCreditLimitSection').hide();
+                $('#app1_Reduced_Credit_Limit__c'+counter).val('');
+            }
+        }
+        
+        /*  Description: Hide financial institution section based on debt type and credit card type
+         *  Author: Mike Lasala
+         *  Date Created: 14-OCT-2015
+         *  Input: Element Id (to identify which row)
+         */
+        function hideFinancialInstitution(elementId){
+            
+            var counter = getCounter(elementId);
+            var debt = $('#debtDiv'+counter);
+            
+            if(debt.find('#app1_Debt_Category__c'+counter).val() == 'Credit card' && 
+               debt.find('#app1_Type_of_Credit_Card__c'+counter).val() == 'Kiwibank'){
+                    
+                //Hide financial institution section if debt category = credit card and type of credit card = kiwibank
+                debt.find('#financialInstitutionSection').hide();
+                
+            } else {
+                
+                //Else show financial institution section
+                debt.find('#financialInstitutionSection').show();
+            }
+        }
+        
+        /*  Description: Calculate total debts amount
+         *  Author: Mike Lasala
+         *  Date Created: 14-OCT-2015
+         *  Input: None
+         */
+        function calculateTotalDebt(){
+            
+            totalOtherDebtAmount = 0;
+            var amount = 5;
+            
+            //Length of records
+            var recordLength = $('.debtSection').length;
+            
+            for(var i=1; i<=recordLength; i++){
+                console.log('------------------------------');
+                var totalAmount = 0;
+                var isValid = false;
+                
+                //Data retrieval
+                var debt = $('#debtDiv'+i);
+                var debtCategory = $('#app1_Debt_Category__c'+i).val();
+                var financierList = $('#app1_Financier_List_CreditChargeStore__c'+i).val();
+                var personalRepaymentAmount = Number($('#app1_Car_Personal_Repay_Amt__c'+i).val());
+                var creditLimitAmount = Number($('#app1_Credit_Limit_Amt__c'+i).val());
+                var creditBalanceAmount = Number($('#app1_Card_Personal_Bal_Amt__c'+i).val());
+                var overdraftAPR = Number($('#app1_Overdraft_APR__c'+i).val());
+                var mortgageRepaymentAmount = Number($('#app1_Mortgage_Repayment_Amt__c'+i).val());
+                var mortgageRepaymentInterval = $('#app1_Mortgage_Repayment_Interval__c'+i).val();
+                var otherRepaymentAmount = Number($('#app1_Other_Repay_Amt__c'+i).val());
+                var acknowledgePayout = $('#app1_Acknowledge_Payout__c'+i);
+                var consolidateDebt = $('#app1_Consolidate_Debt_Reduce_Limit__c'+i).val();
+                var reducedCreditLimit = Number($('#app1_Reduced_Credit_Limit__c'+i).val());
+                var creditCardType = $('#app1_Type_of_Credit_Card__c'+i).val();
+                
+                //Calculate total debt amount for each record
+                totalAmount = calculateEachDebt(debt);
+                
+                if(countryComp == 'NZ'){
+                //Card condition
+                if(debtCategory == 'Credit card' && 
+                   creditLimitAmount != '' && 
+                   creditBalanceAmount != ''){
+                    
+                    if(consolidateDebt == 'Consolidate the debt'){
+                        
+                        //Set acknowledge payout = true and total amount = 0
+                        acknowledgePayout.prop('checked', true);
+                        totalAmount = 0;
+                    
+                    } else if(consolidateDebt == 'Reduce the credit limit'){
+                        
+                        //Set acknowledge payout = false
+                        acknowledgePayout.prop('checked', false);
+                        
+                        if(creditLimitAmount != '' && 
+                           overdraftAPR == ''){
+                           
+                            if(reducedCreditLimit == ''){
+                            
+                                //Set reduced credit limit to 0 if null
+                                reducedCreditLimit = 0;
+                            }
+                            
+                            if(!validateLength(reducedCreditLimit.toFixed(2)) && 
+                               !validateLength(creditBalanceAmount.toFixed(2)) && 
+                               !validateLength(creditLimitAmount.toFixed(2))){
+                                
+                                if(financierList == 'Gem'  && creditCardType == 'Others'){
+                                totalAmount = (reducedCreditLimit * 0.0403) + amount;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList == 'CreditLine' && creditCardType == 'Others'){
+                                totalAmount = (reducedCreditLimit * 0.0425) + amount;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList == 'Kiwibank'  && (creditCardType == 'Others' ||creditCardType == 'Kiwibank')){
+                                totalAmount  = reducedCreditLimit * 0.05;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList != 'Kiwibank' || financierList != 'CreditLine' || financierList != 'Gem'){
+                                totalAmount = reducedCreditLimit * 0.038;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }
+                                
+                            } else {
+                                totalAmount = 0
+                            }
+                        }
+                        
+                    } else {
+                    
+                        //Reset values
+                        reducedCreditLimit = '';
+                        overdraftAPR = 0;
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('creditLimitAmount: '+creditLimitAmount+'\n'+ 
+                                'creditBalanceAmount: '+creditBalanceAmount+'\n'+ 
+                                'overdraftAPR: '+overdraftAPR+'\n'+ 
+                                'consolidateDebt: '+consolidateDebt+'\n'+ 
+                                'reducedCreditLimit: '+reducedCreditLimit);
+                } else if((debtCategory == 'Store card' ||
+                          debtCategory == 'Charge card') && 
+                   creditLimitAmount != '' && 
+                   creditBalanceAmount != ''){
+                   
+                     
+                    if(consolidateDebt == 'Consolidate the debt'){
+                        
+                        //Set acknowledge payout = true and total amount = 0
+                        acknowledgePayout.prop('checked', true);
+                        totalAmount = 0;
+                    
+                    } else if(consolidateDebt == 'Reduce the credit limit'){
+                        
+                        //Set acknowledge payout = false
+                        acknowledgePayout.prop('checked', false);
+                        
+                        if(creditLimitAmount != '' && 
+                           overdraftAPR == ''){
+                           
+                            if(reducedCreditLimit == ''){
+                            
+                                //Set reduced credit limit to 0 if null
+                                reducedCreditLimit = 0;
+                            }
+                            
+                            if(!validateLength(reducedCreditLimit.toFixed(2)) && 
+                               !validateLength(creditBalanceAmount.toFixed(2)) && 
+                               !validateLength(creditLimitAmount.toFixed(2))){
+                                
+                                if(financierList == 'Gem'){
+                                totalAmount = (reducedCreditLimit * 0.0403) + amount;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList == 'CreditLine'){
+                                totalAmount = (reducedCreditLimit * 0.0425) + amount;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList == 'Kiwibank'){
+                                totalAmount  = reducedCreditLimit * 0.05;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }else if(financierList != 'Kiwibank' || financierList != 'CreditLine' || financierList != 'Gem'){
+                                totalAmount = reducedCreditLimit * 0.038;
+                                totalAmount = getAmountNZ(totalAmount);
+                                }
+                                
+                            } else {
+                                totalAmount = 0
+                            }
+                        }
+                        
+                    } else {
+                    
+                        //Reset values
+                        reducedCreditLimit = '';
+                        overdraftAPR = 0;
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('creditLimitAmount: '+creditLimitAmount+'\n'+ 
+                                'creditBalanceAmount: '+creditBalanceAmount+'\n'+ 
+                                'overdraftAPR: '+overdraftAPR+'\n'+ 
+                                'consolidateDebt: '+consolidateDebt+'\n'+ 
+                                'reducedCreditLimit: '+reducedCreditLimit);
+                      
+                   }//Overdraft condition
+                else if(debtCategory == 'Overdraft' && 
+                        creditLimitAmount != '' && 
+                        creditBalanceAmount != ''){
+                    
+                    if(overdraftAPR == ''){
+                        
+                        //Set reduced overdraft apr to 0 if null
+                        overdraftAPR = 0;
+                    }
+                    
+                    if(consolidateDebt == 'Consolidate the debt'){
+                        
+                        //Set reduce credit limit to null, acknowledge payout = true and total amount = 0
+                        reducedCreditLimit = '';
+                        acknowledgePayout.prop('checked', true);
+                        totalAmount = 0;
+                    
+                    } else if(consolidateDebt == 'Reduce the credit limit'){
+                        
+                        //Set acknowledge payout = false
+                        acknowledgePayout.prop('checked', false);
+                        
+                        if(reducedCreditLimit == '' || 
+                           validateLength(reducedCreditLimit.toFixed(2))){
+                        
+                            //Set reduced credit limit to 0 if null
+                            reducedCreditLimit = 0;
+                        }
+                        
+                        //Disregard each debt calculation when reduce limit
+                        if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                           !validateLength(creditLimitAmount.toFixed(2)) && 
+                           !validateLength(reducedCreditLimit.toFixed(2)) && 
+                           !validateLength(overdraftAPR.toFixed(2))){
+                            
+                            totalAmount = reducedCreditLimit * 0.038;
+                            
+                        }
+                        
+                    } else {
+                        
+                        //Reset values
+                        reducedCreditLimit = '';
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('creditLimitAmount: '+creditLimitAmount+'\n'+ 
+                                'creditBalanceAmount: '+creditBalanceAmount+'\n'+ 
+                                'overdraftAPR: '+overdraftAPR+'\n'+ 
+                                'consolidateDebt: '+consolidateDebt+'\n'+ 
+                                'reducedCreditLimit: '+reducedCreditLimit);
+                }
+                
+               } else if(countryComp == 'AU'){
+               
+               if((debtCategory == 'Credit card' ||
+                        debtCategory == 'Store card' ||
+                        debtCategory == 'Charge card') && 
+                       creditLimitAmount != '' && 
+                       creditBalanceAmount != ''){
+                    
+                    if(consolidateDebt == 'Consolidate the debt'){
+                        
+                        //Set acknowledge payout = true and total amount = 0
+                        acknowledgePayout.prop('checked', true);
+                        totalAmount = 0;
+                    
+                    } else if(consolidateDebt == 'Reduce the credit limit'){
+                        
+                        //Set acknowledge payout = false
+                        acknowledgePayout.prop('checked', false);
+                        
+                        if(creditLimitAmount != '' && 
+                           overdraftAPR == ''){
+                           
+                            if(reducedCreditLimit == ''){
+                            
+                                //Set reduced credit limit to 0 if null
+                                reducedCreditLimit = 0;
+                            }
+                            
+                            if(!validateLength(reducedCreditLimit.toFixed(2)) && 
+                               !validateLength(creditBalanceAmount.toFixed(2)) && 
+                               !validateLength(creditLimitAmount.toFixed(2))){
+                                
+                                //Disregard each debt calculation when reduce limit and get repayment percentage
+                                totalAmount = reducedCreditLimit * getPercentage(debt.find('#app1_Type_of_Credit_Card__c'+i).val());
+                                
+                                //Set minimum monthly repayment if total amount is less (NZ)
+                                totalAmount = getAmountNZ(totalAmount);
+                            } else {
+                                totalAmount = 0
+                            }
+                        }
+                        
+                    } else {
+                    
+                        //Reset values
+                        reducedCreditLimit = '';
+                        overdraftAPR = 0;
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('creditLimitAmount: '+creditLimitAmount+'\n'+ 
+                                'creditBalanceAmount: '+creditBalanceAmount+'\n'+ 
+                                'overdraftAPR: '+overdraftAPR+'\n'+ 
+                                'consolidateDebt: '+consolidateDebt+'\n'+ 
+                                'reducedCreditLimit: '+reducedCreditLimit);
+                } else if(debtCategory == 'Overdraft' && 
+                        creditLimitAmount != '' && 
+                        creditBalanceAmount != ''){
+                    
+                    if(overdraftAPR == ''){
+                        
+                        //Set reduced overdraft apr to 0 if null
+                        overdraftAPR = 0;
+                    }
+                    
+                    if(consolidateDebt == 'Consolidate the debt'){
+                        
+                        //Set reduce credit limit to null, acknowledge payout = true and total amount = 0
+                        reducedCreditLimit = '';
+                        acknowledgePayout.prop('checked', true);
+                        totalAmount = 0;
+                    
+                    } else if(consolidateDebt == 'Reduce the credit limit'){
+                        
+                        //Set acknowledge payout = false
+                        acknowledgePayout.prop('checked', false);
+                        
+                        if(reducedCreditLimit == '' || 
+                           validateLength(reducedCreditLimit.toFixed(2))){
+                        
+                            //Set reduced credit limit to 0 if null
+                            reducedCreditLimit = 0;
+                        }
+                        
+                        //Disregard each debt calculation when reduce limit
+                        if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                           !validateLength(creditLimitAmount.toFixed(2)) && 
+                           !validateLength(reducedCreditLimit.toFixed(2)) && 
+                           !validateLength(overdraftAPR.toFixed(2))){
+                            
+                           
+                            totalAmount = (reducedCreditLimit * (overdraftAPR / 100)) / monthInterval;
+                            
+                        }
+                        
+                    } else {
+                        
+                        //Reset values
+                        reducedCreditLimit = '';
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('creditLimitAmount: '+creditLimitAmount+'\n'+ 
+                                'creditBalanceAmount: '+creditBalanceAmount+'\n'+ 
+                                'overdraftAPR: '+overdraftAPR+'\n'+ 
+                                'consolidateDebt: '+consolidateDebt+'\n'+ 
+                                'reducedCreditLimit: '+reducedCreditLimit);
+                } //Mortgage, loan and other condition
+                else if((debtCategory == 'Mortgage' && 
+                         mortgageRepaymentAmount != '' && 
+                         mortgageRepaymentInterval != '') ||    //End mortgage condition
+                        
+                        ((debtCategory == 'Personal loan' || 
+                          debtCategory == 'Car loan' || 
+                          debtCategory == 'Hire purchase') && 
+                         personalRepaymentAmount != '') ||      //End loan condition
+                        
+                        (debtCategory == 'Other' && 
+                         otherRepaymentAmount != '')){          //End other condition
+                    
+                    if(acknowledgePayout.prop('checked')){
+                    
+                        //Set total amount = 0 when acknowledge payout = true
+                        totalAmount = 0;
+                    }
+                    
+                    isValid = true;
+                    
+                    console.log('mortgageRepaymentAmount: '+mortgageRepaymentAmount+'\n'+
+                                'mortgageRepaymentInterval: '+mortgageRepaymentInterval+'\n'+
+                                'personalRepaymentAmount: '+personalRepaymentAmount+'\n'+
+                                'otherRepaymentAmount: '+otherRepaymentAmount);
+                
+                }
+               
+                    
+                    
+                }
+                
+                //Set amount to 0 if less, else round of to 2 decimal places
+                totalAmount = ((totalAmount < 0) ? 0 : Number(totalAmount).toFixed(2));
+                
+                //Display total amount
+                
+                $('#totalDebtAmount'+i).text('$'+addCommas(totalAmount));
+            
+                console.log('debtCategory: '+debtCategory+'\n'+
+                            'isValid: '+isValid+'\n'+
+                            'acknowledgePayout: '+acknowledgePayout.prop('checked')+'\n'+
+                            '------------------------------');
+                
+                //Summate total amount
+                totalOtherDebtAmount += Number(totalAmount);
+            }
+            
+            //Display total amount
+            $('#overalltotalDebtAmount').text('$'+addCommas((totalGEDebtAmount+totalOtherDebtAmount).toFixed(2)));
+        }
+        
+        /*  Description: Calculate debt amount per record
+         *  Author: Mike Lasala
+         *  Date Created: 15-OCT-2015
+         *  Input: Debt element
+         */
+        function calculateEachDebt(debt){
+            
+            console.log('Debt Calculation'+debt);
+            
+            var debtAmount = 0;
+            var counter = getCounter(debt.attr('id'));
+            
+            //Data retrieval
+            var debtCategory = debt.find('#app1_Debt_Category__c'+counter).val();
+            console.log('Debt Category'+debtCategory);
+            var financierList = $('#app1_Financier_List_CreditChargeStore__c'+counter).val();
+            console.log('Financier List'+financierList.value);
+            var creditLimitAmount = Number($('#app1_Credit_Limit_Amt__c'+counter).val());
+            var creditBalanceAmount = Number($('#app1_Card_Personal_Bal_Amt__c'+counter).val());
+            var overdraftAPR = Number($('#app1_Overdraft_APR__c'+counter).val());
+            var mortgageRepaymentAmount = Number($('#app1_Mortgage_Repayment_Amt__c'+counter).val());
+            var mortgageRepaymentInterval = $('#app1_Mortgage_Repayment_Interval__c'+counter).val();
+            var mortgageBalance = Number($('#app1_Mortgage_Bal_Amt__c'+counter).val());
+            var mortgageBorrowed = Number($('#app1_Mortgage_Borrowed_Amt__c'+counter).val());
+            var personalRepaymentAmount = Number($('#app1_Car_Personal_Repay_Amt__c'+counter).val());
+            var personalRepaymentInterval = $('#app1_Car_Personal_Repay_Int__c'+counter).val();
+            var personalBalance = Number($('#app1_Car_Personal_Bal_Amt__c'+counter).val());
+            var personalBorrowed = Number($('#app1_Car_Personal_Borrowed_Amt__c'+counter).val());
+            var otherRepaymentAmount = Number($('#app1_Other_Repay_Amt__c'+counter).val());
+            var otherRepaymentInterval = $('#app1_Other_Repay_Int__c'+counter).val();
+            var otherBorrowed = Number($('#app1_Other_Borrowed_Amt__c'+counter).val());
+            var creditCardType = $('#app1_Type_of_Credit_Card__c'+counter).val();
+            
+            
+            if(countryComp == 'NZ'){
+            var additionalAmount = 5;
+            
+            if(debtCategory == 'Credit card'){
+                //Set multiplicand for calculation based on amounts
+                var multiplicand = ((creditBalanceAmount < creditLimitAmount) ? creditLimitAmount : creditBalanceAmount);
+                
+                console.log('Multiplicand'+multiplicand);
+                
+                if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                   !validateLength(creditLimitAmount.toFixed(2))){
+                    
+                    //Calculate total amount    //Get repayment percentage
+               if(financierList == 'Gem'  && creditCardType == 'Others'){
+                   <!-- debtAmount = multiplicand * getPercentage(creditCardType); -->
+                    debtAmount = (multiplicand * 0.0403) + additionalAmount ;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                }else if(financierList == 'CreditLine' && creditCardType == 'Others'){
+                   <!-- debtAmount = multiplicand * getPercentage(creditCardType); -->
+                    debtAmount = (multiplicand * 0.0425) + additionalAmount;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }else if((financierList == 'Kiwibank' || financierList == ' ') && (creditCardType == 'Others' ||creditCardType == 'Kiwibank')){
+                    debtAmount = multiplicand * 0.05;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }else if(financierList != 'Kiwibank' || financierList != 'CreditLine' || financierList != 'Gem'){
+                    debtAmount = multiplicand * 0.038;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }
+              }
+                
+                console.log('Debut Amount' + debtAmount);
+                
+            } else if(debtCategory == 'Store card' || debtCategory == 'Charge card'){
+            
+                //Set multiplicand for calculation based on amounts
+                var multiplicand = ((creditBalanceAmount < creditLimitAmount) ? creditLimitAmount : creditBalanceAmount);
+                
+                console.log('Multiplicand'+multiplicand);
+                
+                if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                   !validateLength(creditLimitAmount.toFixed(2))){
+                    
+                    //Calculate total amount    //Get repayment percentage
+               if(financierList == 'Gem'){
+                   <!-- debtAmount = multiplicand * getPercentage(creditCardType); -->
+                    debtAmount = (multiplicand * 0.0403) + additionalAmount;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                }else if(financierList == 'CreditLine'){
+                   <!-- debtAmount = multiplicand * getPercentage(creditCardType); -->
+                    debtAmount = (multiplicand * 0.0425) + additionalAmount;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }else if(financierList == 'Kiwibank'){
+                    debtAmount = multiplicand * 0.05;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }else if(financierList != 'Kiwibank' || financierList != 'CreditLine' || financierList != 'Gem'){
+                    debtAmount = multiplicand * 0.038;
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                 }
+              }            
+            
+          }else
+          if(debtCategory == 'Overdraft'){
+                 var multiplicand = ((creditBalanceAmount < creditLimitAmount) ? creditLimitAmount : creditBalanceAmount);
+                    
+                    if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                       !validateLength(creditLimitAmount.toFixed(2))){
+                        
+                        debtAmount  = multiplicand * 0.038;
+                    }
+                 } else if(debtCategory == 'Mortgage'){
+                
+                if(!validateLength(mortgageRepaymentAmount.toFixed(2)) && 
+                   !validateLength(mortgageBalance.toFixed(2)) && 
+                   !validateLength(mortgageBorrowed.toFixed(2))){
+                    
+                    debtAmount = calculateInterval(mortgageRepaymentAmount, mortgageRepaymentInterval);
+                }
+            }
+            
+            else if(debtCategory == 'Personal loan' || 
+                    debtCategory == 'Car loan' || 
+                    debtCategory == 'Hire purchase'){
+                
+                if(!validateLength(personalRepaymentAmount.toFixed(2)) && 
+                   !validateLength(personalBorrowed.toFixed(2)) && 
+                   !validateLength(personalBalance.toFixed(2))){
+                
+                    debtAmount = calculateInterval(personalRepaymentAmount, personalRepaymentInterval);
+               }
+            } else if(debtCategory == 'Other'){
+                
+                if(!validateLength(otherRepaymentAmount.toFixed(2)) && 
+                   !validateLength(otherBorrowed.toFixed(2))){
+                    
+                    debtAmount = calculateInterval(otherRepaymentAmount, otherRepaymentInterval);
+                }
+            }
+          } else if(countryComp == 'AU'){
+           if((debtCategory == 'Credit card' ||
+                     debtCategory == 'Store card' || 
+                     debtCategory == 'Charge card')){
+                
+                //Set multiplicand for calculation based on amounts
+                var multiplicand = ((creditBalanceAmount < creditLimitAmount) ? creditLimitAmount : creditBalanceAmount);
+                
+                console.log('Multiplicand'+multiplicand);
+                
+                if(!validateLength(creditBalanceAmount.toFixed(2)) && 
+                   !validateLength(creditLimitAmount.toFixed(2))){
+                    
+                    //Calculate total amount    //Get repayment percentage
+                    debtAmount = multiplicand * getPercentage(creditCardType);
+                    
+                    //Set minimum monthly repayment if total amount is less (NZ)
+                    debtAmount = getAmountNZ(debtAmount);
+                }
+                
+            }else if(debtCategory == 'Overdraft'){
+                  debtAmount = calculateOverdraft(overdraftAPR, creditBalanceAmount, creditLimitAmount);
+
+                }else if(debtCategory == 'Mortgage'){
+                
+                if(!validateLength(mortgageRepaymentAmount.toFixed(2)) && 
+                   !validateLength(mortgageBalance.toFixed(2)) && 
+                   !validateLength(mortgageBorrowed.toFixed(2))){
+                    
+                    debtAmount = calculateInterval(mortgageRepaymentAmount, mortgageRepaymentInterval);
+                }
+            }
+            
+            else if(debtCategory == 'Personal loan' || 
+                    debtCategory == 'Car loan' || 
+                    debtCategory == 'Hire purchase'){
+                
+                if(!validateLength(personalRepaymentAmount.toFixed(2)) && 
+                   !validateLength(personalBorrowed.toFixed(2)) && 
+                   !validateLength(personalBalance.toFixed(2))){
+                
+                    debtAmount = calculateInterval(personalRepaymentAmount, personalRepaymentInterval);
+               }
+            } else if(debtCategory == 'Other'){
+                
+                if(!validateLength(otherRepaymentAmount.toFixed(2)) && 
+                   !validateLength(otherBorrowed.toFixed(2))){
+                    
+                    debtAmount = calculateInterval(otherRepaymentAmount, otherRepaymentInterval);
+                }
+            }
+          }
+            
+            
+            
+            
+           
+            
+            return debtAmount;
+        }
+        
+        /*  Description: Calculate overdraft
+         *  Author: Mike Lasala
+         *  Date Created: 15-OCT-2015
+         *  Input: Overdraft APR,
+                   Credit balance amount
+                   Credit limit amount
+         */
+        function calculateOverdraft(apr, balance, limit){
+            console.log('calculateOverdraft apr:'+apr+', balance: '+balance+', limit: '+limit);
+            var amount = 0;
+            
+            if(apr != '' && 
+               apr > 0 && 
+               !validateLength(apr.toFixed(2))){
+                    
+                var multiplicand = ((balance < limit) ? limit : balance);
+                
+                if(!validateLength(balance.toFixed(2)) && 
+                   !validateLength(limit.toFixed(2))){
+                    
+                    amount = (multiplicand * (apr / 100)) / monthInterval;
+                }
+            }
+            
+            return amount;
+        }
+        
+        /*  Description: Return repayment percentage for kiwibank
+         *  Author: Mike Lasala
+         *  Date Created: 16-OCT-2015
+         *  Input: Credit card type
+         */
+        function getPercentage(creditCardType){
+            
+            var percentage = repaymentPercent;
+            
+            if(creditCardType == 'Kiwibank' && 
+               countryComp == 'NZ'){
+                
+                percentage = repaymentPercentKiwi;
+            }
+            console.log('getPercentage: '+percentage);
+            return percentage;
+        }
+        
+        /*  Description: Return total amount for NZ
+         *  Author: Mike Lasala
+         *  Date Created: 16-OCT-2015
+         *  Input: Total amount
+         */
+        function getAmountNZ(amount){
+            
+            //Set minimum monthly repayment if total amount is less (NZ)
+            if(debtMonthlyRepayment > amount && 
+               countryComp == 'NZ'){
+                if(amount > 0){
+                    amount = debtMonthlyRepayment;
+                }
+            }
+            console.log('getAmountNZ: '+amount);
+            return amount;
+        }
+        
+        /*  Description: Clear values on change of debt type
+         *  Author: Mike Lasala
+         *  Date Created: 16-OCT-2015
+         *  Input: Debt element
+         */
+        function clearFields(debt){
+            
+            $(':input', debt).each(function() {
+                
+                var type = this.type;
+                var tag = this.tagName.toLowerCase();
+                
+                if(this.id != 'app1_Debt_Category__c'+getCounter(debt.attr('id'))){
+                    //inputs
+                    if (type == 'text'){
+                        this.value = "";
+                    } else if (type == 'checkbox'){     //checkboxes
+                        this.checked = false;
+                    } else if (tag == 'select'){    //select 
+                        this.selectedIndex = 0;
+                    }
+                }
+            });
+        }
+        
+        /*  Description: Validate amount length used in calculations
+         *  Author: Mike Lasala
+         *  Date Created: 20-NOV-2015
+         *  Input Parameters: Amount value
+         */
+        function validateLength(amount){
+            x = amount.split('.');
+            x1 = x[0];
+            
+            if(x1.length > 7 || 
+              (x1.toString().indexOf('e') > -1) == true || 
+               amount < 0){
+                   
+                return true;
+            }
+        }
+        
+        //Set default picklist values
+        setDefaulPicklistValue('#debtWrapper');
+        
+        //Hide dynamic sections on load
+        showHideDebts('app1_Debt_Category__c1', ' ');
+        showCreditLimit('app1_Consolidate_Debt_Reduce_Limit__c1', '');
+    
+    
+        /****************************SUBMIT**********************************/
+        
+        /*  Description: Create Liability records
+        *  Author: Tony Xu
+        *  Date Created: 2015-10-28
+        *  Input: None
+        */
+        function mapDebt(){
+        var country = '{!JSENCODE($CurrentPage.parameters.country)}';
+        
+            //This is to loop through the current liability records and add them to the container
+            var recordLength = $('.debtSection').length;
+            var COUNTRY = '{!JSENCODE($CurrentPage.parameters.country)}';
+                
+            for(var i=1; i<=recordLength; i++){
+             
+                if(getValue('app1_Debt_Category__c'+i) != ' '){
+
+                    //create object
+                    var liability = new sforce.SObject('Liability__c');
+
+                    //Mapping the fields        
+                    liability.Debt_Category__c =      getValue('app1_Debt_Category__c'+i);
+                    liability.Acknowledge_Payout__c = getValue('app1_Acknowledge_Payout__c'+i);
+                    liability.Financier_Name__c =     getValue('app1_Financier_Name__c'+i);                    
+                    liability.Total_Debts__c =        (($('span#totalDebtAmount'+i).text()).substring(1)).replace(/,/g, '');
+                    liability.RecordTypeId =          RECORDTYPES['Liability__c.'+country];
+                    liability.Applicant__c =          applicant[0].Id;
+                                    
+                if(country == 'AU'){    
+
+                    //Check if Owner Needed
+                    if(liability.Debt_Category__c == 'Mortgage'){
+                        
+                        liability.Mortgage_Bal_Amt__c =            getValue('app1_Mortgage_Bal_Amt__c'+i);
+                        liability.Mortgage_Borrowed_Amt__c =       getValue('app1_Mortgage_Borrowed_Amt__c'+i);
+                        liability.Mortgage_Repayment_Amt__c =      getValue('app1_Mortgage_Repayment_Amt__c'+i);
+                        liability.Mortgage_Repayment_Interval__c = getValue('app1_Mortgage_Repayment_Interval__c'+i);
+                    
+                    }else if(liability.Debt_Category__c == 'Personal loan' || 
+                             liability.Debt_Category__c == 'Hire purchase' || 
+                             liability.Debt_Category__c == 'Car loan'){
+                             
+                        liability.Car_Personal_Bal_Amt__c =      getValue('app1_Car_Personal_Bal_Amt__c'+i);
+                        liability.Car_Personal_Repay_Amt__c =    getValue('app1_Car_Personal_Repay_Amt__c'+i);
+                        liability.Car_Personal_Repay_Int__c =    getValue('app1_Car_Personal_Repay_Int__c'+i);
+                        liability.Car_Personal_Borrowed_Amt__c = getValue('app1_Car_Personal_Borrowed_Amt__c'+i);
+                        
+                        
+                    }else if(liability.Debt_Category__c == 'Other'){
+                    
+                        liability.Type_of_Debt__c =       getValue('app1_Type_of_Debt__c'+i);
+                        liability.Other_Borrowed_Amt__c = getValue('app1_Other_Borrowed_Amt__c'+i);
+                        liability.Other_Repay_Amt__c =    getValue('app1_Other_Repay_Amt__c'+i);
+                        liability.Other_Repay_Int__c =    getValue('app1_Other_Repay_Int__c'+i);
+                    
+                    }else if(liability.Debt_Category__c == 'Credit card' || 
+                             liability.Debt_Category__c == 'Store card' || 
+                             liability.Debt_Category__c == 'Charge card' || 
+                             liability.Debt_Category__c == 'Overdraft'){
+                             
+                        liability.Credit_Limit_Amt__c =              getValue('app1_Credit_Limit_Amt__c'+i);
+                        liability.Consolidate_Debt_Reduce_Limit__c = getValue('app1_Consolidate_Debt_Reduce_Limit__c'+i);
+                        
+                        if(liability.Consolidate_Debt_Reduce_Limit__c == 'Reduce the credit limit'){
+                            liability.Reduced_Credit_Limit__c = getValue('app1_Reduced_Credit_Limit__c'+i);
+                        }
+                        
+                        if(liability.Debt_Category__c == 'Credit card'){
+                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                            
+                            if({!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable}){
+                            
+                                liability.Type_of_Credit_Card__c = getValue('app1_Type_of_Credit_Card__c'+i);
+
+                                if(liability.Type_of_Credit_Card__c == 'Kiwibank'){
+                                    
+                                    liability.Financier_Name__c = liability.Type_of_Credit_Card__c;
+                                }
+                            }
+
+                        } else if(liability.Debt_Category__c == 'Overdraft'){                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                            liability.Overdraft_APR__c =          getValue('app1_Overdraft_APR__c'+i);               
+                        } else {
+                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                        }
+                    }
+
+               } else if(country == 'NZ'){    
+                          
+                     if(liability.Debt_Category__c == 'Personal loan' || 
+                        liability.Debt_Category__c == 'Hire purchase'){                               
+
+                        liability.Financier_List__c     = getValue('app1_Financier_List_PerHir__c'+i);
+                            if(getValue('app1_Financier_List_PerHir__c'+i) == 'Other'){
+                                liability.Financier_Name__c =     getValue('app1_Financier_Name__c'+i);
+                            }                        
+                        liability.Car_Personal_Bal_Amt__c =      getValue('app1_Car_Personal_Bal_Amt__c'+i);
+                        liability.Car_Personal_Repay_Amt__c =    getValue('app1_Car_Personal_Repay_Amt__c'+i);
+                        liability.Car_Personal_Repay_Int__c =    getValue('app1_Car_Personal_Repay_Int__c'+i);
+                        liability.Car_Personal_Borrowed_Amt__c = getValue('app1_Car_Personal_Borrowed_Amt__c'+i);
+                        
+                        
+                    } else if(liability.Debt_Category__c == 'Car loan'){
+                               
+                        liability.Financier_List__c     = getValue('app1_Financier_List_Car__c'+i);
+                            if(getValue('app1_Financier_List_Car__c'+i) == 'Other'){
+                                liability.Financier_Name__c =     getValue('app1_Financier_Name__c'+i);
+                            }                        
+                        liability.Car_Personal_Bal_Amt__c =      getValue('app1_Car_Personal_Bal_Amt__c'+i);
+                        liability.Car_Personal_Repay_Amt__c =    getValue('app1_Car_Personal_Repay_Amt__c'+i);
+                        liability.Car_Personal_Repay_Int__c =    getValue('app1_Car_Personal_Repay_Int__c'+i);
+                        liability.Car_Personal_Borrowed_Amt__c = getValue('app1_Car_Personal_Borrowed_Amt__c'+i);
+                        
+                        
+                    }else if(liability.Debt_Category__c == 'Other'){
+                    
+                        liability.Type_of_Debt__c =       getValue('app1_Type_of_Debt__c'+i);
+                        liability.Other_Borrowed_Amt__c = getValue('app1_Other_Borrowed_Amt__c'+i);
+                        liability.Other_Repay_Amt__c =    getValue('app1_Other_Repay_Amt__c'+i);
+                        liability.Other_Repay_Int__c =    getValue('app1_Other_Repay_Int__c'+i);
+                    
+                    }else if(liability.Debt_Category__c == 'Credit card' || 
+                             liability.Debt_Category__c == 'Store card' || 
+                             liability.Debt_Category__c == 'Charge card' ||
+                             liability.Debt_Category__c == 'Overdraft'){
+                             
+                        liability.Financier_List__c     = getValue('app1_Financier_List_CreditChargeStore__c'+i);
+                            if(getValue('app1_Financier_List_CreditChargeStore__c'+i) == 'Other'){
+                                liability.Financier_Name__c =     getValue('app1_Financier_Name__c'+i);
+                            }
+                        liability.Credit_Limit_Amt__c =              getValue('app1_Credit_Limit_Amt__c'+i);
+                        liability.Consolidate_Debt_Reduce_Limit__c = getValue('app1_Consolidate_Debt_Reduce_Limit__c'+i);
+                        
+                        if(liability.Consolidate_Debt_Reduce_Limit__c == 'Reduce the credit limit'){
+                            liability.Reduced_Credit_Limit__c = getValue('app1_Reduced_Credit_Limit__c'+i);
+                        }
+                        
+                        if(liability.Debt_Category__c == 'Credit card'){
+                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                            
+                            if({!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable}){
+                            
+                                liability.Type_of_Credit_Card__c = getValue('app1_Type_of_Credit_Card__c'+i);
+
+                                if(liability.Type_of_Credit_Card__c == 'Kiwibank'){
+                                    
+                                    liability.Financier_Name__c = liability.Type_of_Credit_Card__c;
+                                }
+                            }
+
+                        } else if(liability.Debt_Category__c == 'Overdraft'){   
+                            liability.Financier_List__c     = getValue('app1_Financier_List_Overdraft__c'+i);
+                             if(getValue('app1_Financier_List_Overdraft__c'+i) == 'Other'){
+                                liability.Financier_Name__c =     getValue('app1_Financier_Name__c'+i);
+                            }                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                           <!-- liability.Overdraft_APR__c =          getValue('app1_Overdraft_APR__c'+i); -->              
+                        } else {
+                            
+                            liability.Card_Overdraft_Bal_Amt__c = getValue('app1_Card_Personal_Bal_Amt__c'+i);
+                        }
+                    }
+               }     
+   
+                    if(applicant.length>1){
+                        liability.Applicable_Party__c = getValue('app1_debt_Applicable_Party__c'+i);
+                    }
+
+                    liabilities.push(liability);
+                }
+            }
+            
+            //Get scope prepared from search and match
+            var scope = angular.element($("#mainSM")).scope();
+            
+            if(scope.debtsList.length>0 || scope.debtsList2.length>0){
+                
+                //Combine debts for applicant 1 and 2
+                var geDebts = scope.debtsList.concat(scope.debtsList2);
+                console.log('geDebts.length: '+geDebts.length);
+                
+                //Iterate over each debt
+                for(var i=0; i<geDebts.length; i++){
+                    
+                    if(!geDebts[i].duplicateDebt){
+                        //create object
+                        var liability = new sforce.SObject('Liability__c');
+                        
+                        //Mapping the fields
+                        liability.RecordTypeId =          RECORDTYPES['Liability__c.'+country];
+                        liability.Applicant__c =          applicant[0].Id;
+                        liability.Debt_Category__c =      geDebts[i].Debt_Category__c;
+                        liability.Financier_Name__c =     geDebts[i].Financier_Name__c;
+                        liability.Acknowledge_Payout__c = geDebts[i].DebtConsolidate;
+                        
+                        if(liability.Debt_Category__c == 'Credit card'){
+                            
+                            liability.Credit_Limit_Amt__c =       geDebts[i].Credit_Limit_Amt__c;
+                            liability.Card_Overdraft_Bal_Amt__c = geDebts[i].Card_Overdraft_Bal_Amt__c;
+                        
+                            if(geDebts[i].DebtConsolidate){
+                                liability.Consolidate_Debt_Reduce_Limit__c = 'Consolidate the debt';
+                            }
+                            
+                            if(geDebts[i].ReduceCredit){
+                                liability.Consolidate_Debt_Reduce_Limit__c = 'Reduce the credit limit';
+                                liability.Reduced_Credit_Limit__c =          geDebts[i].ReduceLimit;
+                            }
+                            
+                            if({!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable}){
+                                liability.Type_of_Credit_Card__c =    geDebts[i].Type_of_Credit_Card__c;
+                            }
+                            
+                            //Set multiplicand for calculation based on amounts
+                            var multiplicand = ((Number(geDebts[i].Card_Overdraft_Bal_Amt__c) < Number(geDebts[i].Credit_Limit_Amt__c)) ? Number(geDebts[i].Credit_Limit_Amt__c) : Number(geDebts[i].Card_Overdraft_Bal_Amt__c));
+                            
+                            //Set Credit_Limit_Amt__c as multiplicand if reduce credit = true
+                            if(geDebts[i].ReduceCredit){
+                                multiplicand = geDebts[i].ReduceLimit;
+                            }
+                                
+                            //Calculate total amount                  //Get repayment percentage
+                            liability.Total_Debts__c = multiplicand * getPercentage(geDebts[i].Type_of_Credit_Card__c);
+                            
+                            //Set minimum monthly repayment if total amount is less (NZ)
+                            liability.Total_Debts__c = getAmountNZ(liability.Total_Debts__c);
+                                
+                        } else {
+                            
+                            liability.Car_Personal_Bal_Amt__c =      geDebts[i].Car_Personal_Bal_Amt__c;
+                            liability.Car_Personal_Repay_Amt__c =    geDebts[i].Car_Personal_Repay_Amt__c;
+                            liability.Car_Personal_Borrowed_Amt__c = geDebts[i].Car_Personal_Borrowed_Amt__c;
+                            liability.Car_Personal_Repay_Int__c =    geDebts[i].Car_Personal_Repay_Int__c;
+                            liability.Total_Debts__c =               calculateInterval(geDebts[i].Car_Personal_Repay_Amt__c, geDebts[i].Car_Personal_Repay_Int__c);
+                        }
+                        
+                        if(geDebts[i].DebtConsolidate || 
+                           geDebts[i].RefinanceDebt){
+                            
+                            liability.Total_Debts__c = 0;
+                            
+                            if(geDebts[i].RefinanceDebt){
+                                liability.Acknowledge_Payout__c = true;
+                            }
+                        }
+                       
+                        liability.Prepopulated__c =      geDebts[i].Prepopulated__c;
+                        liability.Debt_Auto_Created__c = geDebts[i].Debt_Auto_Created__c;
+                        liability.Applicant_Account__c = geDebts[i].Applicant_Account__c;
+                        
+                        if(applicant.length>1){
+                            liability.Applicable_Party__c = geDebts[i].ApplicantType;
+                        }
+                        
+                        liabilities.push(liability);
+                    }
+                }
+            }
+            console.log('liabilities: '+liabilities);
+            debugLog('Liabilities Data',liabilities);
+        }
+        
+        function enableLumpsum(){
+         var lumpSumPay = document.getElementById('lumpSumPay');
+         lumpSumPay.style.display ='block';
+         
+        }
+    </script>
+    
+</apex:component>

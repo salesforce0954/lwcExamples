@@ -1,0 +1,127 @@
+<apex:page standardController="Application__c" extensions="APP_Documents_EXT_INT" showHeader="false" sidebar="false"
+ id="AppDocumentInt">
+ <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+ <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}" />
+ <c:FileUpload2 application="{!application.Id}" id="fileUpload2" />
+ <apex:form id="documentForm" styleClass="documentFormClass" enctype="multipart/form-data">
+  <apex:inputHidden value="{!relatedDocumentId}" id="relDocId" />
+  <apex:actionFunction name="resfreshPage" action="{!refreshRelatedDocumentList}" rerender="documentOutputPanel"
+   status="myStatus" />
+  <apex:actionFunction name="updateDocuments" action="{!updateRealtedDocumentsNotLoan}"
+   rerender="documentOutputPanel,editDocumentOutputPanel" status="myStatus" onComplete="showDocuments();" />
+  <div id="showDocs">
+   <apex:outputPanel id="documentOutputPanel">
+    <apex:pageBlock title="Documents" id="documentPageBlock" mode="detail">
+     <apex:pageBlockButtons location="top">
+      <apex:commandButton styleClass="midbutton" value="Refresh" action="{!refreshRelatedDocumentList}"
+       reRender="documentOutputPanel" />
+     </apex:pageBlockButtons>
+     <apex:pageBlockTable value="{!relatedDocumentWrapperListNotLoan}" var="d" id="documentPageBlockTable">
+      <apex:column headerValue="Applicant" value="{!d.applicantName}" />
+      <apex:column >
+       <apex:facet name="header">
+        <apex:outputText value="Document URL"></apex:outputText>
+       </apex:facet>
+       <apex:outputLink value="" onclick="javscript:window.open('{!d.documentURL}');return false;" id="eventlink">
+       {!d.documentURLDisplay}</apex:outputLink>
+      </apex:column>
+      <apex:column headerValue="Category" value="{!d.relatedDocument.Document_Category__c}" />
+      <apex:column headerValue="Type" value="{!d.relatedDocument.Type__c}" />
+      <apex:column headerValue="Created Date" value="{!d.relatedDocument.CreatedDate}" />
+      <apex:column headerValue="Created By" value="{!d.relatedDocument.CreatedById}" />
+     </apex:pageBlockTable>
+
+     <apex:actionStatus id="updateStatus">
+      <apex:facet name="start">
+       <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px"
+        ImageUrl="{!URLFOR($Resource.getheme,'images/loading-bar.gif')}" Message="Updating..."
+        messageStyle="color:#660000;font-size:11pt;font-weight:bold;visibility:hidden;" />
+      </apex:facet>
+     </apex:actionStatus>
+    </apex:pageBlock>
+   </apex:outputPanel>
+  </div>
+
+  <div id="editDocs">
+   <apex:outputPanel id="editDocumentOutputPanel">
+    <apex:pageBlock title="Documents" id="editDocumentPageBlock">
+     <apex:pageBlockTable value="{!relatedDocumentWrapperListNotLoan}" var="ed" id="editDocumentPageBlockTable">
+      <apex:column headerValue="Applicant" value="{!ed.applicantName}" />
+      <apex:column >
+       <apex:facet name="header">
+        <apex:outputText value="Document URL"></apex:outputText>
+       </apex:facet>
+       <apex:outputLink value="" onclick="javscript:window.open('{!ed.documentURL}');return false;" id="eventlink">
+       {!ed.documentURLDisplay}</apex:outputLink>
+      </apex:column>
+      <apex:column headerValue="Category">
+       <apex:inputHidden value="{!ed.relatedDocument.GE_Link_Type__c}" id="gelinktype" />
+       <apex:inputField value="{!ed.relatedDocument.Document_Category__c}" id="category" />
+      </apex:column>
+      <apex:column headerValue="Type">
+       <apex:inputField value="{!ed.relatedDocument.Type__c}" id="type" />
+      </apex:column>
+      <apex:column headerValue="Created Date" value="{!ed.relatedDocument.CreatedDate}" />
+      <apex:column headerValue="Created By" value="{!ed.relatedDocument.CreatedById}" />
+     </apex:pageBlockTable>
+     <apex:pageBlockButtons >
+      <apex:commandButton styleClass="midbutton" value="Save" onClick="updateDocuments();" reRender="false"
+       status="updateStatus" />
+      <apex:commandButton styleClass="midbutton" value="Cancel" onClick="showDocuments();" reRender="false"
+       status="updateStatus" />
+     </apex:pageBlockButtons>
+     <apex:actionStatus id="updateStatus">
+      <apex:facet name="start">
+       <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="50px" width="120px"
+        ImageUrl="{!URLFOR($Resource.getheme,'images/loading-bar.gif')}" Message="Updating..."
+        messageStyle="color:#660000;font-size:11pt;font-weight:bold;visibility:hidden;" />
+      </apex:facet>
+     </apex:actionStatus>
+
+    </apex:pageBlock>
+   </apex:outputPanel>
+  </div>
+ </apex:form>
+
+ <script>
+  function passRelatedId(myid){            
+      document.getElementById('appPageId:includeDoc:AppDocumentInt:documentForm:relDocId').value = myid;
+  }
+  
+  window.onload = function(e){
+      showDocuments();
+  }
+  function editDocuments(){
+      document.getElementById("showDocs").style.display = "none";
+      document.getElementById("editDocs").style.display = "block";
+  }
+  
+  function showDocuments(){
+      document.getElementById("showDocs").style.display = "block";
+      document.getElementById("editDocs").style.display = "none";
+      disableGeneratedDocuments();
+  }
+  function disableGeneratedDocuments(){
+      var loop = document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable').rows.length-1;
+      
+      for(var i=0;i<loop;i++){
+          var fieldValue = document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+i+':gelinktype').value;   
+          disableField(fieldValue,i+1);
+      }
+      
+  }
+  
+  function disableField(value,rowIndex){            
+   if(rowIndex != null && rowIndex !=''){
+       var rowIndex = rowIndex-1;
+   }
+   
+   if(value == 'Generated Document'){
+       document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':category').disabled = true;
+       document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':source').disabled = true;
+       document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':type').disabled = true;
+       document.getElementById('AppDocumentInt:documentForm:editDocumentPageBlock:editDocumentPageBlockTable:'+rowIndex+':type').style.display = "none";
+   }
+  }
+    </script>
+</apex:page>

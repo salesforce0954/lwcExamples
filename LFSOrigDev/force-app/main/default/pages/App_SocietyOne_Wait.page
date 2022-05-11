@@ -1,0 +1,163 @@
+<apex:page showHeader="false" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0" controller="App_SocietyOne_WaitExt" > 
+    
+    <script language="JavaScript" src="https://mpsnare.iesnare.com/snare.js"/>
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    
+    <apex:composition template="{!$Site.Template}">
+        
+        <apex:define name="GEDDBody">
+            
+            <apex:form id="formId"> 
+                
+                <apex:pageMessages />
+                
+                <hr class="hr-solid-border"></hr>
+                
+                <div class="container">
+                    
+                    <div class="row center-block" >
+                        
+                        <span  class="intro-label large-text lat-dark-grey">
+                            
+                            {!$Label.S1_Wait_Header}
+                        
+                        </span>
+                        
+                        <br/><br/>
+                        
+                        <span  class="-text lat-dark-grey">{!$Label.S1_Wait_Sub_Header}</span>
+                        
+                        <br/>
+                        
+                        <apex:image url="{!$Resource.SocietyOne_Loading}"/>
+                        
+                    </div>
+                    
+                </div>
+                
+                <apex:actionFunction name="executeAfterPoll" action="{!afterPoll}" rerender="false" onComplete="performPostProcessing();">
+                    <apex:param name="blackBoxTxt"  value="" />
+                </apex:actionFunction>    
+                <apex:actionFunction name="performPostProcessing" action="{!performPostProcessing}" rerender="false" onComplete="submitAndRedirect();"/>
+                <apex:actionFunction name="submitAndRedirect" action="{!submitAndRedirect}" rerender="false"/> 
+                    
+                <apex:actionFunction name="sendToErrorPage" action="{!sendToErrorPage}" rerender="formId">
+                    <apex:param name="errCode"  value="" />
+                </apex:actionFunction>
+            </apex:form>
+            
+        </apex:define>
+        
+    </apex:composition>
+    
+    <!-- Make sure logout fires first before any transaction -->
+    <apex:outputPanel rendered="{!userTypeVar!='Guest'}">
+        <apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1" width="1"/>
+    </apex:outputPanel>
+   
+    <script>
+    
+        // global parameters
+        var ex_appId    =   "{!ex_AppId}";
+        var ex_appToken =   "{!ex_Token}";
+        var sf_appId    =   "{!sf_AppId}";
+        var blackBoxTxt;
+        var incomeMap = new Object();
+        
+        // Start poll X3rd_Party_Application_Status_Log__c object for application create result based on AppId URL parameter
+        function doPoll() {
+            console.log('S1AppId:' + ex_appId);
+            if(ex_appId !== null && ex_appId !== "" && ex_appId !== undefined){ 
+                console.log('S1AppId Passed:' + ex_appId);
+                Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.App_SocietyOne_WaitExt.startPolling}",ex_appId,
+                    function (result, event) {
+                        if (event.status) {
+                            if(result != null){
+                                console.log('Result String:' + JSON.stringify(result));
+                                
+                                // On Error process error code and redirect to error page
+                                if(result[0].Status_Code__c == "SUC_001"){ 
+                                    console.log('External APP Number:' + result[0].X3rd_Party_Application_Number__c);
+                                    console.log('blackBoxTxt on success:' + blackBoxTxt);
+                                    executeAfterPoll(blackBoxTxt);
+                                }else{
+                                    console.log("ERROR: " + result[0].Status_Code__c);
+                                    sendToErrorPage(result[0].Status_Code__c);
+                                }
+                            }else{
+                                doPollagain(); 
+                            }
+                        }else{
+                            console.log('event status'+ event.status);
+                            console.log('event type'+ event.type);
+                        }
+                        
+                }, {escape: false, timeout: 60000, buffer: true});// End Remote
+            }
+        }
+        // End Poll
+        
+        // Method to poll again
+        function doPollagain(){
+            setTimeout(function(){doPoll();},2000); 
+            console.log('ANo:' + "{!ex_AppId}");
+            console.log('LoanAmount:' + "{!ex_Token}");
+        }
+
+        // On page load method calls
+        window.onload = function(){
+            console.log('User Type:' + "{!userTypeVar}");
+            
+            if("{!userTypeVar}" != "Guest"){
+                location.reload(true);
+            }
+            doPoll();
+            blackBoxTxt = setBlackBox().blackbox;
+            console.log('blackBoxTxt:' + blackBoxTxt);
+        }
+    
+        // Method to set timeout for polling
+        window.setTimeout(function(){
+            console.log("TIMEOUT");
+            sendToErrorPage("ERR_005");
+        }, 120000);
+        
+        function setBlackBox(){
+            // basic configuration
+            var io_install_stm = false;     //do not install Active X
+            var io_exclude_stm = 12;        //do not run Active X
+            var io_install_flash = false;   //do not install Flash
+            var io_enable_rip = true;       //enable detection of Real IP
+
+            return ioGetBlackbox();
+        }
+    </script>
+    <style>
+        .center-block {
+            margin-left: 0px;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 300px;
+            font-size: 20px;
+        }
+        .fine-text {
+            font-size: 15px;
+        }
+        
+        img {
+            display: block;
+            margin: 0 auto;
+        }
+         .large-text{
+            font-size : 28px;
+         }
+        
+        @media screen and (max-width: 415px) {
+            hr {
+                border-top: none;
+            }
+       
+        
+    </style>
+</apex:page>

@@ -1,0 +1,198 @@
+<!--
+/**
+ * @Description: Income Confirmation Page for GE Loan Application
+ * @Author: Fel Saliba
+ * @Date Created: 07.OCT.2013
+ * @History:
+   =====================================================================
+       07-10-13: Created - Fel
+       22-11-13: Added Cancel Button - Mike
+       12-20-13: Added File Upload Webservice
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_POIExt" sidebar="false" showHeader="false" id="poiPage" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0"> 
+<apex:composition template="{!$Site.Template}">
+    <apex:define name="GEDDBody">
+    
+        <apex:includeScript value="{!URLFOR($Resource.FileUploadJQUERY, '/js/jquery-1.10.2.min.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.FileUploadJQUERY, '/js/jquery.ui.widget.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.FileUploadJQUERY, '/js/jquery.iframe-transport.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.FileUploadJQUERY, '/js/jquery.fileupload.js')}" />
+
+            <section>
+                <div class="maincontent sidebar-left">
+                    <div class="row-fluid">
+                    
+                        <!-- Start of Content Here -->
+                        
+                        <!-- sidebar -->
+                        <div class="span5 earlyfull sidebar dashboardarea">
+                        <apex:insert name="GEDDSidebar">
+                            <c:GEDDSidebar />
+                        </apex:insert>
+                        </div><!-- span3 sidebar -->
+                    
+                        <!-- right column -->
+                        <div class="span7 earlyfull page-income poi">
+                            <h2>Your Income Confirmation</h2>
+                            <p>To complete your application, we need confirmation of your income. </p>
+                            <div class="divider10"></div>
+
+                            <div class="divider10"></div>
+
+                            <apex:form id="poiForm" enctype="multipart/form-data"> 
+                                <apex:inputHidden value="{!title}" id="titleId"/>
+                                <apex:inputHidden value="{!status}" id="statusId"/>
+           
+                                <apex:actionFunction name="insertRelatedDocument" action="{!insertRelatedDocument}" id="insertRelatedDocument" oncomplete="clickButton(); return false();" rerender="scriptPanel"/>
+                                <apex:actionFunction name="updateRelatedDocument" action="{!updateRelatedDocument}" id="updatetRelatedDocument" rerender="message" oncomplete="activateButton(); return false;"/>
+                                
+                                <apex:pageBlock id="message">
+                                   <apex:messages style="font-size:16px;color:red; list-style-type:none;"/>
+                                </apex:pageBlock>
+                                
+                                <div class="divider20"></div>
+                                <h4>Upload your income confirmation documents</h4>
+                                <p>Ready to go? Upload your documents here anytime. The document formats we accept are: gif, png, jpg, jpeg, tif, tiff, bmp, doc, docx, pdf, and the maximum file size for each file is 5MB each.</p>
+                                <br/>
+                                <div id="showLoading" style="display:none">
+                                    <c:EnhancedActionStatus BackColor="#efefef" borderColor="#ffffff" borderSize="0" height="50px" width="130px" ImageUrl="{!$Resource.loading}" Message="Uploading..." messageStyle="color:darkred;font-size:11pt;font-weight:bold;padding:20px;"/>
+                                </div>
+                                <div class="tagsinput " style="height: 100%;">
+                                    <div class="tagsinput-add-container"><input  id="fileupload" type="file" name="files[]" /> </div>
+                                </div>
+                                
+                                <apex:commandButton styleClass="btn btn-large btn-reset-m btn-activec buttonarrowimg" onClick="getFileName(); return false;" value="Save Attachments" id="theButton"/>
+                                <button id="uploadBtn" style="visibility:hidden"></button>
+                                <apex:outputPanel id="scriptPanel">
+                                <script>
+                                function activateButton(){
+                                    document.getElementById('showLoading').style.display = "none";
+                                    document.getElementById('{!$Component.poiPage:poiForm:theButton}').disabled = false;
+                                }
+                                function clickButton(){
+                                    document.getElementById("uploadBtn").click();
+                                    updateRelatedDocument();
+                                }
+                                function getFileName(){
+                                    var upload =  document.getElementById('fileupload').value;
+                                    if(upload == '' || upload == null){
+                                        alert('Please choose file to upload');
+                                    }
+                                    else{
+                                        var fullPath = document.getElementById("fileupload").value;
+                                        if (fullPath) {
+                                            var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+                                            var filename = fullPath.substring(startIndex);
+                                            if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+                                                filename = filename.substring(1);
+                                            }
+                                            document.getElementById('{!$Component.poiPage.poiForm.titleId}').value = filename;
+                                        }
+                                        document.getElementById('showLoading').style.display = "block";
+                                        document.getElementById('{!$Component.poiPage:poiForm:theButton}').disabled = true;
+                                        insertRelatedDocument();
+                                    }
+                                }
+     
+                                $(function () {
+                                    $('#fileupload').fileupload({
+                                        url: "{!uploadEndPoint}",
+                                        autoUpload: false,
+                                        dataType: 'json',
+                                        replaceFileInput: false,
+                                        statusCode:{
+                                            200: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = 'success';
+                                            }, 
+                                            209: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = '209';
+                                            },
+                                            220: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = '220';
+                                            },
+                                            221: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = '221';
+                                            },
+                                            222: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = '222';
+                                            },
+                                            210: function(){
+                                                document.getElementById('{!$Component.poiPage.poiForm.statusId}').value = '210';
+                                            }
+                                        },
+                                        async: false,
+                                        done: function (e, data) {
+                                           
+                                        },
+                                        
+                                        add:function (e, data) {
+                                            $('#uploadBtn').off('click').on('click',function () {
+                                                data.submit();
+                                                return false;
+                                            });
+                                        }
+                                    });
+                                      $('#fileupload').bind('fileuploadsubmit', function (e, data) {
+                                                var obj = {};
+                                                obj.appNum = "{!applicationUniqueID}";
+                                                obj.firstName= "{!applicantFirstName}";
+                                                obj.lastName=  "{!applicantLastName}";
+                                                obj.timestamp = "{!getDateStamp}";
+                                                obj.product = "pl";
+                                                obj.sfDocId = "{!recordIdSaved}";
+                                                data.formData = obj;
+                                    });   
+                                });
+     
+                                </script>
+                                </apex:outputPanel>
+                                
+                                <apex:commandButton action="{!pageCancel}" value="Cancel" styleClass="btn btn-large btn-reset-m btn-activec buttonarrowimg" /> 
+                                <apex:inputhidden id="selectedIncomeId" value="{!fullTime}"/>
+                            </apex:form>
+
+                        </div><!-- span7 earlyfull -->
+                        <!-- End of Content -->
+                    </div>
+                </div><!-- end maincontent -->
+            </section>
+    </apex:define>
+</apex:composition>
+    <script>
+
+        function displayFullTime(div){
+            document.getElementById("{!$Component.poiForm.selectedIncomeId}").value = div.value;
+            
+            document.getElementById(div.value).style.display = "block";
+            
+            var childElem = document.getElementById("fullDivId").children;
+            for(var i = 0; i < childElem.length; i++) {
+                if(childElem[i] != document.getElementById(div.value)) {
+                    childElem[i].style.display = "none";
+                }
+            }         
+        }
+        function displayRental(div){
+            document.getElementById(div.value).style.display = "block";
+            var childElem = document.getElementById("rentDivId").children;
+            for(var i = 0; i < childElem.length; i++) {
+                if(childElem[i] != document.getElementById(div.value)) {
+                    childElem[i].style.display = "none";
+                }
+            }         
+        }
+        function displaySuper(div){
+            document.getElementById(div.value).style.display = "block";
+            var childElem = document.getElementById("superDivId").children;
+            for(var i = 0; i < childElem.length; i++) {
+                if(childElem[i] != document.getElementById(div.value)) {
+                    childElem[i].style.display = "none";
+                }
+            }         
+        }
+        
+    </script>
+
+</apex:page>

@@ -1,0 +1,101 @@
+<apex:page id="decisioningPage" standardController="Application__c" extensions="APP_Decisioning_EXT_INT" 
+showHeader="false" sidebar="false">
+<apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+
+    <apex:form id="form1">
+
+        <apex:pageMessages Id="errorId" />
+
+        <!-- Update by: Adrian Recio -->
+        <!-- Date: 23/03/2016 -->
+        <!-- Update to call new service to approve manual referals on click of button -->
+        <!--
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+
+            <apex:actionStatus id="status3">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Completed Decisions" rendered="{!manualAction}" status="status3" 
+                    onclick="document.getElementById('appPageId:decisioningInclude:decisioningPage:form1:'+
+                    'loadingGif').style.visibility='visible'; openReport();"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Processing..." disabled="true"/>
+                </apex:facet>                         
+            </apex:actionStatus>
+        </div>
+        -->
+   
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+
+            <apex:actionStatus id="status3">
+                <apex:facet name="stop">
+                    <apex:commandButton disabled="{!disableManualVerification}" value="Manual Refers Completed" action="{!approveApplication}" status="status3" reRender="errorId"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Processing..." disabled="true"/>
+                </apex:facet>                         
+            </apex:actionStatus>
+        </div>
+        
+        <br/>        
+
+        <apex:pageBlock title="Manual" id="manual">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Referral Code</th>
+                    <th class="headerRow">Response Description</th>
+                </tr>
+                <apex:repeat value="{!decList}" var="d">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!d.NBSM_Code__c}</td>
+                        <td class="dataCell">{!d.Response_Description__c}</td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+
+        <apex:pageBlock title="System" id="system">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Referral Code</th>
+                    <th class="headerRow">Response Description</th>
+                </tr>
+                <apex:repeat value="{!sysWrap}" var="s">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!s.nbsmCode}</td>
+                        <td class="dataCell">{!s.responseDescription}</td>
+                    </tr>
+                </apex:repeat>
+            </table>
+
+            <apex:pageBlockSection id="rSection" columns="2" title="System Response Codes">
+                <apex:outputField value="{!currentApplication.Response_Code__c}"/>
+                <apex:outputField value="{!currentApplication.Response_Description__c}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+    <script>
+        //Method which opens a subtab on the console. Please remove method on line 20 if this 
+        //method will be changed/removed
+        function openReport() {
+            //First find the ID of the primary tab to put the new subtab in
+            sforce.console.getEnclosingPrimaryTabId(openSubtabReport);
+        }
+        
+        var openSubtabReport = function openSubtabReport(result) {
+            //Now that we have the primary tab ID, we can open a new subtab in it
+            var primaryTabId = result.id;
+            
+            sforce.console.openSubtab(primaryTabId , '/{!reportId}?pv0={!applicationName}', true, '', null);
+        };
+
+    </script>
+
+</apex:page>

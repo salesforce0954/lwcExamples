@@ -1,0 +1,175 @@
+<!--
+/**
+* @Description: Expense component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 29.JAN.2014
+* @History:
+  =====================================================================
+      01-29-14: Created - Mike
+      11-05-14: Added jquery to change picklist label of "--None--" to please select - By Akash
+      12-10-14: Added jQuery for Disabling the Ownership status picklist values here for DBHZL-143 -(Devendra)
+      21-01-15 added bank accounts held field DBHZL-205 -Vijay
+      04-09-15: Updated - Include client side validations - DYU
+      04-28-15: Updated - Removed the client-side required validation on Asset value and status.  Assets not required - DY
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointAssets" id="Asset__c-mycomponent">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('[id*=Asset__c___Asset_Category__c] option[value=""]').text("Please Select");
+            
+            //12-10-14: Added jQuery for Disabling the Ownership status picklist values here for DBHZL-143 -(Devendra)
+            $('[id*=Asset__c___Asset_Category__c]').each(function( index ) {
+              var assetCategory=$( this ).val();
+              if(assetCategory=='{!AssetDeposit}' || assetCategory == '{!AssetKiwiSaver}'){
+                document.getElementById('assetsPage:mainForm:assetPageBlock:assetRepeat:'+index+':component-1:Asset__c-mycomponent:Asset__c___Ownership_Status__c').setAttribute("disabled", "disabled");
+              }
+            });
+        }); 
+    </script>
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="assetWrap" description="This is the value for the component." type="MyBudgetsAssetWrapper" required="true" />
+    <apex:attribute name="assetCount" description="Number assets added" type="integer" required="false"/>
+    <apex:attribute name="brandRegion" description="This is the value of the brand country" type="String" required="true"/>
+    <div class="fleftme includeFields grayborderbtom cutfields">
+
+        <!-- REMOVE BUTTON -->
+        <div class="fleft">
+            <apex:actionStatus id="status6">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Remove" onclick="document.getElementById('assetsPage:mainForm:assetPageBlock:loadingGif').style.visibility='visible';deleteRow('{!assetWrap.rowCount}'); return false;" rerender="status6"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Removing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        
+        <div class="fleft">
+            <label>
+                I have a
+            </label>
+            <div class="requiredBlock2"/>
+        </div>
+        
+        <!-- CATEGORY FIELD -->
+        <div class="fleft">
+            <apex:inputField styleClass="adjust_sec1 width210" value="{!assetWrap.asset.Asset_Category__c}" id="Asset__c___Asset_Category__c" onchange="disableOwnership('{!assetWrap.rowCount}');"/>
+            <div class="clearfix"/>
+            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!assetWrap.categoryValid}" value="Error: Please select your asset type."/>
+        </div>
+        
+        <div class="fleft">
+            <label>
+                worth $
+            </label>
+            <div class="requiredBlock2"/>
+        </div>
+
+        <!-- VALUE FIELD -->
+        <div class="fleft">
+            <apex:inputField value="{!assetWrap.asset.Asset_Value__c}" id="Asset__c___Asset_Value__c" onchange="getTotal();" styleClass="{!IF(assetWrap.asset.Asset_Category__c != null, 'isRequired isAmount vNumberAmount', 'isAmount vNumberAmount')} width80"/>
+            <div class="clearfix"/>
+           <apex:outputText styleClass="warningMessage width150 fleft" escape="false" rendered="{!!assetWrap.valueValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+        </div>
+        
+        <div class="fleft">
+            <label>
+                which I
+            </label>
+            <div class="requiredBlock2"/>
+        </div>
+
+        <!-- OWNERSHIP STATUS FIELD -->
+        <div class="fleft">
+            <apex:selectList size="1" styleClass="{!IF(assetWrap.asset.Asset_Category__c != null, 'isPicklistNone', '')} adjust_sec1" value="{!assetWrap.asset.Ownership_Status__c}" id="Asset__c___Ownership_Status__c">
+                <apex:selectOptions value="{!OwnershipStatus}"/>
+                <apex:actionSupport event="onchange" rerender="false" status="pleasewait"/>
+            </apex:selectList>
+            <div class="clearfix"/>
+            <apex:outputText styleClass="warningMessage width150 fleft" escape="false" rendered="{!!assetWrap.ownershipValid}" value="Error: Please enter the asset ownership status."/>
+        </div>
+               
+        <!-- APPLICABLE PARTY FIELD -->
+        <div class="fleft">
+            <apex:outputPanel rendered="{!assetWrap.isJoint}">
+                <label class="txtright width97">
+                    Asset Owner
+                </label>
+            </apex:outputPanel>
+            <apex:selectList size="1" styleClass="adjust_sec1 width100" value="{!assetWrap.asset.Applicable_Party__c}" id="applicableParty" rendered="{!assetWrap.isJoint}">
+                <apex:selectOptions value="{!ApplicablePartyOptions}"/>
+            </apex:selectList>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="clearfix"/>
+        
+        <div>
+            <!-- EXTRA FIELDS FOR CAR CATEGORY -->
+            <apex:outputPanel id="carFields">
+                <apex:outputPanel rendered="{!OR(assetWrap.asset.Asset_Category__c == 'Car',assetWrap.asset.Asset_Category__c == 'Motor vehicle')}" >
+                    <div class="tsublist">
+                        <div class="fleft">
+                            <label class="width140 txtright">
+                                Vehicle make
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- MAKE FIELD -->
+                        <div class="fleft">
+                            <apex:inputText value="{!assetWrap.asset.Vehicle_Make__c}" id="Asset__c___Vehicle_Make__c" maxLength="20" styleClass="isRequired"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" rendered="{!!assetWrap.vehicleMakeValid}" value="Error: Please enter your vehicle make."/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label class="width140 txtright">
+                                Vehicle model
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- MODEL FIELD -->
+                        <div class="fleft">
+                            <apex:inputText value="{!assetWrap.asset.Vehicle_Model__c}" id="Asset__c___Vehicle_Model__c" onkeypress="return isAlNumeric(event, this)" maxLength="20" styleClass="isRequired isAlphaNumericWithHiphen"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" rendered="{!!assetWrap.vehicleModelValid}" value="Error: Please enter your vehicle model."/>
+                        </div>
+
+                        <div class="clearfix"/>
+
+                        <div class="fleft">
+                            <label class="width140 txtright">
+                                Year of manufacture
+                            </label>
+                            <div class="requiredBlock2"/>
+                        </div>
+
+                        <!-- MANUFACTURE YEAR FIELD -->
+                        <div class="fleft">
+                            <apex:inputText value="{!assetWrap.asset.Vehicle_Year__c}" id="Asset__c___Vehicle_Year__c"  onkeypress="return isNumberKey(event, this)" maxLength="4" styleClass="number isRequired isYear"/>
+                            <div class="clearfix"/>
+                            <apex:outputText styleClass="warningMessage" rendered="{!!assetWrap.vehicleYearValid}" value="Error: Please enter the year of manufacture."/>
+                        </div>
+                        <div class="clearfix"/>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </div>
+        
+    </div><!-- end includeFields -->
+    
+    <!-- FOR PERSPECSYS -->
+    <div>
+        <apex:inputHidden value="{!assetWrap.asset.PRS_RECORD_ID__c}" id="Asset__c___PRS_RECORD_ID__c" />
+        <apex:inputHidden value="{!assetWrap.asset.Id}" id="Asset__c___id" />
+    </div>
+    
+    <div class="clearfix"/>
+
+</apex:component>

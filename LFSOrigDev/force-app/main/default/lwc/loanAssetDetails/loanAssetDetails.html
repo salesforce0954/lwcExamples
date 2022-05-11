@@ -1,0 +1,201 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Assets" icon-name="standard:home" class="slds-var-p-bottom_xx-small">
+            <div class="slds-card__body slds-card__body_inner slds-align_absolute-center">
+                {assetInformation}
+            </div>
+
+            <div class="slds-grid slds-wrap slds-var-m-around_small">
+                <div class="slds-col slds-size_4-of-12">
+                    <strong>
+                        <lightning-input type="checkbox" disabled={isDisabled} label={noAssetsMsg} class="dont-have-assets" checked={assetDetailsObj.NoAssets} name="dontHaveAssets" onclick={handleAssetDetailsChange}></lightning-input>
+                    </strong>
+                </div>
+            </div>
+            <template if:false={isDisabled}>
+                <template if:true={showAddAssetButton}>
+                    <div class="slds-var-m-around_x-small">
+                        <lightning-button label="Add Asset" title="Add Asset" icon-name="utility:add" onclick={handleAddAsset} disabled={maxAssetsAdded}></lightning-button>
+                    </div>
+                </template>
+            </template>
+
+            <!-- TABLE SECTION -->
+            <template if:true={showAddAssetButton}>
+                <template if:false={tableHasData}>
+                    <div class="slds-align_absolute-center slds-var-m-around_x-small">
+                        <lightning-formatted-text value={label.BP_LBL_No_Assets} ></lightning-formatted-text>
+                    </div>
+                </template>
+            </template>
+            <template if:true={tableHasData}>
+                <div class="slds-box c-container slds-var-m-around_x-small ">
+                    <div class="slds-table--header-fixed_container" style="height:300px;">
+                        <div class="slds-scrollable_y clearBG" style="height:100%;">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered " aria-label="Asset Table">
+                                <thead>
+                                  <tr class="slds-line-height_reset">
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Asset Type">Asset Type</div>
+                                    </th>
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Asset Value">Asset Value</div>
+                                    </th>
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Asset Ownership">Asset Ownership</div>
+                                    </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col" >
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col">
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                  </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    <template for:each={assetDetailsList} for:item="currentItem">
+                                        
+                                    
+                                        <tr key={currentItem.id}>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-text value={currentItem.AssetType} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-number value={currentItem.AssetValue} data-name={currentItem.id} format-style="currency" currency-code="AUD"></lightning-formatted-number>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-text value={currentItem.AssetOwnership} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <template if:false={isDisabled}>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:edit" data-name={currentItem.id} alternative-text="Edit" onclick={handleAssetEdit}></lightning-button-icon>
+                                                </td>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:delete" data-name={currentItem.id} alternative-text="Delete" onclick={handleAssetDelete}></lightning-button-icon>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                    </template>
+
+                                </tbody>
+                            
+                                
+                            </table>
+            
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleAssetDetailsPrev}></lightning-button>
+                        
+                                <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleAssetDetailsNext}></lightning-button>
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+
+        </lightning-card>
+    </div>
+
+
+
+
+
+    <!-- MODAL FOR ADD INCOME -->
+    <template if:true={showAddAssetForm}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container" style="width: 45%">
+            <header class="slds-modal__header">
+                
+                <lightning-icon icon-name="standard:home" alternative-text="Asset" title="Asset"></lightning-icon>
+                <span>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Add Asset</h2>
+                </span>
+            </header>
+            <div class="slds-modal__content" id="modal-content-id-1">
+            
+                <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-combobox
+                                                    name="assettype"
+                                                    label="Asset type"
+                                                    value={assetObj.AssetType}
+                                                    placeholder="Select"
+                                                    options={assetTypeOptions}
+                                                    onchange={handleAssetDetailsChange}
+                                                    required
+                        ></lightning-combobox>
+                    </div>
+                </div>
+    
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_4-of-12 slds-var-m-around_x-small">
+                        <span>
+                            <lightning-input type="number" label="Asset value" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" formatter="currency" name="assetValue" value={assetObj.AssetValue} onblur={handleAssetDetailsChange} required></lightning-input>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-size_4-of-12 slds-var-p-top_x-small">
+                        <span>
+                            <lightning-combobox
+                                                    name="assetOwnership"
+                                                    label="Asset Ownership"
+                                                    value={assetObj.AssetOwnership}
+                                                    placeholder="Select"
+                                                    options={assetOwnershipOptions}
+                                                    onchange={handleAssetDetailsChange}
+                                                    required
+                        ></lightning-combobox>
+                        </span>
+                    </div>
+                </div>
+    
+                
+                <template if:true={showCarFields}>
+                <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-input type="text" label="Vehicle make" max-length="20" name="vehicleMake" value={assetObj.VehicleMake} onblur={handleAssetDetailsChange} required></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-input type="text" label="Vehicle model" max-length="20" name="vehicleModel" value={assetObj.VehicleModel} onblur={handleAssetDetailsChange} required></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_8-of-12">
+                        <lightning-input type="number" label="Year of manufacture" onblur={handleAssetDetailsChange} placeholder="Year" name="yearOfManufacture" value={assetObj.YearOfManufacture} min-length="4" max-length="4" required></lightning-input>
+                    </div>
+                </div>
+                
+            </template>
+    
+                
+    
+            </div>
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick={handleAddAssetCancel}>Cancel</button>
+                <button class="slds-button slds-button_brand" onclick={handleAddAssetSave}>Save</button>
+              </footer>
+            
+            </div>
+            
+            </section>
+        
+            <div class="slds-backdrop slds-backdrop_open"></div>                  
+        </template>
+
+</template>

@@ -1,0 +1,34 @@
+<!--
+/**
+ * @Description: Proof of Income List(Staff UI)
+ * @Author: Adrian Recio
+ */ 
+-->
+<apex:component >
+	<apex:attribute description="List of Income Capacity records for display" name="icList" type="Income_Capacity__c[]"/>
+	
+	<apex:pageBlock >
+		<table class="list " border="0" cellpadding="0" cellspacing="0">
+            <tr class="headerRow">
+                <th class="headerRow">Employment Type</th>
+                <th class="headerRow">Method of Verification</th>
+                <th class="headerRow">Salary Sacrifice</th>
+                <th class="headerRow">Method of Calculation</th>
+                <th class="headerRow">POI Verified Monthly Income</th>
+            </tr>
+            <apex:repeat value="{!icList}" var="icItem" id="prcPageBlockTable">
+                <tr class="dataRow">
+                    <td class="dataCell">{!icItem.Employment_Type__c}</td>
+                    <td class="dataCell">{!icItem.Method_of_Verification__c}</td>
+                    <td class="dataCell">{!icItem.Salary_Sacrifice__c}</td>
+                    <td class="dataCell">{!icItem.Method_of_Calculation__c}</td>
+                    <td class="dataCell">
+                        <apex:outputText value="{0, number,$###,###,##0.00}">
+                            <apex:param value="{!icItem.Annualised_Net_Income_per_Month__c}"/>
+                        </apex:outputText>
+                    </td>
+                </tr>
+            </apex:repeat>
+        </table>
+	</apex:pageBlock>
+</apex:component>

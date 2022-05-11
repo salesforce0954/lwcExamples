@@ -1,0 +1,426 @@
+<!--
+    * @Description: Contains loan purpose details in the new application wizard
+    * @Author: Mike Lasala
+    * @Date Created: 07-OCT-2015
+    * @History:
+    =====================================================================
+        07-OCT-15: Created -Mike
+    ===================================================================== 
+-->
+<apex:component >
+
+    <section class='slds-col slds-size--2-of-2 sectionBorder'>
+        <!-- LOAN PURPOSE HEADER -->
+        <div class="slds-m-bottom--medium slds-theme--inverse slds-page-header slds-box slds-text-align--left sectionHeading">
+            <div class="slds-text-heading slds-m-vertical--small">Loan purpose</div>
+        </div>
+        
+        <!-- START OF LOAN PURPOSE CLV -->
+        <div class="slds-grid slds-wrap slds-m-vertical--small" id="app_loan_results_clv"></div>
+        <!-- END OF LOAN PURPOSE CLV -->
+
+        <!-- LOAN PURPOSE SECTION -->
+        <div id="loanDiv1" class="loanSection" >
+            
+            
+            <!-- LOAN PURPOSE FIELDS -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds-text-align--right">
+                    <!--REMOVE BUTTON-->
+                    <button type="button" id="app1_removeButton1" class="slds-button slds-button--brand slds-button--small slds-hidden slds-m-right--large" onclick="removeRecord(this.id, 'loanSection', 'loanDiv', 'addLoan', 1);">-</button>
+                    
+                    <!-- LOAN AMOUNT LABEL -->
+                    <label class="slds-form-element__label req" for="loan_Amount__c1">Amount</label>
+                </section>
+                
+                <!-- LOAN AMOUNT FIELD -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <input id="loan_Amount__c1" name="loan_Amount__c1" class="slds-input isLoanAmount isInvalidAmount isAmount isDecimalAmount" onkeypress="return isNumberKeySearch(this,event);" type="text" onchange="validateTotalLoanAmount();"/>
+                    </div>
+                </section>
+                
+                <!-- LOAN VALUE LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-12 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="loan_Value__c1">Reason</label>
+                </section>
+                
+                <!-- LOAN VALUE PICKLIST -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select category isLoanValue" id="loan_Value__c1" name="loan_Value__c1" onchange="showHideOther(this.id, this.value);validateTotalLoanAmount();showAlertMessage();"/>
+                    </div>
+                </section>
+                
+                <!-- OTHER LOAN PURPOSE LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-12 slds-text-align--right">
+                    <label id="otherLoanPurposeLabel1" class="slds-form-element__label showHideLabel" for="loan_Other_Loan_Purpose__c1">Other loan purpose</label>
+                </section>
+                
+                <!-- OTHER LOAN PURPOSE TEXT -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <input id="loan_Other_Loan_Purpose__c1" name="loan_Other_Loan_Purpose__c1" class="slds-input isRequired" type="text" maxlength="20"/>
+                    </div>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-12"/>
+                
+            </div>
+
+       </div>
+
+       <!-- REFINANCE SECTION -->
+        <div id="refinanceSection" class="refinanceSection slds-hide">
+            
+            <!-- FIELDS -->
+            <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds-text-align--right">
+                   <!-- LOAN AMOUNT LABEL -->
+                    <label class="slds-form-element__label req" for="loan_Amount__c">Amount</label>
+                </section>
+                
+                <!-- LOAN AMOUNT FIELD -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <input class="slds-input" id="loan_Amount__c" type="text" disabled="disabled"/>
+                    </div>
+                </section>
+                
+                <!-- LOAN VALUE LABEL -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-12 slds-text-align--right">
+                    <label class="slds-form-element__label req" for="loan_Value__c">Reason</label>
+                </section>
+                
+                <!-- LOAN VALUE PICKLIST -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                    <div class="slds-form-element__control">
+                        <select class="slds-select" id="loan_Value__c" disabled="disabled">
+                            <option value="volvo">Refinance</option>
+                        </select>
+                    </div>
+                </section>
+                
+                <!-- EMPTY SECTION -->
+                <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--4-of-12"/>
+                
+            </div>
+            
+       </div>
+       
+        <!-- APPLICATION FIELDS -->
+        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+            
+            <!-- LOAN TERM LABEL -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds-text-align--right">
+                <label class="slds-form-element__label req" for="app_Loan_Term__c">Term</label>
+            </section>
+            
+            <!-- LOAN TERM FIELD -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                <div class="slds-form-element__control">
+                    <select class="slds-select isLoanTerm" id="app_Loan_Term__c" name="app_Loan_Term__c"/>
+                </div>
+            </section>
+            
+            <!-- PAYMENT FREQUENCY LABEL -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-12 slds-text-align--right">
+                <label class="slds-form-element__label req" for="app_Payment_Frequency__c">With</label>
+            </section>
+            
+            <!-- PAYMENT FREQUENCY PICKLIST -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-12 slds-text-align--left">
+                <div class="slds-form-element__control">
+                    <select class="slds-select isPaymentFrequency" id="app_Payment_Frequency__c" name="app_Payment_Frequency__c"/>
+                </div>
+            </section>
+            
+            <!-- REPAYMENTS LABEL -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--4-of-12 slds-text-align--left">
+                <label class="slds-form-element__label slds-m-left--small">Repayments</label>
+            </section>
+            
+        </div>
+              <div id="alertMessage" class="alertMessage" style="background-color:#EAF4FE !important;width:500px;margin: 10px 203px auto auto;color:#1F2123 !important;font-family:initital;padding-left:25px;margin-left: 266px;"/> 
+
+        <!-- TOTAL LOAN AMOUNT SECTION -->
+        <div class="slds-grid slds-wrap slds-m-top--x-small">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds"/>
+
+            <!-- TOTAL LOAN AMOUNT -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--9-of-12 slds-text-align--left">
+                <label class="slds-form-element__label slds-m-right--xx-small">Total Loan Amount:</label>
+                <span class="slds-form-element__static totalAmount" id="totalLoanAmount"></span>
+            </section>
+
+        </div>
+
+        <!-- VALIDATION SECTION -->
+        <div class="slds-grid slds-wrap slds-m-top--x-small">
+            
+            <!-- EMPTY SECTION -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-12 slds"/>
+            
+            <!-- VALIDATIONS -->
+            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--9-of-12 slds-text-align--left">
+
+                <label class="slds-hide" id="totalLoanValidationMessage" style="color:red;">
+                    Your preferred loan amount must be at least $3000
+                </label>
+                
+                <!-- Below Validation Added by Suneel Betterstart -->
+                <label class="slds-hide" id="betterStartValidationMessage" style="color:red;">                    
+                </label><br/>
+                <label class="slds-hide" id="BS_DC_ValidationMessage" style="color:red;">
+                </label>
+                
+                <div id="extraSpace" class="slds-hide"/>
+                
+                <label class="slds-hide" id="maxRefinanceValidationMessage" style="color:red;">
+                    You are allowed a maximum of 3 Refinance Loan Purposes
+                </label>
+                
+            </section>
+            
+        </div>
+        
+        <!-- ADD BUTTON -->
+        <div class="slds-grid slds-grid--align-center slds-m-vertical--large">
+            <button type="button" id='addLoan' class="slds-button slds-button--brand" onclick="addRecord('loanSection', 'loanDiv', hideSectionIdsLoan, this.id, 1);">ADD MORE</button>
+        </div>
+        
+    </section>
+    
+    <script>
+        //Global variable used when adding records. Used for hiding dynamic sections
+        var hideSectionIdsLoan = ['loan_Other_Loan_Purpose__c', 'otherLoanPurposeLabel'];
+        
+        /*  Description: Toggle other section if loan value/reason is other
+         *  Author: Mike Lasala
+         *  Date Created: 07-OCT-2015
+         *  Input: Element Id (to identify which row), 
+                   Loan value/reason
+         */
+        function showHideOther(elementId, reason){
+            
+            //Get record counter
+            var counter = getCounter(elementId);
+            
+            if(reason == 'Other'){
+                
+                //Show other section
+                $('#otherLoanPurposeLabel'+counter).show();
+                $('#loan_Other_Loan_Purpose__c'+counter).show();
+                
+            } else {
+            
+                //Hide other section
+                $('#otherLoanPurposeLabel'+counter).hide();
+                $('#loan_Other_Loan_Purpose__c'+counter).hide();
+                $('#loan_Other_Loan_Purpose__c'+counter).val('');
+                clearValidationMessagesByElem('#loan_Other_Loan_Purpose__c'+counter);
+            }
+        }
+        
+        function validateMaxRefinance(){
+            
+        }
+
+        /*  Description: Populate loan purpose value picklist
+         *  Author: Mike Lasala
+         *  Date Created: 06-OCT-2015
+         *  Input: None
+         */
+        function loadLoanPurposeValues(){
+            
+            //Disable the loan purpose term field
+            //$('#app_Loan_Term__c').prop('disabled',true);
+            //$('#app_Loan_Term__c').empty();
+            
+            var COUNTRY = '{!JSENCODE($CurrentPage.parameters.country)}';   
+            var quoteId = '{!JSENCODE($CurrentPage.parameters.qid)}';   
+            
+            //Array of loan purpose values for AU
+            //var loanValuesAU = ["Car purchase", "Car repairs", "Debt consolidation", "Educational expenses", "Home improvements", "Medical / Dental", "Other vehicle purchase", "Small debts","Beat Your Rate; Switch Now","Travel"];
+            
+            //Turn Off Beat your Rate - Added by Suneel - 27/02/2018
+              var loanValuesAU = ["Car purchase", "Car repairs", "Debt consolidation", "Educational expenses", "Home improvements", "Medical / Dental", "Other vehicle purchase", "Small debts","Travel"];
+
+            //Array of loan purpose values for NZ
+            var loanValuesNZ = ["Auto Purchase", "Auto Repairs", "Caravan/Boat/Recreational", "Consolidation", "Education", "Home improvements", "Medical & Dental", "Travel/Holiday"];
+            
+            //Array of loan purpose values for Both
+            var loanValuesBoth = ["Household furnishings"];
+            
+            //Array to combine regions values and for both
+            var loanValues;
+            
+            //Identify country
+            if(COUNTRY == 'AU'){
+                
+                //Merge AU and Both loan purpose values
+                loanValues = $.merge(loanValuesAU, loanValuesBoth);
+            } else {
+                
+                //Merge NZ and Both loan purpose values
+                loanValues = $.merge(loanValuesNZ, loanValuesBoth);
+            }
+            
+            //Sort alphabetically
+            loanValues.sort();
+            
+            //Add Other as last option (as per current Staff UI)
+            loanValues.push("Other");
+            
+            //Append values to select
+            for(var i=0; i<loanValues.length; i++){
+                $("select#loan_Value__c1").append( $("<option>").val(loanValues[i]).html(loanValues[i]));
+            }
+            //Soft Quote Changes: START  
+            if(quoteId != '' && COUNTRY == 'NZ'){
+                    var result = sforce.connection.query("Select Loan_Purpose__c FROM Quote__c WHERE Id = '"+quoteId+"'",{
+                    onSuccess: function(result){
+                        if(result.size > 0){
+                            var records = result.getArray('records');
+                            var loanPurpose = records[0].Loan_Purpose__c;
+                            $("#loan_Value__c1").val(loanPurpose);
+                        }
+                    },
+                   onFailure: function(error){
+                        console.log(error);
+                    }
+                    
+                    });
+             }
+           //Soft Quote Changes: END
+        }
+        
+        //Set default picklist values
+        setDefaulPicklistValue('#LoanPurposeSection');
+            
+        //Load picklist values
+        loadLoanPurposeValues();
+        
+        //Hide other section on load
+        showHideOther('loan_Value__c1', '');
+
+        /****************************SUBMIT**********************************/
+        /*  Description: Map loan purpose records
+         *  Author: Mike Lasala
+         *  Date Created: 01-NOV-2015
+         *  Input: None
+         */
+        function mapLoanPurpose(){
+
+            //Get record count
+            var recordLength = $('.loanSection').length;
+                
+            for(var i=1; i<=recordLength; i++){
+                
+                if(getValue('loan_Value__c'+i) != ' '){
+                    
+                    //Create object
+                    var loan = new sforce.SObject('Loan_Purpose__c');
+                
+                    //Mapping the fields        
+                    loan.Loan_Amount__c = getValue('loan_Amount__c'+i);
+                    loan.Value__c =       getValue('loan_Value__c'+i);
+                    loan.Application__c = app.Id;
+                    loan.ONR__c =         onrs[1].Id;
+
+                    if(loan.Value__c == 'Other'){
+                        loan.Other_Loan_Purpose__c = getValue('loan_Other_Loan_Purpose__c'+i);
+                    }
+                    
+                    loanPurposes.push(loan);
+                }
+            }
+            
+            //Get scope prepared from search and match
+            var scope = angular.element($("#mainSM")).scope();
+            console.log('scope.refLoanMap: '+JSON.stringify(scope.refLoanMap));
+            
+            //Iterate over each record
+            for(key in scope.refLoanMap){
+                
+                //Create object
+                var loan = new sforce.SObject('Loan_Purpose__c');
+                
+                //Mapping the fields        
+                loan.Loan_Amount__c = scope.refLoanMap[key].Loan_Amount__c;
+                loan.Value__c =       scope.refLoanMap[key].Value__c;
+                loan.Application__c = app.Id;
+                loan.ONR__c =         onrs[1].Id;
+                
+                loanPurposeDisbursementMap[loanPurposes.length] = key;
+                
+                loanPurposes.push(loan);
+            }
+            console.log('loanPurposes: '+loanPurposes);
+            
+            debugLog('Loan Purpose Data',loanPurposes);
+            
+            createRecord(loanPurposes);
+        }
+        
+        function showAlertMessage(){
+                         var loanPurposeId1 = document.getElementById("loan_Value__c1");
+                         var loanPurposeId2 = document.getElementById("loan_Value__c2");
+                         var loanPurposeId3 = document.getElementById("loan_Value__c3");
+                         var loanPurposeId4 = document.getElementById("loan_Value__c4");
+                         var loanPurposeId5 = document.getElementById("loan_Value__c5");
+                         var loanPurposeId6 = document.getElementById("loan_Value__c6"); 
+                         var loanPurposeId7 = document.getElementById("loan_Value__c7");
+                         var loanPurposeId8 = document.getElementById("loan_Value__c8"); 
+                         var loanPurposeId9 = document.getElementById("loan_Value__c9");
+                         var loanPurposeId10 = document.getElementById("loan_Value__c10");
+                      
+                          
+                         
+                        
+                         if(loanPurposeId1.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId1.value != 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'none';
+                         }
+                         
+                         
+                         
+                         if(loanPurposeId2.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId3.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId4.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId5.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId6.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId7.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId8.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId9.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';
+                         }else if(loanPurposeId10.value == 'Consolidation'){
+                            document.getElementById("alertMessage").style.display = 'block';
+                           document.getElementById("alertMessage").innerHTML = 'Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, you accept these fees in order to  achieve your objectives.';                          
+                         }
+                    }
+    </script>
+    
+</apex:component>

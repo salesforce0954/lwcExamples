@@ -1,0 +1,164 @@
+<apex:page controller="APP_PwdChangeCC" showHeader="false"
+    id="GETemplate" sidebar="false" action="{!tokenCheck}"
+    standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true"
+    docType="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}" />
+
+    <!-- 2015-01-08 Added by Tony Xu for DBHZL237 START -->
+    <script>
+
+        function isNumberKey(evt) {
+
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+            && (charCode < 48 || charCode > 57))
+            return false;
+
+            if(charCode == 46) {
+                return false
+            }
+            else{
+                return true;
+            }
+
+        }
+
+        function dob(){
+
+            var dd = document.getElementById("GETemplate:GETemplate:formId:User-1:dd").value;
+            var mm = document.getElementById("GETemplate:GETemplate:formId:User-1:mm").value;
+            var yy = document.getElementById("GETemplate:GETemplate:formId:User-1:yy").value;
+var dob=document.getElementById("GETemplate:GETemplate:formId:User-1:User___Date_of_Birth__c").value = dd+"-"+mm+"-"+yy;
+
+        }
+
+    </script>
+    <!--  END -->
+
+
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="GEDDBody">
+            <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, 
+                '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+            <section>
+                <!--start of section-->
+                <div class="maincontent">
+                    <div class="row-fluid">
+                        <div class="row-fluid span12 page-password-reset">
+                            <div class="span5 loginbox">
+                                <h3>Password Change</h3>
+                                <apex:form id="formId">
+                                    <!-- <div class="pwdchangemssg"><apex:pageMessages escape="false" /></div> -->
+                                    <!--Defect 410 -START -->
+                                    <div style="color: red">
+                                        <apex:pageMessages escape="false" />
+                                    </div>
+                                    <!-- Defect 410 -End  -->
+                                    <apex:pageBlock id="User-1" rendered="{!isSuccess}">
+                                        <apex:inputHidden value="{!dob}" id="User___Date_of_Birth__c" />
+                                        <label>Date of Birth <span class="fui-star-2"></span></label>
+                                        <div class="span4 sovrd">
+                                            <apex:selectList id="dd" size="1" value="{!birthDate}">
+                                                <apex:selectOptions value="{!DateOptions}" />
+                                            </apex:selectList>
+                                        </div>
+
+                                        <div class="span5 sovrd">
+                                            <apex:selectList id="mm" size="1" value="{!birthMonth}">
+                                                <apex:actionSupport event="onchange" id="b"
+                                                    action="{!setDate}" rerender="dd" />
+                                                <apex:selectOptions value="{!monthOptions}" />
+                                            </apex:selectList>
+                                        </div>
+
+                                        <div class="span3">
+                                            <apex:inputText id="yy"
+                                                styleClass="validate[required] input-block-level number"
+                                                maxlength="4" value="{!birthYear}"
+                                                onkeypress="return isNumberKey(event)" />
+                                        </div>
+
+                                        <div class="clearall"></div>
+                                        <div class="clearall"></div>
+
+                                        <!-- Comment out for Defect297 TXU <apex:pageMessages id="errorId"/> -->
+
+                                        <label>New Password<span class="fui-star-2"></span></label>
+                                        <apex:inputSecret styleClass="input-block-level number"
+                                            value="{!newPassword}" id="pw" />
+                                        <apex:outputText style="font-size:13px;font-style:italic;"
+                                            value="{!$Label.Password_Criteria}">
+                                        </apex:outputText>
+                                        <div class="clearfix"></div>
+
+                                        <label>Confirm New Password<span class="fui-star-2"></span></label>
+                                        <apex:inputSecret styleClass="input-block-level number"
+                                            value="{!confirmNewPassword}" id="newPw" />
+
+                                        <div class="clearall"></div>
+                                        <div class="divider20"></div>
+                                        <apex:commandButton styleClass="btn btn-activec btn-block buttonarrowimg removelmargin"
+                                            value="Confirm" action="{!confirmPassword}" rerender="formId"
+                                            onclick="dob()" />
+                                        <input id="PRS_Save" type="hidden" name="PRS_Save" value="Save"/>
+                                    </apex:pageBlock>
+                                </apex:form>
+                                <div class="divider30"></div>
+                            </div>
+                            <!--end of login box-->
+                        </div>
+                        <!--end of span-->
+                    </div>
+                    <!--end of rowfluid-->
+                </div>
+                <!--end of maincontent-->
+            </section>
+            <!--end of section-->
+        </apex:define>
+        <div class="divider30"></div>
+    </apex:composition>
+    <apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1"
+        width="1" rendered="{!customer}" />
+        
+        
+        <!-- @title     Design OverRide for APP_PwdChange VF Page -->
+        <!-- @author    gerome.teodosio@cloudsherpas.com          -->
+        <!--            gerome.h.teodosio@Accenture.com           -->
+        
+        <!-- Latitude brand styling specific for APP_PwdChange VF Page -->
+        <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+            <style>
+                @media screen and (min-width: 415px) {
+                    .btn.btn-activec.btn-block.buttonarrowimg {
+                        background-position: 90% 50%;
+                    }
+                }
+                /*For Mobile*/
+                @media screen and (max-width: 414px) {
+                    .buttonarrowimg {
+                        background-position: 85% 50% !important;
+                    }
+                }
+            </style>
+        </apex:outputPanel>
+        
+        <!-- Gem brand styling specific for APP_PwdChange VF Page -->
+        <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+            <style>
+                @media screen and (min-width: 415px) {
+                    .btn.btn-activec.btn-block.buttonarrowimg {
+                        background-position: 90% 50%;
+                    }
+                }
+                /*For Mobile*/
+                @media screen and (max-width: 414px) {
+                    .sovrd {
+                        margin-right: 5px;
+                    }
+                    .buttonarrowimg {
+                        background-position: 85% 50% !important;
+                    }
+                }
+            </style>
+        </apex:outputPanel>
+</apex:page>

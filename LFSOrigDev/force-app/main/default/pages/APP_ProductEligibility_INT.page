@@ -1,0 +1,1080 @@
+<!--
+/*
+ * @Description: Product Selection & Eligibility page (Staff UI)
+ * @Author: Mike Lasala
+ * @Date Created: 23.OCT.2013
+ * @History:
+   =====================================================================
+       10-23-13: Mike - Created
+       12-10-13: Mike - Added javascript for enabling/disabling of Save & Clost and Next
+       29-01-14: August - Removed the Action function
+       20-02-14: Mike - Added Identity Verification
+       25-11-14: Vijay - DBHZL-54 Eligibility Copy & Acknowledgements
+       Mar-02-2016: Afreen Khan - Updated for adding Broker details section
+       29-Mar-16: Afreen - Updated for Story 225, changing the consent wordings and order 
+       02-June-16: Marvin - Updated for Story 369, converted checkbox into yes/no buttons
+       09-Sept-16: Vasu - Updated for Story TQLQW-487 - Promo engine change
+   =====================================================================
+ */ 
+-->
+<apex:page id="GETheme" standardController="Application__c" extensions="APP_ProductEligibilityExt_INT" cache="false" 
+    showHeader="false">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+    <script>
+        var $j=jQuery.noConflict();
+        $j( document ).ready(function() {
+            var selType= document.getElementById('{!$Component.GETheme.formId.pBlockId.typeSel}').selectedIndex;
+            var selTypeValue= document.getElementById('GETheme:formId:pBlockId:typeSel').options[selType].text;
+            onChangeofProd(selTypeValue);
+            populateYesNoOption();
+        });
+        function onChangeofProd(selectedVal){
+        //alert(selectedVal);
+            if(selectedVal!='' && selectedVal!='Please Select'){
+                document.getElementById('GETheme:formId:pBlockId:branchLookup_lkwgt').style.display='inline';
+                document.getElementById('GETheme:formId:pBlockId:branchLookup').disabled=false;
+            }else{
+                document.getElementById('GETheme:formId:pBlockId:branchLookup_lkwgt').style.display='none';
+                document.getElementById('GETheme:formId:pBlockId:branchLookup').disabled=true;
+            }
+        }
+    </script>
+    <div class="lookupovr">
+    <apex:form id="formId">
+        <apex:actionFunction name="typeOfProduct"  action="{!getTypeOfProd}" reRender="prodType"/>             
+        <apex:pageMessages />    
+        <apex:pageBlock id="pBlockId" title="Product Selection">
+            <apex:outputLabel for="prodSel" value="Product:" styleClass="txtright width160" />&nbsp;
+            <div class="requiredBlock2"></div>
+            <apex:selectList id="prodSel" size="1" value="{!selectedBrand}" disabled="{!disableProductSelection}" 
+            onchange="displayPBUIDField();typeOfProduct();">
+                <apex:selectOptions value="{!Brands}"/>
+            </apex:selectList>&nbsp;<h1>{!picklistMessage}</h1>
+            <br/><div class="clearfix"></div>      
+            <apex:outputPanel id="prodType" 
+            rendered="{!$ObjectType.Application__c.fields.Type_of_Product__c.Updateable}">                
+                <apex:outputLabel for="typeSel" value="Type:" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:selectList id="typeSel" size="1" value="{!productType}" disabled="{!selectedBrand==null}" 
+                onchange="onChangeofProd(this.value)">
+                    <apex:selectOptions value="{!lst_TypeOfProducts}"/>
+                </apex:selectList>
+                <br/><div class="clearfix"></div>
+            </apex:outputPanel>
+            <!--Added by Arshad -->
+             <!-- <apex:outputPanel rendered="{!$ObjectType.Application__c.fields.Type_of_Product__c.Updateable  && IF(application.Brand_Country__c == 'NZ', isBSNZActive,isBSAUActive )}"> -->     
+             <apex:outputPanel rendered="{!$ObjectType.Application__c.fields.Type_of_Product__c.Updateable}">   
+              <apex:outputLabel for="subtypeSel" value="SubType:" styleClass="txtright width160"/>&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:selectList id="subtypeSel" size="1" value="{!pSubType}" >
+                    <apex:selectOptions value="{!productSubTypeOptions}"/>
+                </apex:selectList>
+                <br/><div class="clearfix"></div> 
+                </apex:outputPanel>                            
+            <!-- End by Arshad -->                      
+            <apex:outputLabel for="channel" styleClass="txtright width160" value="Channel:"/>&nbsp;
+            <div class="requiredBlock2"></div>
+            <apex:selectList id="channel" size="1" value="{!Channel}" onChange="displayBrokerFields();" 
+            disabled="{!disableChannel}">
+                <apex:selectOptions value="{!Channels}"/>
+            </apex:selectList>
+            <div class="clearfix"></div>
+            <apex:outputPanel id="broke">
+                <apex:outputLabel for="broker" value="Broker:" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="broker" value="{!application.Broker__c}" />
+                <div class="clearfix"></div>
+
+                <apex:outputLabel for="brokerFName" value="Broker First Name Captured" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="brokerFName" value="{!application.Broker_First_Name_Captured__c}"  html-disabled="true" />
+                <div class="clearfix"></div>
+
+                <apex:outputLabel for="brokerLName" value="Broker Last Name Captured" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="brokerLName" value="{!application.Broker_Last_Name_Captured__c}" html-disabled="true"/>
+                <div class="clearfix"></div>
+
+                <apex:outputLabel for="brokerCNumber" value="Broker Contact Number" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="brokerCNumber" value="{!application.Broker_Contact_Number__c}" html-disabled="true"/>
+                <div class="clearfix"></div>
+                <!-- Removing Broker Fee Field as Part of Broker Fee EFT Project - By Suneel - 07/02/2018 
+                <apex:outputLabel for="brokerFee" value="Broker Fee:" styleClass="txtright width160" />&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="brokerFee" value="{!disbursement.Amount__c}"/> -->
+            </apex:outputPanel>
+            <div class="clearfix"></div>
+            <apex:outputLabel for="mirror" styleClass="txtright width160" value="Business Source:"/>&nbsp;
+            <div class="requiredBlock2"></div>
+            <apex:selectList id="mirror" size="1" styleClass="width280" value="{!mirror}" disabled="{!IF(mirror == 'SocietyOne', true, false)}"> <!-- June14, 2016, Afreen - Disable when Society One -->
+                <apex:selectOptions value="{!MirrorSelections}"/>
+            </apex:selectList>
+            <div class="clearfix"></div>
+            <apex:outputLabel for="busSource" styleClass="txtright width160" value="Application Type:"/>&nbsp;
+            <div class="requiredBlock2"></div>
+            <apex:selectList id="busSource" size="1" styleClass="width280" value="{!businessSource}">
+                <!--disabled="{!IF(application.Channel__c == '3rd Party Application', true, false)}"> <-- Sept 1, 2016, MDAVID - Make Application Type field editable for 3rd Party Applications -->
+                <apex:selectOptions value="{!BusinessSources}"/>
+            </apex:selectList>
+            <div class="clearfix"></div>
+            <apex:outputPanel id="branch" styleClass="blupovr">
+                <apex:outputLabel for="branchLookup" styleClass="txtright width160" value="Sales Team:"/>&nbsp;
+                <div class="requiredBlock2"></div>
+                <apex:inputField id="branchLookup" value="{!application.Branch__c}" />
+            </apex:outputPanel>
+            <div class="clearfix"></div>
+            <div class="blupovr">
+                <apex:outputLabel styleClass="txtright width160" value="Settlement Date:"/>&nbsp;
+                <div class="requiredBlocknull"></div>
+                <apex:inputField value="{!application.Settlement_Date__c}"/>
+            </div>
+            <!--Vasu: start TQLQW-487 - Promo engine change -->
+            <div class="clearfix"></div>
+            <div class="blupovr" style="display:{!IF(region!=$Label.NZ_Site_Name,'none','')}">
+                <apex:outputLabel styleClass="txtright width160" value="Promo ID:"/>&nbsp;
+                <div class="requiredBlocknull"></div>
+                <apex:inputField value="{!application.Promo_ID__c}"/>
+            </div>
+            <!--Vasu: End TQLQW-487 - Promo engine change -->
+            <div class="clearfix"></div>
+             <div class="blupovr" id = "pbuidDiv">
+                <apex:outputLabel styleClass="txtright width160" value="Kiwibank BPUID:"/>&nbsp;
+                <div class="requiredBlocknull"></div>
+                <apex:inputField value="{!application.PBUID__c}"/>
+            </div>
+            <div class="clearfix"></div>
+             <div class="blupovr" id = "kiwiaccessDiv">
+                <apex:outputLabel styleClass="txtright width160" value="Kiwibank access number(Applicant 1):"/>&nbsp;
+                <div class="requiredBlocknull"></div>
+                <apex:inputText value="{!kiwiBankAccess1}"/>
+            </div>
+            
+            <div class="clearfix"></div>
+             <div class="blupovr" id = "kiwiaccessDiv2" style="margin-bottom:5px;display:none;">
+                <apex:outputLabel styleClass="txtright width160" value="Kiwibank access number(Applicant 2):"/>&nbsp;
+                <div class="requiredBlocknull"></div>
+                <apex:inputText value="{!kiwiBankAccess2}"/>
+            </div>
+            <br/>
+            <script>
+            
+            function displayBrokerFields(){
+                var channel = document.getElementById("GETheme:formId:pBlockId:channel");
+                if(channel.value == "Broker"){
+                    document.getElementById("GETheme:formId:pBlockId:broke").style.display = "block";
+                }else{
+                    document.getElementById("GETheme:formId:pBlockId:broke").style.display = "none";
+                }
+            }
+            displayBrokerFields();
+            
+             function displayPBUIDField(){
+                var prod = document.getElementById("GETheme:formId:pBlockId:prodSel");
+                var selectedText = prod.options[prod.selectedIndex].text;               
+                if(selectedText == "Kiwibank"){
+                    document.getElementById("pbuidDiv").style.display = "block";
+                    document.getElementById("kiwiaccessDiv").style.display = "block";
+                    var appType = document.getElementById('GETheme:formId:pBlockId1:applicationTypePicklist').value; 
+                    if (appType == 'Joint'){       
+                         document.getElementById("kiwiaccessDiv2").style.display = "block";     
+                    }
+                   
+                    
+                }else{
+                    document.getElementById("pbuidDiv").style.display = "none";
+                    document.getElementById("kiwiaccessDiv").style.display = "none";
+                    var appType = document.getElementById('GETheme:formId:pBlockId1:applicationTypePicklist').value; 
+                    if (appType == 'Joint'){       
+                      document.getElementById("kiwiaccessDiv2").style.display = "none";
+                    }
+                }
+            }
+            
+            </script>
+        </apex:pageBlock>        
+        <apex:pageBlock id="pBlockId1" title="Eligibility">
+        
+            <label styleClass="txtright width160">There is</label>&nbsp;<div class="requiredBlock2"></div>
+            
+            <apex:selectList id="applicationTypePicklist" size="1" value="{!applicationType}" 
+            onChange="enableBtn();addApplicant();">
+                <apex:selectOption itemValue="" itemLabel="Please Select" />
+                <apex:selectOption itemValue="Single" itemLabel="One Person"/>
+                <apex:selectOption itemValue="Joint" itemLabel="Two People"/>
+                <apex:actionSupport event="onchange" rerender="applicationTypePicklist"/>
+            </apex:selectList>
+            
+            <label styleClass="">applying for this loan</label>
+            
+            <apex:actionStatus id="pleasewait" layout="block">
+                <apex:facet name="start">
+                    <img src="{!$Resource.LoadingDialog}" />
+                </apex:facet> 
+            </apex:actionStatus>
+            
+            <br/>
+                
+            <apex:tabPanel id="tabPanelId" switchType="client" styleClass="subtabBlue">
+                
+                <apex:tab label="Applicant 1" name="applicant1Tab">
+                    
+                    Sales Agent has confirmed the following:<br/>
+                    
+                    <ul style="display:{!IF(region==$Label.NZ_Site_Name,'none','block')}">
+                        <li>Be over the age of 18</li>
+                        <li >Be a permanent Australian Resident</li>
+                        <li >Currently be working and earning an annual gross income of more than $24,000</li>
+                        <li >Have had a good credit history for the last 5 years</li>
+                        <li >Not have been bankrupt in the last 7 years</li>
+                        
+                    </ul>
+                    <ul style="display:{!IF(region==$Label.NZ_Site_Name,'block','none')}">
+                        <li>Be over the age of 18</li>
+                        <li >Be a permanent New Zealand Resident</li>
+                        <li > Have a stable income</li>
+                    </ul>
+                    <!-- modified by vijay-->    
+                    <div style="display: none">
+                        <apex:inputcheckbox value="{!confirmEligibleForLoan}" id="loanConfirmation1"
+                            onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation1} *<br/>
+                        <div style="display:{!IF(region==$Label.NZ_Site_Name,'none','inline')}">
+                        <apex:inputcheckbox value="{!confirmApplicationMeetsNeeds}" id="loanConfirmation2" 
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation2} *<br/></div>
+                        <div><apex:inputcheckbox value="{!confirmAgreedToPolicy}" id="loanConfirmation3" 
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation3} *<br/></div>
+                        
+                         <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+                         <div style="display: none"><apex:inputcheckbox value="{!confirmConsentLpi}" id="loanConfirmation8" 
+                         onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation8} *<br/></div>
+                         <!-- END ARSHAD:  25/05/2018 - BDR-105 -->                                              
+                        <div style="display:{!IF(region==$Label.NZ_Site_Name,'none','inline')}">
+                            <apex:inputcheckbox value="{!confirmIdentifyVerification}" id="loanConfirmation5" />{!$Label.APP_LoanPage_Confirmation5} <br/>
+                        </div>
+                        <!-- BEGIN Suneel POI Automation 25/01/2021 -->
+                        <div style="display:{!IF(region==$Label.NZ_Site_Name,'none','inline')}">
+                            <apex:inputcheckbox value="{!confirmAgreedToIncomeVerification}" id="loanVerifierConfirmation" />{!$Label.APP_LoanPage_VerifierConfirmation} <br/> 
+                        </div>  
+                        <!-- End -->
+                    <!--Start commenting as part of NZ Stopsell Insurance-->                       
+                       <!--<div>
+                            <!-- BEGIN MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                            <!--<apex:inputcheckbox value="{!confirmAllowInsuranceOffers}" id="loanConfirmation4" onClick="enableBtn();"/> 
+                           <!--  {!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, $Label.APP_LoanPage_Confirmation4_AU)}  -->
+                            <!--{!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, '')}
+                            <br/>
+                            <!-- END MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                        <!--</div>-->
+                    <!--End commenting as part of NZ Stopsell Insurance-->     
+                        <div><apex:inputcheckbox value="{!confirmHigherApprovalConsent}" id="loanConfirmation6"/> 
+                        {!$ObjectType.Application__c.fields.Higher_Approval_Consent__c.label} <br/></div>
+                    </div>
+                    <!-- START- TQLQW-369 [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID 06/02/2016 -->
+                    <table>
+                        <div>
+                        <tr>
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation1} *"/></td>
+                            <td>
+                                <input type="button" id="app1ConfirmEligibleForLoan_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmEligibleForLoan', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmEligibleForLoan_No" value="No" onClick="toggleYesNoOption('ConfirmEligibleForLoan', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <!-- MLASALA 14-JUL-16 DEFECT 1137 FIX -->
+                        <div>
+                        <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation2} *"/></td>
+                            <td>
+                                <input type="button" id="app1ConfirmApplicationMeetsNeeds_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmApplicationMeetsNeeds', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmApplicationMeetsNeeds_No" value="No" onClick="toggleYesNoOption('ConfirmApplicationMeetsNeeds', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                       
+                        <div>
+                        <tr>
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation3} *"/></td>  
+                            <td>
+                                <input type="button" id="app1ConfirmAgreedToPolicy_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmAgreedToPolicy', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmAgreedToPolicy_No" value="No" onClick="toggleYesNoOption('ConfirmAgreedToPolicy', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        
+                        <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+                        <div>
+                        <!-- <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}"> --> 
+                        <tr style="display:none">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation8} *"/></td>  
+                            <td>
+                                <input type="button" id="app1confirmConsentLpi_Yes" value="Yes" onClick="toggleYesNoOption('confirmConsentLpi', '1', 'Yes');"/>
+                                <input type="button" id="app1confirmConsentLpi_No" value="No" onClick="toggleYesNoOption('confirmConsentLpi', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+                                            
+                        <!-- MLASALA 14-JUL-16 DEFECT 1137 FIX -->
+                        <div>
+                        <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation5}"/></td>  
+                            <td>
+                                <input type="button" id="app1ConfirmIdentifyVerification_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmIdentifyVerification', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmIdentifyVerification_No" value="No" onClick="toggleYesNoOption('ConfirmIdentifyVerification', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                         <!-- Applicant 1 -- Added by Suneel --POI Automation -- 25/01/2021 -->
+                       <div>
+                         <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_VerifierConfirmation}"/></td>  
+                            <td>
+                                <input type="button" id="app1ConfirmVerifierVerification_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmVerifierVerification', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmVerifierVerification_No" value="No" onClick="toggleYesNoOption('ConfirmVerifierVerification', '1', 'No');"/>
+                            </td>
+                        </tr>
+                      </div>
+                      <!--Start commenting as part of NZ Stopsell Insurance-->
+                        <!--<div>
+                        
+                        <tr>
+                            <!-- <td><apex:outputText value="{!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, $Label.APP_LoanPage_Confirmation4_AU)}"/></td> -->
+                           <!-- <td><apex:outputText value="{!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, '')}"/></td>
+                            <td style="display:{!IF(region=='AU','none','block')}">
+                                <input type="button" id="app1ConfirmAllowInsuranceOffers_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmAllowInsuranceOffers', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmAllowInsuranceOffers_No" value="No" onClick="toggleYesNoOption('ConfirmAllowInsuranceOffers', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>-->
+                    <!--End commenting as part of NZ Stopsell Insurance-->
+                        <div>
+                        <tr>
+                            <td><apex:outputText value="{!$ObjectType.Application__c.fields.Higher_Approval_Consent__c.label}"/></td>     
+                            <td>
+                                <input type="button" id="app1ConfirmHigherApprovalConsent_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmHigherApprovalConsent', '1', 'Yes');"/>
+                                <input type="button" id="app1ConfirmHigherApprovalConsent_No" value="No" onClick="toggleYesNoOption('ConfirmHigherApprovalConsent', '1', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                    </table>
+                    <!-- END- TQLQW-369 [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID 06/02/2016 -->
+                </apex:tab>
+                
+                <apex:tab label="Applicant 2" name="applicant2Tab" id="applicant2Tab">
+                    
+                    Sales Agent has confirmed the following:<br/>
+                    
+                    <ul style="display:{!IF(region==$Label.NZ_Site_Name,'none','block')}">
+                        <li>Be over the age of 18</li>
+                        <li >Be a permanent Australian Resident</li>
+                        <li >Currently be working and earning an annual gross income of more than $24,000</li>
+                        <li >Have had a good credit history for the last 5 years</li>
+                        <li >Not have been bankrupt in the last 7 years</li>
+                        
+                    </ul>
+                    <ul style="display:{!IF(region==$Label.NZ_Site_Name,'block','none')}">
+                        <li>Be over the age of 18</li>
+                        <li >Be a permanent New Zealand Resident</li>
+                        <li > Have a stable income</li>
+                    </ul>
+                    <!-- modified by vijay-->  
+                    <div style="display: none">
+                        <div><apex:inputcheckbox value="{!confirm2EligibleForLoan}" id="loan2Confirmation1" 
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation1}<apex:outputpanel rendered="{!app2Optional}">*</apex:outputpanel><br/></div>
+                        <div style="display:{!IF(region!=$Label.NZ_Site_Name,'inline','none')}">
+                        <apex:inputcheckbox value="{!confirm2ApplicationMeetsNeeds}" id="loan2Confirmation2" 
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation2}<apex:outputpanel rendered="{!app2Optional}">*</apex:outputpanel><br/></div>
+                        <div><apex:inputcheckbox value="{!confirm2AgreedToPolicy}" id="loan2Confirmation3" 
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation3} <apex:outputpanel rendered="{!app2Optional}">*</apex:outputpanel><br/></div>
+                        
+                        <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+                        <div style="display:none"><apex:inputcheckbox value="{!confirm2ConsentLpi}" id="loan2Confirmation8"
+                        onClick="enableBtn();"/> {!$Label.APP_LoanPage_Confirmation8} <apex:outputpanel rendered="{!app2Optional}">*</apex:outputpanel><br/></div>
+                        <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+                      
+                        <div style="display:{!IF(region!=$Label.NZ_Site_Name,'inline','none')}">
+                            <apex:inputcheckbox value="{!confirm2IdentifyVerification}" id="loan2Confirmation5"/>{!$Label.APP_LoanPage_Confirmation5} <br/>
+                        </div>
+                         <!-- BEGIN Suneel POI Automation 25/01/2021 -->
+                        <div style="display:{!IF(region==$Label.NZ_Site_Name,'none','inline')}">
+                            <apex:inputcheckbox value="{!confirm2AgreedToIncomeVerification}" id="loan2VerifierConfirmation" />{!$Label.APP_LoanPage_VerifierConfirmation} <br/>
+                        </div>  
+                        <!-- End -->
+                        <div>
+                            <!-- BEGIN MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                            <apex:inputcheckbox value="{!confirm2AllowInsuranceOffers}" id="loan2Confirmation4" onClick="enableBtn();" /> 
+                                <!-- {!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, $Label.APP_LoanPage_Confirmation4_AU)}  -->
+                                {!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, '')}
+                            <br/>
+                            <!-- END MLASALA: 05-APR-2016 - DEFECT 475 FIX SHOULD BE DYNAMIC PER REGION -->
+                        </div>
+                    </div>
+                    <!-- START- TQLQW-369 [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID 06/02/2016 -->
+                    <table>
+                        <div>
+                        <tr>
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation1}"/><apex:outputText rendered="{!app2Optional}">*</apex:outputText></td>
+                            <td>
+                                <input type="button" id="app2ConfirmEligibleForLoan_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmEligibleForLoan', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmEligibleForLoan_No" value="No" onClick="toggleYesNoOption('ConfirmEligibleForLoan', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <!-- MLASALA 14-JUL-16 DEFECT 1137 FIX -->
+                        <div>
+                        <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation2}"/><apex:outputText rendered="{!app2Optional}">*</apex:outputText></td>
+                            <td>
+                                <input type="button" id="app2ConfirmApplicationMeetsNeeds_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmApplicationMeetsNeeds', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmApplicationMeetsNeeds_No" value="No" onClick="toggleYesNoOption('ConfirmApplicationMeetsNeeds', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <div>
+                        <tr>
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation3}"/><apex:outputText rendered="{!app2Optional}">*</apex:outputText></td>  
+                            <td>
+                                <input type="button" id="app2ConfirmAgreedToPolicy_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmAgreedToPolicy', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmAgreedToPolicy_No" value="No" onClick="toggleYesNoOption('ConfirmAgreedToPolicy', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        
+                        <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+                        <div>
+                        <!-- <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">  -->
+                        <tr style="display:none">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation8}"/><apex:outputText rendered="{!app2Optional}">*</apex:outputText></td>  
+                            <td>
+                                <input type="button" id="app2confirmConsentLpi_Yes" value="Yes" onClick="toggleYesNoOption('confirmConsentLpi', '2', 'Yes');"/>
+                                <input type="button" id="app2confirmConsentLpi_No" value="No" onClick="toggleYesNoOption('confirmConsentLpi', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>                                                                              
+                        <!-- END ARSHAD:  25/05/2018 - BDR-105 -->            
+                        
+                        <!-- MLASALA 14-JUL-16 DEFECT 1137 FIX -->
+                        <div>
+                        <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}">
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_Confirmation5}"/></td>  
+                            <td>
+                                <input type="button" id="app2ConfirmIdentifyVerification_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmIdentifyVerification', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmIdentifyVerification_No" value="No" onClick="toggleYesNoOption('ConfirmIdentifyVerification', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <!-- Applicant 2 Added by Suneel POI Automation 25/01/2021-->
+                        <div>
+                         <tr style="display:{!IF(region==$Label.NZ_Site_Name,'none','')}"> 
+                            <td><apex:outputText value="{!$Label.APP_LoanPage_VerifierConfirmation}"/></td>  
+                            <td>
+                                <input type="button" id="app2ConfirmVerifierVerification_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmVerifierVerification', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmVerifierVerification_No" value="No" onClick="toggleYesNoOption('ConfirmVerifierVerification', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>
+                        <!--Start commenting as part of NZ Stopsell Insurance-->     
+                       <!-- <div>
+                        <tr>
+                            <!-- <td><apex:outputText value="{!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, $Label.APP_LoanPage_Confirmation4_AU)}"/></td> -->
+                            <!--<td><apex:outputText value="{!IF(region == 'NZ', $Label.APP_LoanPage_Confirmation4, '')}"/></td>
+                            <td style="display:{!IF(region=='AU','none','block')}">
+                                <input type="button" id="app2ConfirmAllowInsuranceOffers_Yes" value="Yes" onClick="toggleYesNoOption('ConfirmAllowInsuranceOffers', '2', 'Yes');"/>
+                                <input type="button" id="app2ConfirmAllowInsuranceOffers_No" value="No" onClick="toggleYesNoOption('ConfirmAllowInsuranceOffers', '2', 'No');"/>
+                            </td>
+                        </tr>
+                        </div>-->
+                        <!--End commenting as part of NZ Stopsell Insurance-->
+                        <div>
+                        </div>
+                    </table>
+                    <!-- END- TQLQW-369 [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID 06/02/2016 -->
+                </apex:tab>
+                
+            </apex:tabPanel>
+            <div align="center">
+                <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+                style="visibility:hidden;"/>
+                <br/>
+                <apex:actionStatus id="status2">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Save & Next" action="{!pageNext}" id="nextBtn" 
+                        rendered="{!IF(Mode == 'Edit', false, true)}" rerender="formId" 
+                        disabled="{!disableSaveAndNextButton}" 
+                    onclick="document.getElementById('GETheme:formId:pBlockId1:loadingGif').style.visibility='visible'" 
+                    onComplete="enableBtn();displayBrokerFields();displayPBUIDField();applicationTypeAccess();"
+                    status="status2"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>
+                <apex:actionStatus id="status">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Save & Close" action="{!saveClose}" id="saveBtn" rerender="formId" 
+                        disabled="{!disableSaveAndNextButton}" 
+                    onclick="document.getElementById('GETheme:formId:pBlockId1:loadingGif').style.visibility='visible'" 
+                    onComplete="enableBtn();displayBrokerFields();displayPBUIDField();applicationTypeAccess();" 
+                    status="status"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Saving..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>
+                <apex:actionStatus id="status4">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Back" id="backBtn1" action="{!backSearchAndMatch}" reRender="status4"
+ status="status4" onclick="document.getElementById('GETheme:formId:pBlockId1:loadingGif').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Processing..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>              
+                <apex:actionStatus id="status3">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Cancel" action="{!pageCancel}" id="closeBtn" 
+                        rendered="{!IF(OR(application.Id != '', fromList == 'true'), true, false)}" reRender="status3" 
+ status="status3" onclick="document.getElementById('GETheme:formId:pBlockId1:loadingGif').style.visibility='visible'"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Cancelling..." disabled="true"/>
+                    </apex:facet>                         
+                </apex:actionStatus>                
+            </div>
+        </apex:pageBlock>
+
+    </apex:form>
+    </div>
+    <script>        
+        function addApplicant(){          
+            var list = document.getElementById('GETheme:formId:pBlockId1:applicant2Tab_lbl');  
+            var appType = document.getElementById('GETheme:formId:pBlockId1:applicationTypePicklist').value;       
+            var prod = document.getElementById("GETheme:formId:pBlockId:prodSel");
+                var selectedText = prod.options[prod.selectedIndex].text;               
+                
+            if (appType == 'Joint'){       
+                list.style.display = "block";
+                if(selectedText == "Kiwibank"){ 
+                   document.getElementById("kiwiaccessDiv2").style.display = "block"; 
+                }     
+            }else{                  
+                list.style.display = "none";
+                if(selectedText == "Kiwibank"){ 
+                    document.getElementById("kiwiaccessDiv2").style.display = "none"; 
+                }         
+            }
+            
+        }
+
+        function applicationTypeAccess(){
+            var list = document.getElementById('GETheme:formId:pBlockId1:applicant2Tab_lbl');
+            var appType = document.getElementById('GETheme:formId:pBlockId1:applicationTypePicklist').value;
+            if (appType == 'Joint'){
+                list.style.display = "block";
+             document.getElementById('{!$Component.GETheme.formId.pBlockId1.applicationTypePicklist}').disabled = true;
+            }else{                
+                list.style.display = "none";
+            document.getElementById('{!$Component.GETheme.formId.pBlockId1.applicationTypePicklist}').disabled = false;
+            }
+        }
+        //START - TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID - 6/2/2016
+        function populateYesNoOption(){
+            var confirmEligibleForLoan = "{!confirmEligibleForLoan}";
+            var confirmApplicationMeetsNeeds = "{!confirmApplicationMeetsNeeds}";
+            var confirmAgreedToPolicy = "{!confirmAgreedToPolicy}";
+            var confirmAllowInsuranceOffers = "{!confirmAllowInsuranceOffers}";
+            var confirmIdentifyVerification = "{!confirmIdentifyVerification}";
+             <!-- BEGIN Suneel POI Automation 25/01/2021 -->
+             var ConfirmVerifierVerification = "{!confirmAgreedToIncomeVerification}";            
+            <!-- End Suneel POI Automation 25/01/2021 -->
+            var confirmHigherApprovalConsent = "{!confirmHigherApprovalConsent}";
+          
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            var confirmConsentLpi = "{!confirmConsentLpi}";
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+
+            var confirm2EligibleForLoan = "{!confirm2EligibleForLoan}";
+            var confirm2ApplicationMeetsNeeds = "{!confirm2ApplicationMeetsNeeds}";
+            var confirm2AgreedToPolicy = "{!confirm2AgreedToPolicy}";
+            var confirm2AllowInsuranceOffers = "{!confirm2AllowInsuranceOffers}";
+            var confirm2IdentifyVerification = "{!confirm2IdentifyVerification}";
+            <!-- BEGIN Suneel POI Automation 25/01/2021 -->
+            var confirm2VerifierVerification = "{!confirm2AgreedToIncomeVerification}";
+            <!-- End Suneel POI Automation 25/01/2021 -->
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            var confirm2ConsentLpi = "{!confirm2ConsentLpi}";
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+            
+            
+            //For Applicant 1
+            if (confirmEligibleForLoan == 'true'){
+                document.getElementById('app1ConfirmEligibleForLoan_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmEligibleForLoan_No').style.background = "#d8eaf1";
+            }
+            if (confirmApplicationMeetsNeeds == 'true'){
+                document.getElementById('app1ConfirmApplicationMeetsNeeds_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmApplicationMeetsNeeds_No').style.background = "#d8eaf1";
+            }
+            if (confirmAgreedToPolicy == 'true'){
+                document.getElementById('app1ConfirmAgreedToPolicy_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmAgreedToPolicy_No').style.background = "#d8eaf1";
+            }
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            if (confirmConsentLpi == 'true'){
+                document.getElementById('app1confirmConsentLpi_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1confirmConsentLpi_No').style.background = "#d8eaf1";
+            }                       
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+            <!--Start commenting as part of NZ Stopsell Insurance-->
+           /* if (confirmAllowInsuranceOffers == 'true'){
+                document.getElementById('app1ConfirmAllowInsuranceOffers_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmAllowInsuranceOffers_No').style.background = "#d8eaf1";
+            }*/
+            <!--End commenting as part of NZ Stopsell Insurance-->
+            if (confirmIdentifyVerification == 'true'){
+                document.getElementById('app1ConfirmIdentifyVerification_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmIdentifyVerification_No').style.background = "#d8eaf1";
+            }
+             <!-- BEGIN Suneel POI Automation 25/01/2021 -->
+            if (ConfirmVerifierVerification == 'true'){
+                document.getElementById('app1ConfirmVerifierVerification_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmVerifierVerification_No').style.background = "#d8eaf1";
+            } 
+            <!-- End -->
+            if (confirmHigherApprovalConsent == 'true'){
+                document.getElementById('app1ConfirmHigherApprovalConsent_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app1ConfirmHigherApprovalConsent_No').style.background = "#d8eaf1";
+            }
+            
+            //For Applicant 2
+            if (confirm2EligibleForLoan == 'true'){
+                document.getElementById('app2ConfirmEligibleForLoan_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmEligibleForLoan_No').style.background = "#d8eaf1";
+            }
+            if (confirm2ApplicationMeetsNeeds == 'true'){
+                document.getElementById('app2ConfirmApplicationMeetsNeeds_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmApplicationMeetsNeeds_No').style.background = "#d8eaf1";
+            }
+            if (confirm2AgreedToPolicy == 'true'){
+                document.getElementById('app2ConfirmAgreedToPolicy_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmAgreedToPolicy_No').style.background = "#d8eaf1";
+            }
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            if (confirm2ConsentLpi == 'true'){
+                document.getElementById('app2confirmConsentLpi_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2confirmConsentLpi_No').style.background = "#d8eaf1";
+            }            
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+             <!--Start commenting as part of NZ Stopsell Insurance-->
+           /* if (confirm2AllowInsuranceOffers == 'true'){
+                document.getElementById('app2ConfirmAllowInsuranceOffers_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmAllowInsuranceOffers_No').style.background = "#d8eaf1";
+            }*/
+             <!--End commenting as part of NZ Stopsell Insurance-->
+            if (confirm2IdentifyVerification == 'true'){
+                document.getElementById('app2ConfirmIdentifyVerification_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmIdentifyVerification_No').style.background = "#d8eaf1";
+            }
+            <!-- Applicant 2 Added by Suneel POI Automation 25/01/2021 -->
+                        
+            
+            if (confirm2VerifierVerification == 'true'){
+                document.getElementById('app2ConfirmVerifierVerification_Yes').style.background = "#d8eaf1";
+            } else {
+                document.getElementById('app2ConfirmVerifierVerification_No').style.background = "#d8eaf1";
+            }
+        }
+        
+        function toggleYesNoOption(id, appNum, value) {
+            var yesOption = document.getElementById('app'+appNum+id+'_Yes');
+            var noOption = document.getElementById('app'+appNum+id+'_No');
+    
+            if(value == 'Yes'){
+                yesOption.style='background: #d8eaf1;';
+                noOption.style='background: #dddddd;';
+            }else{
+                noOption.style='background: #d8eaf1;';
+                yesOption.style='background: #dddddd;';
+            }
+            
+            assignCheckboxValue(id, appNum, value);
+        }
+        
+        function assignCheckboxValue(id, appNum, value){
+            
+            if (id == 'ConfirmEligibleForLoan') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation1').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation1').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation1').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation1').checked = false;
+                    }
+                }
+            }
+            if (id == 'ConfirmApplicationMeetsNeeds') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation2').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation2').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation2').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation2').checked = false;
+                    }
+                }
+            }
+            if (id == 'ConfirmAgreedToPolicy') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation3').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation3').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation3').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation3').checked = false;
+                    }
+                }
+            }
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            if (id == 'confirmConsentLpi') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation8').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation8').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation8').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation8').checked = false;
+                    }
+                }
+            }            
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+             <!--Start commenting as part of NZ Stopsell Insurance-->
+             /*
+            if (id == 'ConfirmAllowInsuranceOffers') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation4').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation4').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation4').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation4').checked = false;
+                    }
+                }
+            }*/
+            <!--End commenting as part of NZ Stopsell Insurance-->
+            if (id == 'ConfirmIdentifyVerification') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation5').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation5').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation5').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation5').checked = false;
+                    }
+                }
+            }
+             <!-- BEGIN Added By Suneel POI Automation 25/01/2021 -->
+            if (id == 'ConfirmVerifierVerification') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanVerifierConfirmation').checked = true;                        
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2VerifierConfirmation').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanVerifierConfirmation').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2VerifierConfirmation').checked = false;
+                    }
+                }
+            }
+            <!-- END -->
+            if (id == 'ConfirmHigherApprovalConsent') {
+                if (value =='Yes') {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation6').checked = true;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation6').checked = true;
+                    }
+                } else {
+                    if (appNum == '1') {
+                        document.getElementById('GETheme:formId:pBlockId1:loanConfirmation6').checked = false;
+                    } else {
+                        document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation6').checked = false;
+                    }
+                }
+            }
+            enableBtn();
+        }
+        //END - TQLQW-369 - [PL - AU] PTDI Insurance Email & YES/ NO Buttons - Added by MDAVID - 6/2/2016
+
+        function enableBtn(){
+            var sel = document.getElementById('{!$Component.GETheme.formId.pBlockId1.applicationTypePicklist}').selectedIndex;
+            var appType = document.getElementById('GETheme:formId:pBlockId1:applicationTypePicklist').options[sel].text;
+            var confirm1 = document.getElementById('GETheme:formId:pBlockId1:loanConfirmation1').checked;
+            var confirm2 = document.getElementById('GETheme:formId:pBlockId1:loanConfirmation2').checked;
+            var confirm3 = document.getElementById('GETheme:formId:pBlockId1:loanConfirmation3').checked;
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            var confirm4 = document.getElementById('GETheme:formId:pBlockId1:loanConfirmation8').checked;
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+            //Modified by FSaliba 19/01/2014 - Proceed even without applicant 2 consent, DBHZL-213
+            var confirmj1 = document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation1').checked;
+            var confirmj2 = document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation2').checked;
+            var confirmj3 = document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation3').checked;
+            
+            <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+            var confirmj4 = document.getElementById('GETheme:formId:pBlockId1:loan2Confirmation8').checked;
+            <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+            
+            console.log('confirm1'+confirm1);
+             console.log('confirm2'+confirm2);
+              console.log('confirm3'+confirm3);
+              
+               <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+               console.log('confirm4'+confirm4);
+               <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+
+               console.log('confirmj1'+confirmj1);
+                console.log('confirmj2'+confirmj2);
+                 console.log('confirmj3'+confirmj3);
+            
+                <!-- BEGIN ARSHAD: 25/05/2018 - BDR-105 -->
+                   console.log('confirmj4'+confirmj4);
+                <!-- END ARSHAD:  25/05/2018 - BDR-105 --> 
+            
+            var refPreBureau='{!app2Optional}';
+            var app2ChkRequired=false;
+            if(refPreBureau=='true' || refPreBureau==true){
+                if((appType == 'One Person' && (confirm1 == true && confirm2 == true && confirm3 == true && confirm4 ==true)) 
+                || (appType == 'Two People'  && (confirm1 == true && confirm2 == true && confirm3 == true && confirm4 ==true && 
+                confirmj1 == true && confirmj2 == true && confirmj3 == true && confirmj4 == true))) {
+                    app2ChkRequired=true;
+                }else{
+                  if((appType == 'One Person' && (confirm1 == true && confirm3 == true))|| (appType == 'Two People'  &&
+                   (confirm1 == true && confirm3 == true && confirmj1 == true && confirmj3 == true))){
+                    app2ChkRequired=true;
+                  }else{
+                    app2ChkRequired=false;
+                  }
+                }
+            }       
+
+             console.log('app2ChkRequired'+app2ChkRequired);
+            if((appType == 'One Person' && (confirm1 == true && confirm2 == true && confirm3 == true && confirm4 == true)) || 
+            (appType == 'Two People' && app2ChkRequired == true)) {
+           // if((appType == 'One Person' && (confirm1 == true && confirm2 == true && confirm3 == true)) || 
+           //(appType == 'Two People' && (confirm1 == true && confirm2 == true && confirm3 == true) && 
+           // app2ChkRequired == true)) {   
+                console.log('1 Applicant 1');
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+            } else {
+                //Added By Vijay
+                //Modified by FSaliba 19/01/2014 - Proceed even without applicant 2 consent, DBHZL-213
+                if((appType == 'One Person' && (confirm1 == true && confirm3 == true))|| (appType == 'Two People' && 
+                app2ChkRequired == true )){
+                //if((appType == 'One Person' && (confirm1 == true && confirm3 == true)) || (appType == 'Two People' && 
+                // (confirm1 == true && confirm3 == true) && app2ChkRequired == true)){
+                    console.log('1 applicant');
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                    document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                    document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                //Added By Vijay end
+                }else{
+                    if(appType == 'Two People' && app2ChkRequired == false && (confirm1 == true && confirm2 == true && 
+                    confirm3 == true && confirm4 == true)){
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                        document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                        document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                    }else{
+                        if(appType == 'Two People' && app2ChkRequired == false && (confirm1 == true && 
+                        confirm3 == true)){
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = false;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = null;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'pointer';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = false;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = null;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'pointer';
+                        }else{
+                            console.log('2 Applicant');
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = true;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = '0.3';
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'default';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = true;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = '0.3';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'default';
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').disabled = true;
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.opacity = '0.3';
+                            document.getElementById('GETheme:formId:pBlockId1:saveBtn').style.cursor = 'default';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').disabled = true;
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.opacity = '0.3';
+                            document.getElementById('GETheme:formId:pBlockId1:nextBtn').style.cursor = 'default';
+                        }
+                    }
+                }
+            }
+            
+        }
+        displayPBUIDField();
+        applicationTypeAccess();
+        enableBtn();
+    </script>
+    
+    <apex:includeScript value="/support/console/20.0/integration.js"/>
+    <script type="text/javascript">
+        function testCloseTab() {
+            //First find the ID of the current tab to close it
+            sforce.console.getEnclosingTabId(closeSubtab);
+        }
+        
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+    </script>
+    <script type="text/javascript"> 
+  function openLookup(baseURL, width, modified, searchParam){
+    var searchParamNZ;
+    if({!$ObjectType.Application__c.fields.Type_of_Product__c.Updateable}){
+        var sel = document.getElementById('{!$Component.GETheme.formId.pBlockId.prodSel}').selectedIndex;
+        var selValue = document.getElementById('GETheme:formId:pBlockId:prodSel').options[sel].text;
+        var selType= document.getElementById('{!$Component.GETheme.formId.pBlockId.typeSel}').selectedIndex;
+        var selTypeValue= document.getElementById('GETheme:formId:pBlockId:typeSel').options[selType].text;
+         searchParamNZ=selValue+","+selTypeValue;
+    }
+    
+    
+    var originalbaseURL = baseURL;
+    var originalwidth = width;
+    var originalmodified = modified;
+    var originalsearchParam = searchParam;
+    
+    var lookupType = baseURL.substr(baseURL.length-3, 3);
+    if (modified == '1') baseURL = baseURL + searchParam;
+
+    var isCustomLookup = false;
+
+    // Following "a0A" is the lookup type for Branch object so change this as per your standard or custom object
+    if(lookupType == "a0A"){
+
+      var urlArr = baseURL.split("&");
+      var txtId = '';
+      if(urlArr.length > 2) {
+        urlArr = urlArr[1].split('=');
+        txtId = urlArr[1];
+      }
+
+      // Following is the url of Custom Lookup page. You need to change that accordingly
+      baseURL = "/apex/CustomBranchLookup?txt=" + txtId;
+
+      // Following is the id of apex:form control "myForm". You need to change that accordingly
+      baseURL = baseURL + "&frm=" + escapeUTF("{!$Component.formId}");
+      if (modified == '1') {
+        baseURL = baseURL + "&lksearch=" + searchParamNZ+"&txtSrch="+searchParam;
+      }
+
+      // Following is the ID of inputField that is the lookup to be customized as custom lookup
+      if(txtId.indexOf('branchLookup') > -1 ){
+        isCustomLookup = true;
+      }
+    }
+
+
+    if(isCustomLookup == true){
+      openPopup(baseURL, "lookup", 350, 480, 
+                "width="+width+",height=350,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", 
+                true);
+    }
+    else {
+      if (modified == '1') originalbaseURL = originalbaseURL + originalsearchParam;
+      openPopup(originalbaseURL, "lookup", 350, 480, 
+        "width="+originalwidth+",height=350,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", 
+        true);
+    } 
+  }
+    
+  
+        
+</script>
+</apex:page>

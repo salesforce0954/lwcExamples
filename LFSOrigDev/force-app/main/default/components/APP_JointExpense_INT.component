@@ -1,0 +1,793 @@
+<!--
+/**
+* @Description: Expense component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 29.JAN.2014
+* @History:
+  =====================================================================
+      01-29-14: Created - Mike
+      02-14-14: Updated: Added Residential Status Field - Adrian
+      04-09-15: Updated - Include client side validations - DYU 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointExpense" id="Expense__c-mycomponent">
+    
+    <!-- COMPONENT ATTRIBUTES -->
+    <!-- Added country attribute for DBHZL-36 to drive expense localization-->
+     <apex:attribute name="country" description="Region value will drive localizaiton functionality" type="String" required="true" assignTo="{!region}" />
+    <apex:attribute name="expenseWrapper" description="This is the value for the component." type="MyBudgetsExpenseWrapper" required="true" assignTo="{!expenseWrapperComp}" />
+    <apex:attribute name="jointIndicator" description="Single/Joint indicator" type="Boolean" required="true" assignTo="{!isJoint}" />
+
+     <!-- RERENDER RENT SECTION -->
+    <apex:actionFunction name="refreshRentAndBoard" rerender="rentAndBoard"/>
+
+    <!-- CALCULATION METHOD -->
+    <apex:actionFunction name="getTotalExpenseComp" action="{!recomputeTotalExpenseComp}" rerender="totalExpenseId"/>
+    <apex:actionFunction name="clearRentFields" action="{!clearFields}" rerender="totalExpenseId, rentFields, expensePageBlock"/>
+
+    <apex:outputPanel Id="rentAndBoard">
+
+        <div>
+
+            <!-- APPLICANT SECTION -->
+            <div class="fleftme">
+
+     <!--   <div class="span12 removelmargin">
+            <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank', $site.Name=='Latitude'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank', $site.Name=='Latitude'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText >Accommodation&nbsp;</apex:outputText>Expenses</span></h3> --> 
+           <!-- <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText >Accommodation&nbsp;</apex:outputText>Expenses</span></h3> -->
+      
+     <!--   </div>
+        <div class="divider10"></div> -->     
+
+                <div class="fleft">
+                    <label class="width200 txtright">
+                        Residential status
+                    </label>
+                </div>
+
+                <div class="fleft">
+                    <div class="requiredBlock2"/>
+
+                    <!-- APPLICANT RESIDENTIAL STATUS FIELD -->
+                    <apex:selectList size="1" styleClass="width250 isPicklistPleaseSelect" value="{!expenseWrapper.applicant.Res_Status__c}" id="Applicant__c___Res_Status__c" >
+                        <apex:selectOptions value="{!residentialStatusOptions}"/> 
+                        <apex:actionSupport event="onchange" action="{!clearFields}" rerender="totalExpenseId, rentFields"/>
+                    </apex:selectList>
+                    <div class="clearfix"/>
+                    <apex:outputText rendered="{!expenseWrapper.errorResidentialStat}" value="Error: Please select residential status." styleClass="warningMessage"/>
+
+                </div>
+            </div>
+
+            <div class="clearfix"/>
+
+
+            <!-- RENT SECTION -->
+            <div>
+                <apex:outputPanel id="rentFields">
+                    <apex:outputPanel rendered="{!IF(AND(OR(expenseWrapper.applicant.Res_Status__c=='Renting',
+                                                        expenseWrapper.applicant.Res_Status__c=='Boarding with Parents',
+                                                        expenseWrapper.applicant.Res_Status__c=='Boarding Other'),country='AU'),true,false)}">
+
+                        <div class="fleftme">
+                            <div>
+                                <div class="fleft">
+                                    
+                                    <label class="width200 txtright fleft">
+                                        My rent/board payments are $
+                                    </label>
+                                    <div class="requiredBlock2"/>
+                                    
+                                    <!-- RENT AMOUNT FIELD -->
+                                    <apex:inputField styleCLass="fleft isRequired isAmount vNumberAmount" value="{!expenseWrapper.expense.Rent_Board_Pay_Amt__c}" id="Expense__c___Rent_Board_Pay_Amt__c" onchange="getTotalExpense();getTotalExpenseComp();"/>
+                                    <div class="clearfix"/>
+                                    <apex:outputText styleClass="warningMessage width120 fleft marginl220" escape="false" rendered="{!!expenseWrapper.rentAmountValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+
+                                </div>
+
+                                <div class="fleft">
+                                    
+                                    <label class="width70 txtright fleft">
+                                        each
+                                    </label>
+                                    <div class="requiredBlock2"/>
+
+                                    <!-- RENT INTERVAL FIELD -->
+                                    <apex:selectList size="1" styleClass="fleft width180 isPicklistNone" value="{!expenseWrapper.expense.Rent_Board_Pay_Int__c}" id="Expense__c___Rent_Board_Pay_Int__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                                        <apex:selectOptions value="{!RentExpenseInterval}"/>
+                                    </apex:selectList>
+                                    <div class="clearfix"/>
+                                    <apex:outputText styleClass="warningMessage width180 fleft marginl90" escape="false" rendered="{!!expenseWrapper.rentIntervalValid}" value="Error: Please select the rent/board payment interval."/>
+
+                                </div>
+
+                                <div class="clearfix"/>
+
+                            </div>
+                        </div>
+                        
+                        <div class="clearfix"/>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!IF(expenseWrapper.applicant.Res_Status__c=='Renting',true,false)}">
+                        <div class="fleftme">
+
+                            <div class="fleft">
+                               <label class="width200 txtright">
+                                    Agent / Landlord Name
+                                </label>
+                            </div>
+
+                            <div class="fleft">
+                                <div class="{!if(country='NZ', 'requiredBlocknull','requiredBlock2')}"/>
+
+                                <!-- LANDLORD NAME FIELD -->
+                                <apex:inputField value="{!expenseWrapper.expense.Agent_Landlord_Name__c}" id="Expense__c___Agent_Landlord_Name__c" onkeypress="return isCharacterKey(event)" styleClass="isMaxLength29" />
+                                <div class="clearfix"/>
+                                <apex:outputText styleClass="warningMessage" escape="false" value="{!expenseWrapper.errorLandlordNameMsg}" rendered="{!expenseWrapper.errorLandlordName}"/>
+
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                    
+                </apex:outputPanel>
+            </div><!-- RENT SECTION -->
+            
+            <div class="clearfix"/>
+
+               <!-- PROPERTY EXPENSES SECTION -->
+        <div class="divider10"></div>      
+            <apex:outputPanel rendered="{!if(country=='NZ', true, false)}"> 
+            <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            If you have revolving credit facility as part of a mortgage or home loan, please enter the limit of that facility. Enter $0 if not applicable.
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                     <!--   AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.applicant.Revolving_Credit__c}" id="Applicant__c___Revolving_Credit__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense"/>
+                        <div class="clearfix"/>
+                        <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+
+                    </div>
+             </div>
+            </apex:outputPanel>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <div class="clearfix"/>
+      <apex:outputPanel rendered="{!if(country=='NZ', true, false)}"> 
+       <apex:outputPanel id="mortgageexpenses" rendered="{!$ObjectType.Expense__c.fields.Mortgage_Rent_Board__c.Updateable}">
+                <div class="fleftme">
+               <!-- MORTGAGE RENT/BOARD EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Primary mortgage, rent or board $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Rent_Board_Pay_Amt__c}" id="Expense__c___Mortgage_Rent_Board__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly food and entertainment expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach2" value="{!expenseWrapper.expense.Rent_Board_Pay_Int__c}" id="Expense__c___Mortgage_Rent_Board_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!MortgageExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+           </apex:outputPanel>
+            <div class="clearfix"/>
+      <apex:outputPanel rendered="{!if(country=='NZ', true, false)}">
+       <apex:outputPanel id="secondarymortgageexpenses" rendered="{!$ObjectType.Expense__c.fields.Secondary_Mortgage_Rent__c.Updateable}">
+                <div class="fleftme">
+               <!-- MORTGAGE RENT/BOARD EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Secondary mortgage, rent or board $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Secondary_Mortgage_Rent__c}" id="Expense__c___Secondary_Mortgage_Rent__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly food and entertainment expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach2" value="{!expenseWrapper.expense.Secondary_Mortgage_Rent_Interval__c}" id="Expense__c___Secondary_Mortgage_Rent_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!SecondaryMortgageInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+      </apex:outputPanel>
+            <div class="clearfix"/>
+     <apex:outputPanel rendered="{!if(country=='NZ', true, false)}">
+       <apex:outputPanel id="propertyexpenses" rendered="{!$ObjectType.Expense__c.fields.Property_rates__c.Updateable}">
+                <div class="fleftme">
+               <!-- MORTGAGE RENT/BOARD EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Property rates $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Property_rates__c}" id="Expense__c___Property_rates__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly food and entertainment expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach2" value="{!expenseWrapper.expense.Property_rates_Interval__c}" id="Expense__c___Property_rates_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!PropertyRatesInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+          </apex:outputPanel>
+            <div class="clearfix"/>
+      <apex:outputPanel rendered="{!if(country=='NZ', true, false)}">
+       <apex:outputPanel id="otherpropertyexpenses" rendered="{!$ObjectType.Expense__c.fields.Other_Property_Expenses__c.Updateable}">
+                <div class="fleftme">
+               <!-- MORTGAGE RENT/BOARD EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Utilities &amp; Other property expenses $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Other_Property_Expenses__c}" id="Expense__c___Other_Property_Expenses__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly food and entertainment expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach2" value="{!expenseWrapper.expense.Other_Property_Expenses_Interval__c}" id="Expense__c___Other_Property_Expenses_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!OtherPropertyExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+            <div class="clearfix"/>
+            
+          <!-- END OF PROPERTY EXPENSES -->       
+            <br/>
+            <br/>
+            <!-- Commenting the Share of Living expenses as part of Responsible Lending -->
+            <apex:outputPanel id="livingexpenses" rendered="{!$ObjectType.Expense__c.fields.Living_Exp__c.Updateable}" style="display:none;">
+              <!--   EXPENSE SECTION -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            My share of living expenses are $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                     <!--   AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Living_Exp__c}" id="Expense__c___Living_Exp__c" onchange="getTotalExpense();getTotalExpenseComp();" styleClass=""/>
+                        <div class="clearfix"/>
+                        <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                       <!--  INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180" value="{!expenseWrapper.expense.Living_Exp_Int__c}" id="Expense__c___Living_Exp_Int__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!LivingExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                        <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/>
+
+                    </div>
+                 </div>
+      </apex:outputPanel>
+      <!-- End -->
+      
+      <div class="clearfix"/>
+
+        <div class="span12 removelmargin">
+            <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank', $site.Name=='Latitude'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank', $site.Name=='Latitude'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText >Living&nbsp;</apex:outputText>Expenses</span></h3> 
+           <!-- <h3 style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'margin-top: 0 !important;', '')}" class="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'),'subpagetitle gem-heading','subpagetitle gecolor gem-heading')}"><span><apex:outputText >Accommodation&nbsp;</apex:outputText>Expenses</span></h3> -->
+
+        </div>
+
+       <apex:outputPanel id="foodexpenses" rendered="{!$ObjectType.Expense__c.fields.Food_Groc_Entert__c.Updateable}">
+                <div class="fleftme">
+               <!-- FOOD GROCERIES ENTERTAINMENT EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Food, groceries and entertainment $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Food_Groc_Entert__c}" id="Expense__c___Food_Groc_Entert__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly food and entertainment expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach2" value="{!expenseWrapper.expense.Food_Groc_Interval__c}" id="Expense__c___Food_Groc_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!FoodGrocExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+
+       <apex:outputPanel id="insuranceexpenses" rendered="{!$ObjectType.Expense__c.fields.Insurance_Expense__c.Updateable}">
+                <div class="fleftme">
+               <!-- INSURANCE EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright" style="display:{!if(country=='AU', 'block', 'none')}">
+                            Insurance $
+                        </label>
+                    </div>
+                    
+                        <label class="width200 txtright"  style="display:{!if(country=='NZ', 'block', 'none')}">
+                          Health and life insurance $
+                        </label>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Insurance_Expense__c}" id="Expense__c___Insurance_Expense__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isUtilityExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                        <!-- <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly insurance expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach3" value="{!expenseWrapper.expense.Insurance_Expense_Interval__c}" id="Expense__c___Insurance_Expense_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!InsuranceExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+
+       <apex:outputPanel id="utilitiesexpenses" rendered="{!$ObjectType.Expense__c.fields.Utilities_Expense__c.Updateable}">
+                <div class="fleftme">
+               <!-- UTILITIES EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright" style="display:{!if(country=='AU', 'block', 'none')}">
+                            Utilities $
+                        </label>
+                        
+                        <label class="width200 txtright" style="display:{!if(country=='NZ', 'block', 'none')}">
+                            General insurance $
+                        </label>
+                        
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Utilities_Expense__c}" id="Expense__c___Utilities_Expense__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isUtilityExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                        <!-- <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly utilities expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach4" value="{!expenseWrapper.expense.Utilities_Expense_Interval__c}" id="Expense__c___Utilities_Expense_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!UtilitiesExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                     <!--   <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+
+       <apex:outputPanel id="transportexpenses" rendered="{!$ObjectType.Expense__c.fields.Transport_Expense__c.Updateable}">
+                <div class="fleftme">
+               <!-- TRANSPORT EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright" style="display:{!if(country=='AU', 'block', 'none')}">
+                            Transport $
+                        </label>
+                        
+                        <label class="width200 txtright" style="display:{!if(country=='NZ', 'block', 'none')}">
+                            Transport and auto $
+                        </label>
+                        
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Transport_Expense__c}" id="Expense__c___Transport_Expense__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isTransportExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                        <!-- <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly transport expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach5" value="{!expenseWrapper.expense.Transport_Expense_Interval__c}" id="Expense__c___Transport_Expense_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!TransportExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+
+       <apex:outputPanel id="educationexpenses" rendered="{!$ObjectType.Expense__c.fields.Education_and_child_Expense__c.Updateable}">
+                <div class="fleftme">
+               <!-- EDUCATION EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Education and childcare $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Education_and_child_Expense__c}" id="Expense__c___Education_and_child_Expense__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isEducationExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                       <!--  <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly education expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach6" value="{!expenseWrapper.expense.Education_and_child_Expense_Interval__c}" id="Expense__c___Education_and_child_Expense_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!EducationExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                      <!--  <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+
+       <apex:outputPanel id="personalexpenses" rendered="{!$ObjectType.Expense__c.fields.Personal_Other_Expense__c.Updateable}">
+                <div class="fleftme">
+               <!-- PERSONAL/OTHER EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright" style="display:{!if(country=='AU', 'block', 'none')}">
+                            Personal / Other $
+                        </label>
+                        
+                        <label class="width200 txtright" style="display:{!if(country=='NZ', 'block', 'none')}">
+                            Personal, fitness and medical $
+                        </label>
+                        
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Personal_Other_Expense__c}" id="Expense__c___Personal_Other_Expense__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isPersonalExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                        <!-- <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly personal expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach7" value="{!expenseWrapper.expense.Personal_Other_Expense_Interval__c}" id="Expense__c___Personal_Other_Expense_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!PersonalExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                       <!-- <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+            
+      <apex:outputPanel rendered="{!if(country=='NZ', true, false)}"> 
+       <apex:outputPanel id="anyadditionalexpenses" rendered="{!$ObjectType.Expense__c.fields.Any_Additional_expenses__c.Updateable}">
+                <div class="fleftme">
+               <!-- ANY ADDITIONAL EXPENSES -->
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Any additional expenses $
+                        </label>
+                    </div>
+
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+                        
+                        <!-- AMOUNT FIELD -->
+                        <apex:inputField value="{!expenseWrapper.expense.Any_Additional_expenses__c}" id="Expense__c___Any_Additional_expenses__c" onkeyup="getTotalExpense();getTotalExpenseComp();" styleClass="isFoodGrocExpense vNumberAmount"/>
+                        <div class="clearfix"/>
+                        <!-- <apex:outputText styleClass="warningMessage width120 fleft" escape="false" rendered="{!!expenseWrapper.amountValid}" value="Error: Please enter your monthly personal expenses"/> -->
+
+                    </div>
+                    
+                    <div class="fleft">
+                        <label class="txtright width70">
+                            each
+                        </label>
+                    </div>
+
+                    <div class="fleft">
+                        <div class="requiredBlock2"/>
+
+                        <!-- INTERVAL FIELD -->
+                        <apex:selectList size="1" styleClass="width180 isPicklistEach7" value="{!expenseWrapper.expense.Any_Additional_expenses_Interval__c}" id="Expense__c___Any_Additional_expenses_Interval__c" onchange="getTotalExpense();getTotalExpenseComp();">
+                            <apex:selectOptions value="{!AnyNewAdditionalExpenseInterval}"/>
+                        </apex:selectList>
+                        <div class="clearfix"/>
+                       <!-- <apex:outputText styleClass="warningMessage width180 fleft" escape="false" rendered="{!!expenseWrapper.intervalValid}" value="Error: Please select the living expense interval."/> -->
+                    </div>
+                 <!-- END -->                    
+                </div>
+              </div>
+            </apex:outputPanel>
+           </apex:outputPanel>
+            <div class="clearfix"/>
+
+            <!-- JOINT SECTION 
+            <apex:outputPanel rendered="{!!isJoint}"> -->
+            <apex:outputPanel rendered="{!if(OR(country=='NZ',AND(country=='AU',!isJoint)), true, false)}">
+                <div class="fleftme">
+                    
+                    <div class="fleft">
+                        <label class="width200 txtright">
+                            Applicant pays all the expenses for the household
+                        </label>
+                    </div>
+
+                    <!-- PAY ALL EXPENSE FIELD -->
+                    <div class="fleft">
+                        <apex:inputField value="{!expenseWrapper.expense.I_Pay_All_Exp__c}" id="Expense__c___I_Pay_All_Exp__c"/>
+                        <div class="clearfix"/>
+                    </div>
+
+                </div>
+
+                <div class="clearfix"/>
+
+            </apex:outputPanel>
+
+            <!-- TOTAL SECTION -->
+            <div>
+                <div class="totalincome">
+                    <apex:outputPanel rendered="{!expenseWrapper.totalExpense != null}" id="totalExpenseId">
+                        <!-- <strong>Total Monthly Expenses:</strong> -->
+
+                        <!-- TOTAL AMOUNT -->
+                        <span class="amountCol" >
+                           <!-- <apex:outputText value="${0, number,###,###,##0.00}"> -->
+                              <!--  <apex:param value="{!expenseWrapper.totalExpense}"/> -->
+                              <apex:outputText >
+                               <label>Total Expenses $</label>
+                                <apex:inputText value="{!expenseWrapper.totalExpense}" id="isTotExp" styleClass="isTotalExpense {!if(country=='AU', '', 'currencysymbol')}" html-readonly="true" style="background-color:#F1F1F1"/>
+                            </apex:outputText>
+                        </span>
+                    </apex:outputPanel>
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    <!-- FOR PERSPECSYS -->
+                    <apex:inputHidden value="{!expenseWrapper.expense.PRS_RECORD_ID__c}" id="Expense__c___PRS_RECORD_ID__c" />
+                    <apex:inputHidden value="{!expenseWrapper.expense.id}" id="Expense__c___id" />
+
+                </div>
+            </div>
+
+        </div>
+        
+   <div id="showErrExpense" style="display:none;background-color:#CC0033;color:#ffffff;padding:8px;font-weight:500;font-family:math;"/>
+
+        
+    </apex:outputPanel><!-- rentAndBoard -->
+   <script>
+    
+   
+   
+   </script>
+</apex:component>

@@ -1,0 +1,220 @@
+<!-- 
+/**
+* @author Original: Dan Crisologo
+* @date Original: 04 March 2013
+* @description Credit Card Page
+*/
+-->
+<apex:page controller="CreditCardsPageController" sidebar="false" showHeader="false">
+    <head>
+        <style>
+            body .pbBody table.list tr.headerRow td, body .pbBody table.list tr.headerRow th {
+                text-align: center!important;
+            }
+            .ct{
+                text-align:center;
+            }
+            
+            .pbSubheader{
+background-color: #3948B8!important;
+}
+
+ .bPageBlock{
+        border-top: 2px solid #808080;
+        }      
+            
+        </style>
+    </head>
+    <apex:form id="AccountForm" >
+    <apex:pageMessages />
+    
+    <!-- <apex:actionFunction action="{!repopulateChosenCreditCard}" name="repopulateChosenCreditCard" id="repopulateChosenCreditCard"/>
+    <apex:actionFunction action="{!Plans}" name="actionPlans" id="actionPlans"/>
+    <apex:inputHidden value="{!chosenCreditCardId}" id="chosenCreditCard"/>
+    <apex:inputHidden value="{!chosenCreditCardPlansId}" id="chosenPlans"/> -->
+    <div width="100%">
+    <apex:PageBlock id="mainBlkId" title="Credit Cards">
+        <!--<apex:pageBlockSection columns="1" id="mainBlock">-->
+            <!-- ===== CREDIT CARD SECTION ===== -->
+                <apex:pageBlockTable value="{!listCreditCard}" var="creditCard" styleClass="ct">
+                    <apex:column >
+                        <apex:facet name="header">
+                            Account<br/>Number
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.Account_Number__c}"/>
+                    </apex:column>
+                    <apex:column > 
+                        <apex:facet name="header">
+                            Account<br/>Open Date
+                        </apex:facet>        
+                        <apex:outputText value="{!creditCard.Account_Open_Date__c}"/> 
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Card<br/>Limit
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.Card_limit_TOT_CR_LMT__c}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            Card<br/>Balance
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.Card_Balance_MEMO_BAL__c}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            Cash<br/>Balance
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.Cash_balance__c}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            YTD<br/>Interest
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.YTD_Interest__c}"/>
+                    </apex:column>
+    
+                    <apex:column >
+                        <apex:facet name="header">
+                            Interest<br/>Free Balances
+                        </apex:facet>
+                        <apex:outputText value="{!creditCard.Interest_Free_Balances__c}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            More<br/>Details
+                        </apex:facet>
+                        
+                        <apex:commandButton value="Info" action="{!repopulateChosenCreditCard}" reRender="mainBlkId">
+                            <apex:param name="credId" value="{!creditCard.Id}" assignTo="{!chosenCreditCardId}"/>
+                        </apex:commandButton>
+
+                        <!--<apex:commandButton value="Plans" action="{!Plans}" reRender="mainBlkId">
+                            <apex:param name="credId" value="{!creditCard.Id}" assignTo="{!chosenCreditCardPlansId}"/>
+                        </apex:commandButton>-->
+
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <!-- ===== CREDIT CARD SECTION (Collapsible) ===== -->
+                <apex:outputPanel rendered="{!IF(chosenCreditCardId==null,false,true)}" id="creditCardOP">
+                    <apex:pageBlockSection id="cardInfo" title="Extra Information" columns="2" collapsible="true"  >
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Account Number:"/>
+                            <apex:outputText value="{!chosenCreditCard.Account_Number__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Account Open Date:"/>
+                            <apex:outputText value="{!chosenCreditCard.Account_Open_Date__c}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Card Limit:"/>
+                            <apex:outputText value="{!chosenCreditCard.Card_limit_TOT_CR_LMT__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Card Balance:"/>
+                            <apex:outputText value="{!chosenCreditCard.Card_Balance_MEMO_BAL__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Cash Balance:"/>
+                            <apex:outputText value="{!chosenCreditCard.Cash_balance__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="YTD Interest:"/>
+                            <apex:outputText value="{!chosenCreditCard.YTD_Interest__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Prior YTD Interest:"/>
+                            <apex:outputText value="{!chosenCreditCard.Prior_YTD_Interest__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Delinquency (01-24):"/>
+                            <apex:outputText value="{!chosenCreditCard.Delinquency_01_24__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Interest Free Balances:"/>
+                            <apex:outputText value="{!chosenCreditCard.Interest_Free_Balances__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Last Payment amount:"/>
+                            <apex:outputText value="{!chosenCreditCard.Last_payment_amount__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Last Purchase amount:"/>
+                            <apex:outputText value="{!chosenCreditCard.Last_purchase_amount__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Times overlimit Number:"/>
+                            <apex:outputText value="{!chosenCreditCard.Times_overlimit_Number__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Repayment Amount month 1:"/>
+                            <apex:outputText value="{!chosenCreditCard.Repayment_Amount_month_1__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Repayment Amount month 2:"/>
+                            <apex:outputText value="{!chosenCreditCard.Repayment_Amount_month_2__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Repayment Amount month 3:"/>
+                            <apex:outputText value="{!chosenCreditCard.Repayment_Amount_month_3__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Employer Details:"/>
+                            <apex:outputText value="{!chosenCreditCard.Employer_Details__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Dependants:"/>
+                            <apex:outputText value="{!chosenCreditCard.Dependants__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Residence Status:"/>
+                            <apex:outputText value="{!chosenCreditCard.Residence_status__c}"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+                
+                <!-- ===== CREDIT CARD SECTION (Collapsible) ===== -->
+                <apex:outputPanel rendered="{!IF(chosenCreditCardId==null,false,true)}" id="creditCardOP1">
+                <apex:outPutText value="Plans"/>
+                <apex:pageBlockSection columns="1" id="mainBlock">
+                <apex:pageBlockTable value="{!listPlans}" var="plan" styleClass="ct">
+                    <apex:column headerValue="Number">
+                        <apex:outputText value="{!plan.Number__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Description">
+                        <apex:outputText value="{!plan.Description__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Date Opened">
+                        <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                            <apex:param value="{!plan.Date_Opened__c}"/> 
+                        </apex:outputText>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Expiring Date">
+                        <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                            <apex:param value="{!plan.Expiring_Date__c}"/> 
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerValue="Balance">
+                        <apex:outputText value="{!plan.Balance__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Interest Rate">
+                        <apex:outputText value="{!plan.Interest_Rate__c}"/>
+                    </apex:column>
+                </apex:pageBlockTable>
+                </apex:pageBlockSection>
+                </apex:outputPanel>
+        <!--</apex:pageBlockSection>-->
+    </apex:pageBlock>
+    </div>
+    </apex:form>
+</apex:page>

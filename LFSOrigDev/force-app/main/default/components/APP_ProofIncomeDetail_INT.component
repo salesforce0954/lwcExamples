@@ -1,0 +1,1316 @@
+<!--
+/**
+ * @Description: Proof of Income Detail(Staff UI)
+ * @Author: Adrian Recio
+ @History:
+   =====================================================================
+       21-04-15: Updated Defect 952 - Make policy excpetion type behaviour same as letter from employee
+       05-08-15: Removed 'Net Income' as Method of Calculation for Full Time, Part Time and Casual Employment Types - Marvin David
+   =====================================================================
+-->
+<apex:component allowDML="true" controller="APP_ProofIncomeDetail_CCINT" Id="proofIncomeId">
+     
+    <!-- Component Attribute -->
+    <apex:attribute description="Check if it's from income calculator page" name="fromCalculatorPage" assignTo="{!fromCalculatorCheck}" type="Boolean"></apex:attribute>
+    <apex:attribute description="Main Income Capacity record for detail display" name="icVarList" assignTo="{!icEditList}" type="Income_Capacity__c[]"></apex:attribute>
+    <apex:attribute description="Counter" name="pageCounterVar" type="Integer" assignTo="{!counterVar}"></apex:attribute>   
+    <apex:attribute description="Save Fire Boolean" name="saveFiredVar" type="Boolean" assignTo="{!saveFired}"></apex:attribute>
+    <apex:attribute description="RecordType" name="recordTypeVar" type="String" assignTo="{!recordTypeName}"/>
+    <apex:actionFunction name="calculateValues{!counterVar}" action="{!calculateValues}" rerender="sacrifice,netIncome,netYTD,grossIncome,grossYtd,taxReturn" status="pleasewait">
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="dateValidation{!counterVar}" action="{!calculateValues}" rerender="computeSection" status="pleasewait">  
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <!-- <apex:actionFunction name="refreshSubFields{!counterVar}" action="{!resetValues}" rerender="computeSection,subPanel" status="pleasewait" oncomplete="removeBankStatement();">    -->
+    <apex:actionFunction name="refreshSubFields{!counterVar}" action="{!resetValues}" rerender="computeSection,subPanel" status="pleasewait" oncomplete="filterPicklistValues();filterPaymentFrequency();">   
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="empTypeClear{!counterVar}" action="{!empTypeClear}" rerender="typeSection,subPanel,panelHolder" status="pleasewait" oncomplete="removeBankStatement();"> 
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="metVerClear{!counterVar}" action="{!metVerClear}" rerender="typeSection,subPanel,panelHolder" status="pleasewait" oncomplete="filterPicklistValues();filterPayslipValues();filterPaymentFrequency();disableMetVerPicklist();" >
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/> 
+    </apex:actionFunction> 
+    
+    <apex:actionFunction name="sacrificeClear{!counterVar}" action="{!sacrificeClear}" rerender="subPanel,panelHolder" status="pleasewait">
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+        
+    <apex:actionFunction name="specialMainFieldReset{!counterVar}" action="{!specialMainFieldReset}" rerender="mainBlock" status="pleasewait">  
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="setIndex{!counterVar}" status="pleasewait">  
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="metVerDisable{!counterVar}" rerender="typeSection" oncomplete="disableMetVerPicklist();">
+        <apex:param assignto="{!indexValue}" name="indexValue" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="removeIncome2" rerender="typeSection,subPanel,panelHolder" status="pleasewait"/>
+    <script>
+        // script global variable declaration
+        var timeoutReference;
+        
+        // Created by; Adrian Recio
+        // Description: function that fires a timer to compute for total income when the user pause for 1 second.
+        function setTypeTimer{!counterVar}(indexVar) {      
+            if (timeoutReference) clearTimeout(timeoutReference);
+                   timeoutReference = setTimeout(function() {calculateValues{!counterVar}(indexVar);}, 1000);
+        }
+    </script>
+    
+    <apex:outputPanel Id="mainBlock">   
+    <!-- Action Status -->
+    <div align="center" style="height:40px;">
+    <apex:actionStatus id="pleasewait" layout="block">
+        <apex:facet name="start">
+            <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+        </apex:facet> 
+    </apex:actionStatus>
+    </div> 
+    
+    <apex:repeat value="{!icEditIndexList}" var="icEditVar" Id="icEditVarId">
+    
+    <apex:pageBlock Id="pgblockId" title="{!IF(icEditVar.icVar.Previous_Employer_Name__c != null, icEditVar.icVar.Previous_Employer_Name__c, icEditVar.icVar.Income_Detail__c)}" mode="edit" tabStyle="Income_Capacity__c">
+        <apex:pageBlockSection columns="1" Id="mainSection">
+            <apex:pageBlockSection columns="1" Id="typeSection">
+                
+                <!-- Hidden record Id and prs record Id field for perspecSys data encryption-->
+                <!--  
+                <apex:inputHidden value="{!icEditVar.icVar.Id}" id="Income_Capacity__c___Id" />
+                <apex:inputField value="{!icEditVar.icVar.PRS_RECORD_ID__c}" id="Income_Capacity__c___PRS_RECORD_ID__c" />
+                -->
+                <!-- Required: Employment Type -->
+                <!-- Picklist that determines the Main Employment Type that needs to be verified -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Employment_Type__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                        <apex:inputField Id="Income_Capacity__c___Employment_Type__c" 
+                                         value="{!icEditVar.icVar.Employment_Type__c}" 
+                                         onchange="empTypeClear{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='CPU Income Override',true,false)}">
+                    <apex:outputLabel value="{!$ObjectType.Income_Capacity__c.fields.CPU_Income_Approval_obtained__c.Label}"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___CPU_Income_Approval_obtained__c" value="{!icEditVar.icVar.CPU_Income_Approval_obtained__c}" 
+                       onchange="metVerDisable{!counterVar}('{!icEditVar.index}');">
+                        
+                       <script>
+                            function disableMetVerPicklist(){
+                                var incomeApproval = document.getElementById('{!$Component.Income_Capacity__c___CPU_Income_Approval_obtained__c}');
+                                
+                                if (incomeApproval.value =='No'){
+                                    document.getElementById('proofOfIncomePage:mainForm:mainProofIncomeBlock2:component2:proofIncomeId:icEditVarId:0:pgblockId:mainSection:typeSection:metVerSectionId:Income_Capacity__c___Method_of_Verification__c').disabled = true;
+                                    document.getElementById('proofOfIncomePage:mainForm:saveBtn').disabled = true;
+                                    document.getElementById('proofOfIncomePage:mainForm:saveBtn').className = "btn btnDisabled";
+                                } else {
+                                    document.getElementById('proofOfIncomePage:mainForm:saveBtn').disabled = false;
+                                    document.getElementById('proofOfIncomePage:mainForm:saveBtn').className = "btn";
+                                }
+                            }               
+                            </script>
+                        </apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='CPU Income Override' && icEditVar.icVar.CPU_Income_Approval_obtained__c=='No',true,false)}" >
+                    <apex:outputLabel ></apex:outputLabel>
+                    <apex:outputLabel value="Please obtain approval from CPU" styleClass="errorMsg"></apex:outputLabel>
+                </apex:pageblocksectionitem>
+                <!-- Required: Method of Verification -->
+                <!-- Picklist dependent to the currently selected Employment Type -->
+                <apex:pageblocksectionitem Id="metVerSectionId">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Method_of_Verification__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                        <apex:inputField Id="Income_Capacity__c___Method_of_Verification__c" 
+                                         value="{!icEditVar.icVar.Method_of_Verification__c}" 
+                                         onchange="metVerClear{!counterVar}('{!icEditVar.index}');" >
+                            <script>
+                                    
+                                
+                                function removeBankStatement(){
+                                    /*CHECKMARX
+                                    if('{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Self Employed' && 
+                                       '{!recordTypeName}' == 'AU'){
+                                        var radios = document.getElementById('{!$Component.Income_Capacity__c___Method_of_Verification__c}');
+                                        for (var i = radios.length-1; i>=0; i--) {
+                                            if(radios.options[i].value == 'Bank Statement' || radios.options[i].value == 'Proviso'){
+                                                radios.remove(i);
+                                            }
+                                        }
+                                    }
+                                    */
+                                    
+                                    if('{!icEditVar.icVar.Employment_Type__c}' == 'Self Employed' && 
+                                       '{!recordTypeName}' == 'AU'){
+                                        var radios = document.getElementById('{!$Component.Income_Capacity__c___Method_of_Verification__c}');
+                                        for (var i = radios.length-1; i>=0; i--) {
+                                            if(radios.options[i].value == 'Bank Statement' || radios.options[i].value == 'Proviso'){
+                                                radios.remove(i);
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                                
+                                
+                                
+                            </script>
+                        </apex:inputField>
+                    </apex:outputpanel> 
+                </apex:pageblocksectionitem>
+                
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c=='Other (please specify)',true,false)}">
+                    <apex:outputLabel value="{!$ObjectType.Income_Capacity__c.fields.Other_Method_of_Verification__c.Label}"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField style="width:250px" Id="Income_Capacity__c___Other_Method_of_Verification__c" value="{!icEditVar.icVar.Other_Method_of_Verification__c}" />
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <!--TQLQW-534 by RCADAPAN-->
+                <!--NZ epoi Changes make visible for both NZ and AU -->
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c=='Bank Statement' && (icEditVar.icVar.Employment_Type__c != 'Rental Income Private' && icEditVar.icVar.Employment_Type__c != 'Self Funded Retirees'),true,false)}">
+                    <apex:outputLabel value="Is ePOI completed?"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:inputField Id="Income_Capacity__c___Is_e_POI__c" value="{!icEditVar.icVar.Is_e_POI__c}" onchange="removeIncome2();"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                 <!--AU epoi Changes make visible for AU -->
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c=='Proviso' && recordTypeName == 'AU' && (icEditVar.icVar.Employment_Type__c != 'Rental Income Private' && icEditVar.icVar.Employment_Type__c != 'Self Funded Retirees'),true,false)}">
+                    <apex:outputLabel value="Is ePOI completed?"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:inputField Id="Income_Capacity__c___Is_e_POI__c" value="{!icEditVar.icVar.Is_e_POI__c}" onchange="removeIncome2();"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+            </apex:pageBlockSection>    
+            
+            <apex:pageBlockSection columns="1" Id="subPanel" >
+                    <!-- Required: Salary Sacrifice -->
+                    <!-- Special picklist that only appears for Payslip, Verbal, Verbal - Fax Request, and Letter from Employer verification methods.
+                         When set to yes will force calculation type to net income. -->
+                    <apex:pageblocksectionitem rendered="{!IF(AND(icEditVar.icVar.Employment_Type__c!='Centrelink',
+                                                                 icEditVar.icVar.Employment_Type__c!='Work Compensation',
+                                                                 icEditVar.icVar.Employment_Type__c!='Rental Income Agency', OR(icEditVar.icVar.Method_of_Verification__c == 'Letter from Employer', 
+                                                                 icEditVar.icVar.Method_of_Verification__c == 'Payslip',
+                                                                 icEditVar.icVar.Method_of_Verification__c == 'Verbal',
+                                                                 icEditVar.icVar.Method_of_Verification__c == 'Verbal - Fax Request',
+                                                                 icEditVar.icVar.Method_of_Verification__c == 'Policy Exception',
+                                                                 icEditVar.icVar.Method_of_Verification__c == 'Verifier'),
+                                                                 recordTypeName != 'NZ'),true,false)}">                        
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Salary_Sacrifice__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:outputpanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c != 'Verifier',true,false)}">
+                            <apex:inputField Id="Income_Capacity__c___Salary_Sacrifice__c" 
+                                     value="{!icEditVar.icVar.Salary_Sacrifice__c}" 
+                                     onchange="sacrificeClear{!counterVar}('{!icEditVar.index}');"/>
+                            </apex:outputpanel>
+                            <apex:outputpanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c == 'Verifier',true,false)}">
+                            <apex:inputText Id="Income_Capacity__c___Salary_Sacrifice__c_Verifier" 
+                                     value="{!icEditVar.icVar.Salary_Sacrifice__c}" 
+                                     onchange="sacrificeClear{!counterVar}('{!icEditVar.index}');" disabled="true"/>
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016-->
+                    <apex:pageblocksectionitem Id="overtimeShiftAllowSection" rendered="{!IF(AND(recordTypeName == 'AU' && (icEditVar.icVar.Method_of_Verification__c == 'Payslip' || icEditVar.icVar.Method_of_Verification__c == 'Verifier'), 
+                                                            OR(icEditVar.icVar.Employment_Type__c=='Permanent Full Time',
+                                                            icEditVar.icVar.Employment_Type__c=='Permanent Part Time')),true,false)}">
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Overtime_Shift_Allowance__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:outputPanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c != 'Verifier',true,false)}">
+                            <apex:inputField Id="Income_Capacity__c___Overtime_Shift_Allowance__c" required="true"
+                                     value="{!icEditVar.icVar.Overtime_Shift_Allowance__c}"
+                                     onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');"/>
+                            </apex:outputPanel>
+                         <apex:outputPanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c == 'Verifier',true,false)}">
+                            <apex:inputText Id="Income_Capacity__c___Overtime_Shift_Allowance__c_Verifier" required="true"
+                                     value="{!icEditVar.icVar.Overtime_Shift_Allowance__c}"
+                                     onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');" disabled="true"/>
+                            </apex:outputPanel>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    
+                    
+                    <!-- Required: YTD shown payslip and covers minimum of 2 months-->                              
+                    <apex:pageBlockSectionItem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='Overtime Shift Allowance' && 
+                                                              icEditVar.icVar.Method_of_Verification__c == 'Payslip' && 
+                                                              icEditVar.icVar.Salary_Sacrifice__c != 'Yes' && 
+                                                              recordTypeName != 'NZ' ,true,false)}">
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Two_Months__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:inputField Id="Income_Capacity__c___YTD_Two_Months__c" 
+                                             value="{!icEditVar.icVar.YTD_Two_Months__c}" 
+                                             onchange="specialMainFieldReset{!counterVar}('{!icEditVar.index}');"/>
+                        </apex:outputpanel>
+                    </apex:pageBlockSectionItem>
+                
+                    <!-- Required: Method of Calculation -->
+                    <!-- This picklist is dependent to the currently selected method of verification except for payslip verification type. -->
+                    <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Payslip' || 
+                                                            icEditVar.icVar.Salary_Sacrifice__c=='Yes' || 
+                                                            icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return' || 
+                                                            icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss',false,true)}">
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Method_of_Calculation__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            
+                            <apex:outputPanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c != 'Verifier',true,false)}">
+                            <apex:inputField Id="Income_Capacity__c___Method_of_Calculation__c" 
+                                             value="{!icEditVar.icVar.Method_of_Calculation__c}"  
+                                             onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');"  >
+                              <script>
+                                function filterPicklistValues(){
+                                    
+                                    var radios = document.getElementById('{!$Component.Income_Capacity__c___Method_of_Calculation__c}');
+                                    /*
+                                    if('{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Centrelink' && 
+                                       ('{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Verbal' || 
+                                        '{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Verbal - Fax Request'))
+                                    */
+                                    if('{!icEditVar.icVar.Employment_Type__c}' == 'Centrelink' && 
+                                       ('{!icEditVar.icVar.Method_of_Verification__c}' == 'Verbal' || 
+                                        '{!icEditVar.icVar.Method_of_Verification__c}' == 'Verbal - Fax Request')){
+                                        
+                                        for (var i = radios.length-1; i>=0; i--) {
+                                            if(radios.options[i].value != 'Gross Income' && radios.options[i].label != '--None--'){
+                                                radios.remove(i);                                              
+                                            }
+                                        }
+                                    }
+                                    /*CHECKMARX
+                                    else if('{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Rental Income Agency' && 
+                                               ('{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Verbal' || 
+                                                '{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Verbal - Fax Request'))
+                                    */
+                                     else if('{!icEditVar.icVar.Employment_Type__c}' == 'Rental Income Agency' && 
+                                               ('{!icEditVar.icVar.Method_of_Verification__c}' == 'Verbal' || 
+                                                '{!icEditVar.icVar.Method_of_Verification__c}' == 'Verbal - Fax Request')){
+                                       
+                                        for (var i = radios.length-1; i>=0; i--) {
+                                            if(radios.options[i].value != 'Net Income' && radios.options[i].label != '--None--'){
+                                                radios.remove(i);                                              
+                                            }
+                                        }
+                                    } 
+                                    /*CHECKMARX
+                                    else if('{!recordTypeName}' == 'NZ' && '{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Overtime Shift Allowance' &&
+                                              '{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Verbal')
+                                    */
+                                    else if('{!recordTypeName}' == 'NZ' && '{!icEditVar.icVar.Employment_Type__c}' == 'Overtime Shift Allowance' &&
+                                              '{!icEditVar.icVar.Method_of_Verification__c}' == 'Verbal'){
+                                        
+                                        for (var i = radios.length-1; i>=0; i--) {
+                                            if(radios.options[i].value != 'Net YTD' && radios.options[i].label != '--None--'){
+                                                radios.remove(i);                                              
+                                            }
+                                        }
+                                    } 
+                                    /*CHECKMARX
+                                    else if('{!recordTypeName}' == 'NZ' && '{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' != 'Self Employed' &&
+                                              '{!JSENCODE(icEditVar.icVar.Method_of_Verification__c)}' == 'Summary of Earnings from NZ IRD')
+                                    */
+                                    else if('{!recordTypeName}' == 'NZ' && '{!icEditVar.icVar.Employment_Type__c}' != 'Self Employed' &&
+                                              '{!icEditVar.icVar.Method_of_Verification__c}' == 'Summary of Earnings from NZ IRD'){
+                                        /*CHECKMARX
+                                        if('{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Permanent Full Time' || '{!JSENCODE(icEditVar.icVar.Employment_Type__c)}' == 'Permanent Part Time')
+                                        
+                                        */
+                                        if('{!icEditVar.icVar.Employment_Type__c}' == 'Permanent Full Time' || '{!icEditVar.icVar.Employment_Type__c}' == 'Permanent Part Time'){
+                                            for (var i = radios.length-1; i>=0; i--) {
+                                                if(radios.options[i].value != 'Net YTD' &&
+                                                   radios.options[i].value != 'Net Income' &&
+                                                   radios.options[i].label != '--None--'){
+                                                   radios.remove(i);
+                                                }
+                                            }
+
+                                        } else {
+                                            for (var i = radios.length-1; i>=0; i--) {
+                                                if(radios.options[i].value != 'Net YTD' &&  
+                                                   radios.options[i].label != '--None--'){
+                                                   radios.remove(i);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    var osaPicklist = document.getElementById('proofOfIncomePage:mainForm:mainProofIncomeBlock2:component2:proofIncomeId:icEditVarId:0:pgblockId:mainSection:subPanel:overtimeShiftAllowSection:Income_Capacity__c___Overtime_Shift_Allowance__c');
+                                    for (var i = osaPicklist.length-1; i>=0; i--) {
+                                        if(osaPicklist.options[i].label == '--None--'){
+                                           osaPicklist.remove(i);
+                                        }
+                                    }
+                                    
+                                    filterPaymentFrequency();
+                                    removeBankStatement();
+                                }
+                              </script>
+                            </apex:inputField>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c == 'Verifier',true,false)}">
+                            <apex:inputText Id="Income_Capacity__c___Method_of_Calculation__c_verifier" 
+                                             value="{!icEditVar.icVar.Method_of_Calculation__c}"  
+                                             onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');" disabled="true" />
+                            </apex:outputPanel>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+
+                    <!-- Required: Method of Calculation -->
+                    <!-- This is a special picklist specific to payslip method of verification 
+                         since the set of values vary with the current selected employment type that a payslip verification is under.
+                         This requirement to filter the calculation picklist cannot be implemented by a standard salesforce field dependency. -->
+                    <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c != 'Payslip' ||       
+                                                              icEditVar.icVar.Salary_Sacrifice__c=='Yes' || 
+                                                              icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return' || 
+                                                              icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss',false,true)}" >
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Method_of_Calculation__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <span>
+                            <apex:selectList Id="Income_Capacity__c___Method_of_Calculation__c"
+                                             value="{!icEditVar.icVar.Method_of_Calculation__c}"  
+                                             onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');" 
+                                             size="1" multiselect="false" >
+                                    <!-- Modified for PMIHM 1940 - Marvin David -->
+                                    <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Remove 'Casual' employment type by MDAVID -05/30/2016-->
+                                    <apex:selectOptions value="{!IF(
+                                    AND(icEditVar.icVar.Employment_Type__c == 'Overtime Shift Allowance',icEditVar.icVar.YTD_Two_Months__c == 'Yes'),OvershiftTwoMonthsYes,
+                                    IF(AND(icEditVar.icVar.Employment_Type__c == 'Overtime Shift Allowance',icEditVar.icVar.YTD_Two_Months__c == 'No'),OvershiftTwoMonthsNo,
+                                    IF(AND(recordTypeName == 'AU', icEditVar.icVar.Overtime_Shift_Allowance__c == 'Yes'),OvertimeShiftAllowanceAU,
+                                    IF(AND(recordTypeName == 'NZ', OR(icEditVar.icVar.Employment_Type__c == 'Permanent Full Time',icEditVar.icVar.Employment_Type__c == 'Permanent Part Time')),PayslipPermanentNZ,
+                                    IF(AND(recordTypeName == 'AU', OR(icEditVar.icVar.Employment_Type__c == 'Permanent Full Time',icEditVar.icVar.Employment_Type__c == 'Permanent Part Time',icEditVar.icVar.Employment_Type__c == 'CPU Income Override')),PayslipPermanentAU, PayslipOther)))))}"/>
+
+                            </apex:selectList>  
+                            </span>
+                            <apex:outputPanel layout="block" rendered="{!icEditVar.specialMOCHasError}" styleClass="errorMsg">
+                                <strong>Error:</strong>
+                                Required
+                            </apex:outputPanel>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    
+                    <apex:pageblocksectionitem rendered="{!IF(AND(recordTypeName == 'NZ', OR(icEditVar.icVar.Method_of_Calculation__c == 'Gross Income',
+                                                                                             icEditVar.icVar.Method_of_Calculation__c == 'Gross YTD',
+                                                                                             icEditVar.icVar.Method_of_Calculation__c == 'Gross Taxable Income',
+                                                                                             icEditVar.icVar.Method_of_Calculation__c == 'Base Gross Income')), true, false)}">
+                        
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Student_Loan__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:inputField Id="Income_Capacity__c___Student_Loan__c" 
+                                             value="{!icEditVar.icVar.Student_Loan__c}"
+                                             onchange="calculateValues{!counterVar}('{!icEditVar.index}');"/>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+
+                    <apex:pageblocksectionitem rendered="{!IF(AND(recordTypeName == 'NZ', OR(icEditVar.icVar.Method_of_Calculation__c == 'Gross Income',
+                                                                                          icEditVar.icVar.Method_of_Calculation__c == 'Gross YTD',
+                                                                                          icEditVar.icVar.Method_of_Calculation__c == 'Gross Taxable Income',
+                                                                                          icEditVar.icVar.Method_of_Calculation__c == 'Base Gross Income')), true, false)}">
+                                                                                          
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Kiwi_Saver__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:inputField Id="Income_Capacity__c___Kiwi_Saver__c" 
+                                             value="{!icEditVar.icVar.Kiwi_Saver__c}"
+                                             onchange="calculateValues{!counterVar}('{!icEditVar.index}');"/>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    
+                    <!-- Required: Frequency of Payment -->
+                    <!-- Picklist dependent to Method of calculation selected -->
+                    <apex:pageblocksectionitem Id="paymentFreqId" rendered="{!IF(icEditVar.icVar.Salary_Sacrifice__c=='Yes' || 
+                                                           icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return' || 
+                                                           icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss' || 
+                                                           icEditVar.icVar.Method_of_Calculation__c == 'Net YTD' || 
+                                                           icEditVar.icVar.Method_of_Calculation__c == 'Gross YTD', 
+                                                           
+                                                           IF(AND(recordTypeName == 'NZ', 
+                                                           OR(icEditVar.icVar.Employment_Type__c == 'Casual', 
+                                                              icEditVar.icVar.Employment_Type__c == 'Fixed Term Contract')),
+                                                           true,false),true)}" >
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Frequency_of_Payment__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                         
+                         <apex:outputPanel rendered="{!if(icEditVar.icVar.Method_of_Verification__c != 'Verifier',true,false)}">
+                           <apex:inputField Id="Income_Capacity__c___Frequency_of_Payment__c" 
+                                            value="{!icEditVar.icVar.Frequency_of_Payment__c}"    
+                                            onchange="dateValidation{!counterVar}('{!icEditVar.index}')"> 
+                            <script>
+                                //START - TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/31/2016
+                                function filterPaymentFrequency() {
+                                    
+                                    var frequency = document.getElementById('proofOfIncomePage:mainForm:mainProofIncomeBlock2:component2:proofIncomeId:icEditVarId:0:pgblockId:mainSection:subPanel:paymentFreqId:Income_Capacity__c___Frequency_of_Payment__c');
+                                    
+                                     if(('{!icEditVar.icVar.Employment_Type__c}' == 'Dept. of Veterans Affairs' && ('{!icEditVar.icVar.Method_of_Verification__c}' == 'Bank Statement'|| '{!icEditVar.icVar.Method_of_Verification__c}' == 'Proviso'))){
+                                        for (var i = frequency.length-1; i>=0; i--) {
+                                            if(frequency.options[i].value != 'Weekly' &&
+                                              frequency.options[i].value != 'Fortnightly' &&
+                                              frequency.options[i].value != 'Monthly' &&
+                                              frequency.options[i].label != '--None--'){
+                                                    frequency.remove(i);
+                                                }
+                                            }
+                                        }
+                                    }
+                            </script>
+                        </apex:inputField>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(AND(icEditVar.icVar.Method_of_Verification__c == 'Verifier',OR(icEditVar.icVar.Employment_Type__c=='Permanent Part Time',icEditVar.icVar.Employment_Type__c=='Permanent Full Time',icEditVar.icVar.Employment_Type__c=='Fixed Term Contract',icEditVar.icVar.Employment_Type__c=='Casual',icEditVar.icVar.Employment_Type__c=='Self Employed')),true,false)}">
+                        <apex:inputText Id="Income_Capacity__c___Frequency_of_Payment__c_Verifier" 
+                                            value="{!icEditVar.icVar.Frequency_of_Payment__c}"    
+                                            onchange="dateValidation{!counterVar}('{!icEditVar.index}')" disabled="true"/> 
+                        </apex:outputPanel>
+            
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                
+                    <!-- Required: Salary Sacrifice Frequency of Payment -->
+                    <!-- Only visible if salary sacrifice is set to yes. This replaces the default frequency of
+                         payment field since salary sacrifice have all frequency values visible and not dependent to the method of calculation selected. -->
+                    <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Salary_Sacrifice__c=='Yes',true,false)}" >
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.SS_Frequency_of_Payment__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                           <apex:inputField Id="Income_Capacity__c___SS_Frequency_of_Payment__c" 
+                                            value="{!icEditVar.icVar.SS_Frequency_of_Payment__c}" 
+                                            onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');" />  
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <!--START - TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016 -->
+                    <apex:pageblocksectionitem rendered="{!IF(recordTypeName == 'AU' && icEditVar.icVar.Salary_Sacrifice__c=='Yes',true,false)}" >
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Salary_Sacrifice_Items_itemized__c.Label} on the income document?"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                           <apex:inputField Id="Income_Capacity__c___Salary_Sacrifice_Items_itemized__c" 
+                                            value="{!icEditVar.icVar.Salary_Sacrifice_Items_itemized__c}" 
+                                            onchange="sacrificeClear{!counterVar}('{!icEditVar.index}');" />  
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Salary_Sacrifice_Items_itemized__c == 'No',true,false)}">
+                        <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Verbal_Confirmation_with_Customer__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                            <apex:inputField style="width:250px" Id="Income_Capacity__c___Verbal_Confirmation_with_Customer__c" 
+                                     value="{!icEditVar.icVar.Verbal_Confirmation_with_Customer__c}"/>
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!IF(recordTypeName == 'AU' && icEditVar.icVar.Salary_Sacrifice_Items_itemized__c=='Yes',true,false)}" >
+                        <apex:outputlabel value="Select {!$ObjectType.Income_Capacity__c.fields.Salary_Sacrifice_Items_being_added__c.Label}"/>
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                            <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                           <apex:inputField Id="Income_Capacity__c___Salary_Sacrifice_Items_being_added__c" 
+                                            value="{!icEditVar.icVar.Salary_Sacrifice_Items_being_added__c}" 
+                                            onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');" />  
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem rendered="{!IF(recordTypeName == 'AU' && icEditVar.icVar.Employment_Type__c=='Fixed Term Contract' && icEditVar.icVar.Method_of_Verification__c != 'Verifier',true,false)}">
+                    <apex:outputLabel value="Verbal {!$ObjectType.Income_Capacity__c.fields.Employer_Contract_End_Date_Confirmation__c.Label}"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField style="width:250px" Id="Income_Capacity__c___Employer_Contract_End_Date_Confirmation__c" value="{!icEditVar.icVar.Employer_Contract_End_Date_Confirmation__c}" />
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--END - TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016--> 
+                </apex:pageBlockSection>
+        </apex:pageBlockSection>
+        
+        
+        
+        
+        <apex:outputPanel Id="panelHolder">
+        
+        
+        
+        <apex:pageBlockSection columns="1" Id="taxReturnSection">
+            <!-- Financial Year (to calculate tax)
+                 Taxable Income
+                 plus Depreciation
+                 plus Interest
+                 plus Personal Superannuation
+                 plus Salaries for Directors (if company)
+                 EQUALS ADJUSTED INCOME
+                 less Tax on Taxable Income
+                 ADJUSTED INCOME YEARLY
+                 Net Monthly income
+             -->
+            <apex:pageBlockSection columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return' || icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss',true,false)}">
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Tax_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:selectList Id="Income_Capacity__c___Tax_Income__c" size="1" value="{!icEditVar.icVar.Tax_Income__c}" multiselect="false" onchange="calculateValues{!counterVar}('{!icEditVar.index}');">
+                        <apex:selectOptions value="{!financialYear}"/>
+                       </apex:selectList>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Net_Profit_Before_Tax__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Net_Profit_Before_Tax__c" value="{!icEditVar.icVar.Net_Profit_Before_Tax__c}"  onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return',true,false)}"  >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Taxable_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Taxable_Income__c" value="{!icEditVar.icVar.Taxable_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.plus_Depreciation__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___plus_Depreciation__c" value="{!icEditVar.icVar.plus_Depreciation__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.plus_Interest__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___plus_Interest__c" value="{!icEditVar.icVar.plus_Interest__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.plus_Personal_Superannuation__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___plus_Personal_Superannuation__c" value="{!icEditVar.icVar.plus_Personal_Superannuation__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection Id="taxReturn" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Individual Tax Return' || icEditVar.icVar.Method_of_Verification__c == 'Profit & Loss',true,false)}">
+                <apex:outputField Id="Income_Capacity__c___EQUALS_ADJUSTED_INCOME__c" value="{!icEditVar.icVar.EQUALS_ADJUSTED_INCOME__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Less_Tax__c" value="{!icEditVar.icVar.Less_Tax__c}"/>
+                <apex:outputField Id="Income_Capacity__c___ADJUSTED_INCOME_YEARLY__c" value="{!icEditVar.icVar.ADJUSTED_INCOME_YEARLY__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Net_Monthly_Income__c" value="{!icEditVar.icVar.Net_Monthly_Income__c}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlockSection>
+        
+        
+        
+        
+        
+        <apex:pageBlockSection columns="1" Id="sacrificeSection">
+            <!-- 
+                Net Income (after Salary Sacrifice)
+                Salary Sacrifice Income Portion
+                Minimum income used
+                Annualised Net Income
+                Annualised Net Income per month
+             -->
+             <apex:pageBlockSection columns="1" rendered="{!IF(icEditVar.icVar.Salary_Sacrifice__c='Yes',true,false)}">
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1_DD__c" value="{!icEditVar.icVar.Income_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+                 <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Net_Income_Salary_Sacrifice__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Net_Income_Salary_Sacrifice__c" value="{!icEditVar.icVar.Net_Income_Salary_Sacrifice__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"></apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                 <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Salary_Sacrifice_Income_Portion__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Salary_Sacrifice_Income_Portion__c" value="{!icEditVar.icVar.Salary_Sacrifice_Income_Portion__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"></apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                 
+             </apex:pageBlockSection>
+             
+             <apex:pageBlockSection Id="sacrifice" columns="1" rendered="{!IF(icEditVar.icVar.Salary_Sacrifice__c='Yes',true,false)}">
+                 <apex:outputField Id="Income_Capacity__c___Minimum_Income_Used__c" value="{!icEditVar.icVar.Minimum_Income_Used__c}" />
+                 <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income__c" value="{!icEditVar.icVar.Annualised_Net_Income__c}"/>
+                 <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income_per_Month__c" value="{!icEditVar.icVar.Annualised_Net_Income_per_Month__c}"/>
+             </apex:pageBlockSection>
+        </apex:pageBlockSection>
+        
+        
+        
+        
+        
+        
+        <apex:pageBlockSection columns="1" Id="computeSection" rendered="{!IF(icEditVar.icVar.Employment_Type__c!=null && icEditVar.icVar.Method_of_Verification__c!=null,true,false)}" >
+            
+            <!-- Start of Income Fields -->
+            
+            <!-- Income Source Section -->
+            <apex:pageBlockSection columns="2" rendered="{!IF(OR(((icEditVar.icVar.Method_of_Calculation__c == 'Net Income' || 
+                                                  icEditVar.icVar.Method_of_Calculation__c == 'Net YTD' ||
+                                                  icEditVar.icVar.Method_of_Calculation__c == 'Gross Income' ||
+                                                  icEditVar.icVar.Method_of_Calculation__c == 'Gross Taxable Income' ||
+                                                  icEditVar.icVar.Method_of_Calculation__c == 'Gross YTD') && 
+                                                  icEditVar.icVar.Method_of_Verification__c != 'Bank Statement' && 
+                                                  icEditVar.icVar.Method_of_Verification__c != 'Rental Statement' &&
+                                                  icEditVar.icVar.Method_of_Verification__c != 'Proviso'), 
+                                                  AND(OR(icEditVar.icVar.Method_of_Verification__c == 'Letter from Employer', 
+                                                         icEditVar.icVar.Method_of_Verification__c == 'Policy Exception'),
+                                                         icEditVar.icVar.Salary_Sacrifice__c != 'Yes'),
+                                                  (icEditVar.icVar.CPU_Income_Approval_obtained__c == 'Yes' &&
+                                                  icEditVar.icVar.Method_of_Verification__c == 'Other (please specify)')), true, false)}" Id="incomeId">
+                
+                
+               
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c != 'Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1__c" value="{!icEditVar.icVar.Income_1__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');" onfocus="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                 
+                                                  
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c !='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1_DD__c" value="{!icEditVar.icVar.Income_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+                <apex:pageblocksectionitem rendered="{!IF(OR(icEditVar.icVar.Method_of_Verification__c =='Centrelink Statement',
+                                                             AND(icEditVar.icVar.Employment_Type__c =='Centrelink',
+                                                             OR(icEditVar.icVar.Method_of_Verification__c == 'Verbal',
+                                                                icEditVar.icVar.Method_of_Verification__c == 'Verbal - Fax Request'))),true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2__c" value="{!icEditVar.icVar.Income_2__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip',true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_1_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_1_Income__c" value="{!icEditVar.icVar.Payslip_1_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_1_DD__c" value="{!icEditVar.icVar.Payslip_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(AND(icEditVar.icVar.Method_of_Verification__c =='Payslip', 
+                                                             OR(
+                                                                AND(icEditVar.icVar.Employment_Type__c =='Overtime Shift Allowance', icEditVar.icVar.Method_of_Calculation__c == 'Net Income'), 
+                                                                AND(recordTypeName == 'NZ', 
+                                                                    OR(icEditVar.icVar.Employment_Type__c =='Casual', icEditVar.icVar.Employment_Type__c =='Fixed Term Contract')))),true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_Income__c" value="{!icEditVar.icVar.Payslip_2_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF((recordTypeName == 'AU' && icEditVar.icVar.Overtime_Shift_Allowance__c =='Yes' && icEditVar.icVar.Method_of_Calculation__c == 'Net Income'),true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_Income__c" value="{!icEditVar.icVar.Payslip_2_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem rendered="{!IF((recordTypeName == 'AU' && icEditVar.icVar.Overtime_Shift_Allowance__c =='Yes' && icEditVar.icVar.Method_of_Calculation__c == 'Net Income'),true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_DD__c" value="{!icEditVar.icVar.Payslip_2_DD__c}" onkeyup="dateValidation{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--END -->
+                <apex:pageblocksectionitem rendered="{!IF(AND(icEditVar.icVar.Method_of_Verification__c =='Payslip', 
+                                                             OR(
+                                                                AND(icEditVar.icVar.Employment_Type__c =='Overtime Shift Allowance', icEditVar.icVar.Method_of_Calculation__c == 'Net Income'), 
+                                                                AND(recordTypeName == 'NZ', 
+                                                                    OR(icEditVar.icVar.Employment_Type__c =='Casual', icEditVar.icVar.Employment_Type__c =='Fixed Term Contract')))),true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_DD__c" value="{!icEditVar.icVar.Payslip_2_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <!-- New Zealand Payslip Special Condition -->
+                <apex:pageblocksectionitem rendered="{!IF(AND(recordTypeName == 'NZ', 
+                                                                  icEditVar.icVar.Method_of_Verification__c =='Payslip', 
+                                                                  OR(icEditVar.icVar.Employment_Type__c =='Casual', 
+                                                                     icEditVar.icVar.Employment_Type__c =='Fixed Term Contract')),true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_3_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_3_Income__c" value="{!icEditVar.icVar.Payslip_3_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(AND(recordTypeName == 'NZ', 
+                                                                  icEditVar.icVar.Method_of_Verification__c =='Payslip', 
+                                                                  OR(icEditVar.icVar.Employment_Type__c =='Casual', 
+                                                                     icEditVar.icVar.Employment_Type__c =='Fixed Term Contract')),true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_3_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_3_DD__c" value="{!icEditVar.icVar.Payslip_3_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+            </apex:pageBlockSection>
+            
+            <!-- Base Gross Income Section-->
+            <apex:pageBlockSection columns="2"  Id="baseGrossIncome" rendered="{!IF(icEditVar.icVar.Method_of_Calculation__c == 'Base Gross Income',true,false)}">
+                
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Modified by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF(recordTypeName == 'AU',false,true)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Income_show__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___YTD_Income_show__c" value="{!icEditVar.icVar.YTD_Income_show__c}" onchange="refreshSubFields{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem> 
+                <apex:pageblocksectionitem rendered="{!IF(recordTypeName == 'AU',false,true)}">
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c!='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1__c" value="{!icEditVar.icVar.Income_1__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c!='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1_DD__c" value="{!icEditVar.icVar.Income_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c!='Payslip' && icEditVar.icVar.YTD_Income_show__c=='No',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2__c" value="{!icEditVar.icVar.Income_2__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c!='Payslip' && icEditVar.icVar.YTD_Income_show__c=='No',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2_DD__c" value="{!icEditVar.icVar.Income_2_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_1_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_1_Income__c" value="{!icEditVar.icVar.Payslip_1_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_1_DD__c" value="{!icEditVar.icVar.Payslip_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip' && icEditVar.icVar.YTD_Income_show__c=='No',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_Income__c" value="{!icEditVar.icVar.Payslip_2_Income__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Method_of_Verification__c =='Payslip' && icEditVar.icVar.YTD_Income_show__c=='No',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Payslip_2_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Payslip_2_DD__c" value="{!icEditVar.icVar.Payslip_2_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+            </apex:pageBlockSection>
+            
+            <!-- Bank Statement and Net Income Special Section -->
+            <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added 'Centrelink', 'CPU Income Override', 'Dept. of Veterans Affairs' by MDAVID -06/21/2016-->
+            <apex:pageBlockSection columns="2" rendered="{!IF((icEditVar.icVar.Method_of_Verification__c == 'Bank Statement' || icEditVar.icVar.Method_of_Verification__c == 'Proviso') && icEditVar.icVar.Method_of_Calculation__c == 'Net Income',true,false)}">
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Full Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Part Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Overtime Shift Allowance' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Employed' ||
+                                                          icEditVar.icVar.Employment_Type__c=='ACC' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Working for Family Members' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Superannuation' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Commission' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Seasonal Worker' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Government Benefit' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Temporary Employment' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Centrelink' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Dept. of Veterans Affairs' ||
+                                                          icEditVar.icVar.Employment_Type__c=='CPU Income Override' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Maintenance',true,false)}"  >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1__c" value="{!icEditVar.icVar.Income_1__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added 'Centrelink', 'CPU Income Override', 'Dept. of Veterans Affairs' by MDAVID -06/21/2016-->
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Full Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Part Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Overtime Shift Allowance' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Employed' ||
+                                                          icEditVar.icVar.Employment_Type__c=='ACC' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Working for Family Members' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Superannuation' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Commission' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Seasonal Worker' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Government Benefit' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Temporary Employment' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Centrelink' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Dept. of Veterans Affairs' ||
+                                                          icEditVar.icVar.Employment_Type__c=='CPU Income Override' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Maintenance',true,false)}"  >
+                    <apex:outputlabel value="{!IF(icEditVar.icVar.Method_of_Verification__c !='Bank Statement' || icEditVar.icVar.Method_of_Verification__c !='Proviso', $ObjectType.Income_Capacity__c.fields.Income_1_DD__c.Label, 'Latest date on Doc')}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1_DD__c" value="{!icEditVar.icVar.Income_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added 'Centrelink', 'Dept. of Veterans Affairs' by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Full Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Part Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Overtime Shift Allowance' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Employed' ||
+                                                          icEditVar.icVar.Employment_Type__c=='ACC' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Working for Family Members' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Superannuation' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Commission' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Seasonal Worker' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Government Benefit' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Temporary Employment' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Centrelink' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Dept. of Veterans Affairs' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Maintenance') && icEditVar.icVar.Is_e_POI__c == false,true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2__c" value="{!icEditVar.icVar.Income_2__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!--TQLQW-357 [PL - AU & NZ] Salesforce Income Calculator Changes - Added 'Centrelink', 'Dept. of Veterans Affairs' by MDAVID -05/30/2016-->
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Full Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Permanent Part Time' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Overtime Shift Allowance' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Employed' ||
+                                                          icEditVar.icVar.Employment_Type__c=='ACC' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Working for Family Members' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Superannuation' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Commission' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Seasonal Worker' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Government Benefit' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Temporary Employment' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Centrelink' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Dept. of Veterans Affairs' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Maintenance') && icEditVar.icVar.Is_e_POI__c == false ,true,false)}" >
+                    <apex:outputlabel value="{!IF(icEditVar.icVar.Method_of_Verification__c !='Bank Statement' || icEditVar.icVar.Method_of_Verification__c !='Proviso', $ObjectType.Income_Capacity__c.fields.Income_2_DD__c.Label, 'Latest date on Doc')}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2_DD__c" value="{!icEditVar.icVar.Income_2_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>                                                                 
+                
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income') &&
+                                                          icEditVar.icVar.Is_e_POI__c == false,true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_3__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_3__c" value="{!icEditVar.icVar.Income_3__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>                                                                 
+                
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Private' ||
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income') &&
+                                                          icEditVar.icVar.Is_e_POI__c == false,true,false)}" >
+                    <apex:outputlabel value="{!IF(icEditVar.icVar.Method_of_Verification__c !='Bank Statement' || icEditVar.icVar.Method_of_Verification__c !='Proviso', $ObjectType.Income_Capacity__c.fields.Income_3_DD__c.Label, 'Latest date on Doc')}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_3_DD__c" value="{!icEditVar.icVar.Income_3_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='Casual' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Fixed Term Contract' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Family Business' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Funded Retirees',true,false)}" >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Lowest_Income_Deposit__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Lowest_Income_Deposit__c" value="{!icEditVar.icVar.Lowest_Income_Deposit__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF(icEditVar.icVar.Employment_Type__c=='Casual' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Fixed Term Contract' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Family Business' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Self Funded Retirees',true,false)}">
+                    <apex:outputlabel value="{!IF(icEditVar.icVar.Method_of_Verification__c !='Bank Statement' || icEditVar.icVar.Method_of_Verification__c !='Proviso', $ObjectType.Income_Capacity__c.fields.Lowest_Income_Deposit_DD__c.Label, 'Latest date on Doc')}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <!-- Updated By Adrian Recio -->
+                       <!-- Added on Change Event to validate date -->
+                       <apex:inputField Id="Income_Capacity__c___Lowest_Income_Deposit_DD__c" value="{!icEditVar.icVar.Lowest_Income_Deposit_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+        
+                
+            </apex:pageBlockSection>
+            
+            <!-- Rental Statement Special Condition -->
+            <apex:pageBlockSection columns="2" rendered="{!IF(icEditVar.icVar.Method_of_Verification__c == 'Rental Statement' && 
+                                                              icEditVar.icVar.Method_of_Calculation__c == 'Net Income',true,false)}">
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1__c" value="{!icEditVar.icVar.Income_1__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"></apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_1_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_1_DD__c" value="{!icEditVar.icVar.Income_1_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2__c" value="{!icEditVar.icVar.Income_2__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"></apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_2_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_2_DD__c" value="{!icEditVar.icVar.Income_2_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_3__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_3__c" value="{!icEditVar.icVar.Income_3__c}" onkeyup="setTypeTimer{!counterVar}('{!icEditVar.index}');"></apex:inputField>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Income_3_DD__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Income_3_DD__c" value="{!icEditVar.icVar.Income_3_DD__c}" onchange="dateValidation{!counterVar}('{!icEditVar.index}')"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+            </apex:pageBlockSection>
+            
+            <!-- End of Income Fields -->
+            
+            
+            
+            
+            
+            <!-- Net Income Fields -->
+            <apex:pageBlockSection Id="netIncome" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Calculation__c=='Net Income',true,false)}">
+                <!--  
+                Minimum income used
+                Annualised Net Income   
+                -->
+                
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Agency' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income') &&  
+                                                          (icEditVar.icVar.Method_of_Verification__c == 'Lease Agreement' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Verbal' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Verbal - Fax Request' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Rental Statement' || 
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Bank Statement' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Proviso'    ), true,false)}">
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.No_of_Property_Owners__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___No_of_Property_Owners__c" value="{!icEditVar.icVar.No_of_Property_Owners__c}" onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Agency' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income') &&  
+                                                          (icEditVar.icVar.Method_of_Verification__c == 'Lease Agreement' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Verbal' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Verbal - Fax Request'), true,false)}">
+                    <apex:outputlabel value="{!IF(recordTypeName != 'NZ', 90, 80)} % of Rental Income/No of ppty owners"/>          
+                    <apex:outputField value="{!icEditVar.icVar.Rental_Income_per_ppty_owners__c}"/>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem rendered="{!IF((icEditVar.icVar.Employment_Type__c=='Rental Income Agency' || 
+                                                            icEditVar.icVar.Employment_Type__c=='Rental Income Private' || 
+                                                          icEditVar.icVar.Employment_Type__c=='Rental Income') && 
+                                                          (icEditVar.icVar.Method_of_Verification__c == 'Rental Statement' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Bank Statement' ||
+                                                          icEditVar.icVar.Method_of_Verification__c == 'Proviso'), true,false)}">
+                    <apex:outputlabel value="Lowest Rental Income/No of ppty owners"/>          
+                    <apex:outputField Id="Income_Capacity__c___Rental_Income_per_ppty_owners__c" value="{!icEditVar.icVar.Rental_Income_per_ppty_owners__c}"/>
+                </apex:pageblocksectionitem>
+                
+                <apex:outputField Id="Income_Capacity__c___Minimum_Income_Used__c" value="{!icEditVar.icVar.Minimum_Income_Used__c}" rendered="{!IF((icEditVar.icVar.Employment_Type__c!='Rental Income Agency' || 
+                                                                                             icEditVar.icVar.Employment_Type__c!='Rental Income') && 
+                                                                                             icEditVar.icVar.Employment_Type__c!='Rental Income Private',true,false)}"/>
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income__c" value="{!icEditVar.icVar.Annualised_Net_Income__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income_per_Month__c" value="{!icEditVar.icVar.Annualised_Net_Income_per_Month__c}"/>
+            </apex:pageBlockSection>
+                
+            <!-- Net YTD Fields -->
+            <apex:pageBlockSection Id="netYTD" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Calculation__c=='Net YTD',true,false)}">
+            
+                <!-- 
+                YTD start date
+                YTD Finish Date
+                Net YTD
+                Net annualised per annum
+                Net annualsied per month
+                -->
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Start_Date__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___YTD_Start_Date__c" value="{!icEditVar.icVar.YTD_Start_Date__c}" onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Finish_Date__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___YTD_Finish_Date__c" value="{!icEditVar.icVar.YTD_Finish_Date__c}" onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                
+                <apex:outputField Id="Income_Capacity__c___Net_YTD__c" value="{!icEditVar.icVar.Net_YTD__c}" />
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income__c" value="{!icEditVar.icVar.Annualised_Net_Income__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income_per_Month__c" value="{!icEditVar.icVar.Annualised_Net_Income_per_Month__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection Id="grossIncome" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Calculation__c=='Gross Income' || icEditVar.icVar.Method_of_Calculation__c=='Base Gross Income' || icEditVar.icVar.Method_of_Calculation__c=='Gross Taxable Income',true,false)}">
+            
+                <!--
+                Financial Year (to calucalte tax)
+                Minimum Income Used
+                Annualised Gross Income
+                Less Tax
+                Net Annualised Income
+                Net Annualised Income per Month
+                -->
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Tax_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:selectList Id="Income_Capacity__c___Tax_Income__c" size="1" value="{!icEditVar.icVar.Tax_Income__c}" multiselect="false" onchange="calculateValues{!counterVar}('{!icEditVar.index}');">
+                        <apex:selectOptions value="{!financialYear}"/>
+                       </apex:selectList>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                
+                <apex:outputField Id="Income_Capacity__c___Minimum_Income_Used__c" value="{!icEditVar.icVar.Minimum_Income_Used__c}" />
+                <apex:outputField Id="Income_Capacity__c___Annualised_Gross_Income__c" value="{!icEditVar.icVar.Annualised_Gross_Income__c}" />
+                <apex:outputField Id="Income_Capacity__c___Less_Tax__c" value="{!icEditVar.icVar.Less_Tax__c}" />
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income__c" value="{!icEditVar.icVar.Annualised_Net_Income__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income_per_Month__c" value="{!icEditVar.icVar.Annualised_Net_Income_per_Month__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection Id="grossYtd" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Calculation__c=='Gross YTD',true,false)}">
+                <!--  
+                YTD Start Date
+                YTD Finish Date
+                Financial Year (to calculate tax)
+                Gross YTD
+                Gross Annualised per annum
+                Gross Annualised per month
+                Less Tax
+                Net Annualised Income
+                Net Annualised Income per Month
+                -->
+                
+                
+               
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Start_Date__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___YTD_Start_Date__c" value="{!icEditVar.icVar.YTD_Start_Date__c}" onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');"/> 
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                                 
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.YTD_Finish_Date__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___YTD_Finish_Date__c" value="{!icEditVar.icVar.YTD_Finish_Date__c}" onchange="setTypeTimer{!counterVar}('{!icEditVar.index}');"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Tax_Income__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:selectList Id="Income_Capacity__c___Tax_Income__c" size="1" value="{!icEditVar.icVar.Tax_Income__c}" multiselect="false" onchange="calculateValues{!counterVar}('{!icEditVar.index}');">
+                        <apex:selectOptions value="{!financialYear}"/>
+                       </apex:selectList>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:outputField Id="Income_Capacity__c___Gross_YTD__c" value="{!icEditVar.icVar.Gross_YTD__c}" />
+                <apex:outputField Id="Income_Capacity__c___Gross_Annualised_per_annum__c" value="{!icEditVar.icVar.Gross_Annualised_per_annum__c}" />
+                <apex:outputField Id="Income_Capacity__c___Gross_Annualised_per_month__c" value="{!icEditVar.icVar.Gross_Annualised_per_month__c}" />
+                <apex:outputField Id="Income_Capacity__c___Less_Tax__c" value="{!icEditVar.icVar.Less_Tax__c}" />
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income__c" value="{!icEditVar.icVar.Annualised_Net_Income__c}"/>
+                <apex:outputField Id="Income_Capacity__c___Annualised_Net_Income_per_Month__c" value="{!icEditVar.icVar.Annualised_Net_Income_per_Month__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection collapsible="false" title="Verbal Employer Income Confirmation" columns="1" rendered="{!IF(icEditVar.icVar.Method_of_Verification__c=='Verbal' && (icEditVar.icVar.Method_of_Calculation__c!=null || icEditVar.icVar.Salary_Sacrifice__c=='Yes'),true,false)}">
+                <apex:pageblocksectionitem >
+                    <apex:outputLabel value="Authorised person spoken to (First & Surname)"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___authorised_person_spoken__c" value="{!icEditVar.icVar.authorised_person_spoken__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Position_Within_Business__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Position_Within_Business__c" value="{!icEditVar.icVar.Position_Within_Business__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Business_phone_number__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Business_phone_number__c" value="{!icEditVar.icVar.Business_phone_number__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.Business_number_confirmed__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Business_number_confirmed__c" value="{!icEditVar.icVar.Business_number_confirmed__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$ObjectType.Income_Capacity__c.fields.How_Business_number_confirmed__c.Label}"/>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___How_Business_number_confirmed__c" value="{!icEditVar.icVar.How_Business_number_confirmed__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputLabel value="Customer Employment (earning income) and Occupation Confirmed"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Employment_and_Occupation_Confirmed__c" value="{!icEditVar.icVar.Employment_and_Occupation_Confirmed__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+   
+                <apex:pageblocksectionitem >
+                    <apex:outputLabel value="{!$ObjectType.Income_Capacity__c.fields.Customer_in_Probation__c.Label}"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Customer_in_Probation__c" value="{!icEditVar.icVar.Customer_in_Probation__c}"/>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                <apex:pageblocksectionitem >
+                    <apex:outputLabel value="{!$ObjectType.Income_Capacity__c.fields.Start_Date_of_Employment__c.Label}"></apex:outputLabel>
+                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                       <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                       <apex:inputField Id="Income_Capacity__c___Start_Date_of_Employment__c" value="{!icEditVar.icVar.Start_Date_of_Employment__c}" />
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                
+                
+            </apex:pageBlockSection>
+        </apex:pageBlockSection>
+        </apex:outputPanel>
+    </apex:pageBlock>
+
+    </apex:repeat>
+    
+    </apex:outputPanel>
+</apex:component>

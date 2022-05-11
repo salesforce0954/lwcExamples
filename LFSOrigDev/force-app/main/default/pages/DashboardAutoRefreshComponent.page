@@ -1,0 +1,68 @@
+<!--
+/*
+ * @Description: Dashboard Auto Refresh Component
+ * @Author: Marvin David
+ * @Date Created: SEPT-03-2015
+ * @History:
+   ==================================================================
+       03-09-15: Created - Marvin
+   =====================================================================
+ */ 
+-->
+<apex:page sidebar="false" showheader="false" standardstylesheets="false" controller="DashboardAutoRefreshController">
+ 
+<apex:includeScript value="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"/>
+<apex:outputPanel rendered="{!canRefresh}">
+  <apex:form >
+      <apex:actionFunction name="doRefresh" action="{!refreshDashboard}" />
+      <apex:outputPanel id="detail">
+        <div id="countDown"></div>
+      </apex:outputPanel>
+  </apex:form>
+ 
+  <apex:outputPanel id="scriptPanel">
+    <apex:outputPanel rendered="{!needsRefresh}">
+    <script>
+    //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+    var timer = {!JSENCODE($Setup.Dashboard_Refresh_Settings__c.Timer_Seconds__c)};
+    var pause = {!JSEncode($Setup.Dashboard_Refresh_Settings__c.Timer_Pause__c)}; //UPDATED 14-JAN-2016 MDAVID - CODE SCAN FIX ADDED JSENCODE
+    window.onload = function(){
+      startCountDown(timer, pause, doRefresh);
+    } 
+ 
+    function startCountDown(i, p, f){
+      var pause = p;
+      var fn = f;
+     
+      var countDownObj = document.getElementById("countDown");
+      if (countDownObj == null){
+        alert("div not found, check your id");
+        return;
+      }
+    
+      countDownObj.count = function(i){
+        countDownObj.innerHTML = 'Refreshing in ' +  i + ' seconds';
+        if (i == 0){
+          fn();
+          return;
+        }
+        setTimeout(function(){
+          countDownObj.count(i - 1);
+        },
+        pause
+        );
+      } 
+   
+      countDownObj.count(i);
+    }
+    </script>
+    </apex:outputPanel>
+      
+    <apex:outputPanel rendered="{!NOT(needsRefresh)}">
+      <script>
+        window.top.location='/{!dbIdent}';
+      </script>
+    </apex:outputPanel>
+  </apex:outputPanel>
+</apex:outputPanel> 
+</apex:page>

@@ -1,0 +1,120 @@
+<template>
+    
+    <div class="slds-var-m-around_x-small">
+        <div class="slds-text-align_center slds-text-heading_medium">Personal Loan Application Form</div>
+    </div>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="" class="plAppForm">
+    <div class="slds-var-m-around_x-small">
+    <template if:true={showPath}>
+        <lightning-progress-indicator current-step={currentStep} type="path" variant="base" class="slds-var-p-left_x-small">
+            <template for:each={steps} for:item="step">
+                <lightning-progress-step label={step.label} value={step.value} key={step.value} onclick={handleStepNavigation}></lightning-progress-step>
+            </template>
+        </lightning-progress-indicator>
+    </template>
+    </div>
+
+    <!-- Consent Component -->
+    <template if:true={isStep1}>
+        <c-loan-app-consent loan-details-obj={loanDetailsObj} original-product-type={originalProductType} better-start-config={primaryApplicantDetails.betterStartOfferConfig} latitude-brand-record={primaryApplicantDetails.latitudeBrandRecord} 
+        onnotifystepinfo={handleLoanDetailsInfo} input-mode="entry" oninputchanged={handleInputChanged}></c-loan-app-consent>
+    </template>    
+
+
+    <!-- Personal Details Component -->
+    <template if:true={isStep2}>
+        <template if:true={isJointApplication}>
+            <div class="slds-var-m-around_x-small">
+                <lightning-tabset variant="scoped">
+                    <lightning-tab label={applicant1Name} icon-name="standard:opportunity_contact_role" value={applicant1Name} show-error-indicator={showErrorIndicatorPrimary} class="slds-theme_shade tabCustom tabStyle">
+                        <c-loan-personal-details personal-details-obj={personalDetailsObj} onpersonaldetailsinfo={handlePersonalDetailsInfo} input-mode="entry" is-joint-application={isJointApplication} onnavigatejointdetails={handleGotoJointPersonal} onpersonaldetailsprev={handlePrevNavigation}></c-loan-personal-details>
+                    </lightning-tab>
+                    <lightning-tab label={applicant2Name} value={applicant2Name} icon-name="standard:people" class="slds-theme_shade  tabCustom">
+                        <c-loan-personal-details-joint personal-details-joint-obj={personalDetailsJointObj} personal-details-obj={personalDetailsObj} onpersonaldetailsjointinfo={handlePersonalDetailsJointInfo} input-mode="entry" is-joint-application={isJointApplication} onpersonaldetailsprev={handlePrevNavigation}></c-loan-personal-details-joint>
+                    </lightning-tab>
+                </lightning-tabset>
+            </div>
+        </template>
+        <template if:false={isJointApplication}>
+            <c-loan-personal-details personal-details-obj={personalDetailsObj} onpersonaldetailsinfo={handlePersonalDetailsInfo} input-mode="entry" onpersonaldetailsprev={handlePrevNavigation}></c-loan-personal-details>
+        </template>
+        
+    </template>
+
+     <!-- Employment Details Component -->
+
+    <template if:true={isStep3}>
+        <template if:true={isJointApplication}>
+            <div class="slds-var-m-around_x-small">
+                <lightning-tabset variant="scoped">
+                    <lightning-tab label={applicant1Name} value={applicant1Name} icon-name="standard:opportunity_contact_role" class="slds-theme_shade" show-error-indicator={showErrorIndicatorPrimary}>
+                        <c-loan-employment-details employment-details-obj={employmentDetailsObj} input-mode="entry" is-joint-application={isJointApplication} onnavigatejointemployment={handleGotoJointEmployment} onemploymentdetailsinfo={handleEmploymentDetailsInfo} onemploymentdetailsprev={handlePrevNavigation}></c-loan-employment-details>
+                    </lightning-tab>
+                    <lightning-tab label={applicant2Name} value={applicant2Name} icon-name="standard:people" >
+                        <c-loan-employment-details-joint employment-details-joint-obj={employmentDetailsJointObj} input-mode="entry" onemploymentdetailsjointinfo={handleEmploymentDetailsJointInfo} is-joint-application={isJointApplication} onemploymentdetailsprev={handlePrevNavigation}></c-loan-employment-details-joint>
+                    </lightning-tab>
+                </lightning-tabset>
+            </div>
+        </template>
+        <template if:false={isJointApplication}>
+            <c-loan-employment-details employment-details-obj={employmentDetailsObj} input-mode="entry" onemploymentdetailsinfo={handleEmploymentDetailsInfo} onemploymentdetailsprev={handlePrevNavigation}></c-loan-employment-details>
+        </template>
+        
+    </template>
+
+    <!-- Expense Details Component -->
+    
+    <template if:true={isStep4}>       
+        <c-loan-expense-details expense-details-obj={expenseDetailsObj} onexpensedetailsinfo={handleExpenseDetailsInfo} input-mode="entry" onexpensedetailsprev={handlePrevNavigation}></c-loan-expense-details> 
+    </template>
+
+    <!-- Asset Details Component -->
+    
+    <template if:true={isStep5}>
+        <c-loan-asset-details asset-details-obj={assetDetailsObj} is-joint-application={isJointApplication} onassetdetailsinfo={handleAssetDetailsInfo} input-mode="entry" onassetdetailsprev={handlePrevNavigation}></c-loan-asset-details>
+    </template>
+
+    <!-- Debt Details Component -->
+    
+    <template if:true={isStep6}>
+        <c-loan-debt-details debt-details-obj={debtDetailsObj} is-joint-application={isJointApplication} ondebtdetailsinfo={handleDebtDetailsInfo} input-mode="entry" ondebtdetailsprev={handlePrevNavigation}></c-loan-debt-details>
+    </template>
+
+    <!-- Review & Submit Component -->
+
+    <template if:true={isStep7}>
+        <c-loan-application-review primary-applicant-details-obj={primaryApplicantDetailsObj} is-joint-application={isJointApplication} onreviewdetailsprev={handlePrevNavigation} onsubmitapplication={handleAppSubmit}></c-loan-application-review>
+    </template>
+
+    <!-- Spinner -->
+
+   
+
+    <!-- App Submit Information -->
+    <template if:true={showAppSubmitInfo}>
+        <lightning-card title="Application Status" icon-name="action:update_status">
+            <template if:true={showSpinner}>
+                <c-application-spinner></c-application-spinner>
+            </template>
+            <template if:true={showSubmitInProgressMsg}>
+                <div class="slds-text-align_center slds-text-heading_medium">Submitting your application...</div>
+            </template>
+            <template if:true={showSuccessMessage}>
+                <div class="slds-text-color_success slds-text-heading_medium slds-text-align_center">Application submitted successfully. Your client's Latitude Application number is <strong>{latitudeUid}</strong></div>
+                <div class="slds-clearfix slds-var-m-around_x-small">
+                    <lightning-button label="View all applications" variant="brand" class="slds-align_absolute-center" onclick={handleAllApplications}></lightning-button>
+                </div>
+            </template>
+            <template if:true={showErrorMessage}>
+                <div class="slds-text-color_error slds-text-heading_medium slds-text-align_center">An error was encountered while submitting your application.</div>
+            </template>
+        </lightning-card>
+    </template>
+
+</lightning-card>
+
+</div>
+
+
+</template>

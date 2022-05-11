@@ -1,0 +1,418 @@
+<!--
+/**
+* @Description: Debts component (CUI)
+* @Author: Fel Saliba
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - FEL
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      05-02-15: Updated Defect 1329 - Remove rendered attribute in panel containing type of debt.
+      should be visible when debt category is other.
+28/03/2019 - Sprint 3 Keypad on Number field 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_JointDebtAndLiabilities" id="Liability__c-mycomponent">
+
+    <style>
+        .frequencyPicklist {margin-top: 44px;}
+        
+    </style>
+    <script>
+
+    </script>
+
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="debtWrap" description="This is the value for the component." type="MyBudgetsDebtWrapper" required="true" assignTo="{!debtWrapper}"/>
+    <apex:attribute name="listSize" description="This is the size of list." type="Integer"/>
+    <apex:attribute name="brandRegion" description="This is the value of the brand country" type="String" required="true"/>
+
+    <div id="add_fields_1" class="span12 clonedSection">
+        <!-- Numbered Income heading and divider -->
+        <div class="{!if(debtWrap.rowCount!=0, 'debtDivider', '')} input100pct">
+            <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                <label class="dynamicSubheader">Debt {!debtWrap.rowCount+1}</label>
+            </apex:outputPanel>
+            <hr />
+            <!-- DELETE BUTTON -->
+            <apex:outputPanel rendered="{!listSize>1}">
+                <div class="minusplusicon mppiovr">
+                    <apex:commandButton value="" rendered="{!debtWrap.rowCount!=0}" styleClass="minusfield minusdark" onclick="deleteRow('{!debtWrap.rowCount}'); return false;" rerender="false"/>
+                </div>
+            </apex:outputPanel>
+        </div>
+        <div class="{!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span6')} removelmargin lfs_dbt_input_sm input100pct">
+          <!--<div class="minusplusicon mppiovr3"/>-->
+
+            <label class="pix40 labeldark">
+                Debt type
+            </label>
+            <!-- CATEGORY FIELD -->
+            <apex:outputPanel rendered="{!if($Site.Name=='Latitude',true,false)}">
+            <apex:inputField value="{!debtWrap.debt.Debt_Category__c}" styleClass="isPicklistDebtType" id="Liability__c___Debt_Category__c" onblur="$j(this).valid();" >
+                                          <apex:actionSupport action="{!setAPR}" event="onchange" rerender="dynamicFields,financialInst,Liability__c___Financier_List1__c" oncomplete="changePickVal();" />
+            </apex:inputField> 
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!if(OR($Site.Name=='Gem', $Site.Name=='Kiwibank'),true,false)}">
+            <apex:selectList size="1" styleClass="isPicklistFinacierType" value="{!debtWrap.debt.Debt_Category__c}" id="Liability__c___Debt_Category_NZ__c" >
+                            <apex:selectOptions value="{!SelectDebtCategory}"/>
+                               <apex:actionSupport action="{!setAPR}" event="onchange" rerender="dynamicFields,financialInst,Liability__c___Financier_List1__c" oncomplete="changePickVal();" />
+                        </apex:selectList> 
+              </apex:outputPanel>
+            <div class="clearfix"></div>
+            <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.categoryValid}" value="Error: Please select your debt category"/>
+        </div>
+        <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span6')} lfs_dbt_input input100pct">
+            <apex:outputPanel id="financialInst">
+                <apex:outputPanel rendered="{!NOT(IF(debtWrap.debt.Type_of_Credit_Card__c == 'Kiwibank' && debtWrap.debt.Debt_Category__c == 'Credit card',false,true))}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>                
+                <apex:outputPanel rendered="{!IF(debtWrap.debt.Type_of_Credit_Card__c == 'Kiwibank' && debtWrap.debt.Debt_Category__c == 'Credit card',false,true)}" >
+                    
+                        <!--<div class="minusplusicon mppiovr3"/>-->
+                       
+                        <!-- FINANCIER FIELD -->
+                  
+                    
+                    <apex:outputPanel rendered="{!if($Site.Name=='Latitude',true,false)}">
+                    <label class="pix40 labeldark">
+                            Financial institution
+                        </label>
+                       <apex:inputField styleClass="input-block-level isFinancialInstitution" value="{!debtWrap.debt.Financier_Name__c}" id="Liability__c___Financier_Name__c"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!if(OR($Site.Name=='Gem', $Site.Name=='Kiwibank'),true,false)}">
+                  
+                  
+                  
+                    <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Personal loan' || debtWrap.debt.Debt_Category__c == 'Hire purchase')}">
+                        <label class="pix40 labeldark">
+                            Financial institution
+                        </label>                        
+                       <apex:selectList size="1" styleClass="isPicklistFinacierType" value="{!debtWrap.debt.Financier_List__c}" id="Liability__c___Financier_List1__c" >
+                            <apex:selectOptions value="{!SelectPersonalHirePurchase}"/>
+                            <apex:actionSupport event="onchange" reRender="showHideFinancierName"/>
+                        </apex:selectList> 
+                     </apex:outputPanel>   
+                     
+                      <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Car loan')}">
+                        <label class="pix40 labeldark">
+                            Financial institution
+                        </label>
+                        <apex:selectList size="1" styleClass="isPicklistFinacierType" value="{!debtWrap.debt.Financier_List__c}" id="Liability__c___Financier_List2__c" >
+                            <apex:selectOptions value="{!SelectCarLoan}"/>
+                            <apex:actionSupport event="onchange" reRender="showHideFinancierName"/>
+                        </apex:selectList> 
+                     </apex:outputPanel>  
+                     
+                      <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Credit card' || debtWrap.debt.Debt_Category__c == 'Store card' || debtWrap.debt.Debt_Category__c == 'Charge card')}">
+                       <label class="pix40 labeldark">
+                            Financial institution
+                        </label>
+                        <apex:selectList size="1" styleClass="isPicklistFinacierType" value="{!debtWrap.debt.Financier_List__c}" id="Liability__c___Financier_List3__c" >
+                            <apex:selectOptions value="{!SelectCreditStoreCharge}"/>
+                            <apex:actionSupport event="onchange" reRender="showHideFinancierName"/>
+                        </apex:selectList> 
+                     </apex:outputPanel>         
+                     
+                      <apex:outputPanel rendered="{!debtWrap.debt.Debt_Category__c == 'Overdraft'}">
+                        <label class="pix40 labeldark">
+                            Financial institution
+                        </label>
+                        <apex:selectList size="1" styleClass="isPicklistFinacierType" value="{!debtWrap.debt.Financier_List__c}" id="Liability__c___Financier_List4__c" >
+                            <apex:selectOptions value="{!SelectOverdraft}"/>
+                            <apex:actionSupport event="onchange" reRender="showHideFinancierName"/>
+                        </apex:selectList> 
+                     </apex:outputPanel>          
+                
+                  
+                  <apex:outputPanel rendered="{!if($Site.Name=='Latitude',false,true)}">
+                   <apex:outputPanel id="showHideFinancierName">
+                        <apex:outputPanel rendered="{!OR(debtWrap.debt.Financier_List__c == 'Other' || debtWrap.debt.Debt_Category__c == 'Other')}" >
+                     <label class="pix40 labeldark">
+                            Other financial institution name
+                        </label>
+                            <apex:inputField styleClass="input-block-level isFinancialInstitution" style="text-transform: capitalize;" value="{!debtWrap.debt.Financier_Name__c}" id="Liability__c___Financier_Name_NZ__c" />
+                     </apex:outputPanel>
+                     </apex:outputPanel>
+                     </apex:outputPanel>
+
+                    
+                     </apex:outputPanel> 
+                        <div class="clearfix"></div>
+                       <!-- <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.financierValid}" value="Error: Please select your Financier Name"/> -->
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </div>
+    </div><!-- add_fields_1 -->
+
+    <!-- DYNAMIC FIELDS PER CATEGORY -->
+    <div id="add_fields_1" class="clonedSection subfieldsovr">
+        <apex:outputPanel id="dynamicFields">
+            <!-- CREDIT CARD/STORE CARD/OVERDRAFT -->
+            <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Credit card', 
+                                             debtWrap.debt.Debt_Category__c == 'Store card',
+                                             debtWrap.debt.Debt_Category__c == 'Charge card',
+                                             debtWrap.debt.Debt_Category__c == 'Overdraft')}" >
+               
+                   <apex:outputPanel id="creditcardtype" rendered="{!$ObjectType.Liability__c.fields.Type_of_Credit_Card__c.Updateable && debtWrap.debt.Debt_Category__c == 'Credit card'}">
+                      <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span6')} removelmargin lfs_dbt_input_sm input100pct">
+                        <label class="pix40 labeldark">
+                            Type
+                        </label>
+                        <!-- CREDIT CARD TYPE -->
+                        <apex:inputField value="{!debtWrap.debt.Type_of_Credit_Card__c}" id="Liability__c___type_of_credit_card__c">
+                            <apex:actionSupport event="onchange" rerender="financialInst"/>
+                        </apex:inputField>
+                        <div class="clearfix"></div>
+                        <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.typeOfCreditCard}" value="Error: Please select the type of credit card."/>
+                    </div>
+                </apex:outputPanel>
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span6')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        <apex:outputText rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">Card Limit</apex:outputText>
+                        <apex:outputText rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">with a limit of $</apex:outputText>
+                    </label>
+
+                    <!-- CREDIT LIMIT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Credit_Limit_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isLimitAmount" id="Liability__c___Credit_Limit_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.creditLimitValid}" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+                
+                <div class="clearfix"></div>
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span6 removelmargin')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        <apex:outputText rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">Balance Remaining</apex:outputText>
+                        <apex:outputText rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">and an outstanding balance of $</apex:outputText>
+                    </label>
+
+                    <!-- BALANCE AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Card_Overdraft_Bal_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isOutstandingAmount" id="Liability__c___Card_Overdraft_Bal_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.cardOverdraftValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+                
+                <apex:outputpanel rendered="{!if($Site.Name=='Latitude',debtWrap.debt.Debt_Category__c == 'Overdraft',false)}">
+                <div class="span6 {!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'removelmargin', '')} lfs_dbt_input_sm input100pct" style="{!if(!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'margin-left: 10px', '')}">                                            
+                    <label class="pix40 labeldark">
+                        <apex:outputText rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">Interest Rate</apex:outputText>
+                        <apex:outputText rendered="{!!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">Overdraft Interest Rate</apex:outputText>
+                    </label>
+                    <!-- BALANCE AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Overdraft_APR__c}" styleClass="input-block-level isOverdraftPercent percentsymbol" id="Liability__c___Overdraft_APR__c"/>
+                    
+                    <div class="clearfix"/>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.overdraftAPRValid}" value="{!debtWrap.overdraftInvalidMsg}"/>
+                  
+                </div>
+                <!--<div class="span6">
+                    <div style="margin-top:5px;"><br/><br/><apex:outputText value="%" rendered="{!IF(debtWrap.debt.Debt_Category__c == 'Overdraft' ,true,false)}"/>
+                    </div>
+
+                </div>-->
+                </apex:outputpanel>
+                
+            </apex:outputPanel>
+            <!-- MORTGAGE -->
+            <apex:outputPanel rendered="{!debtWrap.debt.Debt_Category__c == 'Mortgage'}">
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span5', 'span6')} removelmargin lfs_dbt_input input100pct marginr10">
+                    <label class="pix40 labeldark">
+                        My share of the repayment amount
+                    </label>
+                    
+                    <!-- BORROWED AMOUNT FIELD -->
+                    <apex:inputField type="number" html-mobile-input="number" html-inputmode="numeric"  value="{!debtWrap.debt.Mortgage_Repayment_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isMortgageRepayment" id="Liability__c___Mortgage_Repayment_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageRepayValid}" value="Error: Please enter mortgage repayments."/>
+                </div>
+
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span4', 'span6')} lfs_dbt_input_sm input100pct">
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+
+                    <!-- REPAYMENT INTERVAL FIELD -->
+                    <apex:selectList size="1" value="{!debtWrap.debt.Mortgage_Repayment_Interval__c}" styleClass="isPicklistNone frequencyPicklist" id="Liability__c___Mortgage_Repayment_Interval__c" onchange="getTotalScript();">
+                        <apex:selectOptions value="{!MortgageRepayInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageRepayIntValid }" value="Error: Please enter mortgage repayment interval."/>
+                </div>
+                
+                <div class="clearfix"></div>
+                
+                <div class="{!if(OR($site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span6 removelmargin')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        Amount Borrowed
+                    </label>
+                    
+                    <!-- BORROWED AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Mortgage_Borrowed_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountBorrowed" id="Liability__c___Mortgage_Borrowed_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageBorrowedValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+                
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12 removelmargin', 'span6')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        Balance Remaining
+                    </label>
+                    
+                    <!-- BALANCE AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Mortgage_Bal_Amt__c}" onkeypress="return isNumberKey(event);" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isOutstandingAmount" id="Liability__c___Mortgage_Bal_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.mortgageBalanceValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+
+            </apex:outputPanel>
+            
+            <!-- PERSONAL/CAR LOAN -->
+            <apex:outputPanel rendered="{!OR(debtWrap.debt.Debt_Category__c == 'Personal loan', debtWrap.debt.Debt_Category__c == 'Car loan' , debtWrap.debt.Debt_Category__c == 'Hire purchase')}" >
+
+                
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span5', 'span6')} lfs_dbt_input input100pct marginr10">
+                    <label class="pix40 labeldark">
+                        Repayment Amount
+                    </label>
+                    
+                    <!-- REPAYMENT AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Car_Personal_Repay_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountRepayment" id="Liability__c___Car_Personal_Repay_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carRepayAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span5 removelmargin', 'span6')} lfs_dbt_input_sm input100pct">
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+
+
+                    <!-- REPAYMENT INTERVAL FIELD -->
+                    <apex:selectList size="1" value="{!debtWrap.debt.Car_Personal_Repay_Int__c}" styleClass="isPicklistRepayPeriod frequencyPicklist" id="Liability__c___Car_Personal_Repay_Int__c" onblur="$j(this).valid();" onchange="getTotalScript();">
+                            <apex:selectOptions value="{!CarPersonalInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carRepayIntervalValid }" value="Error: Please enter your repayment interval for your car loan or personal loan"/>
+                </div>
+
+                <div class="clearfix"></div>
+
+                <div class="{!if(OR($Site.Name=='Latitude', $site.Name=='Gem', $site.Name=='Kiwibank'), 'span12', 'span6 removelmargin')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        Amount Borrowed
+                    </label>
+                    
+                    <!-- BORROWED AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Car_Personal_Borrowed_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountBorrowed" id="Liability__c___Car_Personal_Borrowed_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carBorrowedAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12 removelmargin', 'span6')} lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        Balance Remaining
+                    </label>
+                    
+                    <!-- BALANCE AMOUNT FIELD -->
+                    <apex:inputField type="number"  value="{!debtWrap.debt.Car_Personal_Bal_Amt__c}" onkeypress="return isNumberKey(event);" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isOutstandingAmount" id="Liability__c___Car_Personal_Bal_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.carBalanceValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+
+            </apex:outputPanel>
+            
+            <!-- OTHER -->
+
+            <apex:outputPanel rendered="{!debtWrap.debt.Debt_Category__c == 'Other'}">
+                <!--Updated by DYU 05-02-2015 Defect 1329 - Removed the rendered attribute in the outputpanel below. Type of Debt should be visible when selecting other as category-->
+                <!--Updated by Matthew Gould 16/09/2106 - Commented out to remove whitespace as field is not showing when 'Other' is selected. -->
+                <!--<apex:outputPanel >
+                <div class="span7">
+                    <label class="pix40 labelrightdark" style="display: none !important;">
+                        type &nbsp;
+                    </label>
+                    <apex:inputField value="{!debtWrap.debt.Type_of_Debt__c}" styleClass="input-block-level isRequired isPersonalName isMaxLength20" id="Liability__c___type_of_debt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.typeOfDebt }" value="Error: please enter type of debt"/>                    
+                </div>        
+                </apex:outputPanel>-->
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span12', 'span6')} removelmargin lfs_dbt_input input100pct">
+                    <label class="pix40 labeldark">
+                        Amount Borrowed
+                    </label>
+
+                    <!-- BORROWED AMOUNT FIELD -->
+                    <apex:inputField type="number" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountBorrowed" value="{!debtWrap.debt.Other_Borrowed_Amt__c}" id="Liability__c___Other_Borrowed_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherBalanceDescValid }" value="Error: Please enter your Other debt"/>
+                </div>
+                
+                <apex:outputPanel rendered="{!OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank')}">
+                    <div class="clearfix"></div>
+                </apex:outputPanel>
+                
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span5 removelmargin', 'span6')} lfs_dbt_input input100pct marginr10">
+                    <label class="pix40 labeldark">
+                        Repayment Amount
+                    </label>
+                    
+                    <!-- REPAYMENT AMOUNT FIELD -->
+                    <apex:inputField type="number" value="{!debtWrap.debt.Other_Repay_Amt__c}" styleClass="input-block-level {!if($Site.Name=='Aussie', '', 'currencysymbol')} isAmountRepayment" id="Liability__c___Other_Repay_Amt__c"/>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherRepayAmountValid }" value="Error: Please enter in whole dollars e.g. 3500"/>
+                </div>
+
+                <div class="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'), 'span5', 'span6')} removelmargin lfs_dbt_input_sm input100pct">
+                    <!-- Label removed as part of Nov, 2019 PL Application form changes. frequencyPicklist style added-->
+
+
+                    <!-- REPAYMENT INTERVAL FIELD -->
+                    <apex:selectList size="1" value="{!debtWrap.debt.Other_Repay_Int__c}" styleClass="isPicklistRepayPeriod frequencyPicklist" id="Liability__c___Other_Repay_Int__c" onchange="getTotalScript();">
+                        <apex:selectOptions value="{!OtherRepayInterval}"/>
+                    </apex:selectList>
+                    <div class="clearfix"></div>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!!debtWrap.otherRepayIntervalValid }" value="Error: Please enter your Other debt payment interval"/>
+                </div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        
+        <!-- ACKNOWLEDGE PAYOUT FIELD AND LABEL -->
+        <div class="span12 removelmargin lfsCheckBox input100pct">
+            <label class="pix40 labeldark"></label>
+            <apex:inputField styleClass="input-block-level number chkboxfix" style="{!if(OR($Site.Name=='Latitude', $Site.Name=='Gem', $Site.Name=='Kiwibank'),'margin-top: 20px;','')}" value="{!debtWrap.debt.Acknowledge_Payout__c}" id="Liability__c___Acknowledge_Payout__c"/>
+            
+            <label class="labeldark" style="width: 80%;">
+                I want to pay out this debt and consolidate
+            </label>
+            <div class="clearfix"></div>
+        </div>
+        
+        <!-- FOR PERSPECSYS -->
+         <apex:inputHidden value="{!debtWrap.debt.PRS_RECORD_ID__c}" id="Liability__c___PRS_RECORD_ID__c"/>
+        <apex:inputHidden value="{!debtWrap.debt.Id}" id="Liability___c___Id"/>
+        
+    </div><!-- add_fields_1 -->
+
+    <div class="clearfix"/>
+    <div class="fieldbottom"/>
+    
+    <script type="text/javascript">
+        //BEGIN MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+        //Change please select to select
+        function changePickVal(){
+            $('[id*=Liability__c___Debt_Category__c] option[value=""]').text("Select");
+            $('[id*=Liability__c___type_of_credit_card__c] option[value=""]').text("Select"); 
+            $('[id*=Liability__c___Mortgage_Repayment_Interval__c] option[value="None"]').text("Select"); 
+            $('[id*=Liability__c___Car_Personal_Repay_Int__c] option[value="None"]').text("Select");
+            $('[id*=Liability__c___Other_Repay_Int__c] option[value="None"]').text("Select");
+            $('[id*=Liability__c___Financier_List__c] option[value=""]').text("Select");
+            
+            
+        }
+        changePickVal();
+        //END MLASALA 23-SEPT-16 TQLQW-483 Gen 2 App form
+    </script>
+</apex:component>

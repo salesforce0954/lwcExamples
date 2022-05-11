@@ -1,0 +1,806 @@
+<!--
+* @Description: Contract Acceptance File Upload Customer UI
+* @Author: Adrian Recio
+* @Date Created: Mar-25-2014
+* @History:
+=====================================================================
+03-25-14: Created - Adrian
+=====================================================================
+-->
+<apex:component allowDML="true" access="global"
+    controller="APP_GSD_ContractAcceptanceChannel"
+    id="APP_ContractAcceptanceUpload">
+
+<!-- SF Ajax API -->
+<apex:includeScript value="/soap/ajax/34.0/connection.js"/>
+<apex:includeScript value="{!$Resource.jqueryMin214}" />
+
+<!-- Knockout JS -->
+
+<apex:includeScript value="{!$Resource.Knockout_JS_v340}" />
+<apex:includeScript value="{!$Resource.Knockout_JS_Mapping_v241}" />
+
+<!-- Bootstrap Core JavaScript -->
+<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+
+<!-- Custom CSS -->
+<apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <link href="{!URLFOR($Resource.latitude_web_template, '/latitude_web_template/css/latitude_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+</apex:outputPanel>
+<apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+    <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <link href="{!URLFOR($Resource.gem_web_template, '/gem_web_template/css/gem_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+</apex:outputPanel>
+<apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+    <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <link href="{!URLFOR($Resource.aussie_web_template, '/aussie_web_template/css/aussie_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+</apex:outputPanel>
+<apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+    <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <link href="{!URLFOR($Resource.kiwibank_web_template, '/kiwibank_web_template/css/kiwibank_mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+</apex:outputPanel>
+
+<!-- Custom CSS -->
+
+<link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/css/desktop.css')}" rel="stylesheet" media="screen" id="stylelink" />
+<link href="{!URLFOR($Resource.ge_web_template, '/ge_web_template/css/mobile.css')}" rel="stylesheet" media="screen" id="stylelink" />
+
+
+<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jquery.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jQueryMin.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/>
+ 
+
+<style>
+  a,a label {
+      cursor: pointer;
+        color: #006ac6;
+       /* border-bottom: 1px dotted */
+  }   
+  
+  .docLink{
+      border-bottom: 1px dotted;
+      color: #006ac6;
+  }
+  
+  .btnFax{
+      width: 250px;
+  }
+  
+</style>
+    
+<script>
+  $(document).ready(function () {
+        ko.applyBindings(my.viewModel); 
+  });
+  
+  function openFaxCoverSheet(){
+          window.open('{!$Site.Prefix}' + '/app_faxcoversheet?id=' + '{!applicationMain.Id}');
+        }
+      
+    function updateApp(Id, field) {
+        APP_ContractAcceptanceChannel.updateApplication(Id, field.checked,
+                function(result, event) {
+                    isInsuranceAcknowledgement();
+                });
+    }
+  
+  function openAllDocs(){
+      $('.docLink').each(function() {
+            // If input is visible and checked
+            if ( $(this).is(':visible') ) {
+        this.click();
+            }
+        }); 
+    }
+
+  var conAppCtrl = function(){
+        var self = this;
+        
+        // Pull Related Document Wrap
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        var wrapOrigJSON = JSON.parse('{!JSENCODE(wrapConList)}');
+        console.log('wrapConList:' + JSON.stringify(wrapOrigJSON)); 
+    self.wrapConList = ko.mapping.fromJS(wrapOrigJSON); 
+        console.log('applicantVar_observe:' + self.wrapConList);
+        
+        // Pull Application 
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        var wrapAppOrigJSON = JSON.parse('{!JSENCODE(appJSONVar)}');
+        console.log('wrapAppOrigJSON:' + JSON.stringify(wrapAppOrigJSON)); 
+        self.appVar = ko.mapping.fromJS(wrapAppOrigJSON);
+        console.log('appVar_observe:' + self.appVar);
+        
+        // Pull Applicant
+        var wrapApplicantOrigJSON = JSON.parse('{!applicantJSONVar}');
+        console.log('wrapApplicantOrigJSON:' + JSON.stringify(wrapApplicantOrigJSON)); 
+        self.applicantVar = ko.mapping.fromJS(wrapApplicantOrigJSON);
+        console.log('applicantVar_observe:' + self.applicantVar);
+        
+        // Region Visibility Flags
+        self.nzPrimary = ("true" == "{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}");
+        self.nzNonPrimary = ("true" == "{!AND($Setup.Profile_Country__c.NZ__c,NOT(isPrimary))}");  
+        self.auPrimary = ("true" == "{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}");
+        self.auNonPrimary = ("true" == "{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}");
+        
+        console.log('nzPrimary:' + '{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}');
+        console.log('nzNonPrimary:' + '{!AND($Setup.Profile_Country__c.NZ__c,NOT(isPrimary))}');
+    console.log('auPrimary:' + '{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}');
+        console.log('auNonPrimary:' + '{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}');
+        
+    self.sitePrefix = "{!$Site.Prefix}";
+    	//MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        self.appType="{!JSENCODE(applicationMain.Application_Type__c)}";
+        self.isPrimary = ko.observable('{!isPrimary}');
+                 
+        self.nzTitleCheck = function(titleUnWrap){
+          var titleWrap = titleUnWrap();
+            //MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+            //Change KiwiBank to Kiwibank
+            if (['Contract', 'Objectives & Requirements', 'Privacy', 'Direct Debit','Direct Debit Form',
+                 'EFT Disbursement','Debt Consolidation','Insurance','SignUp Letter','SignUp Letter Kiwibank',
+                 'Terms & Conditions'].indexOf(titleWrap) >= 0) {
+                return true;
+            }else{
+              return false;
+            }
+        }
+        
+        self.formatURL = function(atURLWrap){
+            var atURLUnWrap = atURLWrap();
+          if(atURLUnWrap.indexOf('http')>-1){
+                return atURLUnWrap;
+            }else{
+                return '{!$Site.Prefix}' + atURLUnWrap;
+            }
+        }
+        
+        self.enableCA = function(dataVar){
+
+            var IsPrimary = false;
+            
+            if(self.auPrimary||self.nzPrimary){
+              dataVar.isEnabled__c(true);
+                IsPrimary = true;
+            }
+            
+            if(self.auNonPrimary||self.nzNonPrimary){ 
+            dataVar.isEnabled_Sec__c(true);   
+            }
+           
+             Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_ContractAcceptanceChannel.enableCheckboxRA}",
+                                                       dataVar.Id(),IsPrimary, 
+                                                       function(result, event){
+                                                           console.log("Type:" + event.type);
+                                                           console.log("Message:" + event.message);
+                                                           console.log("Status:" + event.status);
+                                                           console.log("Value:" + result);
+                                                           
+                                                       },{escape: true});
+            window.open(self.formatURL(dataVar.AttachmentUrl__c));
+        }
+    }  
+
+  var my = { viewModel: new conAppCtrl() };
+  
+  function toggleCollapse(chevCount) {
+        var chev1 = $('#secB_iconCAcceptArrUpDown' + chevCount);
+        chev1.toggleClass('icon_arrow_up icon_arrow_down');
+        var chev2 = $('#secB_iconCAcceptEdit' + chevCount);
+        chev2.toggleClass('icon_edit_white icon_edit');
+        var chev3 = $('#secB_accordCAccept' + chevCount + 'Lbla1'); 
+        chev3.toggleClass('module5-label lat-blue module5-label lat-white');
+ 
+        $('i.icon_arrow_up').not(chev1).removeClass('icon_arrow_up').addClass('icon_arrow_down');
+        $('i.icon_edit_white').not(chev2).removeClass('icon_edit_white').addClass('icon_edit');
+        $('span.module5-label').not(chev3).removeClass('lat-white').addClass('lat-blue');
+    }    
+
+</script>
+
+
+    <apex:attribute name="application" type="String" required="true"
+        access="global" assignTo="{!applicationId}"
+        description="application Id" />
+
+    <apex:form enctype="multipart/form-data" id="APP_ContractAcceptance">
+       
+       <apex:actionFunction name="isInsuranceAcknowledgement"
+                action="{!isInsuranceAcknowledgement}" reRender="accCreate" />
+                
+        <div class="container">
+         <div class="row">        
+
+        <apex:outputPanel rendered="{!IF(applicationMain.Out_Of_Sync__c == true,true,false)}">
+       
+            <div class="body-label lat-dark-grey center-block text-center">
+                <!--
+                    Application out of sync.
+                -->
+                Your documents cannot be loaded at this stage. Please contact us on&nbsp;
+                <apex:outputText rendered="{!$Site.Name=='Latitude'}">
+                    1800 803 051.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Gem'}">
+                    0800 500 505.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Aussie'}">
+                    1300 138 251.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Kiwibank'}">
+                    0800 54 94 54.
+                </apex:outputText>
+            </div>
+ 
+        </apex:outputPanel>
+    
+        <apex:pageBlock id="messageId"
+            rendered="{!AND(applicationMain.Out_Of_Sync__c == false, 
+                    applicationMain.Acceptance_Channel__c == 'Offline Acceptance', 
+                      OR( applicationMain.Response_Code__c == 'PCO',
+                                    applicationMain.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                    applicationMain.Response_Code__c == 'PCO Applicant 2 Pending',
+                      				applicationMain.Response_Code__c == 'Pending FIA'))}">
+
+            <apex:outputPanel rendered="{!OR(IsRefresh,wrapperContract.size==0)}"> 
+              <div class="body-label lat-dark-grey center-block text-center">
+                    <!--
+                   Loan Documents will be displayed and available for acceptance shortly. Please hit refresh link.&nbsp;
+                   <a onclick="location = location" >Click to refresh the page</a>
+                   -->
+                   Loan documents are still being loaded. Please click <a onclick="location = location" >refresh</a> to reload the page.
+               </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!AND(NOT(IsRefresh),wrapperContract.size>0)}">
+            
+
+              <!--AU Offline Single and Joint Start -->
+              <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                  
+		        	      <div class="center-block panel-gap-bottom30 textGapToCircle">
+                              <span class="module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap">1.</span>
+                              <span id="" class="module3-label lat-blue">Open and print all of the documents below</span>
+                         </div>
+                         
+                          <div style="text-align: left;" class="panel-gap-bottom30">
+                            <span id="intro" class="intro-label lat-dark-grey">
+                                 You must print, read and sign each of the documents below. They are in PDF format. If you need,
+                          </span>
+                          <span class="intro-label lat-dark-grey"><apex:outputLink value="https://get.adobe.com/reader/" target="_blank">
+                              <span class="underline-sm intro-label lat-blue">download Adobe Reader</span>
+                          </apex:outputLink> for free.</span>
+                         </div> 
+                 
+                 <!--
+                   <div class="accordion-heading" id="auOffline">
+                          <div class="accordion-spacing">
+                            <a class="accordion-toggle down up" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptAUOfflineA" tabindex="-1">
+                                <i id="iconCAcceptEdit1" class="icn icon_edit_white icon_size pull-left"></i>
+                                <i id="iconCAcceptArrUpDown1" class="indicator icon_arrow_up icon_size pull-right" ></i>
+                              <div class="accordion-header-text2  gap-text">
+                                <span id="accordCAccept1Lbla1" class="module5-label lat-white">Key Information</span>
+                              </div>
+                                  <span id="accordCAccept1Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                            </a>
+                          </div>
+                        </div>    
+                    -->
+               <div class="accordion-body collapse in" id="collapseCAcceptAUOfflineA">
+                     <div class="accordion-inner">
+  
+                              <!--div class="panel-gap-bottom30">
+                               <a class="lat-blue body-label underline-sm" href="#" onclick="openAllDocs();">
+                                   <span>Open all documents</span>
+                               </a>
+                            </div-->
+                            
+                            <div data-bind="foreach: wrapConList" >
+                                <div data-bind="foreach:relDoc">
+                                    
+                                    <p>
+                                        <apex:image id="theImage" value="{!$Resource.fileUploadPDF}"
+                                            width="30" height="30" />
+                                    
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'O and Rs'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:'Objectives and Requirements',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'Contract'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:'Loan Contract Schedule',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'Privacy'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:Title__c() + ' Policy',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'Direct Debit'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:Title__c() + ' Request and Service Agreement',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'LPI Complaints Brochure'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:'Loan Protection Insurance Complaints Guide',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'LPI'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:'Loan Protection Application Form',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'Direct Debit Request and Service Agreement'">
+                                            <a class="docLink lat-blue body-label" data-bind="text:'Loan Protection Application Form',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                        
+                                        <span class="lat-dark-grey body-label" data-bind="visible:Title__c() != 'O and Rs' &&
+                                                         Title__c() != 'Contract' &&
+                                                         Title__c() != 'Privacy' &&
+                                                         Title__c() != 'Direct Debit' &&
+                                                         Title__c() != 'LPI Complaints Brochure' &&
+                                                         Title__c() != 'LPI' &&
+                                                         Title__c() != 'Direct Debit Form'
+                                                         ">
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                        </span>
+                                    </p>
+                                    <p class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'LPI'">
+                                        <apex:image id="theImage2" value="{!$Resource.fileUploadPDF}"
+                                            width="30" height="30" />
+                                        <span >
+                                            <a class="docLink lat-blue body-label" href="{!pdsFsgLink}" data-bind="text:'Financial Services Guide, Product Disclosure Statement and Policy Document'" target="_blank" ></a>
+                                        </span>
+                                    </p>
+                                </div>
+                                  
+                            </div>
+                            
+                        <div class="margin-top">
+                                <input class="GTertiary-button body-label lat-blue text-center noOutline" value="Open all the documents" onClick="openAllDocs();">
+                                </input>
+                            </div>
+                            
+                        </div>
+                      </div>   
+                         
+            </apex:outputPanel>
+            <!--AU Offline Single and Joint END -->
+
+            <!-- NZ Offline Single Start -->
+            <apex:outputPanel rendered="{!AND($Setup.Profile_Country__c.NZ__c,
+                                            wrapperContract.size>0,
+                                            applicationMain.Application_Type__c == 'Single')}">
+                        
+		                  <div class="center-block panel-gap-bottom30 textGapToCircle">
+                              <span class="module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap">1.</span>
+                              <span class="module3-label lat-blue">Open and print all of the documents below</span>
+                         </div>
+                         
+                          <div style="text-align: left;" class="panel-gap-bottom30">
+                            <span id="intro" class="intro-label lat-dark-grey">
+                                 You must print, read and sign each of the documents below. They are in PDF format. If you need, &nbsp;  
+                          
+                          </span>
+                          <span class="intro-label lat-dark-grey">
+                               <apex:outputLink value="https://get.adobe.com/reader/" target="_blank"><span class="underline-sm intro-label lat-blue">download Adobe Reader</span></apex:outputLink> for free.
+                          </span>
+                         </div> 
+                         
+                         
+                         <!--
+                         <div class="accordion-heading" id="nzOffline">
+                          <div class="accordion-spacing">
+                            <a class="accordion-toggle down up" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptNZOfflineA" tabindex="-1">
+                                <i id="iconCAcceptEdit1" class="icn icon_edit_white icon_size pull-left"></i>
+                                <i id="iconCAcceptArrUpDown1" class="indicator icon_arrow_up icon_size pull-right" ></i>
+                              <div class="accordion-header-text2  gap-text">
+                                <span id="accordCAccept1Lbla1" class="module5-label lat-white">Key Information</span>
+                              </div>
+                                  <span id="accordCAccept1Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                            </a>
+                          </div>
+                        </div>    
+                        -->
+                    
+               <div class="accordion-body collapse in" id="collapseCAcceptNZOfflineA">
+                     <div class="accordion-inner">
+  
+                              <!--div class="panel-gap-bottom30">
+                               <a class="lat-blue body-label underline-sm" href="#" onclick="openAllDocs();">
+                                   <span>Open all documents</span>
+                               </a>
+                            </div-->
+                           
+                        <div data-bind="foreach: wrapConList">
+                            <b>
+                              <div class="body-label-bold lat-dark-grey" data-bind="text:title(),visible:$root.nzTitleCheck(title)"/>
+                            </b>
+                            <div data-bind="foreach:relDoc()">
+                                  <p>
+                                      <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'O and Rs'"> 
+                                           I acknowledge and accept that the &nbsp;  
+                                            <a class="docLink lat-blue body-label" data-bind="click:function(){$root.enableCA($data)}" target="_blank">
+                                                Objectives and Requirements</a>
+                                            &nbsp; are complete and are an accurate representation in respect to this proposed loan contract.
+                                        </span>
+                                
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Contract' || Title__c() == 'Loan Contract Schedule'"> 
+                                            I acknowledge and accept the &nbsp;
+                                            <a class="docLink lat-blue body-label" data-bind="click:function(){$root.enableCA($data)}" target="_blank">Loan Contract Schedule</a> 
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Disclosure Statement'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="click:function(){$root.enableCA($data)}" target="_blank">Disclosure Statement</a>
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Complaints Brochure'"> 
+                                            I acknowledge receipt of, and have read and understand the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                    <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Credit Guide'"> 
+                                            I acknowledge receipt of, and have read and understand the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Loan Protect for Personal Loans'"> 
+                                            I acknowledge receipt of, and have read and understand, all the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>&nbsp;document.
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Privacy'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c() + ' Policy',click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Direct Debit'"> 
+                                            I acknowledge and accept the &nbsp;
+										  <!--BEGIN MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates -->
+                                          <!--<a class="docLink lat-blue body-label" data-bind="text:Title__c() + ' Request and Service Agreement',click:function(){$root.enableCA($data)}" target="_blank"/>-->
+										  <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+										  <!-- END MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates -->
+                                        </span>
+                                    <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Direct Debit Form'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:'Direct Debti Request and Service Agreement',click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                    <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'SignUp Letter'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                      <!-- MLASALA 11-JUL-16 TQLQW-346 Fix the DD Confirmation & Signup templates
+            							  Change KiwiBank to Kiwibank -->
+                                    <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'SignUp Letter Kiwibank'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                    <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Terms & Conditions' || Title__c() == 'GE Terms & Conditions'"> 
+                                            I acknowledge and accept the &nbsp;
+                                          <a class="docLink" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                        <span class="lat-dark-grey  body-label" data-bind="visible:Title__c() == 'Decrease Authority'"> 
+                                            I acknowledge and accept the &nbsp;
+                                        <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                        <!--MLASALA 28-JUN-16 TQLQW-276 - Include the NZ Insurance Complaints brochure as part of acceptance pages (as per AU)-->
+                                        <!--RENAMED POLICY DOCUMENT TITLE AND ADDED COMPLAINTS BROCHURE CONDITION-->
+                                    <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'Repayment Protection Insurance Policy Document' || Title__c() == 'Repayment Protection Insurance Complaints Brochure'"> 
+                                            I acknowledge and accept the &nbsp;
+                                        <a class="docLink lat-blue body-label" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"/>
+                                        </span>
+                                    
+                             
+                                    <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'LPI'">  
+                        <div data-bind="visible:Title__c() == 'LPI'">
+                                            <apex:outputText > I acknowledge receipt of, and have read and understand the combined 
+                                                <a class="docLink lat-blue body-label" data-bind="click:function(){$root.enableCA($data)}" href="{!pdsFsgLink}" target="_blank">
+                                                 Financial Services Guide, Product Disclosure Statement and Policy Document.</a>
+                                            </apex:outputText>
+                                            <br />
+                
+                                            <div class="alert alert-info"
+                                                style="padding: 20px 50px !important;">
+                                                <p style="margin-left: -20px;">I have decided to purchase
+                                                    Loan Protection offered by {!brandName} and confirm that:</p>
+                                                <br />
+                                                <ol>
+                                                    <li>I understand that Loan Protection is an optional
+                                                        insurance and not a condition of obtaining the loan;</li>
+                                                    <li>The loan repayments were quoted to me both with and
+                                                        without insurance premiums;</li>
+                                                    <li>I understand that, by adding Loan Protection to my
+                                                        loan contract, I will be charged interest on the Total Amount
+                                                        borrowed;</li>
+                                                    <li>I have received the 'Combined Financial Services Guide
+                                                        (FSG), Product Disclosure Statement (PDS) and Policy' for Loan
+                                                        Protection and that any advice given to me in relation to this
+                                                        product was general in nature, allowing me to decide whether
+                                                        it meets my needs;</li>
+                                                    <li>I consent to the matters described under the heading
+                                                        'Privacy notice and consent? in the Combined FSG, PDS and
+                                                        Policy;</li>
+                                                    <li>I am aware that there are policy exclusions as set out
+                                                        in the Combined FSG, PDS and Policy and that there is a 30 day
+                                                        cooling-off period;</li>
+                                                    <li>I confirm the appointment of the Credit Provider as my
+                                                        agent as set out on page 4 of the Loan Contract Schedule (i.e.
+                                                        for the purposes of cancellation of this insurance and the
+                                                        recovery of any premium refunds due to me), and that this
+                                                        appointment is effective from the time of my acceptance of the
+                                                        loan offer; and</li>
+                                                    <li>I wish to apply for the below Loan Protection:<br />
+                                                        <br />
+                                                        <ul style="list-style-type: none; margin-left: 10px;">
+                                                            <apex:outputPanel rendered="{!hasLife}">
+                                                                <li>Single Death Cover</li>
+                                                            </apex:outputPanel>
+                                                            <apex:outputPanel rendered="{!hasDisability}">
+                                                                <li>Single Disability Plus Cover</li>
+                                                            </apex:outputPanel>
+                                                            <apex:outputPanel rendered="{!hasIUI}">
+                                                                <li>Single Involuntary Unemployment Cover</li>
+                                                            </apex:outputPanel>
+                                                        </ul>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                            <p>
+                                                
+                                                <apex:inputField value="{!applicationMain.Insurance_Acknowledgement__c}"
+                                                    onchange="updateApp('{!applicationMain.Id}',this);" />
+                          
+                                                I have read and understood the information contained on
+                                                the&nbsp;
+                                                <a class="docLink" data-bind="click:function(){$root.enableCA($data)}" 
+                                                            target="_blank" >Application Form</a>
+                                                under the heading 'PLEASE READ CAREFULLY THE INFORMATION
+                                                DETAILED BELOW BEFORE SIGNING/ACKNOWLEDGING' and agree to
+                                                include Loan Protection in my Loan.
+                                            </p>
+                                          <br />
+                                            </div>
+                                        </span>
+                    
+                                      
+                                    <span class="lat-dark-grey body-label" data-bind="visible:Title__c() == 'LPI Complaints Brochure'"> 
+                                            I acknowledge receipt of, and have read and understand the &nbsp;
+                                                <a class="docLink lat-blue body-label" data-bind="click:function(){$root.enableCA($data)}" target="_blank">
+                                               Loan Protection Insurance Complaints Guide.</a>
+                                        </span>
+                                  </p>
+                            </div> 
+                        </div>
+                        
+                      
+                            <div class="margin-top">
+                                <input class="GTertiary-button body-label lat-blue text-center noOutline" value="Open all documents" onClick="openAllDocs();">
+                                </input>
+                            </div>
+                      
+                </div>
+              </div>  
+            </apex:outputPanel>
+            <!--NZ Offline Single END  -->
+        
+          <br />
+
+            <!-- NZ Offline Joint Start -->
+            <apex:outputPanel rendered="{!AND(applicationMain.Application_Type__c == 'Joint',
+                                            wrapperContract.size>0,
+                                            $Setup.Profile_Country__c.NZ__c)}">
+                
+                  <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span class="module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap">1.</span>
+                      <span id="" class="module3-label lat-blue">Open and print all of the documents below</span>
+                 </div>
+                 
+                  <div style="text-align: left;" class="panel-gap-bottom30">
+                    <span id="intro" class="intro-label lat-dark-grey">
+                         You must print, read and sign each of the documents below. They are in PDF format. If you need,  
+                      </span>
+                      <span class="intro-label lat-dark-grey">
+                           <apex:outputLink value="https://get.adobe.com/reader/" target="_blank"><span class="intro-label lat-blue underline-sm">download Adobe Reader</span></apex:outputLink> for free.
+                      </span>
+                 </div> 
+         
+         <!--     
+            <div class="accordion-heading">
+                  <div class="accordion-spacing">
+                    <a class="accordion-toggle down up" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptOffline1" tabindex="-1">
+                        <i id="iconCAcceptEdit1" class="icn icon_edit_white icon_size pull-left"></i>
+                        <i id="iconCAcceptArrUpDown1" class="indicator icon_arrow_up icon_size pull-right" ></i>
+                      <div class="accordion-header-text2 gap-text">
+                        <span id="accordCAccept1Lbla1" class="module5-label lat-white">Key Information</span>
+                      </div>
+                          <span id="accordCAccept1Lbla2" class="small-text-bold lat-white uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                    </a>
+                  </div>
+                </div>    
+            -->
+            <div class="accordion-body collapse in" id="collapseCAcceptOffline1">
+                <div class="accordion-inner">
+                    
+                    <!--div class="panel-gap-bottom30">
+                       <a class="lat-blue body-label underline-sm" href="#" onclick="openAllDocs();">
+                           <span>Open all documents</span>
+                       </a>
+                    </div-->
+                    
+                <div data-bind="foreach: wrapConList" >
+                    <b>
+                      <span class="body-label-bold lat-dark-grey" data-bind="text:title,visible:$root.nzTitleCheck(title)"></span>
+                    </b>
+                    <div data-bind="foreach:relDoc">
+                        <p >
+                            <span class="lat-dark-grey body-label">
+                                I acknowledge and accept the <a class="docLink" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                            </span>
+                        </p>
+                    </div>          
+                </div>
+                
+                     <div class="margin-top">
+                        <input class="GTertiary-button body-label lat-blue text-center noOutline" value="Open all documents" onClick="openAllDocs();">
+                        </input>
+                    </div>
+               
+                 </div>
+            </div>
+
+            </apex:outputPanel>
+           
+        <!-- NZ Offline Joint End -->
+        
+
+          <!-- Upload and Fax Cover Sheet Start -->
+          <apex:outputPanel rendered="{!AND(wrapperContract.size>0)}">
+              
+		    	    <div class="center-block panel-gap-bottom30 gap_body_content_top textGapToCircle">
+                          <span class="module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap">2.</span>
+                          <span id="" class="module3-label lat-blue">Submit your signed documents</span>
+                     </div>
+                     
+                      <div style="text-align: left;" class="panel-gap-bottom30">
+                        <span id="intro" class="intro-label lat-dark-grey">
+                            You can choose to upload your documents online or by fax.
+                        </span>
+                     </div>
+                     
+                     <div class="panel-group container" id="SecBAccordion" role="tablist" aria-multiselectable="true">
+                      <div class="panel accordion-heading" >
+                          <div class="accordion-spacing">
+                              <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                                   <a class="accordion-toggle down up collapsed" onclick="toggleCollapse(1)" data-parent="#SecBAccordion" data-toggle="collapse" href="#collapseCAcceptOfflineA" tabindex="-1">
+                                      <i id="secB_iconCAcceptEdit1" class="icn icon_edit icon_size pull-left"></i>
+                                       
+                                    <div class="accordion-header-sm-text gap-text">
+                                        <span id="secB_accordCAccept1Lbla1" class="module5-label lat-blue">OPTION A: Upload documents online</span>
+                                      </div>
+                                      <div class="accordion-header-sm-texta">
+                                           <i id="secB_iconCAcceptArrUpDown1" class="indicator icon_arrow_down icon_size pull-right gap-right-text" ></i>
+                                      </div>
+                                      
+                                  </a>
+                                </apex:outputPanel>
+
+                                 <apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                                    <a class="accordion-toggle down up collapsed" onclick="toggleCollapse(1)" data-parent="#SecBAccordion" data-toggle="collapse" href="#collapseCAcceptOfflineA" tabindex="-1">
+                                        <i id="secB_iconCAcceptEdit1" class="icn icon_edit icon_size pull-left"></i>
+                                      
+                                        <div class="accordion-header-sm-text gap-text">
+                                        <span id="secB_accordCAccept1Lbla1" class="module5-label lat-blue">OPTION A: Upload documents</span>
+                                      </div>  
+                                       <div class="accordion-header-sm-texta">
+                                             <i id="secB_iconCAcceptArrUpDown1" class="indicator icon_arrow_down icon_size pull-right gap-right-text" ></i>
+                                       </div>
+                                      
+                                  </a>
+                                </apex:outputPanel>
+
+                                
+                          </div>
+
+                          <div class="accordion-body collapse" id="collapseCAcceptOfflineA">
+                                <div class="accordion-inner">
+                                    
+                                    <span class="body-label lat-dark-grey"> The document formats we accept are: gif, png, jpg, jpeg, tiff, bmp, doc, docx, pdf. </span>
+                                    <br/>
+                                    <span class="body-label lat-dark-grey"> The maximum file size for each document is 10 MB. </span>
+                             
+                                      <apex:include pageName="APP_GSD_FileUpload"/>
+                             
+                                
+                               </div>
+                           </div>
+                        </div>    
+                     
+                      
+                     
+                       <div class="panel accordion-heading" >
+                          <div class="accordion-spacing">
+                            <a class="accordion-toggle down up collapsed" onclick="toggleCollapse(2)" data-parent="#SecBAccordion" data-toggle="collapse" href="#collapseCAcceptOfflineB" tabindex="-1">
+                                <i id="secB_iconCAcceptEdit2" class="icn icon_edit icon_size pull-left"></i>
+                              
+                                <div class="accordion-header-sm-text gap-text">
+                                <span id="secB_accordCAccept2Lbla1" class="module5-label lat-blue"> OPTION B: Fax documents</span>
+                              </div>  
+                               <div class="accordion-header-sm-texta">
+                                     <i id="secB_iconCAcceptArrUpDown2" class="indicator icon_arrow_down icon_size pull-right gap-right-text" ></i>
+                               </div>
+                              
+                          </a>
+                          </div>
+
+                          <div class="accordion-body collapse" id="collapseCAcceptOfflineB">
+                            <div class="accordion-inner">
+                                
+                                <!--div class="panel-gap-bottom30">
+                                 <a class="lat-blue body-label underline-sm" href="#" onclick="openFaxCoverSheet();">
+                                     <span>Download fax cover sheet</span>
+                                 </a>
+                              </div-->
+                                
+                                <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                                      <span class="body-label lat-dark-grey"> You can fax your loan documents, along with the fax cover sheet, to 1300 914 865.</span>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                                      <span class="body-label lat-dark-grey"> You can fax your signed loan documents, along with the fax cover sheet, to 0800 624 447.</span>
+                                  </apex:outputPanel>
+                                  
+                              
+                                    <div class="margin-top">
+                                        <input class="GTertiary-button body-label lat-blue noOutline btnFax" value="Download fax cover sheet" onClick="openFaxCoverSheet();">
+                                        </input>
+                                    </div>
+                             
+                                 
+                            </div>
+                          </div> 
+
+                        </div>
+                        
+                 </div>            
+                     
+                          
+                      <div class="body-label lat-dark-grey gap_body_content_top gap_body_content">
+                            <span>You can log in to view, save or print these documents any time during the next 30 days, or until your loan contract has been accepted. 
+                                    If you need a copy after this time, give us a call.</span>
+                      </div>
+                            
+                 
+          </apex:outputPanel>
+        <!-- Upload and Fax Cover Sheet End -->
+        
+  
+        
+      </apex:outputPanel>   
+
+    
+       </apex:pageBlock>
+       
+       
+         <div class="container pull-right">
+            <div class="row">
+              <div class="pull-right">
+                <!-- Accept Button -->
+                <apex:outputPanel style="float:right;" rendered="{!AND(NOT(applicationMain.Out_of_Sync__c),
+                                     NOT(isRefresh),
+                                     applicationMain.Acceptance_Channel__c == 'Offline Acceptance',
+                                     wrapperContract.size>0, 
+                                     OR( applicationMain.Response_Code__c == 'PCO',
+                                                     applicationMain.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                     applicationMain.Response_Code__c == 'PCO Applicant 2 Pending', 
+                                                     applicationMain.Response_Code__c == 'Pending FIA')
+                                                  ) }">     
+                   <div class="hidden-xs">
+                    <apex:commandButton value="Done" action="{!redirectToCompletePage}" 
+                                  styleClass="GPrimary-button module5-label lat-white noOutline pull-right"></apex:commandButton>
+                    </div>
+                     <div class="hiddenDiv visible-xs">
+                         <apex:commandButton value="Done" style="width:100%;display:inline !important" action="{!redirectToCompletePage}" 
+                                  styleClass="GPrimary-button module5-label lat-white noOutline pull-right"></apex:commandButton>
+                    </div>
+                </apex:outputPanel>
+              </div>
+            </div>
+          </div>
+
+   </div>
+    </div>
+    
+   
+
+    </apex:form>
+
+</apex:component>

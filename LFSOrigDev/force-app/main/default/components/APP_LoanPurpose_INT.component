@@ -1,0 +1,123 @@
+<!--
+/**
+* @Description: Loan Purpose component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Mike
+      11-25-14: DBHZL-54 Eligibility Copy & Acknowledgements -Vijay.
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_LoanPurpose" id="Loan_Purpose__c-mycomponent">
+
+    <!-- COMPONENT ATTRIBUTES -->
+    <apex:attribute name="l" description="This is the value for the component." type="LoanWrapper" required="true"/>  
+    <apex:attribute name="lpSlot" description="This is the value for lp repeat block" type="Integer" required="false" />  
+    <!-- Added by Vijay-->
+    <apex:attribute name="country" description="region name" type="string" required="true" assignTo="{!Region}"/>
+    <apex:attribute name="productType" description="This is the value of the type of product" assignTo="{!typeOfProd}" required="true" type="String"/>
+
+    <div class="repeatingrow">
+
+        <apex:outputPanel id="multipleLoanPurposePanel">
+
+            <br class="clearfix"/>
+
+            <div class="rbstaff lp_fieldovr">
+                <!-- REMOVE BUTTON -->
+                <apex:actionStatus id="status6">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Remove" onclick="document.getElementById('GETheme:mainForm:loanPPageBlock:loadingGif').style.visibility='visible';deleteRow('{!l.rowCount}'); return false;" rerender="status6"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Removing..." disabled="true"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </div>
+
+            <div class="infield lp_fieldovr">
+                
+                <apex:outputLabel styleClass="width60">
+                    {!$Label.I_need}
+                </apex:outputLabel>
+                <div class="requiredBlock2"></div>
+
+                <!-- AMOUNT FIELD -->
+                <div class="fieldbox1 width130">
+                    <apex:inputField value="{!l.loan.Loan_Amount__c}" id="Loan_Purpose__c____Loan_Amount__c" onblur="calculateTotalLoanAmount();"/>
+                    <br class="clearfix"/>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!l.amtNotValid}" value="Error: Please enter your preferred loan amount."/>
+                </div>
+            </div>
+           
+            <div class="infield lp_fieldovr">
+                <script>
+                    function reRenderLPList(rowNumber, elementValue){
+                        //alert(elementValue.value);
+                        if(elementValue.value=='Refinance') {
+                            //document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+rowNumber+":component-1:Loan_Purpose__c-mycomponent:editBlock").display = "block";
+                            //alert('y');
+                            document.getElementById("editBlock{!lpSlot}").style.display = "block";
+                        } else {
+                            //document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+rowNumber+":component-1:Loan_Purpose__c-mycomponent:editBlock").display = "none";
+                            //alert('n');
+                            document.getElementById("editBlock{!lpSlot}").style.display = "none";
+                        }
+                        //alert(document.getElementById("GETheme:mainForm:loanPPageBlock:repeatId:"+rowNumber+":component-1:Loan_Purpose__c-mycomponent:editBlock"));
+                        //alert(document.getElementById("editBlock{!lpSlot}"));
+                    }
+                </script>
+                <apex:outputLabel styleClass="width30">
+                    {!$Label.for}
+                </apex:outputLabel>
+                 <div class="requiredBlock2"></div>
+                <div class="fieldbox width170">
+                    <apex:actionRegion >
+                        <!-- AMOUNT FIELD -->
+                        <apex:selectList size="1" styleClass="width160" value="{!l.loan.Value__c}" id="Loan_Purpose__c____Value__c" onchange="if(countSelect(this)){ showDisbursement(this);}showOtherLoanPurpose();reRenderLPList('{!lpSlot}', this);">
+                            <apex:actionSupport event="onChange"/>
+                            <apex:selectOptions value="{!loanPurposeOptions}"/>
+                        </apex:selectList>
+                    </apex:actionRegion>
+                    <br class="clearfix"/>
+                    <apex:outputText styleClass="warningMessage" escape="false" rendered="{!l.loanPurposeNotValid}" value="Error: You must select a loan purpose."/>
+                </div>
+            </div>
+            
+            <div class="infield lp_fieldovr" id="editBlock{!lpSlot}" style="display:{!IF(l.loan.Value__c=='Refinance', 'block','none')}">
+                <!-- container plus icon --> 
+                <!-- container for Refinance Edit button -->
+
+                <apex:outputPanel id="editPanel">
+                    <!--<apex:outputPanel rendered="{!l.loan.Value__c == 'Refinance'}">-->
+                        <apex:outputLabel styleClass="width40">
+                            <a href="#" onclick="editDisbursement('{!l.rowCount}','{!l.loan.Value__c}');" id="editId">Edit</a>
+                        </apex:outputLabel>
+                    <!--</apex:outputPanel>-->
+                </apex:outputPanel>
+            </div>
+        </apex:outputPanel>
+        <!-- OTHER SECTION -->
+        <div class="infield lp_fieldovr">
+            <apex:outputPanel id="OtherPanelId">
+                <div class="infield lp_fieldovr">
+                    <apex:outputLabel styleClass="width125">
+                        {!$Label.Other_Loan_Purpose}
+                    </apex:outputLabel>
+                     <div class="requiredBlock2"></div>
+
+                    <!-- OTHER TEXT FIELD -->
+                    <div class="fieldbox width130">
+                        <apex:inputText value="{!l.loan.Other_Loan_Purpose__c}" id="Loan_Purpose__c____Other_Loan_Purpose__c" maxlength="20" onkeypress="return isAlNumericWithHyphen(event, this);"/>
+                        <br class="clearfix"/>
+                        <apex:outputText styleClass="warningMessage" escape="false" rendered="{!l.loanPurNotValid }" value="Error: Please enter your Other loan purpose."/>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </div>
+        
+    </div><!-- repeatingrow -->
+
+</apex:component>

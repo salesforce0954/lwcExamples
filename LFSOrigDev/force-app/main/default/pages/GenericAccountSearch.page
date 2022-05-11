@@ -1,0 +1,772 @@
+<apex:page standardController="Account" extensions="GenericAccountSearch" action="{!redirect}">
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryDataTablesZip1, 'css/jquery.dataTables.css')}"/>
+    <script type="text/javascript" src="{!URLFOR($Resource.jQueryDataTablesZip1, 'js/jquery.js')}"></script>
+    <script type="text/javascript" src="{!URLFOR($Resource.jQueryDataTablesZip1, 'js/jquery.dataTables.js')}"></script>
+    <!--SEARCH THROUGH PRS SERVER-->
+    <script>
+        var __sfdcSessionId = '{!$Api.Session_ID}';
+        var recordType = '{!JSENCODE(recordType)}'; //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+        // Updated by: Adrian Recio
+        // Description: Fix for Checkmarx Reflected XSS (August Fix).
+        //              Added call the JSENCODE function referencing the merge field.
+        // Date: 19/08/2015
+        var recTypeContainer = '{!JSENCODE(recTypeContainer)}';
+        var profileName = '{!JSENCODE(profileName)}'; //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+    </script>
+    <script src="/soap/ajax/32.0/connection.js" type="text/javascript"></script>
+    <script>
+        var attributes;
+        var mapAttributes={};
+        var records;
+        var addedAccountIds;
+        var timeToHide = 0;
+        var searchRunning=false;
+        function CheckLength(ele, val){ 
+            if(val.trim() == ''){ 
+                ele.value = '';
+            }
+            else if(val.trim() != "" && (val.trim().length < 2 || val.trim().length > 255)){
+                alert('Search term must be longer than\n1 character and less than 255 characters.');
+                ele.value = '';
+            }
+        }
+
+        function captureKey(evt) {
+            var charCode = evt.charCode || evt.keyCode;
+            if (charCode  == 13) {
+                search();
+                return false;
+            }
+            return true;            
+        }
+
+        function myJSEncode(str){
+            str = str.replace("'","\\'");
+            return str;
+        }
+        
+        function show_fields(){
+
+            var columns = [];
+            for(var i = 0; i < attributes.length; ++ i){
+                columns.push({data: mapAttributes[attributes[i]], title: attributes[i]});  
+            }
+            $("[id$='fields_table']").DataTable({
+                columns: columns,
+                data: records,
+                sPaginationType : "full_numbers",
+                bPaginate: false,
+                bFilter:false,
+                bInfo: false,
+                paging: false,
+                iDisplayLength: 50,
+                searching: false,  
+                bDestroy: true,
+                /*"language": {
+                     "info": "Showing _START_ to _END_ of Total entries. Add more keywords to get better results."
+                 },*/
+                "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+                    // if(recordType === 'CFB' || recordType === 'WCS'){
+                    //     if(aData.Id != null){
+                    //         $('td:eq(0)', nRow).html('<a href="/' + aData.Id + '" target="_blank">View</a>');
+                    //     }
+                    // }
+                    // else{
+                        if(aData.Id != null){
+                            $('td:eq(0)', nRow).html('<a href="/' + aData.Id + '" target="_blank">View</a>');
+                        }
+                        else{
+                            $('td:eq(0)', nRow).html('<a href="#" onclick="createNew(\''+aData.Name+'\',\''+aData.ABN+'\',\''+aData.State+'\',\''+aData.PostCode+'\',\''+aData.CompanyIdentifier+'\');return false;">Create New</a>');
+                        }
+                        if(aData.Id == null && profileName.indexOf('NZ') > -1){
+                            $('td:eq(1)', nRow).html('NZ Co No. Found');
+                        }
+                        else if(aData.Id == null && profileName.indexOf('NZ') == -1){
+                            $('td:eq(1)', nRow).html('ABN Found');
+                        }
+                        else{
+                            $('td:eq(1)', nRow).html('Existing Record');
+                        }
+                        if(aData.ABN == null){
+                            $('td:eq(3)', nRow).html('');
+                        }
+                        else if(profileName.indexOf('NZ') == -1 && profileName.indexOf('India') == -1){
+                            $('td:eq(3)', nRow).html('<a href="http://www.abr.business.gov.au/SearchByAbn.aspx?SearchText=' + aData.ABN + '" target="_blank">'+aData.ABN+'</a>');
+                        }
+                    // }
+                    return nRow;
+                }
+            });         
+        }
+
+        // function setup_EMEA_attributes(){ 
+            
+        //     if(recordType === 'CFB'){
+        //         attributes = ["","Name","Account Type","Account Status","Booking System Id","Owner"];
+        //     }
+        //     else if(recordType === 'WCS'){
+        //         attributes = ["","Name","Account Type","Booking System Id","Owner"];
+        //     }
+        //     mapAttributes[""] = "Id";
+        //     mapAttributes["Name"] = "Name";
+        //     mapAttributes["Account Type"] = "China_Account_Type__c";
+        //     if(recordType === 'CFB'){
+        //         mapAttributes["Account Status"] = "Account_Status__c";
+        //     }
+        //     mapAttributes["Booking System Id"] = "Booking_Id__c";
+        //     mapAttributes["Owner"] = "Owner.Name";
+        // } 
+        
+        // function query_EMEA(){
+        //     var accName = $("[id$='accName']").val();
+        //     var bookingId = $("[id$='bookingId']").val();
+
+        //     var soql = "Select Id,Name,China_Account_Type__c, Booking_Id__c,Legal_Name__c,"
+        //                     + " Account_Status__c,Owner.Name from Account ";
+        //     var conditions = "";
+        //     if(recTypeContainer != ""){
+        //         conditions = " and RecordTypeId = '"+recTypeContainer+"'";
+        //     } 
+        //     if(recordType === 'CFB'){
+        //         var legName = $("[id$='legName']").val();
+        //         var accStatus = $("[id$='accStatus']").val();
+                
+        //         if(accStatus){
+        //             conditions += " and Account_Status__c = '"+accStatus+"'";
+        //         }
+        //         if(legName){
+        //             conditions += " and Legal_Name__c like '"+myJSEncode(legName)+"%'";
+        //         }
+        //     }
+        //     if(accName){
+        //         conditions += " and Name like '"+myJSEncode(accName)+"%'";
+        //     }
+        //     if(bookingId){
+        //         conditions += " and Booking_Id__c like '"+myJSEncode(bookingId)+"%'";
+        //     }
+        //     if(conditions != ''){
+        //         soql = soql + " where " + conditions.substring(4);
+        //     }
+        //     return soql;
+        // }
+        
+        // function consolidate_EMEA(responseData){
+        
+        //     try{
+        //         setup_EMEA_attributes();
+        //         if(responseData == null || responseData.size == 0){
+        //             return;
+        //         }
+                
+        //         if(responseData.size ==1){
+        //             records= [responseData.records];
+        //         }
+        //         else{
+        //             records= responseData.records;
+        //         }
+        //     }
+        //     finally{
+        //         show_fields();
+        //     }
+        // }
+        
+        function consolidate_APAC_records(response,flag){
+            
+            // Log JSON Object Value before processing
+            console.log('Display JSON:' + JSON.stringify(response));
+            
+            try{
+                // Null main response check
+                if(response == null){
+                    return;
+                }
+                
+                // Created by: Adrian Recio
+                // Description: Adjusted JSON passing to accomodate JSON from SOSL and SOQL.
+                //              SOQL and SOSL Json result has difference in structure. Please refer to each condition.
+                // Date: 18/03/2016
+                
+                var data;
+                
+                // JSON Structure for SOQL Results
+                if(flag == 1 && response.records!= null){
+                    data = response.records;
+                // JSON Structure for SOSL Results
+                }else if(flag == 1 && response.records== null){
+                    data = response;
+                }
+                
+                // Null child response check
+                if(data == null){
+                    return;
+                }
+                
+                // Single record condition for SOQL JSON object
+                if(response.size == 1){
+                    populate_records(data,flag);
+                }else{
+              
+                    for(var i=0;i<data.length;++i){
+                        // JSON structure for result returned using SOSL
+                        if(data[i].record!=null){ 
+                            populate_records(data[i].record,flag);
+                        // JSON structure for result returned using SOQL
+                        }else{ 
+                            populate_records(data[i],flag);
+                        }
+                    }
+                }
+            }
+            finally{
+                show_fields();
+                timeToHide -=1;
+                if(timeToHide == 0){
+                    $("[id$='status']").hide();
+                    $("[id$='newPanelAPAC']").show();
+                    $("[id$='searchButton']").removeAttr('disabled');
+                    searchRunning=false;
+                }
+            }
+        }
+        
+        function populate_records(rec,flag){
+            
+            if($.inArray(addedAccountIds,rec.Id) != -1){
+                return;
+            }
+            if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                if(profileName.indexOf('NZ') == -1){
+                    if(flag == 1){
+                        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:'N/A', 
+                                        ABN:rec.ABN__c, Phone:rec.Phone, 
+                                        PostCode: rec.BillingPostalCode, State:rec.BillingState});
+                    }
+                    else{
+                        records.push({Id:null, Name: rec.Name, LegalName:rec.LegalName, Status:rec.Status, 
+                                        ABN:rec.ABN, Phone:rec.Phone, 
+                                        PostCode: rec.Postcode, State:rec.State});
+                    }
+                }
+                else{
+                    if(flag == 1){
+                        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:'N/A',
+                                           ABN:rec.NZ_Company_Incorporation_Number__c, Phone:rec.Phone, 
+                                           PostCode: rec.BillingPostalCode, State:rec.BillingState})
+                    }
+                    else{
+                        records.push({Id:null, Name: rec.Name, LegalName:rec.LegalName, Status:rec.Status,
+                                           ABN:rec.ABN, Phone:rec.Phone, 
+                                           PostCode: rec.Postcode, State:rec.State})
+                    }
+                }
+            }
+            // else if(profileName.indexOf('India') > -1){
+            //     if(flag == 1){
+            //        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:'N/A',
+            //                      Phone:rec.Phone, PostCode: rec.BillingPostalCode, State:rec.BillingState,
+            //                         CompanyIdentifier:rec.Company_Identifier__c});
+            //     }
+            //     else{
+            //        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:rec.Status,
+            //                      Phone:rec.Phone, PostCode: rec.Postcode, State:rec.State,
+            //                         CompanyIdentifier:rec.CompanyIdentifier});
+            //     }
+            // }
+            // else if(profileName.indexOf('China') > -1){
+            //     if(flag == 1){
+            //        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:'N/A', 
+            //                      Phone:rec.Phone, PostCode: rec.BillingPostalCode, State:rec.BillingState});
+            //     }
+            //     else{
+            //        records.push({Id:rec.Id, Name: rec.Name, LegalName:rec.Site, Status:rec.Status, 
+            //                      Phone:rec.Phone, PostCode: rec.Postcode, State:rec.State});
+            //     }
+            // }
+            if(flag == 1){
+                addedAccountIds.push(rec.Id);
+            }
+        }
+
+        // Created by: Adrian Recio
+        // Description: Recordtype checker for SOQL results. 
+        // Date: 18/03/2016
+        function recordTypeClean(recTypeContainerVar,queryResultVar){
+            var cleanObject  = [];
+            if(recTypeContainerVar!=null){
+                // Clean recordtype results
+                for(var i=0;i<queryResultVar.length;++i){
+                    var recTypeId = queryResultVar[i].record.RecordTypeId;
+                    recTypeId = recTypeId.substring(0, recTypeId.length - 3);
+                    console.log('curr rec Id:' + recTypeId);
+                    console.log('main rec Id:' + recTypeContainerVar);
+                    if(recTypeId==recTypeContainerVar){
+                        console.log('equal');
+                        cleanObject.push(queryResultVar[i]); 
+                    }
+                }
+            }else{
+                cleanObject = queryResultVar;
+            }
+            return cleanObject;
+        }
+    
+        function search_ABN(abnVal){
+            var soql='';
+            if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                soql = "Select Id, ABN__c, Name, Site, BillingState, NZ_Company_Incorporation_Number__c, BillingPostalCode, Phone From Account where "
+                   + " (ABN__c ='"+abnVal+"' OR NZ_Company_Incorporation_Number__c ='"+abnVal+"')";
+                if(recTypeContainer != ""){
+                    soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+                }
+            }
+            // else if(profileName.indexOf('India') > -1){
+            //     soql = "Select Id, Company_Identifier__c, Name, Site, BillingState, BillingPostalCode, Phone From Account where "
+            //                 + " Company_Identifier__c = '"+abnVal+"'";
+            //     if(recTypeContainer != ""){
+            //         soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+            //     }
+            // }
+            if(soql != ''){
+                timeToHide+=1;
+                sforce.connection.query(soql,{
+                    onSuccess: function(queryResult) {
+                        consolidate_APAC_records(queryResult,1);
+                    },
+                    onFailure: function(error){
+                        $("[id$='errorMsg']").html('An error has occurred: ' + error);
+                        $("[id$='errorMsg']").show();
+                        timeToHide -=1;
+                        if(timeToHide == 0){
+                            $("[id$='status']").hide();
+                            $("[id$='newPanelAPAC']").show();
+                            $("[id$='searchButton']").removeAttr('disabled');
+                            searchRunning=false;
+                        }
+                    }
+                });        
+            }
+            if(profileName.indexOf('NZ') == -1 && profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                timeToHide+=1;
+                GenericAccountSearch.abnCallout(abnVal,'ABN',function(response,event){
+                    consolidate_APAC_records(response,2);
+                });
+            }
+            else if(profileName.indexOf('NZ') > -1){
+                timeToHide+=1;
+                GenericAccountSearch.nzCallout(abnVal,'ABN',function(response,event){
+                    consolidate_APAC_records(response,2);
+                });
+            }
+        }
+        
+        function search_AccountName(accVal){
+            /*
+            var soql = '';
+            if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                soql = "select Name, Site, ABN__c, Id, NZ_Company_Incorporation_Number__c, Phone, BillingPostalCode,BillingState from Account Where " 
+                           +" Name like '"+myJSEncode(accVal)+ "%' ";
+                if(recTypeContainer != ""){
+                    soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+                }
+                soql += " Limit 200";
+            }
+            */
+
+            // else if(profileName.indexOf('India') > -1){
+            //     soql = "select Name, Site, Id, Phone, BillingPostalCode, BillingState, Company_Identifier__c from Account Where " 
+            //                +" Name like '"+myJSEncode(accVal)+ "%' "; 
+            //     if(recTypeContainer != ""){
+            //         soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+            //     }
+            //     soql += " Limit 200";
+            // }
+            // else if(profileName.indexOf('China') > -1){
+            //     soql = "select Name, Site, Id, Phone, BillingPostalCode, BillingState from Account Where " 
+            //                +" Name like '"+myJSEncode(accVal)+ "%\' ";
+            //     if(recTypeContainer != ""){
+            //         soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+            //     }
+            //     soql += " Limit 200";
+            // }
+
+            /*
+            if(soql != ''){
+                timeToHide+=1;
+                sforce.connection.query(soql,{
+                    onSuccess: function(queryResult) {
+                        consolidate_APAC_records(queryResult,1);
+                    },
+                    onFailure: function(error){
+                        $("[id$='errorMsg']").html('An error has occurred: ' + error);
+                        $("[id$='errorMsg']").show();
+                        timeToHide -=1;
+                        if(timeToHide == 0){
+                            $("[id$='status']").hide();
+                            $("[id$='newPanelAPAC']").show();
+                            $("[id$='searchButton']").removeAttr('disabled');
+                            searchRunning=false;
+                        }
+                    }
+                });        
+            }
+            */
+      
+            // Created by: Adrian Recio
+            // Description: Original Method commented out to convert query to SOSL to accommodate encrypted fields. 
+            // Date: 18/03/2016
+            var sosl = ''
+            if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                sosl = "FIND {" + myJSEncode(accVal) + "} IN Name Fields RETURNING Account(RecordTypeId, Name, Site, ABN__c, Id, NZ_Company_Incorporation_Number__c, Phone, BillingPostalCode,BillingState) limit 200";
+            }
+
+            if(sosl != ''){
+                timeToHide+=1;
+                sforce.connection.search(sosl,{
+                    onSuccess: function(searchResult) { 
+                        var queryResult = searchResult.getArray("searchRecords");                     
+                        queryResult = recordTypeClean(recTypeContainer,queryResult);
+                        consolidate_APAC_records(queryResult,1);
+                    },
+                    onFailure: function(error){
+                        $("[id$='errorMsg']").html('An error has occurred: ' + error);
+                        $("[id$='errorMsg']").show();
+                        timeToHide -=1;
+                        if(timeToHide == 0){
+                            $("[id$='status']").hide();
+                            $("[id$='newPanelAPAC']").show();
+                            $("[id$='searchButton']").removeAttr('disabled');
+                            searchRunning=false;
+                        }
+                    }
+                });  
+            }
+
+            if((profileName.indexOf('NZ') == -1 && profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1
+                && profileName.indexOf('Structured Finance') == -1 && profileName.indexOf('Capital Market') == -1 && profileName.indexOf('CAG') == -1
+                && profileName.indexOf('Japan') == -1 && profileName.indexOf('Equity') == -1 && profileName.indexOf('NPL') == -1
+                && profileName.indexOf('Hyundai') == -1 && profileName.indexOf('SEA') == -1 && profileName.indexOf('CDF Asia') == -1)
+                ||(profileName.indexOf('~ Marketing Profile') > -1 && profileName.indexOf('AUS') == -1)){
+                timeToHide+=1;
+                GenericAccountSearch.abnCallout(accVal,'ABN',function(response,event){
+                    consolidate_APAC_records(response,2);
+                });
+            }
+            else if((profileName.indexOf('NZ') > -1 && profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1
+                && profileName.indexOf('Structured Finance') == -1 && profileName.indexOf('Capital Market') == -1 && profileName.indexOf('CAG') == -1
+                && profileName.indexOf('Japan') == -1 && profileName.indexOf('Equity') == -1 && profileName.indexOf('NPL') == -1
+                && profileName.indexOf('Hyundai') == -1 && profileName.indexOf('SEA') == -1 && profileName.indexOf('CDF Asia') == -1)
+                ||(profileName.indexOf('~ Marketing Profile') > -1 && profileName.indexOf('AUS') > -1 && profileName.indexOf('SEA') == -1)){
+                timeToHide+=1;
+                GenericAccountSearch.nzCallout(accVal,'ABN',function(response,event){
+                    consolidate_APAC_records(response,2);
+                });
+            }
+        }
+              
+        function search_PhoneNumber(phonVal){
+            /*
+            var soql='';
+            if(profileName.indexOf('India') == -1 || profileName.indexOf('China') == -1){
+                soql = "select Name, Site, ABN__c, Id, NZ_Company_Incorporation_Number__c, Phone, BillingPostalCode,BillingState from Account Where "
+                        +" Phone like '%"+phonVal+"%' ";
+                if(recTypeContainer != ""){
+                    soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+                }
+                soql += " Limit 200";
+            }
+            */
+            
+            // else if(profileName.indexOf('India') > -1){
+            //     soql = "select Name, Site, Id, Phone, BillingPostalCode, BillingState, Company_Identifier__c from Account Where "
+            //             +" Phone like '%"+phonVal+"%' ";
+            //     if(recTypeContainer != ""){
+            //         soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+            //     }
+            //     soql += " Limit 200";
+            // }
+            // else if(profileName.indexOf('China') > -1){
+            //     soql = "select Name, Site, Id, Phone, BillingPostalCode, BillingState from Account Where "
+            //             +" Phone like '%"+phonVal+"%' "; 
+            //     if(recTypeContainer != ""){
+            //         soql+= " and RecordTypeId = '"+recTypeContainer+"'";
+            //     }
+            //     soql += " Limit 200";
+            // }
+            
+            /*
+            if(soql != ''){
+                timeToHide+=1;
+                sforce.connection.query(soql,{
+                    onSuccess: function(queryResult) {
+                        consolidate_APAC_records(queryResult,1);
+                    },
+                    onFailure: function(error){
+                        $("[id$='errorMsg']").html('An error has occurred: ' + error);
+                        $("[id$='errorMsg']").show();
+                        timeToHide -=1;
+                        if(timeToHide == 0){
+                            $("[id$='status']").hide();
+                            $("[id$='newPanelAPAC']").show();
+                            $("[id$='searchButton']").removeAttr('disabled');
+                            searchRunning=false;
+                        }
+                    }
+                });        
+            }
+            */
+            
+            // Created by: Adrian Recio
+            // Description: Original Method commented out to convert query to SOSL to accommodate encrypted fields. 
+            // Date: 18/03/2016
+            
+            var sosl = ''
+            if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1){
+                sosl = "FIND {" + phonVal + "} IN Phone Fields RETURNING Account(RecordTypeId, Name, Site, ABN__c, Id, NZ_Company_Incorporation_Number__c, Phone, BillingPostalCode,BillingState) limit 200";
+            }
+
+            if(sosl != ''){
+                timeToHide+=1;
+                sforce.connection.search(sosl,{
+                    onSuccess: function(searchResult) {
+                        var queryResult = searchResult.getArray("searchRecords");
+                        queryResult = recordTypeClean(recTypeContainer,queryResult);
+                        consolidate_APAC_records(queryResult,1);
+                    },
+                    onFailure: function(error){
+                        $("[id$='errorMsg']").html('An error has occurred: ' + error);
+                        $("[id$='errorMsg']").show();
+                        timeToHide -=1;
+                        if(timeToHide == 0){
+                            $("[id$='status']").hide();
+                            $("[id$='newPanelAPAC']").show();
+                            $("[id$='searchButton']").removeAttr('disabled');
+                            searchRunning=false;
+                        }
+                    }
+                });  
+            }
+        }
+
+        function setup_APAC_attributes(){
+            
+            attributes=[];
+            attributes.push("Action");
+            mapAttributes["Action"] = "Id";
+            attributes.push("Result");
+            mapAttributes["Result"] = "Id";
+            attributes.push("Name");
+            mapAttributes["Name"] = "Name";
+            if(profileName.indexOf('NZ') > -1){
+                attributes.push("NZ Co No.");
+                mapAttributes["NZ Co No."] = "ABN";
+            }
+            else if(profileName.indexOf('India') == -1 && profileName.indexOf('China') == -1 && profileName.indexOf('NZ') == -1){
+                attributes.push("ABN");
+                mapAttributes["ABN"] = "ABN";
+            }
+            // if(profileName.indexOf('India') > -1){
+            //     attributes.push("Company Identifier");
+            //     mapAttributes["Company Identifier"] = "CompanyIdentifier";
+            // }
+            // if(profileName.indexOf('China') == -1){
+            //     attributes.push("Status");
+            //     mapAttributes["Status"] = "Status";
+            // }
+            attributes.push("Phone");
+            mapAttributes["Phone"] = "Phone";
+            if(profileName.indexOf('China') == -1 && profileName.indexOf('NZ') == -1){
+                attributes.push("State");
+                attributes.push("Post Code");
+                mapAttributes["Post Code"] = "PostCode";
+                mapAttributes["State"] = "State";
+            }
+        }             
+
+        // Updated by Adrian Recio
+        // Description: Added loader hide if there are no search conditions
+        function search_APAC(){
+            var hasSearchFilter = false;
+
+            $("[id$='status']").show();
+            addedAccountIds=[];
+            var accName = $("[id$='accName']").val();
+            var abn = $("[id$='abn']");
+            var phone = $("[id$='phon']");
+            setup_APAC_attributes();
+
+            if(abn.length && abn.val() != ''){
+                search_ABN(abn.val());
+                hasSearchFilter = true;
+            }
+            if(accName != ''){
+                search_AccountName(accName);
+                hasSearchFilter = true;
+            }
+            if(phone.length && phone.val() != ''){
+                search_PhoneNumber(phone.val());
+                hasSearchFilter = true;
+            }
+
+            // Hide Loader
+            if(hasSearchFilter==false){
+               show_fields();
+                timeToHide = 0 ;
+                $("[id$='status']").hide();
+                $("[id$='newPanelAPAC']").show();
+                $("[id$='searchButton']").removeAttr('disabled');
+                searchRunning=false;
+            }
+        }
+        
+        function search(){
+            if(searchRunning)
+                return;
+            //mapAttributes = new Map("map", {});
+            records=[];
+            searchRunning=true;
+            
+            $("[id$='searchButton']").attr('disabled','disabled');
+            $("[id$='status']").show();
+            $("[id$='errorMsg']").html('');
+            $("[id$='errorMsg']").hide();
+            // if(recordType === 'CFB' || recordType === 'WCS'){
+            //     var query = query_EMEA();
+            //     sforce.connection.query(query,{
+            //         onSuccess: function(queryResult) {
+            //             consolidate_EMEA(queryResult,1);
+            //             $("[id$='status']").hide();
+            //             $("[id$='newPanelEMEA']").show();
+            //             $("[id$='searchButton']").removeAttr('disabled');
+            //             searchRunning=false;
+            //         },
+            //         onFailure: function(error){
+            //             $("[id$='status']").hide();
+            //             $("[id$='errorMsg']").html('An error has occurred: ' + error);
+            //             $("[id$='errorMsg']").show();
+            //             $("[id$='newPanelEMEA']").show();
+            //             $("[id$='searchButton']").removeAttr('disabled');
+            //             searchRunning=false;
+            //         }
+            //     });
+            // }
+            // else{
+                search_APAC();
+            // }
+        }
+        
+        function createNew(name, abn, state, postCode, companyIdentifier){
+            $("[id$='Account___Name']").val(name);
+            
+            $("[id$='newPanelAPAC']").hide();
+            $("[id$='results']").hide();
+            $("[id$='newCreate']").show();
+        }
+        function createAllNew(){
+            $("[id$='Account___Name']").val($("[id$='accName']").val());
+            
+            if($("[id$='phon']").length){
+                $("[id$='Account___Phone']").val($("[id$='phon']").val());
+            }
+            $("[id$='newPanelAPAC']").hide();
+            $("[id$='results']").hide();
+            $("[id$='newCreate']").show();
+        }
+        function performCancel(){
+            $("[id$='newPanelAPAC']").show();
+            $("[id$='results']").show();
+            $("[id$='newCreate']").hide();
+        }
+    </script>
+
+    <!-- END -->
+    <apex:pageMessages />
+    <apex:form >
+        <!-- <apex:outputPanel rendered="{!OR(recordType=='CFB',recordType=='WCS')}"> -->
+            <!--  This page block to define filters for CFB and WCS business  -->
+            <!-- <apex:pageblock id="SearchBarEMEA" title="Search first for an Account">
+                <apex:pageBlockSection collapsible="false" title="Account Details" columns="1">
+                    <apex:outputLabel value="To ensure you get the best possible results, please use the full name of the account when searching."/>
+                </apex:pageBlockSection>
+                <apex:pageblocksection collapsible="false" columns="2">                       
+                    <apex:inputText label="Account Name (Starts with):" value="{!searchNameText}" id="accName" onkeypress="return captureKey(event);"/>
+                    <apex:inputText label="Legal Name :" id="legName" rendered="{!recordType=='CFB'}" onkeypress="return captureKey(event);"/>          
+                    <apex:selectList label="Account Status :" id="accStatus" size="1" rendered="{!recordType=='CFB'}">
+                        <apex:selectOptions value="{!AccountStatusValues}"/>
+                    </apex:selectList>
+                    <apex:inputText label="{!bookingIdLabel} :" id="bookingId" onkeypress="return captureKey(event);"/>
+                </apex:pageblocksection>
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Search" id="searchButton" onclick="search();return false;"/>
+                </apex:pageBlockButtons>
+            </apex:pageblock> --> 
+            <!--  This page block to define filters for CFB and WCS business  -->
+        <!-- </apex:outputPanel> -->
+        
+        <apex:outputPanel rendered="{!NOT(OR(recordType=='CFB',recordType=='WCS'))}">
+            <!--  This page block to define filters for APAC business  -->
+            <apex:pageBlock id="SearchBar" title="{!APACTitle}">
+                <apex:pageBlockSection collapsible="false" title="Account Details" columns="1">
+                    <apex:outputLabel value="To ensure you get the best possible results, please use the full name of the account when searching."/>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection collapsible="false" columns="2">
+                   <apex:inputText label="Account Name (Starts with):" id="accName" onkeypress="return captureKey(event);"/>
+                   <apex:inputText label="{!ABNLabel}" id="abn" onkeypress="return captureKey(event);" rendered="{!renderABN}"/>
+                   <apex:inputText label="{!PhoneLabel}" id="phon" onkeypress="return captureKey(event);" rendered="{!renderPhone}"/>
+                </apex:pageBlocksection>
+               <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Search" id="searchButton" onclick="search();return false;"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+            <!--  This page block to define filters for APAC business  -->
+        </apex:outputPanel>
+
+        <apex:outputPanel id="errorMsg" style="display:none;"/>
+        <apex:outputPanel id="status" style="display:none;">
+            <center> 
+                <img src="/img/waiting_dots.gif" title="Searching ..."/>
+            </center>
+        </apex:outputPanel> 
+        
+        <apex:outputPanel id="results">
+            <table id="fields_table" class="display compact"></table>
+        </apex:outputPanel>
+
+        
+        <!-- <apex:outputPanel id="newPanelEMEA" style="display:none" rendered="{!OR(recordType=='CFB',recordType=='WCS')}">
+           <apex:outputLabel value="Account not found on search results?"/>
+           <b><apex:commandLink value="Create New" action="{!createNewEMEA}"/></b>
+        </apex:outputPanel> -->
+         
+        <apex:outputPanel id="newPanelAPAC" style="display:none" rendered="{!NOT(OR(recordType=='CFB',recordType=='WCS'))}">
+           <apex:commandButton value="{!CreateNewAPACLabel}" onclick="createAllNew();return false;"/>
+        </apex:outputPanel> 
+         
+        <apex:outputPanel id="newCreate" style="display:none" rendered="{!NOT(OR(recordType=='CFB',recordType=='WCS'))}">
+            <apex:pageBlock id="Account-1" title="{!createAccountAPACLabel}">
+                <apex:pageBlockSection id="section-1">
+                    <apex:inputField label="Name" id="Account___Name" value="{!acc.Name}" />
+                    
+                    <!-- <apex:inputField label="NZ Co No." id="Account___NZ_Company_Incorporation_Number__c" 
+                                value="{!acc.NZ_Company_Incorporation_Number__c}" rendered="{!showNZCoINP}"/> -->
+                    <apex:inputField label="Phone" id="Account___Phone" value="{!acc.Phone}"/>
+                    <!-- <apex:inputField label="Company Identifier" id="Account___Company_Identifier__c" 
+                                value="{!acc.Company_Identifier__c}" rendered="{!showCompIdenINP}"/> -->
+                    <apex:inputField label="City" id="Account___BilingCity" value="{!acc.BillingCity}" 
+                                    rendered="{!showCityINP}"/>
+                    <!-- <apex:inputField label="State" id="Account___BillingState" value="{!acc.BillingState}" 
+                                    rendered="{!AND(showStateINP,NOT(OR(CONTAINS(profileName,'CAG'),CONTAINS(profileName,'ICorpAcc'))))}"/> -->
+                    <!-- <apex:inputField label="State" id="Account___ASPAC_State__c" value="{!acc.ASPAC_State__c}" 
+                                    rendered="{!OR(CONTAINS(profileName,'CAG'),CONTAINS(profileName,'ICorpAcc'),CONTAINS(profileName,'India'),CONTAINS(profileName,'IAL'))}"/> -->
+                    <!-- <apex:inputField label="Post Code" id="Account___BillingPostalCode" 
+                                value="{!acc.BillingPostalCode}" rendered="{!showPCodeINP}"/> -->
+                    <apex:inputField value="{!acc.PRS_RECORD_ID__c}" id="Account___PRS_RECORD_ID__c"/>
+                </apex:pageBlockSection>
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Save" action="{!save}"/>
+                    <apex:commandButton value="Cancel" onclick="performCancel(); return false;" />
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </apex:outputPanel>         
+    </apex:form>        
+   
+</apex:page>

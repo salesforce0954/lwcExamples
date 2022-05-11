@@ -1,0 +1,13 @@
+<!--/*
+ * @Description: Contract Acceptance page
+ * @Author: August Del Rosario
+ * @Date Created: Jan-28-2014
+ * @History:
+   =====================================================================
+       28-01-14: Created - August
+   =====================================================================
+ */
+-->
+<apex:page standardController="Application__c" cache="false" showHeader="false" id="contractAcceptancePage">           
+    <c:APP_ContractAcceptance_INT application="{!Application__c.Id}" id="contractAcceptanceC"/>
+</apex:page>

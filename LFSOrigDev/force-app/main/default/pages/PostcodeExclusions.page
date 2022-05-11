@@ -1,0 +1,22 @@
+<!--
+Author: Michael Lasala Cloud Sherpas
+Created Date: 2/19/2013
+Description: Postcode Exclusion Page
+-->
+<apex:page standardController="Postcode_Exclusion__c" extensions="PostcodeExclusionController">
+  	<apex:form >
+        <apex:pageMessages />
+        <apex:pageBlock title="Postcode Exclusions">
+            <apex:pageBlockSection >
+                <apex:outputText value="All Postcodes need to be excluded by a comma (,)"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <apex:inputTextArea id="postCode" value="{!postCodes}" cols="125" rows="10"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!saveRecords}"/>
+                <apex:commandButton value="Cancel" action="{!Cancel}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

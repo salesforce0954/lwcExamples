@@ -1,0 +1,280 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Residential Expenses" icon-name="standard:expense" class="slds-var-p-bottom_xx-small">
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="residentialStatus"
+                                                label="Residential Status"
+                                                value={expenseDetailsObj.ResidentialStatus}
+                                                placeholder="Select"
+                                                options={residentialStatusOptions}
+                                                onchange={handleShowWarning}
+                                                onblur={handleExpenseDetailsChange}
+                                                required
+                                                disabled={isDisabled} 
+                    ></lightning-combobox>
+                    <div class="residentialStatus_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>This information has been considered when you completed your quote. If you modify these details, your client's quoted interest rate may change.</div>
+                    </div>
+                </div>
+            </div>
+            <template if:true={showRentBoardFields}>
+                <div class="slds-grid slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_4-of-12">
+                        <span>
+                            <lightning-input type="number" disabled={isDisabled} message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Applicant's share of rent/board payments are" formatter="currency" name="rentBoardPayments" value={expenseDetailsObj.RentBoardPayments} onblur={handleExpenseDetailsChange} required></lightning-input>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-size_4-of-12 slds-var-p-left_x-small ">
+                        <span>
+                            <lightning-combobox
+                                                    name="paymentFrequency"
+                                                    label="Payment frequency"
+                                                    value={expenseDetailsObj.PaymentFrequency}
+                                                    placeholder="Select"
+                                                    options={expenseFrequencyOptions}
+                                                    onchange={handleExpenseDetailsChange}
+                                                    required
+                                                    disabled={isDisabled} 
+                        ></lightning-combobox>
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+            <template if:true={showLandlordField}>
+                <div class="slds-grid slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_4-of-12">
+                        <span>
+                            <lightning-input type="text" disabled={isDisabled} label="Landlord name" max-length="30" name="landlordName" value={expenseDetailsObj.LandlordName} onblur={handleExpenseDetailsChange} required></lightning-input>
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+        </lightning-card>
+    </div>
+
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Living Expenses" icon-name="standard:expense" class="slds-var-p-bottom_xx-small">
+
+            <div class="slds-card__body slds-card__body_inner">
+                <template if:false={isJointApplication}>
+                    <strong>Please enter your applicant's expenses as accurately as possible. If they share expenses, only enter
+                        what they contribute.</strong>
+                </template>
+                <template if:true={isJointApplication}>
+                    <strong>Please enter both applicant's combined expenses as accurately as possible.</strong>
+                </template>
+                
+            </div>
+
+            <template if:false={isJointApplication}>
+                <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_4-of-12">
+                        <lightning-combobox
+                                                    name="payAllExpenses"
+                                                    label="Does applicant pay all the expenses for their household?"
+                                                    value={expenseDetailsObj.DoYouPayAllExpenses}
+                                                    placeholder="Select"
+                                                    options={payAllExpenseValues}
+                                                    onchange={handleExpenseDetailsChange}
+                                                    required
+                                                    disabled={isDisabled} 
+                        ></lightning-combobox>
+                    </div>
+                </div>
+            </template>
+
+
+           
+    
+            <div class="slds-grid slds-var-m-around_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Food, groceries and entertainment"
+                        value={expenseDetailsObj.FoodExpense} name="food" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="1" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                            <div style="color:#807979;font-size:12px">e.g. Groceries, restaurants, takeaway, lunches, coffees, etc.</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="foodFrequency"  value={expenseDetailsObj.FoodFrequency} options={foodIntervalOptions} label="" 
+                            placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+            </div>
+    
+            <div class="slds-grid slds-var-m-around_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Insurance"
+                        value={expenseDetailsObj.InsuranceExpense} onchange={handleShowWarning} name="insurance" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="4" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                            <div style="color:#807979;font-size:12px">e.g. Health, vehicle, home and life insurance, income protection etc.</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="insuranceFrequency"  value={expenseDetailsObj.InsuranceFrequency} options={insuranceIntervalOptions} label="" 
+                            placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+            </div>
+    
+            <div class="slds-grid slds-var-m-around_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Utilities"
+                        value={expenseDetailsObj.UtilitiesExpense} onchange={handleShowWarning} name="utilities" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="4" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                        <div style="color:#807979;font-size:12px">e.g. Electricity, gas, water, phone, internet, general rates, streaming, pay TV etc.</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="utilitiesFrequency"  value={expenseDetailsObj.UtilitiesFrequency} options={utilitiesIntervalOptions} label="" 
+                             placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+                
+            </div>
+            
+    
+            <div class="slds-grid slds-var-m-around_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Transport"
+                        value={expenseDetailsObj.TransportExpense} onchange={handleShowWarning} name="transport" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="4" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                            <div style="color:#807979;font-size:12px">e.g. Daily travel, petrol, vehicle maintenance, vehicle registration, tolls, public transport,
+                                ride sharing etc.</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="transportFrequency"  value={expenseDetailsObj.TransportFrequency} options={transportIntervalOptions} label="" 
+                            placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+            </div>
+    
+            <div class="slds-grid slds-var-m-top_large slds-var-p-left_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Education and childcare"
+                        value={expenseDetailsObj.EducationExpense} onchange={handleShowWarning} name="education" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="4" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                            <div style="color:#807979;font-size:12px">e.g. School fees, uniform, daycare etc.</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="educationFrequency"  value={expenseDetailsObj.EducationFrequency} options={educationIntervalOptions} label="" 
+                             placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+            </div>
+    
+            <div class="slds-grid slds-var-m-around_small slds-grid_vertical-align-center">
+    
+                <div class="slds-col slds-size_4-of-12 custom-height">
+                    <lightning-input type="number" formatter="currency" required label="Personal / Other"
+                        value={expenseDetailsObj.PersonalExpense} onchange={handleShowWarning} name="personal" disabled={isDisabled} placeholder="$"
+                        message-when-value-missing="Please enter an amount or $0 if not applicable" min-length="4" max-length="7" min="0"
+                        onblur={handleExpenseDetailsChange} message-when-range-underflow="Amount cannot be less than $0"
+                        message-when-step-mismatch="Please enter only whole numbers"></lightning-input>
+                        
+                            <div style="color:#807979;font-size:12px">e.g. Clothing, medical, fitness and any additional expenses</div>
+                        
+                </div>
+                
+                <div class="slds-col slds-var-m-around_x-small slds-var-p-top_xx-small slds-size_3-of-12 custom-height">
+                        <lightning-combobox name="personalFrequency"  value={expenseDetailsObj.PersonalFrequency} options={personalIntervalOptions} label="" 
+                             placeholder="Select" onchange={handleExpenseDetailsChange} disabled={isDisabled}>
+                        </lightning-combobox>
+                        <div></div>
+                </div>
+    
+            </div>
+    
+            <div class="slds-var-m-left_large slds-var-m-top_medium slds-col slds-size_7-of-12" style="padding:0.5rem;background:#006ac6;color: rgb(255, 255, 255);">
+                <template if:false={isJointApplication}>
+                    <div class="slds-align_absolute-center">Your applicant's total monthly living expenses:</div>
+                </template>
+                <template if:true={isJointApplication}>
+                    <div class="slds-align_absolute-center">Your applicants' combined total monthly living expenses:</div>
+                </template>
+                
+                <div class="slds-align_absolute-center">
+                    $<lightning-formatted-number currency-code="AUD" value={totalMonthlyExpenses}></lightning-formatted-number>
+                </div>
+            </div>
+    
+            <template if:true={showErrorMessage}>
+                <div class="slds-var-m-left_large" style="padding:0.5rem;background:#ffffff;color: rgb(255, 0, 0);">
+                    <div class="slds-var-m-left_x-small">Total living expenses must be greater than $0</div>
+                </div>
+            </template>
+
+            <template if:true={expensesMoreThan30K}>
+                <div class="slds-var-m-left_large slds-var-m-top_medium slds-col slds-size_7-of-12" style="padding:0.5rem;background:#E8F4FF;color: #686262;">
+                    <div class="slds-align_absolute-center" style="color:#686262;"><strong>Are all your applicant's details correct?</strong></div>
+                    <div style="color:#686262;" class="slds-var-m-top_xx-small">Please review the following details before you continue:</div>
+                    <div style="color: #686262;">
+                        <ul>
+                            <li class="slds-var-m-around_x-small slds-var-p-left_x-small slds-list_dotted">Total monthly living expenses more than $30,000</li>
+                        </ul>
+                    </div>
+                    <div  style="color: #686262;">By proceeding you are confirming these details are correct.</div>
+                </div>
+            </template>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleExpenseDetailsPrev}></lightning-button>
+                                
+                                
+                                    <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleExpenseDetailsNext}></lightning-button>
+                                
+                                
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+
+            
+        </lightning-card>
+    </div>
+</template>

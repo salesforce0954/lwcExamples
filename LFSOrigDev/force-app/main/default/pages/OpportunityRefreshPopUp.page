@@ -1,0 +1,18 @@
+<!-- 
+Author: Michael Lasala Cloud Sherpas
+Created Date: 02/08/13
+Description: Pop-up page for propensity refresh
+-->
+<apex:page standardController="Opportunity" extensions="OpportunityRefreshController" showheader="false">
+    <apex:form >
+        <apex:pageMessages />
+        <apex:outputLabel value="Branch: "/> 
+        <apex:selectList value="{!Branches}" size="1">
+            <apex:selectOptions value="{!Branch}"/>
+        </apex:selectList><p/>
+        
+        <apex:pageBlock >
+            <apex:commandButton action="{!refreshPropensity}" value="Refresh Propensity" id="refreshButton"/>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

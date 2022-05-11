@@ -1,0 +1,113 @@
+<apex:component >
+
+<style>
+
+input[type="checkbox"] {
+margin: 0px 0 0;
+margin-top: 1px \9;
+line-height: normal;
+}
+
+ td {padding-bottom:10px;}
+
+.comptitle {color:#3a73ba;}
+
+.boxloan  {border: #999 solid 1px; padding: 25px 20px 30px 15px; margin:5px auto;}
+
+
+ /* Base for label styling */
+[type="checkbox"]:not(:checked),
+[type="checkbox"]:checked {
+  position: absolute;
+  left: -9999px;
+}
+[type="checkbox"]:not(:checked) + label,
+[type="checkbox"]:checked + label {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+}
+
+/* checkbox aspect */
+[type="checkbox"]:not(:checked) + label:before,
+[type="checkbox"]:checked + label:before {
+  content: '';
+  position: absolute;
+  left:0; top: 2px;
+  width: 17px; height: 17px;
+  border: 1px solid #aaa;
+  background: #f8f8f8;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.3)
+}
+/* checked mark aspect */
+[type="checkbox"]:not(:checked) + label:after,
+[type="checkbox"]:checked + label:after {
+  content: '✔';
+  position: absolute;
+  top: 0; left: 4px;
+  font-size: 14px;
+  color: #09ad7e;
+  transition: all .2s;
+}
+/* checked mark aspect changes */
+[type="checkbox"]:not(:checked) + label:after {
+  opacity: 0;
+  transform: scale(0);
+}
+[type="checkbox"]:checked + label:after {
+  opacity: 1;
+  transform: scale(1);
+}
+/* disabled checkbox */
+[type="checkbox"]:disabled:not(:checked) + label:before,
+[type="checkbox"]:disabled:checked + label:before {
+  box-shadow: none;
+  border-color: #bbb;
+  background-color: #ddd;
+}
+[type="checkbox"]:disabled:checked + label:after {
+  color: #999;
+}
+[type="checkbox"]:disabled + label {
+  color: #aaa;
+}
+/* accessibility */
+[type="checkbox"]:checked:focus + label:before,
+[type="checkbox"]:not(:checked):focus + label:before {
+  border: 1px dotted blue;
+}
+
+ </style>
+ 
+    <div class="boxloan">
+        <div class="row-fluid">
+            
+        <div class="span12 comptitle "><h4 >Are you interested in Loan Protection Insurance?</h4></div>
+        
+            
+        </div>  
+        
+        <div class="divider20"></div>
+        
+        <div class="row-fluid">
+             <div class="span12"><input type="checkbox" id="c4" checked="true"/>
+            <label for ="c4"><span class="span1"></span><span class="span11">Cover provided for your loan payments if the unexpected happens.</span></label></div>
+        </div>
+        <div class="divider10"></div>
+            <div class="row-fluid">
+             <div class="span12"><input type="checkbox" id="c5" checked="true"/>
+            <label for ="c5"><span class="span1"></span><span class="span11">If you lose your job through no fault of your own, or are sick or injured and can't work, payments are taken care of.</span></label></div>
+        </div>
+        <div class="divider10"></div>
+            <div class="row-fluid">
+             <div class="span12"><input type="checkbox" id="c6" checked="true"/>
+             <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+            <label for ="c6"><span class="span1"></span><span class="span11">Ask a {!$Label.Global_Brand} consultant about Loan Protection Insurance.</span></label></div>
+       </div>  
+     
+     </div> 
+       
+ 
+ 
+</apex:component>

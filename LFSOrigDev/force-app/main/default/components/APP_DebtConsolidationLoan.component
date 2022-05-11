@@ -1,0 +1,112 @@
+<apex:component >
+
+<style>
+
+input[type="checkbox"] {
+margin: 0px 0 0;
+margin-top: 1px \9;
+line-height: normal;
+}
+
+ td {padding-bottom:10px;}
+
+.comptitle {color:#3a73ba;}
+
+.boxloan  {border: #999 solid 1px; padding: 25px 20px 30px 15px; margin:5px auto;}
+
+
+ /* Base for label styling */
+[type="checkbox"]:not(:checked),
+[type="checkbox"]:checked {
+  position: absolute;
+  left: -9999px;
+}
+[type="checkbox"]:not(:checked) + label,
+[type="checkbox"]:checked + label {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+}
+
+/* checkbox aspect */
+[type="checkbox"]:not(:checked) + label:before,
+[type="checkbox"]:checked + label:before {
+  content: '';
+  position: absolute;
+  left:0; top: 2px;
+  width: 17px; height: 17px;
+  border: 1px solid #aaa;
+  background: #f8f8f8;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.3)
+}
+/* checked mark aspect */
+[type="checkbox"]:not(:checked) + label:after,
+[type="checkbox"]:checked + label:after {
+  content: '✔';
+  position: absolute;
+  top: 0; left: 4px;
+  font-size: 14px;
+  color: #09ad7e;
+  transition: all .2s;
+}
+/* checked mark aspect changes */
+[type="checkbox"]:not(:checked) + label:after {
+  opacity: 0;
+  transform: scale(0);
+}
+[type="checkbox"]:checked + label:after {
+  opacity: 1;
+  transform: scale(1);
+}
+/* disabled checkbox */
+[type="checkbox"]:disabled:not(:checked) + label:before,
+[type="checkbox"]:disabled:checked + label:before {
+  box-shadow: none;
+  border-color: #bbb;
+  background-color: #ddd;
+}
+[type="checkbox"]:disabled:checked + label:after {
+  color: #999;
+}
+[type="checkbox"]:disabled + label {
+  color: #aaa;
+}
+/* accessibility */
+[type="checkbox"]:checked:focus + label:before,
+[type="checkbox"]:not(:checked):focus + label:before {
+  border: 1px dotted blue;
+}
+
+ 
+ 
+</style>
+
+<div class="boxloan">
+    <div class="row-fluid">
+    	<!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+        <div class="span12 comptitle "><h4>Did you know {!$Label.Global_Brand} also offers Debt Consolidation Loans</h4></div>    
+    
+    </div>  
+    <div class="divider20"></div>
+
+
+    <div class="row-fluid">
+        <div class="span12"><input type="checkbox" id="c1" checked="true"/>
+        <label for ="c1"><span class="span1"></span><span class="span11">Combine your credit card, store cards, or other loans into one easy to manage loan.</span></label></div>
+    </div>
+
+    <div class="divider10"></div>           
+        
+    <div class="row-fluid">
+            <div class="span12"><input type="checkbox" id="c2" checked="true" />
+            <label for ="c2"><span class="span1"></span><span class="span11">Fixed payments over a fixed term so you'll know when you'll pay it off.</span></label></div>
+    </div>  
+    
+    <div class="divider10"></div>
+    <div class="row-fluid">
+        <div class="span12"><input type="checkbox" id="c3" checked="true" />
+        <label for ="c3"><span class="span1"></span><span class="span11">One loan, one regular payment.</span></label></div>
+   </div>
+</div>
+</apex:component>

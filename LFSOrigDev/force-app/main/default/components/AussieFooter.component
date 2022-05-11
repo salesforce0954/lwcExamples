@@ -1,0 +1,12 @@
+<apex:component >
+    <footer style="position:relative !important;">
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <div class="pull-left">
+                    <a href="http://www.aussie.com.au/privacy.htm" target="_blank">Privacy Policy</a><br />
+                    <p>Loan approval subject to the credit provider’s lending criteria. Terms, conditions, fees and charges apply. The Aussie Personal Loan is from Aussie Consumer Finance ("Aussie") with credit provided by Latitude Personal Finance Pty Ltd (ABN 54 008 443 810, Australian Credit Licence number 392163). The Aussie logo is a trademark of AHL Investments Pty Ltd (ABN 27 105 265 861, Australian Credit Licence number 246786). Aussie is a partly-owned subsidiary of the Commonwealth Bank of Australia ABN 48 123 123 124 AFSL and Australian Credit Licence 234945.</p>
+                </div>
+            </div><!-- footer-bottom-inner -->    
+        </div><!-- footer-bottom -->
+    </footer>
+</apex:component>

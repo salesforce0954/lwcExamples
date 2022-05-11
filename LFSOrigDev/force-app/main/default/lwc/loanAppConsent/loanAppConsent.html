@@ -1,0 +1,339 @@
+<template>
+
+
+    <div class="slds-var-m-around_x-small slds-var-p-around_x-small">
+        <lightning-card title={label.BP_LBL_Loan_Details_Section} icon-name="standard:drafts" class="loan-details">
+
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                    <lightning-input type="number" name="loanAmountQuote"
+                        message-when-pattern-mismatch="Please enter only digits between 0 &amp; 9"
+                        class ="pla-loanAmount"
+                        label={label.BP_LBL_Loan_Amount} onchange={handleShowWarning} disabled={isDisabled}
+                        formatter="currency" value={loanDetailsObj.LoanAmountQuote} onblur={handleLoanAppDetailsChange}
+                        required min={primaryLoanAmountMinAmount} message-when-value-missing="Please complete this field"
+                        message-when-range-underflow={primaryLoanAmountMessage}>
+                    </lightning-input>
+                    <div class="loanAmountQuote_warning"
+                        style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>{label.BP_LBL_Info_Change_Warning}</div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                    <lightning-combobox name="loanPurposeQuote" label={label.BP_LBL_Loan_Purpose}
+                        value={loanDetailsObj.LoanPurposeQuote} placeholder="Select Purpose" options={loanPurposeValues}
+                        onblur={handleLoanAppDetailsChange} onchange={handleShowWarning}
+                        message-when-value-missing="Please complete this field" required disabled={isDisabled}>
+                    </lightning-combobox>
+                    <div class="loanPurposeQuote_warning"
+                        style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>{label.BP_LBL_Info_Change_Warning}</div>
+                    </div>
+                </div>
+                <template if:true={showQuoteOtherPurpose}>
+                    <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                        <lightning-input type="text" name="otherLoanPurposeQuote" label="Other loan purpose"
+                            disabled={isDisabled} required value={loanDetailsObj.OtherLoanPurposeQuote}
+                            onblur={handleLoanAppDetailsChange} message-when-value-missing="Please complete this field">
+                        </lightning-input>
+                    </div>
+                </template>
+
+
+            </div>
+
+
+
+            <template for:each={loanAmountPurposeArray} for:item="currentItem" for:index="index">
+                <div class="slds-grid slds-wrap slds-var-m-around_x-small" key={currentItem.id}>
+                    <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                        <lightning-input type="number" name="loanAmount" label={label.BP_LBL_Loan_Amount}
+                            disabled={isDisabled} formatter="currency" value={currentItem.loanAmount}
+                            data-name={currentItem.id} onblur={handleLoanAppDetailsChange} required min="1"
+                            message-when-value-missing="Please complete this field"></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                        <lightning-combobox name="loanPurpose" label={label.BP_LBL_Loan_Purpose}
+                            value={currentItem.loanPurpose} placeholder="Select Purpose" options={loanPurposeValues}
+                            onchange={handleLoanAppDetailsChange} data-name={currentItem.id}
+                            message-when-value-missing="Please complete this field" required disabled={isDisabled}>
+                        </lightning-combobox>
+                    </div>
+
+
+                    <template if:true={currentItem.isOtherPurpose}>
+                        <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small">
+                            <lightning-input type="text" name="otherLoanPurpose" label={label.BP_LBL_Other_Loan_Purpose}
+                                required disabled={isDisabled} value={currentItem.otherLoanPurpose}
+                                onblur={handleLoanAppDetailsChange} data-name={currentItem.id}
+                                message-when-value-missing="Please complete this field"></lightning-input>
+                        </div>
+                    </template>
+
+
+                    <template if:false={isDisabled}>
+                        <div class="slds-col slds-size_2-of-12 slds-var-m-top_large">
+                            <lightning-button-icon variant="brand" data-name={currentItem.id} label=""
+                                title="Delete Loan Purpose" icon-name="utility:delete"
+                                onclick={handleLoanPurposeDelete}></lightning-button-icon>
+                        </div>
+                    </template>
+
+                </div>
+            </template>
+
+
+
+
+            <div class="slds-grid slds-wrap slds-var-p-bottom_x-small slds-var-p-left_x-small">
+                <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small slds-float_right">
+                    <lightning-input type="number" name="totalLoanAmount" label={label.BP_LBL_Total_Loan_Amount}
+                        formatter="currency" value={totalLoanAmount} disabled></lightning-input>
+
+                </div>
+                <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small slds-float_right">
+                    <lightning-combobox name="loanterm" label={label.BP_LBL_Loan_Term} value={loanDetailsObj.LoanTerm} class='pla-loanterm'
+                        placeholder="Select Term" options={loanTermValues} onblur={handleLoanDetailsChange}
+                        onchange={handleShowWarning} message-when-value-missing="Please complete this field" required
+                        disabled={isDisabled}></lightning-combobox>
+                    <div class="loanterm_warning" style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>{label.BP_LBL_Info_Change_Warning}</div>
+                    </div>
+                </div>
+            </div>
+
+            <template if:false={isDisabled}>
+                <div class="slds-grid slds-wrap slds-var-m-around_x-small slds-var-p-bottom_x-small">
+                    <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small slds-float_right">
+                        <lightning-button label={label.BP_LBL_Add_Loan_Purpose_Button} title="Add Loan Purpose"
+                            icon-name="utility:add" onclick={handleAddLoanPurpose} disabled={maxPurposesAdded}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </template>
+
+            <template if:true={isBetterStartActive}>
+                <div class="slds-grid slds-wrap slds-var-p-bottom_x-small slds-var-p-left_x-small">
+                    <div class="slds-col slds-size_3-of-12 slds-var-m-right_x-small slds-float_right">
+                        <lightning-combobox name="producttype" label={label.BP_LBL_Product_Type_Decap} value={loanDetailsObj.ProductType}
+                            placeholder="Select Type" options={productTypeOptions} disabled={isDisabled} class='pla-productType'
+                            onchange={handleProductTypeChange} onblur={handleLoanDetailsChange} message-when-value-missing="Please complete this field" required></lightning-combobox>
+                    </div>
+                </div>
+            </template>
+        </lightning-card>
+    </div>
+
+    <!-- APPLICANTS SECTION: START -->
+    <div class="slds-var-m-around_x-small slds-var-m-bottom_x-small">
+        <lightning-card variant="Narrow" title={label.BP_LBL_Getting_Started_Section} icon-name="standard:contract">
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <lightning-combobox name="applicants" label={label.BP_LBL_Number_Of_Applicants}
+                        value={loanDetailsObj.Applicants} options={applicantOptions} onchange={handleShowWarning} onblur={handleLoanDetailsChange}
+                        disabled={isDisabled}></lightning-combobox>
+                    <div class="applicants_warning"
+                        style="padding:0.5rem;background:#f9b845;display:none;color: black;">
+                        <div>{label.BP_LBL_Info_Change_Warning}</div>
+                    </div>
+                </div>
+            </div>
+            <template if:true={showJointAppTextboxes}>
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col slds-var-m-around_small slds-size_3-of-12">
+                        <lightning-input type="text" label={label.BP_LBL_Applicant_1} pattern="[A-Za-z]*" min-length="3"
+                            max-length="15" value={loanDetailsObj.Applicant1Name} name="applicant1"
+                            disabled={isDisabled} onchange={handleLoanDetailsChange}
+                            placeholder="enter first name here..." required
+                            message-when-value-missing="Enter First Name for Applicant 1"></lightning-input>
+                    </div>
+                    <div class="slds-col slds-var-m-around_small slds-size_3-of-12">
+                        <lightning-input type="text" label={label.BP_LBL_Applicant_2} pattern="[A-Za-z]*" min-length="3"
+                            max-length="15" name="applicant2" value={loanDetailsObj.Applicant2Name}
+                            disabled={isDisabled} onchange={handleLoanDetailsChange}
+                            placeholder="enter first name here..." required
+                            message-when-value-missing="Enter First Name for Applicant 2"></lightning-input>
+                    </div>
+                </div>
+            </template>
+
+            <!-- APPLICATION CONSENT SECTION: START -->
+
+            <template if:true={showConsentModal}>
+                <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium"
+                    aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+                    <div class="slds-modal__container" style="width: 45%">
+                        <header class="slds-modal__header">
+                            <lightning-icon icon-name="standard:entitlement_policy" alternative-text="Consent"
+                                title="Consent"></lightning-icon>
+                            <span>
+                                <h2 id="modal-heading-01"
+                                    class="slds-modal__title slds-var-p-around_x-small slds-hyphenate">{consentHeader}
+                                </h2>
+                            </span>
+                        </header>
+                        <div class="slds-modal__content" id="modal-content-id-1">
+
+                            <div class="slds-text-align_center slds-var-p-around_x-small slds-text-heading_small">
+
+                                <p>
+                                    <lightning-formatted-rich-text value={consentContent}>
+                                    </lightning-formatted-rich-text>
+                                </p>
+
+                            </div>
+                        </div>
+                        <footer class="slds-modal__footer">
+                            <button class="slds-button slds-button_brand"
+                                onclick={handleConsentModalClose}>Close</button>
+                        </footer>
+
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
+
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_Privacy_Credit_Reporting}</b><br />
+                        <span onclick={handleShowPrivacyPopover}
+                            class="consentClickable">{label.BP_LBL_Privacy_21T}</span><br />
+                        {label.BP_LBL_Privacy_21T_Agrees}
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" disabled={isDisabled} label="" name="privacy"
+                            checked={loanDetailsObj.PrivacyConsent} message-toggle-active="Yes"
+                            message-toggle-inactive="No" message-when-value-missing="Please complete this field"
+                            required onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_Product_Disclosure_Heading}</b><br />
+                        <span onclick={handleShowProductDisPopover}
+                            class="consentClickable">{label.BP_LBL_Product_Disclosure}</span><br />
+                        {label.BP_LBL_Product_Disclosure_Agrees}
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" label="" disabled={isDisabled}
+                            checked={loanDetailsObj.ProductDisclosure} name="productDisclosure"
+                            message-when-value-missing="Please complete this field" message-toggle-active="Yes"
+                            message-toggle-inactive="No" required onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_E_Communication}</b><br />
+                        <span onclick={handleShowECommunicationPopover}
+                            class="consentClickable">{label.BP_LBL_E_Communication_Clickable}</span><br />
+                        {label.BP_LBL_E_Communication_Agrees}
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" disabled={isDisabled} label=""
+                            checked={loanDetailsObj.ECommunication} name="eCommunication"
+                            message-when-value-missing="Please complete this field" message-toggle-active="Yes"
+                            message-toggle-inactive="No" required onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_E_POI}</b><br />
+                        <span onclick={handleShowEPOIPopover}
+                            class="consentClickable">{label.BP_LBL_E_POI_Clickable}</span><br />
+                        <lightning-formatted-rich-text value={label.BP_LBL_E_POI_Agrees}>
+                        </lightning-formatted-rich-text>
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" disabled={isDisabled} label="" name="eIncome"
+                            checked={loanDetailsObj.EIncome} message-toggle-active="Yes" message-toggle-inactive="No"
+                            onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_EIDV}</b><br />
+                        <span onclick={handleShowEIDVPopover}
+                            class="consentClickable">{label.BP_LBL_EIDV_Clickable}</span><br />
+                        {label.BP_LBL_EIDV_Agrees}
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" label="" disabled={isDisabled} name="eIdentification"
+                            checked={loanDetailsObj.EIdentification} message-toggle-active="Yes"
+                            message-toggle-inactive="No" onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <b>{label.BP_LBL_HAS}</b><br />
+                        <span onclick={handleShowHASPopover}
+                            class="consentClickable">{label.BP_LBL_HAS_Clickable}</span><br />
+                        {label.BP_LBL_HAS_Agrees}
+                    </span>
+
+
+                </div>
+                <div class="slds-col slds-var-m-around_small slds-size_6-of-12">
+                    <span>
+                        <lightning-input type="toggle" label="" disabled={isDisabled} name="maxLimit"
+                            checked={loanDetailsObj.MaxLimit} message-toggle-active="Yes" message-toggle-inactive="No"
+                            onchange={handleLoanDetailsChange}></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item padding="around-small">
+                        <lightning-button label="Save &amp; Next" variant="brand" icon-name="utility:chevronright"
+                            icon-position="right" onclick={handleConsentNext}></lightning-button>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+
+
+        </lightning-card>
+
+    </div>
+</template>

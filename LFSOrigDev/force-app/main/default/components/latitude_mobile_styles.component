@@ -1,0 +1,2929 @@
+<apex:component >
+
+<style>
+  @media only screen
+and (min-width : 415px)  {
+    header .container {
+        padding-top: 20px;
+        padding-bottom: 20px !important;
+    }
+}
+/*iphone 4*/
+@media only screen
+and (device-width : 320px)
+and (orientation : portrait) {
+
+    .padLR {
+        margin-right: 0px !important; 
+        margin-left: 0px !important; 
+    }
+
+    div#hiddenL1{
+        width: 25%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL2{
+        width: 28%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL3{
+        width: 25%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL4{
+        width: 22%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    #hiddenDiv{
+        display: inline-block;
+    }
+
+     #loanSummaryDiv {
+        display: none;
+    }
+
+   .accordion-header-text1 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text1a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text2 {
+        width: 65%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text2a {
+        width: 35%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text4 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text4a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text5 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text5a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text6 {
+        width: 70% !important;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text6a {
+        width: 30% !important;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text7 {
+         width: 65% !important;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text7a{
+      width: 35% !important;
+      word-wrap: break-word;
+   }
+   
+    .accordion-header-sm-text {
+         width: 80%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-sm-texta{
+      width: 20%;
+      word-wrap: break-word;
+   }
+   
+    .accordion-header-lg-text {
+         width: 40%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-lg-texta{
+      width: 60%;
+      word-wrap: break-word;
+   }
+
+    .margin-top {
+        margin-top: 15px;
+    }
+    .padding-top {
+        padding-top: 15px;
+    }
+    .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    .navbar {
+        position: relative;
+        min-height: 50px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+    }
+
+    hr {
+        margin-top: 15px !important;
+        margin-bottom: 0px !important;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+    .underline-dotted {
+        border-bottom: none;
+    }
+    .middle-content-margin {
+        padding-top: 30px !important;
+    }
+
+    .thumbsup_margin {
+        margin-bottom: 15px;
+    }
+
+    .secondary-margin {
+        margin-bottom: 15px;
+        width: 95% !important;
+        word-wrap: break-word;
+    }
+    div.mid-content {
+        width: 95%;
+        word-wrap: break-word;
+        text-align: center;
+    }
+    .gap-content {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    #backRow {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #thumbsRow{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .accordion-spacing {
+        padding-top: 5px;
+    }
+
+    .loan-margin-left {
+        margin-left: 10px;
+    }
+    .space_contract{
+        padding-left: 25px;
+    }
+
+    .space_complete{
+        padding-left: 25px;
+    }
+
+    .indent{
+        padding-left: 25px;
+    }
+    .btn-button-add, .btn-button-add:link, .btn-button-add:visited {
+        height:40px;
+        background-color: transparent;
+        border-radius: 0;
+        color: #0067ca;
+        border: 2px solid #0067ca;
+        text-align: center;
+        line-height: 40px;
+        padding: 0px 20px;
+        width:auto;
+    }
+
+    .panel-gap-top{
+         padding-top: 15px;
+    }
+
+    .panel-gap-bottom{
+         padding-bottom: 15px;
+    }
+
+     .accordion-inner{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+    
+     .accordion-heading .accordion-toggle {
+        display: flex;
+        background-color: #f2f1ef;
+        padding: 10px 5px!important;
+        height: auto;
+     }
+    
+    .GAccordion-status, #accordion
+    .module5-label, .accordion-heading .module5-label {
+        line-height: 20px !important;
+    }
+
+    .status-space{
+        padding-left: 20px;
+    }
+    .icon_profile{
+        margin-top: 10px;
+    }
+    .width_file_container{
+        width:100%;
+    }
+
+    .GTertiary-button-blue {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        background-color: #006ac6 !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 90%;
+    }
+
+    .accordion-inner-income{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+    .icon_middle_width_xs {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        margin-top: 34px;
+        margin-left: 35px;
+    }
+
+    .vertical-align2 {
+        display: inline-block !important;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+    }
+    .pad_left{
+        margin-left:20px;
+    }
+    .pad_left_back{
+        margin-left:-11px;
+    }
+    .pad_right_back{
+        padding-right:15px;
+    }
+    #hDiv {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .arrow-next {
+        padding-left: 13px;
+    }
+    
+    #hiddenDiv{
+        display: inline-block;
+    }
+   .GTertiary-button {
+        display: flex !important;
+        padding: 0 5px;
+        background-color: transparent !important;
+        border-radius: 0;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+    }
+    .GBG-lat-blue {
+        background-color: #006ac6 !important;
+    }
+    
+    .confirmMarginR{
+       margin-right:0px !important;
+    }
+    
+    .confirmMarginB{
+         margin-bottom:10px !important;
+    }
+    
+    /* START - For Payment Details Page - Added by MDAVID 3/22/2016 */
+    .paymentDetailsInput{
+        width: 90%;
+    }
+    
+    .buttonWidth {
+        width: 65px;
+    }
+    
+    .button-margin-right {
+        margin-right: 50px !important;
+    }
+    
+    .paymentDetailsPadding {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+        
+    .repayment-button {
+        height: 30px;
+        display: inline-block;
+        background-color: transparent !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 65px;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+        font-size: 14px !important;
+        padding: 0 !important;
+    }
+    
+    .paymentDetailsTab {
+        font-size: 11px;
+    }
+    
+    .nav>li>a {
+        padding: 10px 5px !important;
+    }
+    
+    /* END - For Payment Details Page - Added by MDAVID 3/22/2016 */
+    
+    .backLink_width{
+        width: 70%;
+        word-wrap: break-word;
+    }
+    
+    .gap-text{
+        padding-left: 5px;
+    }
+    .gap-right-text{
+        padding-right: 5px;
+    }
+    
+    .gap_arrow{
+        margin-left: 15px;
+    }   
+    
+    .icon_middle_width_xs {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        margin-top: 34px;
+        margin-left: 35px;
+    }
+    
+    .accordionPanelMargin{
+        padding: 0px 10px;
+    }
+    
+    /* .navbar-default {
+        padding-left: 10px;
+        padding-right: 10px;
+     }*/
+    
+    .GIdentity-panel-list li.body-label {
+        color: #006ac6;
+        font-size: 14px;
+        line-height: 22px;
+    }
+    
+    .GIdentity-panel-text {
+        margin-bottom: 15px;
+        width: 104%;
+        word-wrap: break-word;
+    }
+    
+      li.toolTip {
+        width: 107%;
+        word-wrap: break-word;
+        text-align: left;
+        margin-bottom: 5px;
+        margin-top: 5px;
+    }
+      .indent_2ndline {
+        text-indent: 0em;
+    }
+    
+    .GCustom-tooltip-list {
+        padding-left: 15px;
+        list-style-type: disc;
+        word-wrap: break-word;
+        width: 92%;
+    }
+    
+    .GCustom-tooltip {
+        background-color: white;
+        font-family: Lexia;
+        width: 260px;
+        padding: 9px;
+        border: 2px dotted #006ac6;
+        position: absolute;
+        margin-left: -29px;
+        margin-top: -145px;
+        box-shadow: 0 2px 10px RGBA(0, 0, 0, .5);
+        display: none;
+        z-index: 1;
+    }
+    
+     .GCustom-tooltip-arrow {
+        border-right: 2px dotted #006ac6;
+        border-left: 0;
+        box-shadow: 2px 2px 3px RGBA(0, 0, 0, .3);
+        margin-top: 113px;
+        margin-left: 157px;
+    }
+    
+    .GFile-browse {
+        background-color: orange;
+        position: absolute;
+        margin-left: 55px;
+        margin-top: 2px;
+        height: 46px;
+        width: 170px;
+        opacity: 0;
+    }
+    .GTertiary-button-disabled {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        /* font-weight: bold; */
+        width: auto;
+        border: 2px solid #c4bfb6;
+        background-color: transparent !important;
+        color: #75787b;
+    }
+    
+    .GTertiary-button-bottom {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        width: 100%;
+        border: 2px solid #006ac6;
+        color: #ffffff;
+        background-color: #006ac6 !important;
+    }
+    
+      .GTertiary-button-outline {
+            background-color: transparent !important;
+            height: 50px;
+            display: inline-block;
+            padding: 0 95px;
+            border-radius: 0;
+            width: 100%;
+            border: 2px solid #006ac6;
+            color: #006ac6;
+    }
+    
+    .btnLRMargin{
+        padding: 0px 0px;
+    }
+    
+    .btnSpace {
+        margin-left: 0px; 
+    }
+    
+     .body-label {
+        font-family: Lexia;
+        line-height: 22px;
+        font-size: 14px;
+    }
+    
+    .GIdentity-panel-buttons {
+        border-left: 0px dotted #75787b;
+        padding-left: 0px;
+        padding-top: 10px;
+    }
+    .GPreview-wrap img {
+        max-height: 60px;
+        max-width: 110px;
+        float: left;
+    }
+    
+    .GPreview-wrap {
+        width: auto;
+        height: auto;
+        min-height: 90px !important;
+        background-color: #f2f1ef !important;
+        padding: 10px;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        margin-right: 10px;
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    
+    .GAttachments-wrap {
+      text-align: left;
+    }
+
+    .circle_gap {
+        margin-left: -39px;
+    }
+    
+    .textGapToCircle{
+        padding-left: 50px;
+        text-indent: -0.5em;
+    }
+    
+    .forms_heading{
+         width: 89%; 
+         padding-left: 50px;
+    }
+    
+    .forms_lbl_margin {
+        margin-bottom: 10px;
+    }
+    
+    .forms_margin_bottom {
+        margin-bottom: 10px !important;
+    }
+    .header {
+        background: #f2f1ef !important;
+    }
+    
+    .back_tmargin{
+        margin-top: -3px;
+    }
+    
+    .icnEditMargin{
+        margin-top:-50px;
+    }
+    
+    .next_margin {
+        margin-left: -4px;
+        margin-right: -35px;
+    }
+    .gap-right-text{
+        padding-right: 5px;
+    }
+    
+    header {
+        background: #f2f1ef;
+    }
+    
+    .row {
+        margin-right: -5px !important;
+        margin-left: -5px !important;
+    }
+    
+     .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    
+    .GNo-Line-height {
+        line-height: 15px;
+   }
+    
+    .icon_size{
+      width: 20px;
+      height: 20px;
+    }
+    
+    .logo_size{
+        width:40px;
+        height:40px;
+    }
+    
+    .backArrow_size{
+      width: 30px;
+      height: 30px;
+    }
+    
+    /*FONTS*/
+    
+    .page-title{
+        font-family: Lexia-bd;
+        line-height: 50px;
+        font-size: 44px;
+    }
+
+    .module1-label {
+        font-family: Lexia;
+        line-height: 42px;
+        font-size: 36px;
+    }
+
+    .module2-label {
+        font-family: Lexia-bd;
+        line-height: 36px;
+        font-size: 30px;
+    }
+
+    .module3-label {
+        font-family: Lexia;
+        line-height: 30px;
+        font-size: 24px;
+    }
+
+    .module4-label {
+        font-family: Lexia-bd;
+        line-height: 24px;
+        font-size: 18px;
+    }
+
+    .module5-label {
+        font-family: Lexia-bd;
+        line-height: 22px;
+        font-size: 16px;
+    }
+
+    .intro-label {
+        font-family: Lexia;
+        line-height: 24px;
+        font-size: 16px;
+    }
+
+    .body-label-mob {
+        font-family: Lexia;
+        line-height: 22px;
+        font-size: 14px;
+    }
+
+    .small-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .small-text-bold{
+        font-family: Lexia-bd;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .fine-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+    
+    .progress_style_mobile{
+       width:180px !important;
+       height:12px !important;
+       margin-bottom: 0;
+       border-radius: 10px;
+       border: 1px solid #fab700;
+       background: #fff;
+    }
+    
+    .progress-bar {
+        float: left;
+        width: 0%;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: #fab700 !important;
+        -webkit-box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+         box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+        -webkit-transition: width .6s ease;
+        -o-transition: width .6s ease;
+        transition: width .6s ease;
+    }
+    
+   .contactLink_width {
+        width: 65% !important;
+        word-wrap: break-word;
+    }
+    
+     .btnAlign button {
+        width: 100%;
+      }
+      
+       .btnAlign {
+        width: 100%;
+      }
+    
+    .gapBetweenBtn {
+        margin-left: 0px!important; 
+    }
+    
+    .iconGapFrText {
+        padding-left: 5px !important;
+    }
+    .btnBMargin{
+        margin-bottom:5px;
+    }
+    .POASectionGap {
+        height: 60px !important;
+    }
+    .AMLSectionGap {
+        height: 60px !important;
+    }
+    
+    .paymentDetailsBtnRMargin {
+        margin-right: 0px !important;
+    }
+ 
+     .footer-bottom-inner {
+        width: auto !important;
+        padding: 18px !important;
+    }
+    
+    .footer-bottom {
+        background: #555C4E;
+        color: #ccc;
+        padding: 35px  !important;
+        min-height: 80px !important;
+    }
+    
+    .footerContent{
+        font-size:8px !important;
+    }
+    
+    .accordion-heading i {
+        margin-right: 0px !important;
+    }
+    .paymentDtldCenterWidth{
+        word-wrap: break-word;
+        text-align: center;
+        padding-bottom: 30px;
+    }
+    
+    .input-group {
+        position: relative;
+        display: block !important;
+        border-collapse: separate;
+    }
+    
+    .repaymentsCalendarIcon {
+        padding-right: 10%;
+        padding-top: 3% !important;
+        font-size: 25px;
+        color: gray;
+    }
+    
+    .margin_file {
+        margin-right: 0px !important; 
+    }
+    
+}
+
+/*iphone 6 portrait*/
+@media only screen 
+and (device-width : 375px) 
+/*and (max-device-width : 627px)*/
+and (orientation : portrait) {  
+    
+
+     div#hiddenL1{
+        width: 23%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL2{
+        width: 25%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL3{
+        width: 24%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+       padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL4{
+        width: 24%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+    /* .GAccordion-status, #accordion
+    .module5-label, .accordion-heading .module5-label {
+        line-height: 22px;
+    }*/
+
+    #hiddenDiv{
+        display: inline-block;
+    }
+
+     #loanSummaryDiv {
+        display: none;
+    }
+
+   .accordion-header-text1 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text1a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text2 {
+        width: 65%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text2a {
+        width: 35%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text4 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text4a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text5 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text5a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text6 {
+        width: 63%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text6a {
+        width: 37% !important;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text7 {
+         width: 66% !important;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text7a{
+      width: 34% !important;
+      word-wrap: break-word;
+   }
+   
+     .accordion-header-sm-text {
+         width: 80%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-sm-texta{
+      width: 20%;
+      word-wrap: break-word;
+   }
+   
+    .accordion-header-lg-text {
+         width: 50%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-lg-texta{
+      width: 50%;
+      word-wrap: break-word;
+   }
+
+    .margin-top {
+        margin-top: 15px;
+    }
+    .padding-top {
+        padding-top: 15px;
+    }
+    .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    .navbar {
+        position: relative;
+        min-height: 50px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+    }
+
+    hr {
+        margin-top: 15px !important;
+        margin-bottom: 0px !important;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+    .underline-dotted {
+        border-bottom: none;
+    }
+    .middle-content-margin {
+        padding-top: 30px !important;
+    }
+
+    .thumbsup_margin {
+        margin-bottom: 15px;
+    }
+
+    .secondary-margin {
+        margin-bottom: 15px;
+        width: 90%;
+        word-wrap: break-word;
+    }
+       div.mid-content {
+        width: 90% !important;
+        word-wrap: break-word;
+        text-align: center;
+    }
+
+    .gap-content {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /*.navbar-default {
+        padding-left: 10px;
+        padding-right: 10px;
+    }*/
+
+    #backRow {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #thumbsRow{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .accordion-spacing {
+        padding-top: 5px;
+    }
+
+    .loan-margin-left {
+        margin-left: 10px;
+    }
+    
+    .accordion-heading .accordion-toggle {
+        display: flex;
+        background-color: #f2f1ef;
+        padding: 10px 5px;
+        height: auto;
+     }
+
+    .gap-text{
+        padding-left: 5px;
+    }
+    .gap-right-text{
+        padding-right: 5px;
+    }
+
+    .space_contract{
+        padding-left: 25px;
+    }
+
+    .space_complete{
+        padding-left: 25px;
+    }
+
+    .indent{
+        padding-left: 25px;
+    }
+    .btn-button-add, .btn-button-add:link, .btn-button-add:visited {
+        height:40px;
+        background-color: transparent;
+        border-radius: 0;
+        color: #0067ca;
+        border: 2px solid #0067ca;
+        text-align: center;
+        line-height: 40px;
+        padding: 0px 20px;
+        width:auto;
+    }
+
+    .panel-gap-top{
+         padding-top: 15px;
+    }
+
+    .panel-gap-bottom{
+         padding-bottom: 15px;
+    }
+
+  .accordion-inner{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+    
+    .accordion-inner-income{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+
+    .status-space{
+        padding-left: 20px;
+    }
+    .icon_profile{
+        margin-top: 9px;
+    }
+
+    .vertical-align2 {
+        display: inline-block;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+    }
+
+    .pad_left{
+        margin-left:30px;
+    }
+
+    .pad_left_back{
+        margin-left:-11px;
+    }
+    .pad_right_back{
+        padding-right:15px;
+    }
+    
+   .GCustom-tooltip {
+    background-color: white;
+    font-family: 'lexia';
+    width: 320px;
+    padding: 6px;
+    border: 2px dotted #006ac6;
+    position: absolute;
+    margin-left: -32px;
+    margin-top: -145px;
+    box-shadow: 0 2px 10px RGBA(0, 0, 0, .5);
+    display: none;
+    z-index: 1;
+}
+    
+    .GCustom-tooltip-arrow {
+        border-right: 2px dotted #006ac6;
+        border-left: 0;
+        box-shadow: 2px 2px 3px RGBA(0, 0, 0, .3);
+        margin-top: 121px;
+        margin-left: 191px;
+    }
+    
+    .GTertiary-button {
+        height: 50px;
+        display: inline-block;
+        padding: 0 20px;
+        background-color: transparent !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 145px;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+    }
+    
+    .GTertiary-button-disabled {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        /* font-weight: bold; */
+        width: 160px;
+        border: 2px solid #c4bfb6;
+        background-color: transparent !important;
+        color: #75787b;
+    }
+    
+    .GBG-lat-blue {
+        background-color: #006ac6 !important;
+    }
+    
+    .confirmMarginR{
+       margin-right:0px !important;
+    }
+    
+    .confirmMarginB{
+         margin-bottom:10px !important;
+    }
+    
+    /* START - For Payment Details Page - Added by MDAVID 3/22/2016 */
+    .paymentDetailsInput{
+        width: 90%;
+    }
+    
+    .buttonWidth {
+        width: 65px;
+    }
+    
+    .button-margin-right {
+        margin-right: 50px !important;
+    }
+    
+    .paymentDetailsPadding {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+    
+    .repayment-button {
+        height: 30px;
+        display: inline-block;
+        background-color: transparent !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 65px;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+        font-size: 14px !important;
+        padding: 0 !important;
+    }
+    
+    .paymentDetailsTab {
+        font-size: 14px;
+    }
+    
+    .nav>li>a {
+        padding: 10px 5px !important;
+    }
+    /* END - For Payment Details Page - Added by MDAVID 3/22/2016 */
+    
+
+    .backLink_width{
+        width: 30%;
+        word-wrap: break-word;
+    }
+    
+    .gap_arrow{
+        margin-left: 20px;
+    }
+    
+    .accordionPanelMargin{
+        padding: 0px 10px;
+    }
+    
+    .icon_middle_width_xs {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        margin-top: 33px;
+        margin-left: 35px;
+    }
+    
+     .indent_2ndline {
+        text-indent: 0em;
+    }
+    
+    .module3-label {
+        font-family: Lexia;
+        line-height: 30px;
+        font-size: 24px;
+    }
+      .circle_gap {
+        margin-left: -39px;
+    }
+    
+    .textGapToCircle{
+        padding-left: 50px;
+        text-indent: -0.5em;
+    }
+    
+    .forms_heading{
+         width: 89%; 
+         padding-left: 50px;
+    }
+    .forms_heading{
+         width: 89%; 
+         padding-left: 50px;
+    }
+    
+    .forms_lbl_margin {
+        margin-bottom: 10px;
+    }
+    
+    .forms_margin_bottom {
+        margin-bottom: 10px !important;
+    }
+    
+     .GTertiary-button-disabled {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        /* font-weight: bold; */
+        width: 140px;
+        border: 2px solid #c4bfb6;
+        background-color: transparent !important;
+        color: #75787b;
+    }
+    
+    .GTertiary-button-bottom {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        width: 100%;
+        border: 2px solid #006ac6;
+        color: #ffffff;
+        background-color: #006ac6 !important;
+    }
+    
+      .GTertiary-button-outline {
+            background-color: transparent !important;
+            height: 50px;
+            display: inline-block;
+            padding: 0 95px;
+            border-radius: 0;
+            width: 100%;
+            border: 2px solid #006ac6;
+            color: #006ac6;
+    }
+    
+    .btnSpace {
+           margin-left: 0px; 
+    }
+    
+    .back_tmargin{
+        margin-top: -5px;
+    }
+    
+    .backLink_width{
+        width: 61%;
+        word-wrap: break-word;
+    }
+    
+    .padLR {
+        margin-right: 0px !important; 
+        margin-left: 0px !important; 
+    }
+    
+    .contactLink_width {
+        width: 55% !important;
+        word-wrap: break-word;
+    }
+    
+    .next_margin5{
+        margin-right: -70px;
+    }
+    
+     header {
+        background: #f2f1ef;
+    }
+    
+    .row {
+        margin-right: -5px !important;
+        margin-left: -5px !important;
+    }
+    
+     .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    
+     .GAccordion-status,
+    #accordion .module5-label,
+    .accordion-heading .module5-label {
+      line-height: 18px !important;
+    }
+    
+  .GNo-Line-height {
+        line-height: 15px;
+   }
+     
+    .icon_size{
+      width: 20px;
+      height: 20px;
+    }
+    
+     .logo_size{
+        width:40px;
+        height:40px;
+     }
+    
+    .backArrow_size{
+      width: 30px;
+      height: 30px;
+    }
+    
+    /*FONTS*/
+    
+    .page-title{
+        font-family: Lexia-bd;
+        line-height: 50px;
+        font-size: 44px;
+    }
+
+    .module1-label {
+        font-family: Lexia;
+        line-height: 42px;
+        font-size: 36px;
+    }
+
+    .module2-label {
+        font-family: Lexia-bd;
+        line-height: 36px;
+        font-size: 30px;
+    }
+
+    .module3-label {
+        font-family: Lexia;
+        line-height: 30px;
+        font-size: 24px;
+    }
+
+    .module4-label {
+        font-family: Lexia-bd;
+        line-height: 24px;
+        font-size: 18px;
+    }
+
+    .module5-label {
+        font-family: Lexia-bd;
+        line-height: 22px;
+        font-size: 16px;
+    }
+
+    .intro-label {
+        font-family: Lexia;
+        line-height: 24px;
+        font-size: 16px;
+    }
+
+    .body-label-mob {
+        font-family: Lexia;
+        line-height: 22px;
+        font-size: 14px;
+    }
+
+    .small-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .small-text-bold{
+        font-family: Lexia-bd;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .fine-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+    
+    .progress_style_mobile{
+       width:180px !important;
+       height:12px !important;
+       margin-bottom: 0;
+       border-radius: 10px;
+       border: 1px solid #fab700;
+       background: #fff;
+    }
+    
+    .progress-bar {
+        float: left;
+        width: 0%;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: #fab700 !important;
+        -webkit-box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+         box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+        -webkit-transition: width .6s ease;
+        -o-transition: width .6s ease;
+        transition: width .6s ease;
+    }
+        
+   .contactLink_width {
+        width: 70%;
+        word-wrap: break-word;
+    }
+    
+     .btnAlign button {
+        width: 100%;
+      }
+      
+       .btnAlign {
+        width: 100%;
+      }
+    
+    .gapBetweenBtn {
+        margin-left: 0px!important; 
+    }
+    
+    .iconGapFrText {
+        padding-left: 5px !important;
+    }
+    .circle_gap {
+        margin-top: 0px;
+        margin-left: -47px !important;
+        position: absolute;
+    }
+
+    .btnBMargin{
+        margin-bottom:5px;
+    }
+    .POASectionGap {
+        height: 60px !important;
+    }
+    
+    .AMLSectionGap {
+         height: 60px !important;
+    }
+
+  .paymentDetailsBtnRMargin {
+        margin-right: 0px !important;
+    }
+    
+    .footer-bottom-inner {
+        width: auto !important;
+        padding: 18px !important;
+    }
+    
+    .footer-bottom {
+        background: #555C4E;
+        color: #ccc;
+        padding: 35px  !important;
+        min-height: 80px !important;
+    }
+    
+    .footerContent{
+        font-size:8px !important;
+    }
+    
+    .accordion-heading i {
+        margin-right: 0px !important;
+    }
+     
+     .paymentDtldCenterWidth{
+        word-wrap: break-word;
+        text-align: center;
+        padding-bottom: 30px;
+    }
+    
+     .input-group {
+        position: relative;
+        display: block !important;
+        border-collapse: separate;
+    }
+
+    .repaymentsCalendarIcon {
+        padding-right: 10%;
+        padding-top: 3% !important;
+        font-size: 25px;
+        color: gray;
+    }
+    
+      .margin_file {
+        margin-right: 0px !important; 
+    }
+  
+}
+
+
+/*iphone 6+ portrait*/
+@media only screen
+and (device-width : 414px)
+and (max-device-width : 736px)
+and (orientation : portrait) {
+
+     div#hiddenL1{
+        width: 21%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+
+    div#hiddenL2{
+        width: 25%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px;
+    }
+
+    div#hiddenL3{
+        width: 26%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 6px 20px 10px !important;
+    }
+
+    div#hiddenL4{
+        width: 21%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:20px 0px 20px 0px !important;
+    }
+   .GAccordion-status, #accordion
+    .module5-label, .accordion-heading .module5-label {
+        line-height: 22px;
+    }
+
+    #hiddenDiv{
+        display: inline-block;
+    }
+
+     #loanSummaryDiv {
+        display: none;
+    }
+
+     .accordion-header-text1 {
+        width: 48%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text1a {
+        width: 52%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text2 {
+        width: 65%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text2a {
+        width: 35%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3 {
+        width: 43%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text3a {
+        width: 57%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text4 {
+        width: 43%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text4a {
+        width: 57%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text5 {
+        width: 43%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text5a {
+        width: 57%;
+        word-wrap: break-word;
+    }
+    
+     .accordion-header-text6 {
+        width: 63%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text6a {
+        width: 37%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text7 {
+         width: 63% !important;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-text7a{
+      width: 37% !important;
+      word-wrap: break-word;
+   }
+   
+     .accordion-header-sm-text {
+         width: 80%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-sm-texta{
+      width: 20%;
+      word-wrap: break-word;
+    }
+
+    .accordion-header-lg-text {
+         width: 40%;
+        word-wrap: break-word;
+    }
+    
+   .accordion-header-lg-texta{
+      width: 60%;
+      word-wrap: break-word;
+   }
+
+    .margin-top {
+        margin-top: 15px;
+    }
+    .padding-top {
+        padding-top: 15px;
+    }
+    .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    .navbar {
+        position: relative;
+        min-height: 50px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+    }
+
+    hr {
+        margin-top: 15px !important;
+        margin-bottom: 0px !important;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+    .underline-dotted {
+        border-bottom: none;
+    }
+    .middle-content-margin {
+        padding-top: 30px !important;
+    }
+
+    .thumbsup_margin {
+        margin-bottom: 15px;
+    }
+
+    .secondary-margin {
+        margin-bottom: 15px;
+        width: 80%;
+        word-wrap: break-word;
+    }
+    div.mid-content {
+        width: 75%;
+        word-wrap: break-word;
+        text-align: center;
+    }
+    .gap-content {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /*.navbar-default {
+        padding-left: 10px;
+        padding-right: 10px;
+    }*/
+
+    #backRow {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #thumbsRow{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .accordion-spacing {
+        padding-top: 5px;
+    }
+
+    .loan-margin-left {
+        margin-left: 10px;
+        margin-left: 10px;
+    }
+    
+    .accordion-heading .accordion-toggle {
+        display: flex;
+        background-color: #f2f1ef;
+        padding: 10px 5px;
+        height: auto;
+     }
+
+    .gap-text{
+        padding-left: 5px;
+    }
+    
+    .gap-right-text{
+        padding-right: 5px;
+    }
+
+    .space_contract{
+        padding-left: 25px;
+    }
+
+    .space_complete{
+        padding-left: 25px;
+    }
+
+    .indent{
+        padding-left: 25px;
+    }
+    .btn-button-add, .btn-button-add:link, .btn-button-add:visited {
+        height:40px;
+        background-color: transparent;
+        border-radius: 0;
+        color: #0067ca;
+        border: 2px solid #0067ca;
+        text-align: center;
+        line-height: 40px;
+        padding: 0px 20px;
+        width:auto;
+    }
+
+    .panel-gap-top{
+         padding-top: 15px;
+    }
+
+    .panel-gap-bottom{
+         padding-bottom: 15px;
+    }
+
+    .accordion-inner{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+    
+     .accordion-inner-income{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+    .status-space{
+        padding-left: 20px;
+    }
+    .icon_profile{
+        margin-top: 10px;
+    }
+      .vertical-align2 {
+        display: inline-block;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+    }
+
+     .pad_left{
+        margin-left:46px;
+    }
+    .text-center {
+        text-align:none !important;
+    }
+    .pad_left_back{
+        margin-left:-5px;
+    }
+    .pad_right_back{
+        padding-right:15px;
+    }
+
+    #hiddenDiv{
+        display: inline-block;
+    }
+    
+    /* START - For Payment Details Page - Added by MDAVID 3/22/2016 */
+    .paymentDetailsInput{
+        width: 90%;
+    }
+    
+    .paymentDetailsPadding {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+    
+    .button-margin-right {
+        margin-right: 50px !important;
+    }
+    
+    .repayment-button {
+        height: 30px;
+        display: inline-block;
+        background-color: transparent !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 65px;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+        font-size: 14px !important;
+        padding: 0 !important;
+    }
+    
+    .paymentDetailsTab {
+        font-size: 13px;
+    }
+    /* END - For Payment Details Page - Added by MDAVID 3/22/2016 */
+
+    .backLink_width{
+        width: 55% !important;
+        word-wrap: break-word;
+    }
+    
+    .gap-text{
+        padding-left: 5px;
+    }
+    .gap-right-text{
+        padding-right: 5px;
+    }
+    
+    .gap_arrow{
+        margin-left: 20px;
+    }
+    
+    .icon_middle_width_xs {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        margin-top: 34px;
+        margin-left: 35px;
+    }
+    
+    .accordionPanelMargin{
+        padding: 0px 10px;
+    }
+    
+     .GIdentity-panel-text {
+        margin-bottom: 15px;
+        width: 81%;
+        word-wrap: break-word;
+        padding-left: 10px;
+    }
+    ul.GIdentity-panel-list {
+        padding-left: 10px;
+        font-family: Lexia;
+        width: 560px;
+        display: inline-block;
+        vertical-align: top;
+    }
+    
+    .GIdentity-panel-list li.body-label {
+        color: #006ac6;
+        font-size: 14px;
+        line-height: 22px;
+    }
+    
+    .GError-alert {
+        padding: 10px 10px !important;
+        margin-top: 20px;
+        height: 40px;
+        text-align: left;
+    }
+    
+    .GTertiary-button {
+        height: 40px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        /* font-weight: bold; */
+        width: 155px;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+    }
+    
+  .GTertiary-button-bottom {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        width: 100%;
+        border: 2px solid #006ac6;
+        color: #ffffff;
+        background-color: #006ac6 !important;
+    }
+    
+    .GTertiary-button-outline{
+       background-color: transparent !important;
+        height: 50px;
+        display: inline-block;
+        padding: 0 149px;
+        border-radius: 0;
+        width: 100%;
+        border: 2px solid #006ac6;
+        color: #006ac6;
+    }
+    
+    .btnLRMargin{
+        padding: 0px 0px;
+    }
+    
+    
+    .GAccordion-status {
+        line-height: 30px;
+    }
+    
+    .GCustom-tooltip {
+        margin: 0px -15px;
+        margin-top: -105px;
+        width: 360px;
+    }
+   
+    .icon_size {
+        width: 20px;
+        height: 20px;
+    }
+    
+     .logo_size{
+        width:40px;
+        height:40px;
+     }
+    
+      .backArrow_size{
+        width: 30px;
+        height: 30px;
+      }
+    
+      li.toolTip {
+        width: 86%;
+        word-wrap: break-word;
+        text-align: left;
+        margin-bottom: 5px;
+        margin-top: 5px;
+    }
+      .indent_2ndline {
+        text-indent: -1em;
+    }
+    
+    .GCustom-tooltip-list {
+        padding-left: 15px;
+        list-style-type: disc;
+        word-wrap: break-word;
+        width: 92%;
+    }
+    
+    .GCustom-tooltip {
+        background-color: white;
+        font-family: Lexia;
+        width: 360px;
+        padding: 9px;
+        border: 2px dotted #006ac6;
+        position: absolute;
+        margin-left: -22px;
+        margin-top: -120px;
+        box-shadow: 0 2px 10px RGBA(0, 0, 0, .5);
+        display: none;
+        z-index: 1;
+    }
+    
+    .GCustom-tooltip-arrow {
+        border-right: 2px dotted #006ac6;
+        border-left: 0;
+        box-shadow: 2px 2px 3px RGBA(0, 0, 0, .3);
+        margin-top: 82px;
+        margin-left: 152px;
+    }
+    
+    .GIdentity-panel-buttons {
+        border-left: 0px dotted #75787b;
+        padding-left: 0px;
+        padding-top: 10px;
+    }
+    .GPreview-wrap img {
+        max-height: 60px;
+        max-width: 110px;
+        float: left;
+    }
+    
+    .GPreview-wrap {
+        width: auto;
+        height: auto;
+        min-height: 90px;
+        background-color: #f2f1ef !important;
+        padding: 10px;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        margin-right: 10px;
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .btnSpace{
+        margin-left:0px;
+    }
+    
+    .GResponse-back-icon {
+        margin-top: 0px;
+    }  
+    
+     .GTertiary-button-disabled {
+        height: 40px;
+        display: inline-block;
+        padding: 0 30px;
+        border-radius: 0;
+        width: 172px;
+        border: 2px solid #006ac6 !important;
+        background-color: transparent !important;
+        color:#006ac6;
+          
+     }
+    
+    .GAttachments-wrap {
+      text-align: left;
+    }
+
+    .GAttachments-wrap2 {
+      text-align: left;
+    }
+
+    .GAttachments-wrap3 {
+      text-align: left;
+    }
+    
+    .forms_lbl_margin {
+        margin-bottom: 10px;
+    }
+    
+    .forms_margin_bottom {
+        margin-bottom: 10px !important;
+    }
+    
+    .circle_gap {
+        margin-top: 0px;
+        margin-left: -47px !important;
+        position: absolute;
+    }
+    
+    .textGapToCircle{
+        padding-left: 50px !important;
+        text-indent: -0.5em !important;
+    }
+    .forms_heading{
+         width: 89%; 
+         padding-left: 50px;
+    }
+
+    .forms_heading{
+         width: 79%; 
+         padding-left: 60px;
+    }
+    
+    .forms_lbl_margin {
+        margin-bottom: 10px;
+    }
+    
+    .forms_margin_bottom {
+        margin-bottom: 10px !important;
+    }
+  
+    .indent_2ndline {
+        text-indent: 0em;
+    }
+    
+    .back_tmargin {
+        margin-top: 0px;
+        margin-right:5px;
+    }
+    
+ 
+    .backLink_width{
+        width: 55% !important;
+        word-wrap: break-word;
+    }
+    
+    .padLR {
+        margin-right: 0px !important; 
+        margin-left: 0px !important; 
+    }
+    
+    .contactLink_width {
+        width: 59%;
+        word-wrap: break-word;
+    }
+    
+    .next_margin5{
+        margin-left: -4px;
+        margin-right: -40px;
+    }
+    
+    .row {
+        margin-right: -5px !important;
+        margin-left: -5px !important;
+    }
+    
+     .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    
+    .GAccordion-status,
+    #accordion .module5-label,
+    .accordion-heading .module5-label {
+      line-height: 19px !important;
+    }
+    
+    .GNo-Line-height {
+        line-height: 15px;
+   }
+      
+    .icon_size{
+      width: 20px;
+      height: 20px;
+    }
+     .logo_size{
+        width:40px;
+        height:40px;
+     }
+    
+    .backArrow_size{
+      width: 30px;
+      height: 30px;
+    }
+    
+    /*FONTS*/
+    
+    .page-title{
+        font-family: Lexia-bd;
+        line-height: 50px;
+        font-size: 44px;
+    }
+
+    .module1-label {
+        font-family: Lexia;
+        line-height: 42px;
+        font-size: 36px;
+    }
+
+    .module2-label {
+        font-family: Lexia-bd;
+        line-height: 36px;
+        font-size: 30px;
+    }
+
+    .module3-label {
+        font-family: Lexia;
+        line-height: 30px;
+        font-size: 24px;
+    }
+
+    .module4-label {
+        font-family: Lexia-bd;
+        line-height: 24px;
+        font-size: 18px;
+    }
+
+    .module5-label {
+        font-family: Lexia-bd;
+        line-height: 22px;
+        font-size: 16px;
+    }
+
+    .intro-label {
+        font-family: Lexia;
+        line-height: 24px;
+        font-size: 16px;
+    }
+
+    .body-label-mob {
+        font-family: Lexia;
+        line-height: 22px;
+        font-size: 14px;
+    }
+
+    .small-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .small-text-bold{
+        font-family: Lexia-bd;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .fine-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+        
+    .progress_style_mobile {
+        width: 180px !important;
+        height: 12px !important;
+        margin-bottom: 0;
+        border-radius: 10px;
+        border: 1px solid #fab700;
+        background: #fff;
+    }
+    
+     .progress-bar {
+        float: left;
+        width: 0%;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: #fab700 !important;
+        -webkit-box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+         box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+        -webkit-transition: width .6s ease;
+        -o-transition: width .6s ease;
+        transition: width .6s ease;
+    }
+      
+    
+   .contactLink_width {
+        width: 70%;
+        word-wrap: break-word;
+    }
+    
+     .btnAlign button {
+        width: 100%;
+      }
+      
+       .btnAlign {
+        width: 100%;
+      }
+    
+    .gapBetweenBtn {
+        margin-left: 0px!important; 
+    }
+    
+    .iconGapFrText {
+        padding-left: 5px !important;
+    }
+    .circle_gap {
+        margin-top: 0px;
+        margin-left: -47px !important;
+        position: absolute;
+    }
+
+    .btnBMargin{
+        margin-bottom:5px;
+    }
+    .POASectionGap {
+        height: 60px !important;
+    }
+    
+    .AMLSectionGap {
+         height: 60px !important;
+    }
+
+  .paymentDetailsBtnRMargin {
+        margin-right: 0px !important;
+    }
+    
+    .footer-bottom-inner {
+        width: auto !important;
+        padding: 18px !important;
+    }
+    
+    .footer-bottom {
+        background: #555C4E;
+        color: #ccc;
+        padding: 35px  !important;
+        min-height: 80px !important;
+    }
+    
+    .footerContent{
+        font-size:8px !important;
+    }
+    
+    .accordion-heading i {
+        margin-right: 0px !important;
+    }
+    
+   .paymentDtldCenterWidth{
+        word-wrap: break-word;
+        text-align: center;
+        padding-bottom: 30px;
+    }
+    
+    .input-group {
+        position: relative;
+        display: block !important;
+        border-collapse: separate;
+    }
+    
+      .repaymentsCalendarIcon {
+        padding-right: 10%;
+        padding-top: 3% !important;
+        font-size: 25px;
+        color: gray;
+    }
+    
+      .margin_file {
+        margin-right: 0px !important; 
+    }
+    
+
+}
+
+/*360x640*/
+@media only screen
+and (device-width : 360px)
+and (max-device-width : 640px)
+and (orientation : portrait) {
+
+     div#hiddenL1{
+        width: 27%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:10px 0px 10px 0px;
+    }
+
+    div#hiddenL2{
+        width: 24%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:10px 0px 10px 0px;
+    }
+
+    div#hiddenL3{
+        width: 26%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:10px 0px 10px 0px;
+    }
+
+    div#hiddenL4{
+        width: 22%;
+        height:90px;
+        word-wrap: break-word;
+        text-align: center;
+        padding:10px 0px 10px 0px;
+    }
+
+    #hiddenDiv{
+        display: inline-block;
+    }
+
+     #loanSummaryDiv {
+        display: none;
+    }
+
+    .accordion-header-text {
+        width: 47%;
+        word-wrap: break-word;
+    }
+    
+    /*.accordion-header-text1 {
+        width: 70%;
+        word-wrap: break-word;
+    }*/
+
+    .accordion-header-text2 {
+        width: 65%;
+        word-wrap: break-word;
+    }
+    .accordion-header-text3 {
+        width: 81%;
+        word-wrap: break-word;
+    }
+    
+    .accordion-header-text4 {
+         width: 68%;
+        word-wrap: break-word;
+    }
+
+    .margin-top {
+        margin-top: 15px;
+    }
+    .padding-top {
+        padding-top: 15px;
+    }
+    .loanDtlMargin{
+        padding-top:20px;
+        padding-bottom:20px;
+    }
+    .navbar {
+        position: relative;
+        min-height: 50px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+    }
+
+    hr {
+        margin-top: 15px !important;
+        margin-bottom: 0px !important;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+    .underline-dotted {
+        border-bottom: none;
+    }
+    .middle-content-margin {
+        padding-top: 30px !important;
+    }
+
+    .thumbsup_margin {
+        margin-bottom: 15px;
+    }
+
+    .secondary-margin {
+        margin-bottom: 15px;
+        width: 93%;
+        word-wrap: break-word;
+    }
+    div.mid-content {
+        width: 100%;
+        word-wrap: break-word;
+        text-align: center;
+    }
+    .gap-content {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    #backRow {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #thumbsRow{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .accordion-spacing {
+        padding-top: 5px;
+    }
+
+    .loan-margin-left {
+        margin-left: 10px;
+    }
+
+    .gap-text{
+        padding-left: 5px;
+    }
+    .gap-right-text{
+        padding-right: 5px;
+    }
+
+    .space_contract{
+        padding-left: 25px;
+    }
+
+    .space_complete{
+        padding-left: 25px;
+    }
+
+    .indent{
+        padding-left: 25px;
+    }
+    .btn-button-add, .btn-button-add:link, .btn-button-add:visited {
+        height:40px;
+        background-color: transparent;
+        border-radius: 0;
+        color: #0067ca;
+        border: 2px solid #0067ca;
+        text-align: center;
+        line-height: 40px;
+        padding: 0px 20px;
+        width:auto;
+    }
+
+    .panel-gap-top{
+         padding-top: 15px;
+    }
+
+    .panel-gap-bottom{
+         padding-bottom: 15px;
+    }
+
+     .accordion-inner{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+
+     .accordion-heading .accordion-toggle {
+        display: flex;
+        background-color: #f2f1ef;
+        padding: 10px 5px;
+        height: auto;
+     }
+
+    .GAccordion-status, #accordion
+    .module5-label, .accordion-heading .module5-label {
+        line-height: 22px;
+    }
+
+    .status-space{
+        padding-left: 20px;
+    }
+    .icon_profile{
+        margin-top: 10px;
+    }
+    .width_file_container{
+        width:100%;
+    }
+
+    .GTertiary-button-blue {
+        height: 50px;
+        display: inline-block;
+        padding: 0 30px;
+        background-color: #006ac6 !important;
+        border-radius: 0;
+        font-weight: bold;
+        width: 90%;
+    }
+     .accordion-inner-income{
+        padding:30px 30px;
+        background-color:#fff;
+        -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+   }
+
+    .icon_middle_width_xs {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        margin-top: 34px;
+        margin-left: 35px;
+    }
+
+    .vertical-align2 {
+        display: inline-block !important;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+    }
+    .pad_left{
+        margin-left:20px;
+    }
+    .pad_left_back{
+        margin-left:-11px;
+    }
+    .pad_right_back{
+        padding-left:10px;
+    }
+    #hDiv {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .pad_right_back{
+        padding-right:10px;
+    }
+    
+    .paymentDetailsInput{
+        width: 90%;
+    }
+    
+    .buttonWidth {
+        width: 65px;
+    }
+    
+    .paymentDetailsPadding {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+    
+      
+    .icon_size{
+      width: 20px;
+      height: 20px;
+    }
+    
+     .logo_size{
+        width:40px;
+        height:40px;
+     }
+    
+    .backArrow_size{
+      width: 30px;
+      height: 30px;
+    }
+    
+    /*FONTS*/
+    
+    .page-title{
+        font-family: Lexia-bd;
+        line-height: 50px;
+        font-size: 44px;
+    }
+
+    .module1-label {
+        font-family: Lexia;
+        line-height: 42px;
+        font-size: 36px;
+    }
+
+    .module2-label {
+        font-family: Lexia-bd;
+        line-height: 36px;
+        font-size: 30px;
+    }
+
+    .module3-label {
+        font-family: Lexia;
+        line-height: 30px;
+        font-size: 24px;
+    }
+
+    .module4-label {
+        font-family: Lexia-bd;
+        line-height: 24px;
+        font-size: 18px;
+    }
+
+    .module5-label {
+        font-family: Lexia-bd;
+        line-height: 22px;
+        font-size: 16px;
+    }
+
+    .intro-label {
+        font-family: Lexia;
+        line-height: 24px;
+        font-size: 16px;
+    }
+
+    .body-label-mob {
+        font-family: Lexia;
+        line-height: 22px;
+        font-size: 14px;
+    }
+
+    .small-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .small-text-bold{
+        font-family: Lexia-bd;
+        line-height: 16px;
+        font-size: 12px;
+    }
+
+    .fine-text{
+        font-family: Lexia;
+        line-height: 16px;
+        font-size: 12px;
+    }
+  
+  .progress_style_mobile{
+       width:180px !important;
+       height:12px !important;
+       margin-bottom: 0;
+       border-radius: 10px;
+       border: 1px solid #fab700;
+       background: #fff;
+    }
+    
+    .progress-bar {
+        float: left;
+        width: 0%;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: #fab700 !important;
+        -webkit-box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+         box-shadow: inset 0 -0px 0 rgba(0,0,0,.15) !important;
+        -webkit-transition: width .6s ease;
+        -o-transition: width .6s ease;
+        transition: width .6s ease;
+    }
+    
+   .contactLink_width {
+        width: 70%;
+        word-wrap: break-word;
+    }
+    
+     .btnAlign button {
+        width: 100%;
+      }
+      
+       .btnAlign {
+        width: 100%;
+      }
+    
+    .gapBetweenBtn {
+        margin-left: 0px!important; 
+    }
+    
+    .iconGapFrText {
+        padding-left: 5px !important;
+    }
+    .btnBMargin{
+        margin-bottom:5px;
+    }
+    .POASectionGap {
+        height: 60px !important;
+    }
+    
+    .AMLSectionGap {
+         height: 60px !important;
+    }
+    
+    .footer-bottom-inner {
+        width: auto !important;
+        padding: 18px !important;
+    }
+    
+    .footer-bottom {
+        background: #555C4E;
+        color: #ccc;
+        padding: 35px  !important;
+        min-height: 80px !important;
+    }
+    
+    .footerContent{
+        font-size:8px !important;
+    }
+    
+    .accordion-heading i {
+        margin-right: 0px !important;
+    }
+
+    .POASectionGap {
+        height: 60px !important;
+    }
+
+}
+
+/* fixed for desktop*/
+
+div#l1{
+    width: 80%;
+    word-wrap: break-word;
+    text-align: center;
+}
+
+div#l2{
+    width: 80%;
+    word-wrap: break-word;
+    text-align: center;
+}
+
+div#l3{
+     width: 47%;
+    word-wrap: break-word;
+    text-align: center;
+}
+
+div#l4{
+    width: 78%;
+    word-wrap: break-word;
+    text-align: center;
+}
+.back_space{
+    padding-left: 15px;
+}
+.space_right{
+    padding-right: 5px;
+}
+
+.noOutline{
+    outline:none;
+}
+.dotted_border {
+    border-style: dotted;
+    border-color: #fab700;
+    border-width: 3px;
+}
+.underline-sm {
+    border-bottom: 1px dotted #006ac6;
+}
+
+.margin_file_top {
+    margin-top: 20px;
+}
+.margin_file_bottom {
+    margin-bottom: 20px;
+}
+.width_file_container {
+    width: 530px;
+}
+.accordion-inner-income{
+    padding:30px 30px;
+    background-color:#fff;
+    -webkit-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+    -moz-box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+    box-shadow: 0px 5px 5px 0px rgba(0,0,0,0.1);
+}
+.toolTip1 {
+    width: 91%;
+    word-wrap: break-word;
+    text-align: left;
+}
+.pay {
+    padding-left: 16px;
+}
+
+.panel-left-margin {
+    padding-left: 15px;
+}
+
+
+@media screen and (device-width: 414px) {
+    
+     /*body {
+         min-width: auto !important;
+         overflow-x: hidden;
+    }
+    .container {
+      width: auto !important;
+      min-width: auto !important;
+    }*/
+    
+    #hiddenDiv{
+        display: inline-block;
+    }
+}
+
+.pad_top_bottom{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+@media screen and (device-width: 415px){
+    header .container {
+        padding-top: 20px; 
+        padding-bottom: 20px !important;
+    }
+    
+    .paymentDetailsInput{
+        width: 90%;
+    }
+    
+    .buttonWidth {
+        width: 65px;
+    }
+    
+    .paymentDetailsPadding {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+}
+
+ /* Small Devices, Tablets */
+@media only screen and (device-width : 768px) {
+     #hiddenDiv{
+        display: none !important;
+    }
+}
+ 
+ 
+</style>
+
+</apex:component>

@@ -1,0 +1,33 @@
+<apex:component >
+
+    <!-- start of header -->
+    <header>
+        <div id="topheader" class="topheader">
+            <div class="row-fluid topheader-inner">
+                <div class="span8 topheader-left">
+                    <ul>
+                        <li><span><a href="http://www.aussie.com.au/contact-us/" target="_blank">Contact Us</a></span></li>
+                    </ul>
+                </div>
+            </div><!-- topheader-inner -->
+        </div><!-- topheader -->
+        
+        <div id="header" class="header headbborder">
+            <div class="row-fluid header-inner">
+                <div id="header-logo" class="span3">
+                    <apex:outputLink value="/" styleClass="logodsk"><span class="themelogo"></span></apex:outputLink>
+                    <apex:outputLink id="backLink" styleClass="falmob" value="{!URLFOR($Page.APP_Main)}?id={!$CurrentPage.parameters.id}">
+                    <span class="fui-arrow-left" rerender="false"></span>
+                    </apex:outputLink>
+                </div><!-- span3 -->
+                
+                <div class="span5 headertitle">
+                    <h3 class="droid-normal center dark">Aussie Personal<span class="clearright"></span> Loan Application</h3>
+                </div>
+
+            </div><!-- header-inner -->
+        </div><!-- row-fluid -->
+        <div class="divider10 mv_hidetotally"></div>
+    </header>
+    <!-- end of header -->
+</apex:component>

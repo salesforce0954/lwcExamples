@@ -1,0 +1,1117 @@
+<!-- 
+ * @Description: Customer UI File Upload
+ * @Author: Adrian Recio
+ * @Date Created: 18/3/2014
+ * @History:
+ * Modified Lavanya Kavuri 29/04/2015 - Added the productId variable for the hidden input field.
+ * Modified Adrian Recio 13/08/2015 - (PMIHM - 1729,PMIHM - 1104) Full page revision to support document preview, bulk upload, layout changes, 
+document queue to allow multiple document selection, client validations, and convert file upload method to http post. Document preview and queue 
+for bulk upload capability is implemented using jQuery Multiple File Upload Plugin v1.48 api. This jquery library is a share/free ware from Fyneworks.com with MIT License.
+ -->
+<apex:page standardController="Application__c"  extensions="APP_GSD_FileUpload" sidebar="false" showHeader="false" id="fileUploadId" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" cache="false">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>Latitude Financial</title>
+</head>
+
+<!-- SF Ajax API -->
+<apex:includeScript value="/soap/ajax/34.0/connection.js"/>
+<!--apex:includeScript value="{!$Resource.jqueryMin214}" /-->
+
+<apex:includeScript value="{!$Resource.angularJS147}" /> 
+<!--
+<apex:includeScript value="{!$Resource.multiFileSelectPlugin}" />
+-->
+
+<apex:includeScript value="{!$Resource.angularJS_Sanitize}" />
+<!--
+<script src="https://code.angularjs.org/1.2.20/angular-sanitize.min.js"></script>
+-->
+
+<!-- Custom CSS / Scripts -->
+<!--
+<apex:include pageName="APP_GSD_BrandScript"/>
+-->
+
+<!-- Custom Scripts For File Upload -->
+
+<apex:includeScript value="{!$Resource.customFileUpload}" />
+
+
+        <!-- File upload document preview style classes -->
+         <style>
+                
+                .modal, .modal.fade.in {
+                    top: 20%; 
+                }
+                .modal-content{
+                    background:white;
+                }
+                
+                .modal-backdrop {
+                  z-index: -1;
+                }
+             
+              .loanfields {height:150px;}
+
+              /*.thumbImg {
+                height: 80px;
+                border: 1px solid #000;
+                margin: 0px 5px 0 0;
+                display:block;
+              }*/
+              
+              .thumbImg2 {
+                width: 150px;
+                height: 150px;
+                background-color: #c4bfb6;
+                padding: 10px;
+                margin: 0 auto;
+                margin-bottom: 10px;
+                border-radius: 10px;
+                margin-right: 10px;
+                display: inline-block;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+              .thumbImg {
+                max-height: 80px;
+                max-width: 110px;
+            }
+            
+            .thumbImg img {
+                max-height: 80px;
+                max-width: 110px;
+            }
+              
+            .thumbDoc {
+                height: 80px;
+                border: 1px solid #000;
+                margin: 0px 5px 0 0;
+                display:block;
+            }
+
+             .headerSide{
+                font-size:18px;
+                color: #3B73B9;
+                margin-bottom: 8px;
+             }
+             .uploadSide{
+                border:1px solid #3b73b9;
+                padding-bottom:5px;
+                padding-top: 20px;
+                padding-left: 10px;
+                padding-right:10px;
+                margin-top: 10px;
+                float:left;
+                margin-bottom: 25px;
+             }
+
+             .bottomComp{
+                text-align: justify;
+                border-top:1px solid #3b73b9;
+                padding-top: 5px;
+                padding-bottom: 7px;
+             }
+
+             .uploadSec{
+                margin-bottom: 20px
+             }
+    
+             a.aDisabled { 
+                color:#7c7c7c !important; 
+             }
+
+             a.aSuccess { 
+                color:#339966; 
+                font-size:25px;
+             }
+
+             .disableFSelect{
+                background-color: #e6e6e6 !important;
+             }
+
+             .selectorSize{
+                height:25px !important; 
+                width: 80px !important;
+             }
+
+             .hFontPriority{
+                font-size: 29px !important;
+                line-height: 25px;
+             }
+             
+             .bFontPriority{
+                font-weight:normal !important;
+                font-size: 15px !important;
+             }
+
+             .kiwiBtn {  
+                padding-left: 15px !important; 
+                padding-right: 25px !important; 
+             }
+             
+             
+             .filePreview {
+                height: 15px;
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding-left: 5px;
+                text-align: center;
+                background-color: orange;
+                position: absolute;
+                margin-left: 55px;
+                margin-top: 2px;
+                height: 126px;
+                width: 170px;
+                /* opacity: 0; */
+            }
+            
+           .GIdentity-panel-buttons {
+              width: 100% !important;
+              display: inline-block;
+              text-align: none !important;
+              border-left: 0px dotted transparent!important;
+              padding-left: 0px !important;
+            }
+            
+            .width_file_container{
+                width:100% !important;
+            }
+            
+            .GFile-browse {
+                background-color: orange;
+                position: absolute;
+                margin-left: 55px;
+                margin-top: 2px;
+                height: 50px;
+                width: 170px;
+                opacity: 0;
+            }
+            
+           input[type=file] {
+                display: block !important;
+                margin-top: -25px !important;
+                margin-left: -146px !important;
+                width: 178px !important;
+            }
+            
+            input[type=button] {
+                display: block !important;
+                margin-top: -25px !important;
+                <!-- commenting the below code as per the Julian's change for upload button in customer portal -->
+           <!-- margin-left: -146px !important;
+                width: 178px !important; -->
+                margin-right:auto;
+                width:100px !important;
+            }
+            
+            
+            .GTertiary-button {
+                height: 50px;
+                display: flex !important;
+                padding: 0 30px;
+                background-color: transparent !important;
+                border-radius: 0;
+                border: 2px solid #006ac6;
+                color: #006ac6;
+                position: relative;
+            }
+            
+             .GTertiary-button-disabled {
+                height: 50px;
+                display: flex !important;
+                padding: 0 30px;
+                border-radius: 0;
+                border: 2px solid #c4bfb6;
+                background-color: transparent !important;
+                color:#75787b;
+             }
+             
+             li {
+                list-style-type: none;
+                /*text-indent: 1em;*/
+             }
+
+             
+              div li:before {
+                 content: '\25CF ';
+                 color: #004a95;
+                 padding-right: 0.5em;
+            }
+            
+        </style>
+
+        <!-- Begin main fileupload scripts -->  
+        <script>
+        // Set jquery no conflict   
+        //$.noConflict();
+     
+        // End Search and Match Angular Controller
+    
+        var fApp = angular.module('fApp', ['ngSanitize']); // Angular App 
+        var currentFCount = 1; 
+
+        fApp.controller('fileUploadCtrl',function($scope) {
+            $scope.requestedDocList  = JSON.parse('{!rdAngularList}');
+            $scope.mockEnabled = false; 
+            
+            $scope.callUpload = function(indexVar){
+                  (function($){
+                    $(document).ready(function() {
+                        $('#files' + indexVar).MultiFile({ list: '#list' + indexVar });
+                        $('#poiupload1').append($('#sectionId_POI1'));
+                        $('#poiupload2').append($('#sectionId_POI2')); 
+                    }); 
+                       
+                   })(jQuery) 
+            }
+            
+            
+            $scope.initUpload = function(indexVar){
+                initUpload(indexVar);
+            }
+            
+           
+            $scope.generateSecId = function(statusVar, categoryVar){
+                if(statusVar=='Complete'){
+                    
+                    if(categoryVar == 'Proof of Address'){
+                        return 'sectionId_POA';
+                    }else{
+                        return 'sectionId_' + categoryVar;
+                    }
+                }else{
+                    return 'sectionId_requestedDoc';
+                }
+                
+            }
+
+            $scope.checkSectionStyle = function(secStyle){
+                if(secStyle!='Complete'){
+                    return 'collapse' ;  
+                }else{
+
+                    return '' ;  
+                }
+
+            }
+
+            /*  Description: Reset Chevron on click
+              *  Author: Adrian Recio
+              *  Date Created: 02-MARCH-2016
+              *  Input: None
+              *  Return:
+              */
+             $scope.toggleCollapse = function(chevCount) {
+                var chev1 = $('#iconCAcceptArrUpDown' + chevCount);
+                chev1.toggleClass('icon_arrow_up icon_arrow_down');
+                var chev2 = $('#iconCAcceptEdit' + chevCount);
+                chev2.toggleClass('icon_edit_white icon_edit');
+                
+                var chev3 = $('#accordCAccept' + chevCount + 'Lbla1'); 
+                chev3.toggleClass('module5-label lat-blue module5-label lat-white');
+                var chev4 = $('#accordCAccept' + chevCount + 'Lbla2');
+                chev4.toggleClass('small-text-bold lat-white small-text-bold lat-blue');  
+
+                $('i.icon_arrow_up').not(chev1).removeClass('icon_arrow_up').addClass('icon_arrow_down');
+                $('i.icon_edit_white').not(chev2).removeClass('icon_edit_white').addClass('icon_edit');
+                $('span.module5-label').not(chev3).removeClass('lat-white').addClass('lat-blue');
+                $('span.small-text-bold').not(chev4).removeClass('lat-white').addClass('lat-blue');
+
+                currentFCount = chevCount;
+             }   
+
+        });  
+    
+        /* Description: Getter method for finish button Id
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: NA
+         *  Return: NA
+         */
+        function getFinishBtnId(){
+             return 'finishBtnId'; 
+        }
+    
+        /* Description: Method to enable finish button. 
+           Method should be in the same hierarchy with the 
+           finish button component to reference vf generated Id.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: NA
+         *  Return: NA
+         */
+        function enableFinishBtn(){
+             $('#finishBtnId').prop('disabled', false);
+             hasFEnabled = true;
+        }
+    
+        // Fire init event here when document finish loading
+        
+        window.onload = function () {      
+            // Add kiwi specific fix for page buttons to 
+            // adjust alignments since button image is not visible
+            if('{!$Site.template}'=='Kiwi_bank_template'){
+                $( '.bFontPriority' ).addClass('kiwiBtn');
+            }
+
+           $("[Id^='myModal']").hide();
+           
+        }
+        
+        /** Added by Grace **/
+        function hideErrMsgIfHasFile(){
+            totalFileCount = compList.length;
+            if(totalFileCount == 0){
+                // Hide modal once Upload button validates there is no attach file
+                $("[Id^='myModal']").hide();
+            }
+                                     
+        }
+
+        // Static Resource Variables
+        var wordLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "wordLogo.jpg")}';
+        var pdfLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "pdfLogo.jpg")}';
+        var genLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "genDocLogo.jpg")}';
+        var tifLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "tifLogo.png")}';
+        var tiffLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "tiffLogo.png")}';
+
+        // Global Variable Declaration
+        var i;              // Current File Index
+        var currFile;       // Current File Object
+        var currIndx;       // Current File Section Index
+        var compList;       // Current List of Input File Components for Submit
+        var currInputFile;  // Current Input File Component
+        var uSuccessCount;  // Total Count of Successful file upload
+        var uFailedCount;   // Total Count of Failed file upload
+        var totalFileCount; // Total File count for upload
+        
+        var hasFConn;       // has failed connection
+        var hasDown;        // Server down flag
+        var hasRetry;       // Retry flag
+        var hasCorrupt;     // Corrupt file flag
+        var hasSupport;     // File not supported flag
+        var hasBig;         // File big flag
+
+        var urlVar="{!uploadEndPoint}";        // File upload endpoint URL
+        var hasFEnabled = false;                               // Finish button status
+
+        // Related Document Info
+        var applicantFirstName;
+        var applicantLastName;
+        var applicationUniqueID;
+        var getDateStamp;
+        var productId;
+        var recordIdSaved;
+    
+        var applicationMainId = '{!applicationMainId}'
+                                                                                                                                  
+        /* Description: Initialize file upload global variables.
+                        Flush previews upload values.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: 
+         *  Return: 
+         */
+        function initUpload(indxVar){ 
+
+            // Hide all previous error messages
+            $("[Id^='modal-TxtMsg']").text('Please select at least one file for upload.');
+            $("[Id^='myModal']").hide();
+
+            if(urlVar==''){
+                $('#modal-TxtMsg' + indxVar).text('File upload server is currently not available. Please contact your administrator.');
+                $('#myModal' + indxVar).show();
+                //window.scrollTo(0, 0);
+                //alert('File upload server is currently not available. Please contact your administrator.');
+                return false;
+            }
+            
+            hasFConn = false;
+            hasDown = false;
+            hasRetry = false;
+            hasCorrupt = false;
+            hasSupport = false;
+            hasBig = false;
+            totalFileCount=0;
+            uSuccessCount=0;
+            uFailedCount=0;
+            i=0;
+            currIndx=indxVar;
+            pullFCompList(indxVar,i);
+        }
+
+         /* Description: Method to pull file name based on fake directory.
+                         Using the value property of inputfield only displays the
+                         fake directory with the actual filename. This method uses
+                         it to pull the actual file name. Browser standards doesn't 
+                         expose file directory. 
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: original file name
+         *  Return: short hand file name string
+         */
+        function genFileName(fileValue){
+             var fullPath = fileValue.value;
+             if (fullPath) {
+                 var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+                 var filename = fullPath.substring(startIndex);
+                 if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+                     filename = filename.substring(1);
+                     return filename;
+                 }
+             }
+             return null;
+         }
+
+        /* Description: On click of upload, make loader visible and empty file upload msg.
+                        Disable all input components.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: section indx
+         *  Return: NA
+         */
+        function showLoaderBulk(indx){
+            //$("#uploadMsg" + indx).text('');
+
+            $("[Id^='modal-TxtMsg']").text('');
+            $("[Id^='myModal']").hide();
+
+            $('input').prop('disabled', true);
+            $('.mainFInput').addClass('disableFSelect');
+            $('a').addClass('aDisabled');
+            $('a').css("pointer-events", "none");
+            document.getElementById('showLoading' + indx).style.display = "block";
+        }
+        
+        /* Description: On complete of upload, make loader hidden and empty file upload msg.
+                        Enable all input components.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: section indx
+         *  Return: NA
+         */
+        function hideLoaderBulk(indx){
+            document.getElementById('showLoading' + indx).style.display = "none";
+            $('input').not('input[Id="' + getFinishBtnId() + '"]').prop('disabled', false);
+            $('.mainFInput').removeClass('disableFSelect');
+            $('a').removeClass('aDisabled');
+            $('a').css("pointer-events", "auto");
+            // Enable finish button if there is at least on successful upload
+            if(uSuccessCount>0 || hasFEnabled == true){
+                enableFinishBtn();
+            }
+        }
+
+        /* Description: Method to pull all input file components valid for upload.
+                        List will remove all empty input files.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: currend section index, current file index
+         *  Return: short hand file name string
+         */
+        function pullFCompList(currIndx,i){
+
+            var tempResult = [];
+            
+            compList = $( "input[Id^='files" + currIndx + "']"  );
+                         
+            var nullIndx;
+            for(indx = 0; indx<compList.length; indx++){
+                if(compList[indx].files[0]==null){
+                    nullIndx = indx;
+                    //break;
+                }else{
+                    tempResult.push(compList[indx]);
+                }
+            }
+   
+            //alert('nullindex:' + nullIndx);
+            
+            /*
+            if(nullIndx!=null&&nullIndx!=''){
+                alert('has splice');
+
+                compList.splice(nullIndx, 1);
+            }
+            */
+            
+            compList = tempResult;
+
+            //alert('compList.length:' + compList.length);
+            
+            totalFileCount = compList.length;
+            if(totalFileCount==0){
+                $('#modal-TxtMsg' + currIndx).text('Please select at least one file for upload.');
+                $('#myModal' + currIndx).show();
+               // window.scrollTo(0, 0);
+                //alert('Please select at least one file for upload.');
+            }else{
+                // Main Upload method
+                processUpload(i);
+            }
+        }
+
+        /* Description: Main method to perform UI adjustment for start - end of upload.
+                        Peform file input global variable assignment.
+                        Calls recurrsive method to generate sf related document and upload to server.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: current file list index
+         *  Return: NA
+         */
+        function processUpload(i){
+            if(i<totalFileCount) {
+                showLoaderBulk(currIndx);   // Show Loader
+                var genFileNameVar = genFileName(compList[i]);  // Genearte File Name                               
+                currInputFile = compList[i];    // Assign component to global variable 
+                currFile = compList[i].files[0];    // Assign file value to global variable
+
+                sendUploadedFile(genFileNameVar,false); // Recursive method to perform post to file upload server
+            }else{
+                hideLoaderBulk(currIndx);   // Hide Loader
+            }
+        }
+
+        /* Description: Recursive method to perform sf related docu generation and server post 
+                        to perform the actual upload containing file data and details linked to the 
+                        generated sf record.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: generated file name, flag that determines event type
+         *  Return:  
+         */
+        function sendUploadedFile(genFileNameVar,fLoadTurn){
+                if(fLoadTurn==false){
+                    // insertRelatedDocument(genFileNameVar,$('#docType' + currIndx).val(),$('#docCategory' + currIndx).val());
+                    
+                    console.log('currentIndex:' + currIndx);
+                    console.log('genFileNameVar:'+ genFileNameVar);
+                    console.log('doctype:' + $('#docType' + currIndx).val());
+                    console.log('docCategory:' + $('#docCategory' + currIndx).val());
+                    console.log('applicationMainId:' + applicationMainId);
+                    
+                    var scope = angular.element($("#mainFU")).scope();  
+
+                      Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_FileUpload.insertRelatedDocument}",genFileNameVar,
+                                                                                                                            $('#docType' + currIndx).val(),
+                                                                                                                            $('#docCategory' + currIndx).val(),
+                                                                                                                            $('#docStatus' + currIndx).val(),
+                                                                                                                            applicationMainId,
+                                                                                                                            scope.mockEnabled,
+                                                                                                                                function(result, event){
+                                                                                                                                    console.log("Type:" + event.type);
+                                                                                                                                    console.log("Message:" + event.message);
+                                                                                                                                    console.log("Status:" + event.status);
+                                                                                                                                    console.log("Value:" + JSON.stringify(result));
+                                                                                                                                    
+                                                                                                                                  applicantFirstName = result.applicantFirstName;
+                                                                                                                                  applicantLastName = result.applicantLastName;
+                                                                                                                                  applicationUniqueID = result.applicationUniqueID;
+                                                                                                                                  getDateStamp = result.getDateStamp;
+                                                                                                                                  productId = result.productId;
+                                                                                                                                  recordIdSaved = result.recordIdSaved;
+                                                                                                                                    
+                                                                                                                                    sendUploadedFile(null,true);
+                                                                                                                                    
+                                                                                                                                },{escape: false});
+                    
+                    
+                }else if(currFile!=null){
+                    //https://fileupload-perftest.au.money.ge.com/fileupload/income/salesforceRequest  
+                    var urlVar = "{!uploadEndPoint}"; 
+                    var file = currFile;
+                    var xhr = new XMLHttpRequest();                                      
+                    var intCompId = currInputFile.getAttribute("Id");
+                    var connHandler = function(){
+                        //alert('Related Document Id:' + document.getElementById('sfDocId').value);
+                        //alert('Status:' + this.status);
+                        //alert('Response Text:' + this.responseText);
+                        
+                        var scope = angular.element($("#mainFU")).scope();  
+                        
+                        if(this.status==200 || scope.mockEnabled){
+                            uSuccessCount++;
+                            $( "#thumb" + intCompId).text( "✔" ).addClass('aSuccess');
+                            $("#thumb" + intCompId).removeClass('icon_close');
+                            $( "#" + intCompId).remove();
+                        }else if(this.status==0){
+                            uFailedCount++;
+                            //deleteRelatedDocument(document.getElementById('sfDocId').value);
+                            
+                            Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_FileUpload.deleteRelatedDocument}",recordIdSaved,
+                                                                                                                                function(result, event){
+                                                                                                                                    console.log("Type:" + event.type);
+                                                                                                                                    console.log("Message:" + event.message);
+                                                                                                                                    console.log("Status:" + event.status);
+                                                                                                                                    console.log("Value:" + result);
+                                                                                                                                    
+                                                                                                                                },{escape: true});
+                            
+                            hasFConn = true;
+
+                            // Reset all flags and stop call if at least on 
+                            // file failed because of server connection error.
+                            i=totalFileCount-1;
+                            uFailedCount = totalFileCount - uSuccessCount;
+                        }else{
+                            uFailedCount++;
+                            // Clear related document
+                            
+                            //deleteRelatedDocument(document.getElementById('sfDocId').value);
+                            
+                            Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_FileUpload.deleteRelatedDocument}",recordIdSaved,
+                                                                                                                                function(result, event){
+                                                                                                                                    console.log("Type:" + event.type);
+                                                                                                                                    console.log("Message:" + event.message);
+                                                                                                                                    console.log("Status:" + event.status);
+                                                                                                                                    console.log("Value:" + result);
+                                                                                                                                    
+                                                                                                                                },{escape: true});
+                            
+                            // Set at least one retry flag
+                            if(this.status==209){
+                                hasRetry = true;
+                            }
+
+                            // Set at least one corrupt
+                            if(this.status==222 ){
+                                hasCorrupt = true;
+                            } 
+
+                            // Set at least one file too big
+                            if(this.status==220 ){
+                                hasBig = true;
+                            } 
+
+                            // Set at least one file not supported
+                            if(this.status==221 ){
+                                hasSupport = true;
+                            } 
+                            
+                            // Server not available
+                            if(this.status==503 ){
+                                hasDown = true;
+                            } 
+                        }
+
+                        if(i==(totalFileCount-1)){
+                            var successP = '';
+                            var currSCountVar = $("#successCount" + currIndx).val();
+                            var newSTotal = 0;
+
+                            if(currSCountVar!=""&&currSCountVar!=null){
+                                newSTotal = parseInt(currSCountVar) + parseInt(uSuccessCount);
+                            }else{
+                                newSTotal = parseInt(uSuccessCount);
+                            }
+
+                            $("#successCount" + currIndx).val(newSTotal);
+
+                            if(newSTotal>1){
+                                successP = 's';
+                            }
+     
+                            if(uFailedCount>0){
+                                $( "#uBtnSpan" + currIndx  ).children().prop('value', 'Retry');
+                            }else{
+                                $( "#uBtnSpan" + currIndx  ).children().prop('value', 'Upload');
+                            }
+
+                            var failAddMsg = '';
+
+                            // Updated by: Adrian Recio
+                            // Change Description: Updated fail messaging for connection, server, and retry fail.
+                            // Change Date: 31/08/2015
+
+                            // Assign right message depending on response code
+                            if(hasFConn){
+                                //failAddMsg = 'Server connection currently unavailable.';
+                                //failAddMsg = 'Unfortunately a system error has occurred. We are unable to process your document upload at this time. We 
+                                //apologise for any inconvenience caused.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            } else if(hasDown){
+                                //failAddMsg = 'File upload server currently unavailable.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            }else if(hasRetry){
+                                //failAddMsg = 'Upload fail. Please try again later.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            }else if(hasCorrupt){
+                                failAddMsg = 'Your document is corrupted. Please use another document.';
+                            }else if(hasBig){
+                                failAddMsg = 'Your document is larger than 10MB. Please use a smaller document.';
+                            }else if(hasSupport){
+                                failAddMsg = 'Your document file format is unsupported. Please use another document.';
+                            }
+
+                            var errorTextVar = newSTotal + ' file' + successP + ' successfully uploaded and ' + uFailedCount + ' failed' + '. ' + failAddMsg;
+                            //$("#uploadMsg" + currIndx).text(errorTextVar); 
+
+                            $("#modal-TxtMsg" + currIndx).text(errorTextVar);
+                            $("#myModal" + currIndx).show();
+
+                            // Redirect to main upload method
+                            i=i+1;
+                            processUpload(i);
+                        }else{
+                            // Fire next file for upload
+                            i=i+1;
+                            processUpload(i);
+                        }
+                    }// End on load method
+                    
+                    // Assign success function
+                    xhr.onload = connHandler;
+                    // Assign error function  
+                    xhr.onerror = connHandler;
+                    
+                    xhr.file = file; 
+                    xhr.open('post', urlVar, true);
+                    
+                    var formData = new FormData();
+                    
+                    console.log("firstName:" + applicantFirstName);
+                    console.log("lastName:" + applicantLastName); 
+                    console.log("appNum:" + applicationUniqueID); 
+                    console.log("timestamp:" + getDateStamp);
+                    console.log("product:" + productId); 
+                    console.log("sfDocId:" + recordIdSaved);
+                
+                    formData.append("firstName", applicantFirstName);
+                    formData.append("lastName", applicantLastName); 
+                    formData.append("appNum", applicationUniqueID); 
+                    formData.append("timestamp", getDateStamp);
+                    formData.append("product", productId); 
+                    formData.append("sfDocId", recordIdSaved);
+                    
+                    formData.append("file", file);
+                    
+                    try{
+                        xhr.send(formData);  
+                    }catch(e){
+                        //$("#uploadMsg" + currIndx).text('Error with upload page. Please contact your administrator.');
+
+                        $("#modal-TxtMsg" + currIndx).text('Error with upload page. Please contact your administrator.');
+                        $("#myModal" + currIndx).show();
+
+                        // Clear related document
+                        
+                        // deleteRelatedDocument(document.getElementById('sfDocId').value);
+                        
+                         Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_FileUpload.deleteRelatedDocument}",recordIdSaved,
+                                                                                                                                function(result, event){
+                                                                                                                                    console.log("Type:" + event.type);
+                                                                                                                                    console.log("Message:" + event.message);
+                                                                                                                                    console.log("Status:" + event.status);
+                                                                                                                                    console.log("Value:" + result);
+                                                                                                                                    
+                                                                                                                                },{escape: true});
+                    } 
+
+                    // Fire processUpload method here if concurrent upload is necessary.
+                    // Upload is currently performed in a queued approach to minimize callout traffic
+                }
+        }
+
+        /* Description: Method that performs upload validation on click of finish button.
+                        Validation ensures that there are no pending uploads before clicking finish.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: NA
+         *  Return: NA
+         */
+         /*
+        function validateUpload(){
+            var removeCompList = $(".icon_close");
+            if(removeCompList.length>0){
+                $('#modal-TxtMsg').text("Please check that all selected documents have been uploaded before finishing.");
+                $('#myModal').show();
+                //window.scrollTo(0, 0);
+                //alert("Please check that all selected documents have been uploaded before finishing.");
+            }else{
+                // Redirect to next page
+                // redirectToCompletePage();
+                alert('Valid for redirect.');
+            }
+         }
+         */
+
+     
+         
+
+     </script>
+   
+    
+        <div Id="mainFU" ng-app="fApp" ng-controller="fileUploadCtrl">    
+            
+            <!--
+            <span Id="mockEnabledId" style="display: inline-block !important;">
+                Mock Upload Enabled: <input type="checkbox" ng-model="mockEnabled"/> 
+            </span>
+            -->
+            <apex:outputPanel rendered="{!NOT(IsRequestedDoc)}">
+                 
+                <div ng-repeat="rdVar in requestedDocList" Id="{{generateSecId(rdVar.Status__c,rdVar.Category__c)}}" >
+
+                          
+
+                           <div id="collapseDoc{{$index+1}}">
+                                   <input Id="docType{{$index+1}}" value="{{rdVar.Document_Type__c}}" type="hidden"/>
+                                    <!-- Category Hidden Parameter -->
+                                    <input Id="docCategory{{$index+1}}" value="{{rdVar.Category__c}}" type="hidden"/>
+                                    <!-- Category Hidden Parameter -->
+                                    <input Id="docStatus{{$index+1}}" value="{{rdVar.Status__c}}" type="hidden"/>
+                                    <!-- Total Upload Count Hidden Parameter -->
+                                    <input Id="successCount{{$index+1}}" type="hidden"/>
+
+                                <div id="accordId">
+                                        
+                             
+                                        <div class="fUploadTextMarginTop GIdentity-panel-buttons" id="GFUploadId">
+                                        <div class="GAttachments-wrap">
+                                            
+                                            <apex:outputPanel >
+                                                <!-- Empty Div Container that will hold image and document preview -->
+                                                <div width="100%" id="list{{$index+1}}"></div>
+                                            </apex:outputPanel>
+                                            
+                                        </div>
+                                        <!-- Error Message -->
+                                        <div Id="myModal{{$index+1}}" class="col-xs-12 alert alert-danger GError-alert small-text pull-left vertical-align-left">
+                                          <i class="icon_error icon_size pull-left" id="icon"></i> 
+                                          <span class="pull-left" Id="modal-TxtMsg{{$index+1}}"></span>
+                                        </div>
+                                       
+                        
+                                        <div class="center-block vertical-align width_file_container" id="btnConfDiv">
+                                             
+                                         
+                                          <div id="btnFUploadFile" class="margin_file">
+        
+                                            <div class="GTertiary-button body-label noOutline vertical-align btnBMargin btnAlign gapBetweenBtn">
+                                                <i class="icon_attach_blue icon_size pull-left" id="icon"></i> 
+                                                
+                                                <span class="iconGapFrText">Select File</span>  
+                                                
+                                                <input  id="files{{$index+1}}" accept="gif|png|jpg|jpeg|tif|tiff|bmp|doc|docx|pdf" 
+                                                                  type="file" class="upload GTertiary-button GFile-browse" name="files{{$index+1}}[]" value="Select file" onclick="hideErrMsgIfHasFile();"/>
+                                                
+                                            </div>
+                                          </div>
+
+                                          
+                                          
+                                         <div Id="uBtnSpan{{$index+1}}">
+                                        
+                                            <div  class="GTertiary-button body-label noOutline vertical-align btnAlign">
+                                                <i class="icon_upload icon_size pull-left" id="icon"></i> 
+                                                
+                                                <span class="iconGapFrText">Upload</span>
+                                               
+                                                <input type="button" Id="uploadBtn" value="Upload" class="GTertiary-button GFile-browse" ng-Click="initUpload($index+1);" style="padding: 0px;margin-top: 5px !important;margin-right: 0px;margin-left: 0px;margin-bottom: 3px;line-height: 10px;padding-left: 100px;padding-right: 60px;position: absolute;top: -5px;left: 0px;"/> 
+                                                 
+                                                
+                                           
+                                             </div>
+                                         </div>
+                                     
+                                          <!--input  id="files{{$index+1}}" accept="gif|png|jpg|jpeg|tif|tiff|bmp|doc|docx|pdf" 
+                                                                  type="file" name="files{{$index+1}}[]"/>
+                                          <input type="button" Id="uploadBtn" value="Upload" ng-Click="initUpload($index+1);" /--> 
+                                      
+                                        </div>
+                                        
+                                       </div>
+                                       
+                                        <div >
+                                              <!-- Upload Loader -->
+                                              <span style="display: inline-block;">
+                                                  <div id="showLoading{{$index+1}}" style="display:none;">
+                                                     <image src="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                                                            style="padding-left:20px;text-align:center;font-weight:bold;"/>
+                                                  </div>
+                                              </span>
+                                        </div>
+                                        
+                                        <!-- For every file upload component add file plugin property to allow -->
+                                        <!-- queued document selection and display preview in dev container above -->
+                                        {{callUpload($index+1)}}
+                                    </div>
+                                </div>
+
+                     </div> 
+
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsRequestedDoc}">
+
+                <div class="panel-group container" id="accordion" role="tablist" aria-multiselectable="true">
+
+                <div class="panel accordion-heading" ng-repeat="rdVar in requestedDocList" Id="{{generateSecId(rdVar.Status__c,rdVar.Category__c)}}" >
+
+                        <div class="accordion" >
+                          <a ng-click="toggleCollapse($index+1);" class="accordion-toggle down up collapsed" 
+                            data-parent="#accordion" data-toggle="collapse" href="#collapseDoc{{$index+1}}" tabindex="-1">
+                            <i id="iconCAcceptEdit{{$index+1}}" class="icon_edit icon_size pull-left"></i>
+                            <div class="accordion-header-sm-text gap-text">
+                              <span id="accordCAccept{{$index+1}}Lbla1" class="module5-label">{{rdVar.Document_Type__c}}</span>
+                            </div>
+                            
+                             <div class="accordion-header-sm-texta">
+                            <i id="iconCAcceptArrUpDown{{$index+1}}" class="icon_arrow_down icon_size pull-right"></i>
+                            <span id="accordCAccept{{$index+1}}Lbla2" class="small-text-bold lat-blue uppercase pull-right GAccordion-status gap-right-text"></span>
+                            </div>
+                          </a>
+                        </div>
+
+                    
+                          <!-- class="accordion-body collapse in {{checkSectionStyle(rdVar.Status__c)}}" -->
+                          
+
+                           <div class="accordion-body collapse" id="collapseDoc{{$index+1}}">
+                                   <input Id="docType{{$index+1}}" value="{{rdVar.Document_Type__c}}" type="hidden"/>
+                                    <!-- Category Hidden Parameter -->
+                                    <input Id="docCategory{{$index+1}}" value="{{rdVar.Category__c}}" type="hidden"/>
+                                    <!-- Category Hidden Parameter -->
+                                    <input Id="docStatus{{$index+1}}" value="{{rdVar.Status__c}}" type="hidden"/>
+                                    <!-- Total Upload Count Hidden Parameter -->
+                                    <input Id="successCount{{$index+1}}" type="hidden"/>
+
+                                <div class="accordion-inner" id="accordId">
+                                        <div >
+                                            <div>
+                                                <span class="body-label-bold lat-dark-grey ">Required for:</span>
+                                                
+                                                <span class="body-label lat-dark-grey" ng-show="rdVar.Applicant__c!=null&&rdVar.Applicant__c!=''">
+                                                    {{rdVar.Applicant__r.First_Name__c + ' ' + rdVar.Applicant__r.Last_Name__c }}
+                                                </span>
+                                                
+                                                <span class="body-label lat-dark-grey" ng-show="rdVar.Applicant__c==null||rdVar.Applicant__c==''">
+                                                    Both applicants.
+                                                </span>
+                                             </div>
+                                            
+                                            
+                                            <div>
+                                                <span class="body-label-bold lat-dark-grey ">Number of copies required:</span>
+                                                
+                                                 
+                                                <span class="body-label lat-dark-grey" ng-show="rdVar.Number_Required__c == '1'">
+                                                    {{rdVar.Number_Required__c}}
+                                                </span>
+                                                
+                                                <span class="body-label lat-dark-grey" ng-show="rdVar.Number_Required__c > '1'">
+                                                    {{rdVar.Number_Required__c}}
+                                                </span>
+                                                
+                                            </div>
+                                            
+                                            <div class="fUploadTextMarginTop"><!--contentWrap-->
+                                                
+                                             <div class="body-label lat-dark-grey" ng-bind-html="rdVar.Description__c"> </div>
+                                            
+                                            </div>
+                                            
+                                        </div>
+                             
+                                        <div class="fUploadTextMarginTop GIdentity-panel-buttons" id="GFUploadId">
+                                        <div class="GAttachments-wrap">
+                                            
+                                            <apex:outputPanel >
+                                                <!-- Empty Div Container that will hold image and document preview -->
+                                                <div width="100%" id="list{{$index+1}}"></div>
+                                            </apex:outputPanel>
+                                            
+                                        </div>
+                                        <!-- Error Message -->
+                                        <div Id="myModal{{$index+1}}" class="col-xs-12 alert alert-danger GError-alert small-text pull-left vertical-align-left">
+                                          <i class="icon_error icon_size pull-left" id="icon"></i> 
+                                          <span class="pull-left" Id="modal-TxtMsg{{$index+1}}"></span>
+                                        </div>
+                                       
+                        
+                                        <div class="center-block vertical-align width_file_container" id="btnConfDiv">
+                                             
+                                         
+                                          <div id="btnFUploadFile" class="margin_file">
+        
+                                            <div class="GTertiary-button body-label noOutline btnBMargin vertical-align">
+                                                <i class="icon_attach icon_size pull-left" id="icon"></i> 
+                                                
+                                                <span class="iconGapFrText">Select File</span>  
+                                                
+                                                <input  id="files{{$index+1}}" accept="gif|png|jpg|jpeg|tif|tiff|bmp|doc|docx|pdf" 
+                                                                  type="file" class="upload GTertiary-button GFile-browse" name="files{{$index+1}}[]" value="Select file" onclick="hideErrMsgIfHasFile();"/>
+                                                
+                                            </div>
+                                          </div>
+                                          
+                                         <div Id="uBtnSpan{{$index+1}}">
+                                        
+                                           <div  class="GTertiary-button-disabled body-label noOutline vertical-align">  
+                                             <i class="icon_upload icon_size pull-left" id="icon"></i> 
+                                             
+                                             <span class="iconGapFrText">Upload</span>
+                                            
+                                             <input type="button" Id="uploadBtn" value="Upload" class="GTertiary-button-disabled GFile-browse" ng-Click="initUpload($index+1);"
+                                                    style="padding: 0px;margin-top: 5px !important;margin-right: 10px;margin-left: 10px;margin-bottom: 3px;"/>  
+                                        
+                                           </div>  
+                                         </div>
+                                     
+                                          <!--input  id="files{{$index+1}}" accept="gif|png|jpg|jpeg|tif|tiff|bmp|doc|docx|pdf" 
+                                                                  type="file" name="files{{$index+1}}[]"/>
+                                          <input type="button" Id="uploadBtn" value="Upload" ng-Click="initUpload($index+1);" /--> 
+                                      
+                                        </div>
+                                        
+                                       </div>
+                                       
+                                        <div >
+                                              <!-- Upload Loader -->
+                                              <span style="display: inline-block;">
+                                                  <div id="showLoading{{$index+1}}" style="display:none;">
+                                                     <image src="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                                                            style="padding-left:20px;text-align:center;font-weight:bold;"/>
+                                                  </div>
+                                              </span>
+                                        </div>
+                                        
+                                        <!-- For every file upload component add file plugin property to allow -->
+                                        <!-- queued document selection and display preview in dev container above -->
+                                        {{callUpload($index+1)}}
+                                    </div>
+                                </div>
+                            </div>
+                      </div>
+             </apex:outputPanel>       
+    </div>
+
+
+    <!-- Exit upload button -->
+    <!--
+    <div Id="finishBtn">
+        <input type="submit" Id="finishBtnId" disabled="true" value="Finish" onClick="validateUpload(); return false;" 
+               style="float:right;" styleClass="btn btn-large btn-reset-m btn-normalc fright buttonarrowimg"></input>
+    </div>
+    -->
+    
+    <!--script>
+    $(document).ready(function() {
+    
+        $('#GFUploadId').removeClass('GIdentity-panel-buttons');
+        $('#btnConfDiv').removeClass('width_file_container');
+        
+         
+    });
+</script-->
+
+
+</apex:page>

@@ -1,0 +1,245 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Current Employment" icon-name="standard:employee_organization" class="slds-var-p-bottom_xx-small">
+
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="employmentStatus"
+                                                label="Current employment status"
+                                                value={employmentDetailsJointObj.EmploymentStatus}
+                                                placeholder="Select"
+                                                options={employmentStatusOptions}
+                                                onchange={handleEmploymentDetailsChange}
+                                                disabled={isDisabled}
+                                                required
+                    ></lightning-combobox>
+                </div>
+            </div>
+            <template if:false={isDisabled}>
+                <div class="slds-var-m-around_x-small">
+                    <lightning-button label="Add Income" title="Add Income" icon-name="utility:add" onclick={handleAddIncome}></lightning-button>
+                </div>
+            </template>
+            <!-- TABLE SECTION -->
+            <template if:false={tableHasData}>
+                <div class="slds-align_absolute-center slds-var-m-around_x-small">
+                    <lightning-formatted-text value={label.BP_LBL_Employment_Message}></lightning-formatted-text>
+                </div>
+            </template>
+            <template if:true={tableHasData}>
+                <div class="slds-box c-container slds-var-m-around_x-small ">
+                    <div class="slds-table--header-fixed_container" style="height:300px;">
+                        <div class="slds-scrollable_y clearBG" style="height:100%;">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered " aria-label="Income Table">
+                                <thead>
+                                  <tr class="slds-line-height_reset">
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Income From">Income From</div>
+                                    </th>
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Income">Income</div>
+                                    </th>
+                                    <th class="" scope="col" width="30%">
+                                      <div class="slds-truncate" title="Frequency">Frequency</div>
+                                    </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col" >
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                    <th width="5%;" class="slds-is-resizable section-header-title" scope="col">
+                                        <div class="slds-cell-fixed">
+                                        </div>
+            
+                                    </th>
+                                  </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    <template for:each={incomeDetailsList} for:item="currentItem">
+                                        
+                                    
+                                        <tr key={currentItem.id}>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-text value={currentItem.IncomeFrom} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid">
+                                                    <lightning-formatted-number value={currentItem.IncomeAmount} data-name={currentItem.id} format-style="currency" currency-code="AUD"></lightning-formatted-number>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="slds-grid ">
+                                                    <lightning-formatted-text value={currentItem.IncomeFrequency} data-name={currentItem.id}></lightning-formatted-text>
+                                                </div>
+                                            </td>
+                                            <template if:false={isDisabled}>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:edit" data-name={currentItem.id} alternative-text="Edit" onclick={handleIncomeEdit}></lightning-button-icon>
+                                                </td>
+                                                <td>
+                                                    <lightning-button-icon variant="brand" icon-name="utility:delete" data-name={currentItem.id} alternative-text="Delete" onclick={handleIncomeDelete}></lightning-button-icon>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                    </template>
+
+                                </tbody>
+                            
+                                
+                            </table>
+            
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </lightning-card>
+        
+        <div class="slds-var-m-around_x-small">
+        <lightning-card title="Previous Employment" icon-name="standard:employee_organization" class="slds-var-p-bottom_xx-small">
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="previousEmploymentStatus"
+                                                label="Previous employment (optional)"
+                                                value={employmentDetailsJointObj.PreviousEmploymentStatus}
+                                                placeholder="Select"
+                                                options={employmentStatusOptions}
+                                                onchange={handleEmploymentDetailsChange}
+                                                disabled={isDisabled}
+                    ></lightning-combobox>
+                </div>
+            </div>
+            <div class="slds-grid slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <span>
+                        <lightning-input type="number" disabled={isDisabled} label="Time at previous employer" onblur={handleEmploymentDetailsChange} placeholder="Years" name="prevEmpYears" value={employmentDetailsJointObj.PrevEmploymentYears} max="99" min-length="1" max-length="2" message-when-range-overflow="Please enter a number between 0 to 99."></lightning-input>
+                    </span>
+                </div>
+                <div class="slds-col slds-size_4-of-12 slds-var-p-left_x-small slds-var-p-top_xx-small">
+                    <span>
+                        <lightning-input type="number" disabled={isDisabled} label="" placeholder="Months" onblur={handleEmploymentDetailsChange} value={employmentDetailsJointObj.PrevEmploymentMonths} name="prevEmpMonths" min="0" max="11" max-length="2" onchange={handleResMonthChange} message-when-range-overflow="Please enter a number between 0 to 11."></lightning-input>
+                    </span>
+                </div>
+            </div>
+
+            <template if:false={isDisabled}>
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleEmploymentDetailsPrev}></lightning-button>
+                        
+                                <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleEmploymentDetailsNext}></lightning-button>
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+        </lightning-card>
+    </div>
+        
+    </div>
+
+
+
+    <!-- MODAL FOR ADD INCOME -->
+    <template if:true={showAddIncomeForm}>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <div class="slds-modal__container" style="width: 45%">
+        <header class="slds-modal__header">
+            
+            <lightning-icon icon-name="standard:employee_organization" alternative-text="Income" title="Income"></lightning-icon>
+            <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Add Income</h2>
+        </header>
+        <div class="slds-modal__content" id="modal-content-id-1">
+        
+            <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-combobox
+                                                name="incomeFrom"
+                                                label="Income from"
+                                                value={incomeObj.IncomeFrom}
+                                                placeholder="Select"
+                                                options={incomeFromOptions}
+                                                onchange={handleIncomeDetailsChange}
+                                                required
+                    ></lightning-combobox>
+                </div>
+            </div>
+
+            <div class="slds-grid">
+                <div class="slds-col slds-size_4-of-12 slds-var-m-around_x-small">
+                    <span>
+                        <lightning-input type="number" label="Income amount (after tax)" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" formatter="currency" name="incomeAmount" value={incomeObj.IncomeAmount} onblur={handleIncomeDetailsChange} required></lightning-input>
+                    </span>
+                </div>
+                <div class="slds-col slds-size_4-of-12 slds-var-p-top_x-small">
+                    <span>
+                        <lightning-combobox
+                                                name="incomeFrequency"
+                                                label="Income frequency"
+                                                value={incomeObj.IncomeFrequency}
+                                                placeholder="Select"
+                                                options={incomeFrequencyOptions}
+                                                onchange={handleIncomeDetailsChange}
+                                                required
+                    ></lightning-combobox>
+                    </span>
+                </div>
+            </div>
+
+            
+            <template if:true={showFields}>
+            <div class="slds-grid slds-grid_vertical slds-var-m-around_x-small">
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-combobox
+                                                name="occupation"
+                                                label="Occupation"
+                                                value={incomeObj.Occupation}
+                                                placeholder="Select"
+                                                options={occupationOptions}
+                                                onchange={handleIncomeDetailsChange}
+                                                required
+                    ></lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="text" label="Employer name" max-length="30" name="employerName" value={incomeObj.EmployerName} onblur={handleIncomeDetailsChange} required></lightning-input>
+                </div>
+                <div class="slds-col slds-size_8-of-12">
+                    <lightning-input type="tel" pattern="^0(2|3|4|7|8)[0-9]{8}$" max-length="10" message-when-pattern-mismatch=" Please enter a 10-digit landline phone number including area code or mobile phone number starting with 04." label="Employer contact number" required name="employerContact" value={incomeObj.EmployerContact} onblur={handleIncomeDetailsChange}></lightning-input>
+                </div>
+            </div>
+            <div class="slds-grid">
+                <div class="slds-col slds-size_4-of-12 slds-var-m-around_x-small">
+                    <span>
+                        <lightning-input type="number" label="Time with this employer" onblur={handleIncomeDetailsChange} required placeholder="Years" name="empYears" value={incomeObj.EmploymentYears} max="99" min-length="1" max-length="2" message-when-range-overflow="Please enter a number between 0 to 99."></lightning-input>
+                    </span>
+                </div>
+                <div class="slds-col slds-size_4-of-12 slds-var-p-top_small">
+                    <span>
+                        <lightning-input type="number" label="" placeholder="Months" onblur={handleIncomeDetailsChange} value={incomeObj.EmploymentMonths} name="empMonths" min="0" max="11" max-length="2" onchange={handleResMonthChange} message-when-range-overflow="Please enter a number between 0 to 11."></lightning-input>
+                    </span>
+                </div>
+            </div>
+        </template>
+
+            
+
+        </div>
+        <footer class="slds-modal__footer">
+            <button class="slds-button slds-button_neutral" onclick={handleAddIncomeCancel}>Cancel</button>
+            <button class="slds-button slds-button_brand" onclick={handleAddIncomeSave}>Save</button>
+          </footer>
+        
+        </div>
+        
+        </section>
+    
+        <div class="slds-backdrop slds-backdrop_open"></div>                  
+    </template>
+    
+    
+</template>

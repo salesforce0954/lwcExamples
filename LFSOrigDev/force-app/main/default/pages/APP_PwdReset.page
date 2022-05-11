@@ -1,0 +1,230 @@
+<apex:page controller="APP_PwdResetCC" showHeader="false" id="GETemplate" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+	<style>
+		.warningMessage, .message, .message h4 {
+		color: red !important;
+		font-size: 11px !important; }
+		.message, .message h4 { float:left;display:block;margin-right:5px;}
+	</style>
+
+	<script>
+
+		function isNumberKey(evt) {
+
+			var charCode = (evt.which) ? evt.which : event.keyCode;
+			if (charCode != 46 && charCode > 31
+			&& (charCode < 48 || charCode > 57))
+			return false;
+
+			if(charCode == 46) {
+				return false
+			}
+			else{
+				return true;
+			}
+
+		}
+
+		function dob(){
+
+			var dd = document.getElementById("GETemplate:GETemplate:formId:User-1:dd").value;
+			var mm = document.getElementById("GETemplate:GETemplate:formId:User-1:mm").value;
+			var yy = document.getElementById("GETemplate:GETemplate:formId:User-1:yy").value;
+
+			var dob = document.getElementById("GETemplate:GETemplate:formId:User-1:User___Date_of_Birth__c").value = dd+"-"+mm+"-"+yy;
+
+		}
+
+	</script>
+
+		<apex:composition template="{!$Site.Template}">
+
+			<apex:define name="GEDDBody">
+			   <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+
+					<section>
+						<!---<div id="warning" title="Session timeout warning." style=" display: none;">
+		                    <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Your session is going to time out.</p>
+		                </div> --->
+                          <!-- Time out changed for Broker and Customer in Sprint 4 --->
+                            <div  id="warning" title="Do you want to continue?" style="display: none; font-size:11px !important; overflow:hidden;" >	
+                                <p style="font-size:14px !important;line-height:12px;">
+                                    <span class="" style="float: left; margin: 0 0px 20px 0;font-size:11px !important;"></span>
+                                    <apex:outputText >
+                                        This application will time out in 10 minutes. Please click OK to continue. 
+                                        <br/> 
+                                        <br/> 
+                                        Note: If you wish to resume later please save your application. 
+                                    </apex:outputText>
+                                </p>
+                            </div>	
+                
+						<apex:form id="formId">
+
+						<apex:pageBlock id="User-1">
+						<apex:inputHidden value="{!dob}" id="User___Date_of_Birth__c"/>	
+							<div class="maincontent">
+								<div class="row-fluid">
+									<div class="row-fluid span12 page-password-reset">
+										<div class="span5 loginbox">    
+											<h3>Password Reset</h3>
+
+											<apex:outputPanel id="pbSectionId">
+
+												<apex:outputPanel id="emailItemId">
+													<label>Email Address <span class="fui-star-2"></span></label>
+													<apex:inputText styleClass="input-block-level number" value="{!emailAddress}" id="User___Email" disabled="{!fieldState}"/> 
+												</apex:outputPanel>
+
+												<div class="divider20"></div>
+
+												<label>Date of Birth <span class="fui-star-2"></span></label> 
+												<div class="span4 sovrd">                                                         
+													<apex:selectList id="dd" size="1" value="{!birthDate}" disabled="{!fieldState}">
+														<apex:selectOptions value="{!DateOptions}"/>
+													</apex:selectList>
+												</div>  
+
+												<div class="span5 sovrd">
+													<apex:selectList id="mm" size="1" value="{!birthMonth}" disabled="{!fieldState}">
+														<apex:actionSupport event="onchange" id="b" action="{!setDate}" rerender="dd"/>
+														<apex:selectOptions value="{!monthOptions}"/>
+													</apex:selectList>
+												</div>
+
+												<div class="span3">
+													<apex:inputText id="yy" styleClass="validate[required] input-block-level number"  maxlength="4" value="{!birthYear}" onkeypress="return isNumberKey(event)" disabled="{!fieldState}"/>
+												</div>
+
+												<div class="clearall"></div>
+												<div class="clearall"></div>
+
+												<apex:pageMessages id="errorId"/>
+
+											</apex:outputPanel>
+
+											<div class="clearall"></div>
+											<div class="divider20"></div>
+
+											<apex:commandButton styleClass="btn btn-activec btn-block buttonarrowimg removelmargin" id="btnId" value="Reset" action="{!resetPassword}" disabled="{!fieldState}" onclick="dob()"/>
+
+											<div class="clearfix"></div>     
+											<div class="divider10"></div>
+
+											<p class="center"><small>We'll send the instruction to your email.</small></p>
+
+											<apex:outputPanel id="messageId">
+												<apex:outputPanel rendered="{!fieldState}">
+													<p class="center"><small><apex:outputText id="status" value="{!statusMessage}"/></small></p>
+												</apex:outputPanel>
+											</apex:outputPanel>
+
+										</div>
+									</div> 
+								</div>
+							</div>
+							<input id="PRS_Save" type="hidden" name="PRS_Save" value="Save"/>
+						</apex:pageBlock>
+						<apex:actionFunction name="timeOut" action="{!timeOut}"/>
+
+					</apex:form>
+			<script>
+            
+            var j$ = jQuery.noConflict();
+            
+            var timeout = 3600;
+            var warning = 3000;
+            var timeoutGap = timeout - warning;
+            var originalTimeOut = timeout;
+
+            j$(document).ready(function () {
+                //Zero the idle timer on mouse movement or keypress.
+                j$('#warning').dialog(undefined);
+                j$('#warning').dialog().dialog('close');
+                
+                j$(this).mousemove(function (e) {
+                    timeout = originalTimeOut;
+                    // j$('#warning').dialog('close');
+                });
+                j$(this).keypress(function (e) {
+                    timeout = originalTimeOut;
+                    //j$('#warning').dialog('close');
+                });              
+            });
+            function countDown(){
+                if(timeout <= 0){
+               // alert('Your session will time out now');
+                    timeOut();
+                } else {
+                    timeout--;
+                    if(timeout == timeoutGap){
+                        //alert('Please save your Application before session times out');
+                        j$(function() {
+                            j$( "#warning" ).dialog({
+                              resizable: false,
+                              height:180,
+                              modal: true,
+                              buttons: {
+                                "OK": function() {
+                                  j$( this ).dialog( "close" );
+                                }
+                              }
+                            });
+                        });
+                    }
+                    setTimeout("countDown()", 1000);
+                }
+            }
+            countDown();
+        </script>
+
+				</section>
+				
+				
+				<!-- @title     Design OverRide for APP_PwdReset VF Page -->
+                <!-- @author    gerome.teodosio@cloudsherpas.com         -->
+                <!--            gerome.h.teodosio@Accenture.com          -->
+                
+                <!-- Latitude brand styling specific for APP_Login VF Page -->
+				<apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                    <style>
+                        /*For Desktop*/
+                        @media screen and (min-width: 415px) {
+                            .btn.btn-activec.btn-block.buttonarrowimg.removelmargin {
+                                background-position: 90% 50%;
+                            }
+                        }
+                        /*For Mobile*/
+                        @media screen and (max-width: 414px) {
+                            .sovrd {
+                                margin-right: 5px;
+                            }
+                        }
+                        
+                    </style>
+                </apex:outputPanel>
+                
+                <!-- Gem brand styling specific for APP_Login VF Page -->
+                <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                    <style>
+                        @media screen and (min-width: 415px) {
+                            .btn.btn-activec.btn-block.buttonarrowimg.removelmargin {
+                                background-position: 90% 50%;
+                            }
+                        }
+                        /*For Mobile*/
+                        @media screen and (max-width: 414px) {
+                            .sovrd {
+                                margin-right: 5px;
+                            }
+                        }
+                    </style>
+                </apex:outputPanel>
+
+		</apex:define>
+
+	</apex:composition>
+
+	<apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1" width="1" rendered="{!customer}"/>
+
+</apex:page>

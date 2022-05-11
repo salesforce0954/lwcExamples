@@ -1,0 +1,112 @@
+<template>
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Residential Expenses" icon-name="standard:expense" class="slds-var-p-bottom_xx-small">
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="residentialStatus"
+                                                label="Residential Status"
+                                                value={expenseDetailsJointObj.ResidentialStatus}
+                                                placeholder="Select"
+                                                options={residentialStatusOptions}
+                                                onchange={handleExpenseDetailsChange}
+                                                required
+                                                disabled={isDisabled} 
+                    ></lightning-combobox>
+                </div>
+            </div>
+            <template if:true={showRentBoardFields}>
+                <div class="slds-grid slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_4-of-12">
+                        <span>
+                            <lightning-input type="number" disabled={isDisabled} message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" label="Applicant's share of rent/board payments are" formatter="currency" name="rentBoardPayments" value={expenseDetailsJointObj.RentBoardPayments} onblur={handleExpenseDetailsChange} required></lightning-input>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-size_4-of-12 slds-var-p-left_x-small ">
+                        <span>
+                            <lightning-combobox
+                                                    name="paymentFrequency"
+                                                    label="Payment frequency"
+                                                    value={expenseDetailsJointObj.PaymentFrequency}
+                                                    placeholder="Select"
+                                                    options={expenseFrequencyOptions}
+                                                    onchange={handleExpenseDetailsChange}
+                                                    required
+                                                    disabled={isDisabled} 
+                        ></lightning-combobox>
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+            <template if:true={showLandlordField}>
+                <div class="slds-grid slds-var-m-around_x-small">
+                    <div class="slds-col slds-size_4-of-12">
+                        <span>
+                            <lightning-input type="text" disabled={isDisabled} label="Landlord name" max-length="30" name="landlordName" value={expenseDetailsJointObj.LandlordName} onblur={handleExpenseDetailsChange} required></lightning-input>
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+        </lightning-card>
+    </div>
+
+    <div class="slds-var-m-around_x-small">
+        <lightning-card title="Living Expenses" icon-name="standard:expense" class="slds-var-p-bottom_xx-small">
+
+            <div class="slds-grid slds-wrap slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <lightning-combobox
+                                                name="payAllExpenses"
+                                                label="Does applicant pay all the expenses for their household?"
+                                                value={expenseDetailsJointObj.DoYouPayAllExpenses}
+                                                placeholder="Select"
+                                                options={payAllExpenseValues}
+                                                onchange={handleExpenseDetailsChange}
+                                                required
+                                                disabled={isDisabled} 
+                    ></lightning-combobox>
+                </div>
+            </div>
+
+
+            <div class="slds-grid slds-var-m-around_x-small">
+                <div class="slds-col slds-size_4-of-12">
+                    <span>
+                        <lightning-input type="number" disabled={isDisabled} label="Living expenses amount" message-when-range-underflow="Please enter a number greater than $0" min=1 placeholder="$" formatter="currency" name="livingExpenses" value={expenseDetailsJointObj.LivingExpenses} onblur={handleExpenseDetailsChange} required></lightning-input>
+                    </span>
+                </div>
+                <div class="slds-col slds-size_4-of-12 slds-var-p-left_x-small ">
+                    <span>
+                        <lightning-combobox
+                                                name="expenseFrequency"
+                                                label="Expense frequency"
+                                                value={expenseDetailsJointObj.LivingExpensesFreq}
+                                                placeholder="Select"
+                                                options={expenseFrequencyOptions}
+                                                onchange={handleExpenseDetailsChange}
+                                                required
+                                                disabled={isDisabled} 
+                    ></lightning-combobox>
+                    </span>
+                </div>
+            </div>
+            <template if:false={isDisabled}>
+                <lightning-layout>
+                    <lightning-layout-item flexibility="grow"></lightning-layout-item>
+                    <lightning-layout-item size="12" padding="around-small">
+                        
+                                <lightning-button  class="slds-float_left" label="Previous" title="Previous" icon-name="utility:chevronleft" onclick={handleExpenseDetailsPrev}></lightning-button>
+                        
+                                <lightning-button class="slds-float_right" label="Save &amp; Next" variant="brand" icon-name="utility:chevronright" icon-position="right" onclick={handleExpenseDetailsNext}></lightning-button>
+                        
+                    </lightning-layout-item>
+                </lightning-layout>
+            </template>
+
+
+            
+        </lightning-card>
+    </div>
+</template>

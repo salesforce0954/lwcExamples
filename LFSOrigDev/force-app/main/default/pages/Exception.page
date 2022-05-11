@@ -1,0 +1,5 @@
+<apex:page showHeader="false" cache="false">
+    <apex:outputText styleClass="title" value="{!$Label.site.error}">
+    <apex:param value="{!$Site.ErrorMessage}"/>
+    </apex:outputText>
+</apex:page>

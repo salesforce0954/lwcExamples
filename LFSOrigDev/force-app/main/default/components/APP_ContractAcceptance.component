@@ -1,0 +1,252 @@
+<!--/*
+* @Description: Contract Acceptance page Customer UI.
+* @Author: Fel Saliba
+* @Date Created: Feb-5-2014
+* @History:
+=====================================================================
+02-05-14: Created - Fel
+=====================================================================
+*/
+-->
+<apex:component allowDML="true" access="global" controller="APP_ContractAcceptanceChannel" id="APP_ContractAcceptance">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+     <style>
+ blockquote:before {
+  background-color: transparent; !important
+}
+blockquote {
+  background: none;  !important
+}
+ </style>
+    <apex:attribute name="application" type="String" required="true" access="global" assignTo="{!applicationId}" description="application Id"/>
+    
+    <apex:form id="contractAcceptanceForm">
+        <apex:actionFunction name="isAllAccepted" action="{!isAllAccepted}" reRender="accCreate"/>
+        <apex:actionFunction name="isInsuranceAcknowledgement" action="{!isInsuranceAcknowledgement}" reRender="accCreate"/>
+        
+        <apex:outputText value="Application out of sync." rendered="{!IF(app[0].Out_Of_Sync__c == true,true,false)}"/>
+        
+        <apex:pageBlock id="messageId" rendered="{!IF(AND(app[0].Out_Of_Sync__c == false,OR(app[0].Response_Code__c == 'SAR',app[0].Response_Code__c == 'SCR',app[0].Response_Code__c == 'PCO',app[0].Response_Code__c == 'FIA')),true,false)}"> 
+            <apex:outputPanel rendered="{!IsRefresh}">          
+                <strong>Loan Documents will be displayed and available for acceptance shortly ? please hit refresh link.</strong> <br/>           
+                <a href="javascript:history.go(0)" class="refreshlink">Click to refresh the page</a>           
+            </apex:outputPanel> 
+            <apex:messages />
+            
+            <apex:actionStatus id="pleasewait" layout="block">
+                <apex:facet name="start">
+                    <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                </apex:facet> 
+            </apex:actionStatus>
+            
+            <apex:outputPanel rendered="{!NOT(IsRefresh)}">
+                
+                <apex:outputText value="No Documents found." rendered="{!IF(wrapperContract.size>0,false,true)}"/><br/>
+                
+                <apex:outputPanel rendered="{!IF(app[0].Application_Type__c == 'Single',true,false)}">
+                    <apex:outputText value="Application status must be PCO." rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c != 'PCO'),true,false)}"/>
+                    <apex:repeat value="{!wrapperContract}" var="wc" rendered="{!IF(AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO'),true,false)}"><br/>        
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                            <strong>Objectives And Requirements</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                            <strong>Contract</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                            <strong>Privacy</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                            <strong>Direct Debit</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                            <strong>EFT Disbursement</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                            <strong>Debt Consolidation</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                            <strong>Insurance</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:repeat value="{!wc.relDoc}" var="relDoc">
+                            <apex:inputField value="{!relDoc.isAccepted__c}" onchange="updateRD('{!relDoc.Id}',this);"/>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'O and Rs',true,false)}">
+                                <apex:outputText > I acknowledge and accept that the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">Objectives and Requirements</apex:outputLink>&nbsp; are complete and accurate representation in respect in proposed loan contract.</apex:outputText><br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Contract',true,false)}">
+                                <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink></apex:outputText><br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Complaints Brochure',true,false)}">
+                                <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink></apex:outputText><br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Credit Guide',true,false)}">
+                                <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink></apex:outputText><br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'Loan Protect for Personal Loans',true,false)}">
+                                <apex:outputText > I acknowledge receipt of, and have read and understand, all the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink>&nbsp;document.</apex:outputText><br/>
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'LPI',true,false)}">
+                                <apex:outputText > I acknowledge receipt of, and have read and understand the combined Financial Services Guide, Product Disclosure Statement and Policy Document.</apex:outputText><br/>
+                                
+                                <div class="alert alert-info span12">
+                                    <p style="margin-left:-20px;">I have decided to purchase Loan Protection offered by {!$Label.Global_Brand} and confirm that:</p>      <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+                                    <ol>
+                                        <li>I understand that Loan Protection is an optional insurance and not a condition of obtaining the loan.</li>
+                                        <li>The loan repayments were quoted to me both with and without insurance premiums.</li>
+                                        <li>I understand that, by adding Loan Protection to my loan contract, I will be charged interest on the Total Amount borrowed.</li>
+                                        <li>I have received the 'Combined Financial Services Guide (FSG), Product Disclosure Statement (PDS) and Policy' for Loan Protection and that any advice given to me in relation to this product was general in nature, allowing me to decide whether it meets my needs.</li>
+                                        <li>I consent to the matters described under the heading 'Privacy notice and consent? in the Combined FSG, PDS and Policy.</li>
+                                        <li>I am aware that there are policy exclusions as set out in the Combined FSG, PDS and Policy and that there is a 30 day cooling-off period.</li>
+                                        <li>I confirm the appointment of the Credit Provider as my agent as set out on page 4 of the Loan Contract Schedule (i.e. for the purposes of cancellation of this insurance and the recovery of any premium refunds due to me,) and that this appointment is effective from the time of my acceptance of the loan offer; and</li>
+                                        <li> I wish to apply for the below Loan Protection:
+                                            <ul style="list-style-type:none;margin-left:10px;">
+                                                <li>Single Death Cover</li>
+                                                <li>Single Disability Plus Cover</li>
+                                                <li>Single Involuntary Unemployment Cover</li>
+                                            </ul>
+                                        </li>
+                                    </ol>   
+                                    
+                                    
+                                </div>
+                                <p><apex:inputField value="{!app[0].Insurance_Acknowledgement__c}" onchange="updateApp('{!app[0].Id}',this);" /> I have read and understood the information contained on the Application Form under the heading 'PLEASE READ CAREFULLY THE INFORMATION DETAILED BELOW BEFORE SIGNING/ACKNOWLEDGING' and agree to include Loan Protection in my Loan.</p>
+                                <br />
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(relDoc.Title__c == 'LPI Complaints Brochure',true,false)}">
+                                <apex:outputText > I acknowledge receipt of, and have read and understand the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">Loan Protection Insurance Complaints Guide.</apex:outputLink></apex:outputText><br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!if(AND(relDoc.Title__c != 'O and Rs',relDoc.Title__c != 'Contract',relDoc.Title__c != 'Complaints Brochure',relDoc.Title__c != 'Credit Guide',relDoc.Title__c != 'Loan Protect for Personal Loans',relDoc.Title__c != 'LPI',relDoc.Title__c != 'LPI Complaints Brochure'),true,false)}">
+                                <apex:outputText > I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink></apex:outputText><br/>
+                            </apex:outputPanel>
+                        </apex:repeat><br/>
+                    </apex:repeat>
+                    
+                    <div class="alert alert-info span12">
+                        <p style="">By clicking "<strong>I Accept</strong>" below:</p>
+                        
+                        <ol>
+                            <li> I accept the offer on the Terms and Conditions in the Loan Contract Schedule and the Loan Contract Terms and Conditions. I confirm the offer meets my objectives and requirements.</li>
+                            <!-- BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+                            <li> I agree that all the information I have provided to {!$Label.Global_Brand} about me, or about any other matters relating to my loan, is true and not misleading. I am also not aware of any impending adverse change to my financial situation which will impact on my ability to meet my obligations under the proposed loan contract. I acknowledge that {!$Label.Global_Brand} may rely on this information when deciding whether to offer to lend to me.</li>
+                            <li> I acknowledge that I have been given an opportunity to read and retain a copy of:
+                                <ul>
+                                    <li>The Credit Guide;</li>
+                                    <li>The Loan Contract Schedule; and</li>
+                                    <li>The Loan Contract terms and Conditions (including the "Things you should know about your proposed credit contract") I consent to {!$Label.Global_Brand} giving the above document and any other documents I request, such as a statement or a copy of a document to me by electronic means. This may include giving the documents by email or by notifying me by email or SMS that the documents are available for retrieval from the {!$Label.Global_Brand} website.</li>
+                                </ul>
+                            </li>
+                        </ol>   
+                        <p>I acknowledge that {!$Label.Global_Brand} has advised me that in consenting to the provision of such documents by electronic means:</p>
+                        <!-- END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+                        <ol type="a">
+                            <li>Such documents will not be provided in paper form; and</li>
+                            <li>I should regularly check electronic communications for documents; and</li>
+                            <li>My consent to the giving of documents by electronic means may be withdrawn at any time.</li>
+                        </ol>        
+                    </div>
+                    
+                    <br/>
+                    <div style="span12">
+                        <div class="alert alert-info span6">
+                            <p style="font-weight:bold;">Before you accepts:</p>
+                            <ul>
+                                <li>Read the contract document so  that you know exactly what contract you are entering into and what you will have to do under the contract.</li>
+                                <li>You should also read the information statement: "Things you should know about your credit contract".</li>
+                                <li>Save a copy of the contract document.</li>
+                                <li>Do not click the "I accept" button if there is anything you do not understand.</li>
+                            </ul>
+                        </div> 
+                        
+                        <div class="span6">
+                            <div class="alert alert-info">
+                                <p style="font-weight:bold;">Things you must know:</p>
+                                <ul>
+                                    <!-- MLASALA: 22-MAR-16 TQLQW-127 Re-brand -->
+                                    <li>Once you click the "I accept" button this contract document, you will be bound by it. However, you may end the contract before you obtain any credit, or a card or other means is used to obtain goods or services for which  credit it to be provided under the contract by telling the credit provider, i.e. {!$Label.Global_Brand}, in writing, but you will still be liable for any fees or charges already incurred.</li>  
+                                    <li>You do not have to take out consumer credit insurance unless you want to. However, if this contract document says so, you must take out insurance over any mortgaged property that is used  as security, such as a house or car.</li>
+                                    <li>If you are to take out insurance, the credit provider cannot insist on any particular insurance company. If this contract document says so, the credit provider can vary the annual percentage rate (this interest rate), the repayments and the fees and charges and can add new fees and charges without your consent.</li>
+                                    <li>If this contract document says so, the credit provider can charge a fee if you pay out your contract early.</li>
+                                </ul>
+                            </div>
+                            <br />
+                            <div class="alert alert-info">
+                                <div>
+                                    <p>By clicking "I Accept" I agree to the terms and conditions outlined above.</p>
+                                </div>
+                            </div>
+                            <br />
+                            <apex:commandButton rerender="messageId" value="I Accept" status="pleasewait" action="{!validateAppAndRD}" disabled="{!IF(OR(allAccepted,insuranceAcknowledgement == false),true,false)}" id="accCreate" styleClass="btn btn-large btn-activec fright" rendered="{!AND(wrapperContract.size>0,app[0].Response_Code__c == 'PCO')}"/>
+                        </div>
+                        <br style="clear:both;" />
+                    </div>
+                    
+                </apex:outputPanel>
+                
+                
+                <apex:outputPanel rendered="{!IF(app[0].Application_Type__c == 'Joint',true,false)}"> 
+                    <apex:repeat value="{!wrapperContract}" var="wc" rendered="{!IF(wrapperContract.size>0,true,false)}"><br/>
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                            <strong>Contract</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                            <strong>Objectives And Requirements</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                            <strong>Privacy</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                            <strong>Direct Debit</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                            <strong>EFT Disbursement</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                            <strong>Debt Consolidation</strong><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                            <strong>Insurance</strong><br/>
+                        </apex:outputPanel>
+                        <apex:repeat value="{!wc.relDoc}" var="relDoc">
+                            <apex:inputField value="{!relDoc.isAccepted__c}" onchange="updateRD('{!relDoc.Id}',this);"/>
+                            <!-- DBHZL-238 --> 
+                            <apex:outputText >  I acknowledge and accept the &nbsp;<apex:outputLink value="{!relDoc.AttachmentUrl__c}" target="_blank">{!relDoc.Title__c}</apex:outputLink></apex:outputText><br/>
+                            <!-- DBHZL-238 -->
+                        </apex:repeat><br/>
+                    </apex:repeat>
+                </apex:outputPanel>
+                
+            </apex:outputPanel>       
+        </apex:pageBlock>
+    </apex:form>
+    
+    <script type="text/javascript">
+    function updateRD(Id, field) {
+        APP_ContractAcceptanceExt.updateRelatedDocument(Id,field.checked, function(result, event){
+            isAllAccepted();
+        });
+    }
+    function updateApp(Id, field) {
+        APP_ContractAcceptanceExt.updateApplication(Id,field.checked, function(result, event){
+            isInsuranceAcknowledgement();                
+        });
+    }
+    window.onload = function(){
+        isAllAccepted();
+    }
+    </script>
+    
+</apex:component>

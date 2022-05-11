@@ -1,0 +1,117 @@
+<apex:component >
+    <!------------------------------------------------>
+    <!-- @author  gerome.teodosio@cloudsherpas.com  -->
+    <!-- @desc    Overwrites some styles to fit the -->
+    <!--             mobile version for Aussie      -->
+    <!------------------------------------------------>
+    <style>
+    
+        .span12.fleft .btn.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.btnNext.GNext-but-fix.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.GPrimary-button {
+                background-color: #ECAC00 !important;
+                border-radius: 3px !important;
+            }
+            
+            .span12.fleft .btn.GPrimary-button:hover,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.btnNext.GNext-but-fix.GPrimary-button:hover{
+                background-color: #5D8A25 !important;
+            
+            }
+            
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income {
+                background-color: transparent !important;
+                border: 2px dashed #e1e1e1 !important;
+                color: #555555 !important;
+            }    
+            
+            @media screen and (min-width: 415px) {
+                .maincontent .maincontent {
+                    margin-left: -20px;
+                }
+                
+                .minusplusicon.adconad.mv_addicon {
+                    margin-right: 400px;
+                    margin-top: -70px;
+                }
+            }
+        @media screen and (max-width: 415px) {
+            .maincontent {
+                margin: 0 !important;
+                width: 100%;
+            }
+            .GGetting-started,
+              .GMob-container{
+                width: 96% !important;
+                margin: 0 auto !important;
+            }
+            
+            .container-fluid.loanamountdiv {
+                padding: 0;
+            }
+            
+            .minusplusicon.adconad.mv_addicon {
+                margin: 0 !important;
+                padding: 15px 0;
+            } 
+            
+            .total span {
+                /*right: 10px;*/
+                /*position: absolute;*/
+            }
+            
+            .maincontent {
+                padding-left: 0px !important;
+            }
+            
+            .headertitle.GHeader-title {
+                display: none !important;
+            }
+            
+            h3.droid-normal.center.dark {
+                font-size: 20px !important;
+            }
+            
+            .span5.headertitle {
+                width: 85% !important;
+                margin-left: 5px !important;
+            }
+            
+            .span12.fleft .btn.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.btnNext.GNext-but-fix.GPrimary-button,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.GPrimary-button {
+                background-color: #ECAC00 !important;
+                border-radius: 3px !important;
+                padding: 10px;
+                text-align: center !important;
+                margin-top: -100px;
+            }
+            
+            .span12.fleft .btn.GPrimary-button:hover,
+            .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright.buttonarrowimg.btnNext.GNext-but-fix.GPrimary-button:hover{
+                background-color: #5D8A25 !important;
+            
+            }
+            
+            .btn.btn-large.btn-block.btn-addc.btn-addanother.GAdd-income { 
+                background-color: transparent !important;
+                border: 2px dashed #e1e1e1 !important;
+                color: #555555 !important;
+                background-position: 85% 50% !important;
+            }
+            
+            .lp_area_mobile {
+                display: none;
+            }
+            
+            .btn.btn-violet.btn-block.btn-reg.span6.remvallmargin.buttonarrowimg.GPrimary-button {
+                background-image: none !important;
+            }
+            
+            .maincontent.submitwaitview {
+                width: 90%;
+                margin: 0 auto !important;
+            } 
+        }
+    </style>
+</apex:component>

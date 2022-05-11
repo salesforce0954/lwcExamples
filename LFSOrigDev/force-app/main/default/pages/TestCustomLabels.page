@@ -1,0 +1,7 @@
+<apex:page >
+  <apex:form >
+  <h1>Hello</h1>
+  {!$Label.APP_GSD_Insurance_Confirmation_Full_AU}
+  {!$Label.Insurance_Disability_Description}
+  </apex:form>
+</apex:page>

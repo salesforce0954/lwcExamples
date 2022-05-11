@@ -1,0 +1,167 @@
+<!--
+/**
+ * @Description: Related Document(Staff UI)
+ * @Author: Adrian Recio
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_RequestedDocumentExt_INT" showHeader="false">
+<apex:form >
+    
+    <apex:actionFunction name="removeRequestedDocument" action="{!removeRequestedDocument}" rerender="mainRDSection">
+        <apex:param assignto="{!removeIndex}" name="removeIndex" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="completeDocument" action="{!completeDocument}" rerender="viewTableSection">
+        <apex:param assignto="{!removeIndex}" name="removeIndex" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="descriptionValue" action="{!descriptionValue}" rerender="mainRDSection">
+        <apex:param assignto="{!removeIndex}" name="removeIndex" value=""/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="refreshDescription" action="{!refreshDescription}" rerender="mainRDSection">
+        <apex:param assignto="{!removeIndex}" name="removeIndex" value=""/>
+    </apex:actionFunction>
+    
+    <apex:pageBlock Id="mainBlock" rendered="{!IF(showList==false,true,false)}">
+            
+        <apex:pageBlockSection Id="mainRDSection" columns="1" >
+                <apex:variable var="currentIndex" value="{!0}"/>
+                <apex:repeat value="{!wrapperRD}" var="rdVar" >
+                    <apex:panelGrid columns="2" Id="recordSection">
+                        <apex:outputPanel layout="block" style="width:50px;" rendered="{!IF(rdVar.rd.Status__c == 'Draft',true,false)}" >
+                            <apex:pageBlockSection >
+                                <button type="button" onclick="removeRequestedDocument('{!currentIndex}');">Remove</button> 
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="block" style="width:700px;" rendered="{!IF(rdVar.rd.Status__c == 'Draft',true,false)}" >
+                            <apex:pageBlockSection columns="2">
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="{!$ObjectType.Requested_Document__c.fields.Category__c.Label}"></apex:outputLabel>
+                                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                                        <apex:inputField value="{!rdVar.rd.Category__c}" onchange="refreshDescription('{!currentIndex}')"/>
+                                    </apex:outputpanel>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="{!$ObjectType.Requested_Document__c.fields.Document_Type__c.Label}"></apex:outputLabel>
+                                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                                        <apex:inputField value="{!rdVar.rd.Document_Type__c}" onchange="descriptionValue('{!currentIndex}')"/>
+                                    </apex:outputpanel>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="{!$ObjectType.Requested_Document__c.fields.Number_Required__c.Label}"></apex:outputLabel>
+                                    <apex:outputpanel layout="block" styleClass="requiredInput">
+                                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>
+                                        <apex:inputField value="{!rdVar.rd.Number_Required__c}"></apex:inputField>
+                                    </apex:outputpanel>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem rendered="{!IsJoint}">
+                                    <apex:outputLabel value="{!$ObjectType.Requested_Document__c.fields.Applicant__c.Label}"></apex:outputLabel>
+                                    <!--<apex:selectList value="{!rdVar.Applicant__c}" size="1" multiselect="false" >
+                                                <apex:selectOptions value="{!JointApplicant}"/>
+                                    </apex:selectList>-->
+                                    <apex:selectList value="{!rdVar.applicantSelected}" size="1" multiselect="false" >
+                                                <apex:selectOptions value="{!JointApplicant}"/>
+                                    </apex:selectList>
+                                </apex:pageBlockSectionItem>
+                                
+                                <!--  <apex:pageBlockSectionitem rendered="{!IF(IsJoint==false,true,false)}"></apex:pageBlockSectionitem>-->
+                                
+                                <apex:outputField value="{!rdVar.rd.Status__c}"></apex:outputField>
+                                
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="1">
+                                <apex:outputText value="{!(rdVar.rd.Description__c)}" style="width:100%;" escape="false"></apex:outputText>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>             
+                        
+                        <apex:outputPanel layout="block" style="width:50px;" rendered="{!IF(rdVar.rd.Status__c != 'Draft',true,false)}" >
+                            <apex:pageBlockSection rendered="{!IF(rdVar.rd.Status__c!='Complete',true,false)}">
+                                <button type="button" onclick="removeRequestedDocument('{!currentIndex}');">Remove</button>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel> 
+                        
+                        <apex:outputPanel layout="block" style="width:700px;" rendered="{!IF(rdVar.rd.Status__c != 'Draft',true,false)}">
+                            <apex:pageBlockSection columns="2">
+                                    <apex:outputField value="{!rdVar.rd.Category__c}"></apex:outputField>
+                                    <apex:outputField value="{!rdVar.rd.Document_Type__c}"></apex:outputField>
+                                    <apex:outputField value="{!rdVar.rd.Number_Required__c}"></apex:outputField>
+                                    
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.Requested_Document__c.fields.Applicant__c.Label}"></apex:outputLabel>
+                                        <apex:outputText value="{!IF(rdVar.rd.Applicant__c!=null,rdVar.rd.Applicant__r.First_Name__c + ' ' + rdVar.rd.Applicant__r.Last_Name__c,'Both')}"></apex:outputText>
+                                    </apex:pageBlockSectionItem>
+                                    
+                                    <apex:outputField value="{!rdVar.rd.Status__c}"></apex:outputField>
+                                            
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="1">
+                                <apex:outputText value="{!(rdVar.rd.Description__c)}" escape="false"></apex:outputText>   
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                        
+                    <apex:variable var="currentIndex" value="{!currentIndex+1}"></apex:variable>
+                    </apex:panelGrid>
+                </apex:repeat>
+
+            <apex:panelGrid columns="2">
+                <apex:outputPanel layout="block" style="width:300px;">
+                    <apex:pageBlockSection >
+                        <apex:commandButton value="{!IF(wrapperRD.size>0, 'Add More', 'Add')}" action="{!addMoreRequestDocument}" rerender="mainRDSection"/>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+                
+                <apex:outputPanel layout="block" style="width:600px;">
+                    <apex:pageBlockSection columns="2">
+                            <apex:commandButton value="Save and request documents" action="{!saveToRequested}" rendered="{!IF(RDCount>0,true,false)}"></apex:commandButton>
+                            <apex:commandButton action="{!redirectMain}" value="Cancel" immediate="true" /> 
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+            </apex:panelGrid>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    
+    
+    <apex:pageBlock rendered="{!showList}">
+    
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton action="{!showEdit}" value="Add and remove documents"/> 
+            </apex:pageBlockButtons>        
+
+            <apex:variable var="currentIndex" value="{!0}"/>
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Document Type</th>
+                    <th class="headerRow">Status</th>
+                    <th class="headerRow">Number Required</th>
+                    <th class="headerRow">Applicant</th>
+                    <th class="headerRow"></th>
+                </tr>
+                <apex:repeat value="{!wrapperRD}" var="rdVar" id="viewTableSection">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!rdVar.rd.Document_Type__c}</td>
+                        <td class="dataCell">{!rdVar.rd.Status__c}</td>
+                        <td class="dataCell">{!rdVar.rd.Number_Required__c}</td>
+                        <td class="dataCell">{!IF(rdVar.rd.Applicant__c!=null,rdVar.rd.Applicant__r.First_Name__c + ' ' + rdVar.rd.Applicant__r.Last_Name__c,'Both')}</td>
+                        <td class="dataCell">
+                            <button type="button" onclick="completeDocument('{!currentIndex}');" style="{!IF(rdVar.rd.Status__c!='Complete', 'display:block', 'display:none')}">RECEIVED</button>
+                            <apex:variable var="currentIndex" value="{!currentIndex+1}"></apex:variable>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+
+    </apex:pageBlock>
+
+
+</apex:form>
+</apex:page>

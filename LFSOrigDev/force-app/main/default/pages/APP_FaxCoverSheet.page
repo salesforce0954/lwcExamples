@@ -1,0 +1,363 @@
+<apex:page standardController="Application__c" extensions="APP_FaxCoverSheetEXT" renderAs="PDF" 
+StandardStylesheets="false">
+    <apex:stylesheet value="{!URLFOR($Resource.pdfstyle, '/pdfstyle.css')}" />
+    <apex:outputPanel rendered="{!IF(application.Brand_String__c =='Aussie Money AU',true,false)}">
+        <div class="clearfix"></div>
+        <div class="fcscontent">
+            <apex:image url="{!URLFOR($Resource.aussietheme, 'images/aussie-logo.png')}" />
+            <br />
+            <h3> Fax Cover Sheet </h3>
+
+            <div class="appnumber">Application Number: &nbsp;{!application.UID__c}</div>
+            <br />
+            <br />
+
+            <p>Please use this page as your cover sheet and fax your documents to <strong>{!application.Brand_Lookup__r.Fax_Number__c}</strong>
+            </p>
+            <p>Please provide your documents within the next 5 days so that we can progress your loan application.</p>
+            <p>We can only approve your loan application after we have verified your documents. Once we have approved 
+            your loan application, we will issue your loan documents for your acknowledgement and the funds will be 
+            disbursed to your nominated account(s) within 2-5 business days.</p>
+            <br />
+            <br />
+            <p><u>Do you want to use another method to send us your documents?</u>
+            </p>
+
+            <div class="fcscontenttable">
+
+                <div class="row">
+                    <div class="column1">
+                        <p>Online</p>
+                    </div>
+                    <div class="column2">
+                        <p>Please log into your application and upload via our Secure Online Upload Tool:</p>
+                        <p><a href="http://www.aussie.com.au" target="_blank">http://www.aussie.com.au</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="column1">
+                        <p>Mail</p>
+                    </div>
+                    <div class="column2">
+                        <p>Please use this page as your cover sheet and mail your document(s) to Aussie Personal Loans:
+                        </p>
+                        <p>
+                            Locked Bag 5026
+                            <br/> Parramatta CBD BC
+                            <br/> NSW
+                            <br/> 2124
+                        </p>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+            </div>
+            <!-- end fcscontenttable -->
+
+            <p>If you have any questions or need any further information please contact the Customer Solutions Team on 
+            1300 773 589.</p>
+
+            <br/>
+            <p>Yours Sincerely,</p>
+            <p><strong>The Aussie Personal Loans Team</strong>
+            </p>
+            <p class="footer-aussie"><i>The Aussie Personal Loan is from Aussie Consumer Finance ("Aussie") with credit
+             provided by Latitude Personal Finance Pty Ltd (ABN 54 008 443 810, Australian Credit Licence number 392163). 
+             Aussie is a trade mark of AHL Investments Pty Ltd. Aussie is a partly-owned subsidiary of the Commonwealth
+              Bank of Australia ABN 48 123 123 124 AFSL and Australian Credit Licence 234945. © 2014 AHL Investments
+               Pty Ltd ABN 27 105 265 861 Australian Credit Licence 246786.</i>
+            </p>
+            <div class="clearfix"></div>
+        </div>
+        <!-- end fcscontent -->
+        <div class="clearfix"></div>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!IF(application.Brand_String__c =='Kiwibank',true,false)}" 
+    style="page-break-inside:avoid;">
+        <div class="clearfix"></div>
+        <div class="fcscontent" style="page-break-inside:avoid;">
+            <table style="width:100%">
+                <tr >
+                    <td>
+                        <apex:image url="{!URLFOR($Resource.kiwitheme, 'images/Kiwibank-NZ.PNG')}" />
+                    </td>
+                    <td style="padding-left:110px ; text-align:right;"><span style="color:#454545">
+                    Kiwibank Personal Loans</span>
+                        <div style="color:#707070" >PO Box 90317, Victoria Street West, Auckland 1142
+                        <br/> Direct Sales Freephone 0800 32 10 10
+                        <br/> Facsimile 0800 624 447
+                        </div> 
+                    </td>
+                </tr>
+
+            </table>
+
+
+            <br />
+            <h3> Fax Cover Sheet </h3>
+
+            <div class="appnumber">Application Number: &nbsp;<strong><i>{!application.UID__c}</i></strong></div>
+            <br />
+            <br />
+
+            <p>Please use this page as your cover sheet and fax your documents to <strong><span style="color:orange">
+             0800 624 447</span></strong>
+            </p>
+            <p>Please provide your documents within the next 5 days so that we can progress your loan application.</p>
+            <p>We can only approve your loan application after we have verified your documents. Once we have approved
+             your loan application, we will issue your loan documents for your acknowledgement and the funds will be
+              disbursed to your nominated account(s) within 2-5 business days.</p>
+          
+            <p>Do you want to use another method to send us your documents?
+            </p>
+
+            <div class="fcscontenttable">
+
+                <div class="row">
+                    <div class="column1" style="text-align:center; padding-top:35px;">
+                        <p><strong>Online</strong></p>
+                    </div>
+                    <div class="column2">
+                        <p>Please log into your application and upload your documents via our <strong>Secure Online Upload
+                        </strong> Tool:</p>
+                        <p><a href="https://lfs-apply.mypersonalloanapp.com/kiwibank/app_login" target="_blank">
+                        https://lfs-apply.mypersonalloanapp.com/kiwibank/app_login</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="column1" style="text-align:center; padding-top:20px;">
+                        <p><strong>by Courier</strong></p>
+                    </div>
+                    <div class="column2">
+                            Attn: Personal Loans
+                            <br/>
+                            Kiwibank
+                            <br/> 8 Tangihua Street,
+                            <br/> Auckland 1010
+                            <br/>
+
+                        
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column1" style="text-align:center; padding-top:35px;">
+                        <p><strong>by Freepost</strong></p>
+                    </div>
+                    <div class="column2">
+                           FREEPOST Authority #190266<br/>
+                            Attn: Personal Loans
+                            <br/> Kiwibank
+                            <br/> PO Box 90317
+                            <br/> Victoria Street West
+                            <br/> Auckland 1142
+                            <br/>
+
+                        
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+            </div>
+            <!-- end fcscontenttable -->
+
+            <p>If you have any questions or need any further information please contact the Customer Solutions Team on
+             <br/><strong><span style="color:orange"> 0800 32 10 10</span></strong> </p>
+            
+            <p>Yours Sincerely,</p>
+            <p><strong>The Kiwibank Team</strong>
+            </p><!-- <Updated by mmand on 08-04-15 NZ Rebranding -  updated footer -->
+            <p  class="footer-aussie"><i>Kiwibank Personal Loans are provided by Latitude Financial Services Limited</i>
+            </p>
+            <div class="clearfix"></div>
+        </div>
+        <!-- end fcscontent -->
+        <div class="clearfix"></div>
+    </apex:outputPanel>
+
+
+    <!--- GE MONEY AU -->
+    <apex:outputPanel rendered="{!IF(application.Brand_String__c =='Latitude',true,false)}">
+        <div class="clearfix"></div>
+        <div class="fcscontent">
+            <apex:image url="{!URLFOR($Resource.getheme, 'images/latitude_icons/latitude.png')}" />
+            <br />
+            <h3> Fax Cover Sheet </h3>
+
+            <div class="appnumber">Application Number: &nbsp;{!application.UID__c}</div>
+            <br />
+            <br />
+
+            <p>Please use this page as your cover sheet and fax your documents to <strong>{!application.Brand_Lookup__r.Fax_Number__c}</strong>
+            </p>
+            <p>Please provide your documents within the next 5 days so that we can progress your loan application.</p>
+            <p>We can only approve your loan application after we have verified your documents. Once we have approved
+             your loan application, we will issue your loan documents for your acknowledgement and the funds will be
+              disbursed to your nominated account(s) within 2-5 business days.</p>
+            <br />
+            <br />
+            <p><u>Do you want to use another method to send us your documents?</u>
+            </p>
+
+            <div class="fcscontenttable">
+
+                <div class="row">
+                    <div class="column1">
+                        <p>Online</p>
+                    </div>
+                    <div class="column2">
+                        <p>Please log into your application and upload via our Secure Online Upload Tool:</p>
+                        <p><a href="https://www.latitudefinancial.com.au" target="_blank">https://www.latitudefinancial.com.au</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="column1">
+                        <p>Visit your Latitude branch</p>
+                    </div>
+                    <div class="column2">
+                        <p>Your Latitude branch is: &nbsp; {!application.Branch__r.Name}</p>
+                        <p>
+                            {!application.Branch__r.Address__c}
+                            <br/> {!application.Branch__r.Suburb__c}
+                            <br/> {!application.Branch__r.State__c}
+                            <br/> {!application.Branch__r.Postcode__c}
+                        </p>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+            </div>
+            <!-- end fcscontenttable -->
+
+            <p>If you have any questions or need any further information please contact the Customer Solutions Team on
+             &nbsp;{!application.Branch__r.Phone__c}</p>
+
+            <br/>
+            <p>Yours Sincerely,</p>
+            <p><strong>Customer Solutions Team</strong>
+            </p>
+            <p class="footer-ge"><i>Credit provided by Latitude Personal Finance Pty Ltd (ABN 54 008 443 810). Australian Credit Licence number 392163.</i>
+            </p>
+            <div class="clearfix"></div>
+        </div>
+        <!-- end fcscontent -->
+        <div class="clearfix"></div>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!IF(application.Brand_String__c =='GEM',true,false)}">
+        <div class="clearfix"></div>
+        <div class="fcscontent">
+            <table style="width:100%">
+                <tr >
+                    <td>
+                        <apex:image url="{!URLFOR($Resource.getheme, 'images/gem_icons/gem-finance-logo.png')}" style="align:left;
+                         width:194px; height:110px;" />
+                    </td>
+                    <td style="padding-left:110px;  text-align:right;" ><span style="color:#454545"> Gem </span>
+                       <div style="color:#707070" >
+                         PO Box 90317, Auckland 1142
+                        <br/> Level 3, 8 Tangihua Street, Auckland 1010
+                        <br/>
+                        <br/> Lending Services Freephone 0800 00 44 22
+                        <br/> Customer Services Freephone 0800 36 63 88
+                        <br/>Collections Freephone 0800 22 21 65
+                       </div>
+                    </td>
+                </tr>
+
+            </table>
+
+
+
+
+            <br />
+            <h3> Fax Cover Sheet </h3>
+
+            <div class="appnumber">Application Number: &nbsp;<strong><i>{!application.UID__c}</i></strong></div>
+            
+            <br />
+
+            <p>Please use this page as your cover sheet and fax your documents to <strong><span style="color:orange">
+             0800 624 447</span></strong>
+            </p>
+            <p>Please provide your documents within the next 5 days so that we can progress your loan application.</p>
+            <p>We can only approve your loan application after we have verified your documents. Once we have approved
+             your loan application, we will issue your loan documents for your acknowledgement and the funds will be
+              disbursed to your nominated account(s) within 2-5 business days.</p>
+      
+            <p>Do you want to use another method to send us your documents?
+            </p>
+
+            <div class="fcscontenttable">
+
+                <div class="row">
+                    <div class="column1" style="text-align:center; padding-top:35px;">
+                        <p><strong>Online</strong></p>
+                    </div>
+                    <div class="column2">
+                        <p>Please log into your application and upload your documents via our <strong>Secure Online Upload
+                        </strong> Tool:</p>
+                        <p><a href="https://lfs-apply.mypersonalloanapp.com/gem/app_login" target="_blank">
+                        https://lfs-apply.mypersonalloanapp.com/gem/app_login</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="column1"  style="text-align:center; padding-top:25px;">
+                        <p><strong>by Courier</strong></p>
+                    </div>
+                    <div class="column2">
+                            Attn: Personal Loans <br/>
+                            Gem
+                            <br/> 8 Tangihua Street,
+                            <br/> Auckland 1010 
+                            <br/>
+
+                        
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column1"  style="text-align:center; padding-top:35px;">
+                        <p><strong>by Freepost</strong></p>
+                    </div>
+                    <div class="column2">
+                        
+                            FREEPOST Authority #190266<br/>
+                            Attn: Personal Loans
+                            <br/> Gem
+                            <br/> PO Box 90317
+                            <br/> Victoria Street West
+                            <br/> Auckland 1142
+                            <br/>
+
+                        
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+            </div>
+            <!-- end fcscontenttable -->
+
+            <p>If you have any questions or need any further information please contact the Customer Solutions Team on
+             <br/><strong><span style="color:Orange">0800 32 10 10</span></strong>
+            </p>
+
+           
+            <p>Yours Sincerely,</p>
+            <p><strong>The Gem Personal Loans</strong>
+            </p><!-- <Updated by mmand on 08-04-15 NZ Rebranding -  updated footer -->
+            <div class="footer-ge"><i>Gem Personal Loans are provided by Latitude Financial Services Limited</i>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <!-- end fcscontent -->
+        <div class="clearfix"></div>
+    </apex:outputPanel>
+
+</apex:page>

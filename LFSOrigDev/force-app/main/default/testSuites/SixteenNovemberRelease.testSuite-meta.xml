@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexTestSuite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <testClassName>APP_ApplicationExt_INT_Test</testClassName>
+    <testClassName>APP_GEDDSidebarExt_Test</testClassName>
+    <testClassName>APP_JointDebtAndLiabilitiesExt_INT_Test</testClassName>
+    <testClassName>APP_JointDebtAndLiabilitiesExt_Test</testClassName>
+    <testClassName>APP_JointDebtAndLiabilities_Test</testClassName>
+    <testClassName>APP_JointExpensesExt_INT_Test</testClassName>
+    <testClassName>APP_JointExpensesExt_Test</testClassName>
+    <testClassName>APP_JointExpense_Test</testClassName>
+    <testClassName>APP_JointIncomeExt_INT_Test</testClassName>
+    <testClassName>APP_JointIncomeExt_Test</testClassName>
+    <testClassName>App_SendSmsTemplate_Test</testClassName>
+    <testClassName>App_SMSContent_Test</testClassName>
+    <testClassName>consumerAnzCapitalGeComOriginationsTest</testClassName>
+    <testClassName>GenerateDocumentGeComOriginationsTest</testClassName>
+    <testClassName>IncomeCapacityTriggerHandlerTest</testClassName>
+    <testClassName>IS_ApplicationUpdateValidatorTest</testClassName>
+    <testClassName>MyBudgetsDebtWrapper_Test</testClassName>
+    <testClassName>PersonalLoanAppSubmitTest</testClassName>
+    <testClassName>QuoteBatchEmailReminderNZ_Test</testClassName>
+    <testClassName>quoteBatchEmailReminder_Test</testClassName>
+    <testClassName>QuoteBatchSMSReminderGEM_Test</testClassName>
+    <testClassName>QuoteBatchSMSReminder_Test</testClassName>
+    <testClassName>SmsManagerTest</testClassName>
+    <testClassName>User_Test</testClassName>
+    <testClassName>WS_WebServiceHelper_Test</testClassName>
+</ApexTestSuite>

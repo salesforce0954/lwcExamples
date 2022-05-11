@@ -1,0 +1,288 @@
+<apex:page showHeader="false" sidebar="false" standardController="Application__c" extensions="APP_LeftSideBarExt" standardStylesheets="true">
+    <style>
+        .statusBarLeftCol {
+            text-align: right;
+            padding-right: 10px;
+            width: 60%;
+        }
+
+        body {
+            font-size: 11px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        tr {
+            border-bottom: 1px solid #ececec;
+        }
+
+        tr:last-child {
+            border-bottom: none;
+        }
+
+        .applicantName {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .greater {
+            font-color: red;
+        }
+
+        .less {
+            font-color: black;
+        }
+
+        .sblDate {
+            color: #ff0000;
+        }
+    </style>
+
+    <apex:form id="frm">
+        <apex:pageBlock title="Status">
+            <apex:pageBlockButtons >
+                <div style="text-align:right;">
+                    <apex:actionStatus id="pleasewait">
+                        <apex:facet name="start">
+                            <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="height: 27px; width:27px;" />
+                        </apex:facet>
+                    </apex:actionStatus>
+                    <apex:commandButton value="Refresh" action="{!refreshList}" reRender="frm" status="pleasewait" image="{!URLFOR($Resource.staffuicss, 'images/refresh.png')}"
+                    />
+                </div>
+            </apex:pageBlockButtons>
+            <table width="100%" border="0">
+                <tr>
+                    <td colspan="2" class="applicantName">
+                        <apex:outputText value="{!applicant1Name}" />
+                        <apex:outputText value=", " rendered="{!IF(applicant2Name != null, true, false)}" />
+                        <apex:outputText value="{!applicant2Name}" rendered="{!IF(applicant2Name != null, true, false)}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Amount" for="loanAmount" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="loanAmount" value="${!loanAmount}" style="{!IF(OR(loanAmt > collateralUnsecured, loanAmt > maxSecured), 'color:red', 'color:black')}"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Term" for="term" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="term" value="{!term}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Monthly Repayment" for="monthlyRepayment" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="monthlyRepayment" value="${!monthlyRepayment}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Rate" for="interestRate" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="interestRate" value="{!interestRate}%" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Pricing Grade" for="creditScore" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="creditScore" value="{!creditScore}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Score" for="score" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="riskGrade" value="{!riskGrade}" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Unsecured Limit" for="maxLimitUnsec" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="maxLimitUnsec" value="${!maxLimitUnsec}" style="{!If(AND(isSecured == false,loanAmt > maxUnSecured), 'color:red', 'color:black')}"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Secured Limit" for="maxLimitSec" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="maxLimitSec" value="${!maxLimitSec}" style="{!If(AND(isSecured,loanAmt > maxSecured), 'color:red', 'color:black')}"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Remaining Capacity" for="remainingCapacity" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="remainingCapacity" value="${!remainingCapacity}" style="{!If(remainingCapacity < 0, 'color:red', 'color:black')}"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Owner" for="owner" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="owner" value="{!owner}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Sales Team" for="branch" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="branch" value="{!branch}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Settlement Date" for="settleDate" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="settleDate" value="{!settlementdate}" styleClass="{!isOverToday}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Application Status" for="applicationStatus" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="applicationStatus" value="{!applicationStatus}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Workflow Status" for="workflowStatus" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="workflowStatus" value="{!workflowStatus}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Total Collateral" for="totColValue" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputText id="totCollValue" value="{!totColValue}" />
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Loan Purpose" for="loanPurpose" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:repeat value="{!loanList}" var="l">
+                            <apex:outputText id="loanPurposeAmt" value="${!l.Loan_Amount__c}, " />
+                            <apex:outputText id="loanPurposeType" value="{!l.Value__c}" />
+                            <br/>
+                        </apex:repeat>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Insurance" for="insuranceItems" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:repeat value="{!insuranceList}" var="i">
+                            <apex:outputText id="insuranceItems" value="{!HTMLENCODE(i)}<br/>" escape="false" />
+                        </apex:repeat>
+                    </td>
+                </tr>
+                <!-- BEGIN MLASALA: 08-MAR-15 - TQLQW-126 Manager Approval to be Optional for AU -->
+                <!-- BEGIN MLASALA: 06-MAY-16 - Revert back -->
+                <tr style="display: {!IF(application.Brand_Country__c == 'AU', '', 'none')}">
+                    <td class="labelCol">
+                        <apex:outputLabel value="Manager Approved" for="managerApproved" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:pageblockSection rendered="{!application.Brand_Country__c == 'AU'}">
+                            <apex:outputfield id="managerApproved" value="{!application.Is_Manager_Approved__c}" label="" />
+                        </apex:pageblockSection>
+                    </td>
+                </tr>
+                <!-- END MLASALA: 06-MAY-16 - Revert back -->
+                <!-- END MLASALA: 08-MAR-15 - TQLQW-126 Manager Approval to be Optional for AU -->
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Higher Approval Consent" for="approvalConsent" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:pageblockSection >
+                            <apex:outputField id="approvalConsent" value="{!application.Higher_Approval_Consent__c}" label="" />
+                        </apex:pageblockSection>
+                    </td>
+                </tr>
+
+                <!-- BEGIN MLASALA: 16-JUN-16 TQLQW-33 Upsell Eligibility, Offer and Acceptance -->
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="{!$ObjectType.Application__c.fields.Upsell_Eligibility__c.Label}" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:pageblockSection >
+                            <apex:outputfield value="{!application.Upsell_Eligibility__c}" label="" />
+                        </apex:pageblockSection>
+                    </td>
+                </tr>
+                <!-- END MLASALA: 10-JUN-16 TQLQW-33 Upsell Eligibility, Offer and Acceptance -->
+
+                <tr>
+                    <td class="labelCol">
+                        <apex:outputLabel value="Campaign ID" for="campaignId" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:pageblockSection >
+                            <apex:outputfield id="campaignId" value="{!application.Campaign_Id__c}" label="" />
+                        </apex:pageblockSection>
+                    </td>
+                </tr>
+                <!--Vasu: start TQLQW-487 - Promo engine change -->
+                <tr style="display: {!IF(application.Brand_Country__c == 'NZ', '', 'none')}">
+                    <td class="labelCol">
+                        <apex:outputLabel value="Promo ID" for="PromoId" />
+                    </td>
+                    <td class="dataCol">
+                        <apex:outputfield id="PromoId" value="{!application.Promo_ID__c}" label="" />
+                    </td>
+                </tr>
+                <!--Vasu: end TQLQW-487 - Promo engine change -->
+            </table>
+
+            <apex:outputpanel rendered="{! if(disbursementStatus == 'Expired', true, false)}">
+                <div class="message warningM6">
+                    <div class="warningSmall" style="float:left; margin-right:5px;"></div>
+                    <div>Payout Figure has elapsed - update Payout and contact Customer</div>
+                </div>
+            </apex:outputpanel>
+
+            <apex:outputpanel rendered="{!isDirty}">
+                <div class="message warningM6">
+                    <div class="warningSmall" style="float:left; margin-right:5px;"></div>
+                    <div>Application Details have changed. Please Resubmit.</div>
+                </div>
+            </apex:outputpanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

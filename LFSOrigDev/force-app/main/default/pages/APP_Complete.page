@@ -1,0 +1,119 @@
+<!-- 
+ * @Description: Customer UI application complete page
+ * @Author: Adrian Recio
+ * @Date Created: 3/4/2014
+ * @History: Adrian Recio Created
+             Adrian Recio Updated text for success file upload - 20/08/2015
+ -->
+<apex:page standardController="Application__c" extensions="APP_Complete_Ext" showHeader="false" sidebar="false" 
+standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+<apex:composition template="{!$Site.Template}">
+    <apex:define name="GEDDBody">
+    	<style>
+            .loanfields {height:150px;}
+            @media (min-width: 1200px) {
+            }
+        </style>
+        
+        <section>
+            
+			<div id="header" class="header">
+                <div class="row-fluid header-inner headerlogovr">
+                    <div class="mobilell">
+                        <div class="loginlogout span4 fright removelmargin helplogindesk">
+                            <apex:pageBlock id="pageBlockId">
+                                <div class="span5 fright">
+                                    <apex:form id="headerform"> 
+                                        <apex:actionFunction name="headerLogout" action="{!logout}"/>
+                                        <apex:commandButton value="{!$Label.CUI_header_logout}" 
+                                        styleClass="btn btn-block btn-normalc buttonarrowimg" 
+                                        onClick="headerButtons('logout')" rerender="false"/>
+                                    </apex:form>
+                                </div>
+                            </apex:pageBlock>
+                        </div>
+                    </div>
+                </div><!-- header-inner -->
+            </div>
+            
+            
+            <div class="maincontent sidebar-left mobileCon responsepages">
+                <div class="row-fluid">
+                     
+                    <div style="align:center;" class="span12 txtalignc">
+        					<apex:outputPanel layout="block" style="height:50px;">
+				            	<h2>Thanks!</h2>
+							</apex:outputPanel>	
+							
+	<!-- Show message if page is redirected from file upload -->
+	<apex:outputPanel layout="block" rendered="{!FromFileUpload}">
+    <!-- Change by: Adrian Recio 
+         Change Date: 20/08/2015
+         Description: Change text message for file upload complete -->
+    <!--
+		<p>We will check the documents you have uploaded, and be back in touch with you as soon as we can.</p>
+    -->
+    <p>We will check the documents you have uploaded and let you know as soon as possible when your loan contract is ready for you to accept.</p>
+
+		<br/>
+		<p>If you have questions please call us on {!contactNumber}
+		<apex:outputText value=" and quote reference number:{!application.UID__c}" 
+		rendered="{!IF(application.UID__c!=null,true,false)}"></apex:outputText>
+		.
+		</p>
+     </apex:outputPanel>	
+                    		
+              		<!-- Show message if page is redirected from offline contract acceptance -->
+	<apex:outputPanel layout="block" rendered="{!IF(FromFileUpload==false && OffLine == true,true,false)}">
+		<p>We will check the loan documents you have uploaded. If all the documents are correct, your funds will be disbursed within 2 working days.</p>
+		<p>If we need any more information we'll be in touch.</p>
+		<br/>
+		<p>If you have questions please call us on {!contactNumber}
+		<apex:outputText value=" and quote reference number:{!application.UID__c}" 
+		rendered="{!IF(application.UID__c!=null,true,false)}"></apex:outputText>
+		.
+		</p>
+              		</apex:outputPanel>	
+       
+       				<!-- Show message if page is redirected from online contract acceptance -->
+       				<apex:outputPanel layout="block" rendered="{!IF(FromFileUpload==false && OffLine == false, true,false)}">
+		<p>One of our {!brandName} consultants will contact you as soon as possible.</p>
+		<p>If you want to, you can call us on {!contactNumber}
+		<apex:outputText value=" and quote reference number:{!application.UID__c}" 
+		rendered="{!IF(application.UID__c!=null,true,false)}"></apex:outputText>
+		.
+		</p>
+              		</apex:outputPanel>	
+              		
+             			<apex:form >
+        <apex:outputPanel layout="block" style="height:100px;padding-top:30px;">   
+            <apex:commandButton action="{!redirectToPostSubmit}" value="{!brandName} HomePage" 
+            style="float:right;" styleClass="btn btn-large btn-reset-m btn-normalc fright buttonarrowimg">
+            </apex:commandButton>
+        </apex:outputPanel>
+       </apex:form>
+                    
+                    </div>
+
+                </div><!-- row-fluid -->
+            </div><!-- maincontent -->
+        </section><!-- end of main content -->
+       
+</apex:define>
+</apex:composition>
+
+	<script>
+	/*  Description: Function used for the header buttons "Save Application" & "Logout"
+         *  Author: Jade Serrano
+         *  Date Created: 06-MAY-2014
+         *  Input: None
+         *  Return:
+         */
+        function headerButtons(action){
+            if(action == 'logout'){
+                //action function
+                headerLogout();
+            }
+        }
+    </script>
+</apex:page>

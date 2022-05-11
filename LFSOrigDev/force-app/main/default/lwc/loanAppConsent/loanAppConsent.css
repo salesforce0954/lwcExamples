@@ -1,0 +1,24 @@
+.lgc-bg {
+    background-color: rgb(242, 242, 242);
+}
+
+.consentClickable {
+    color: rgb(0, 95, 178);
+    cursor: pointer
+}
+
+/* :host{
+    --sds-c-card-color-background :#d8dee7;
+} */
+
+.loan-details{
+    --sds-c-card-color-background :#d8dee7;
+}
+
+.otherloanpurpose-inline {
+    display: inline;
+}
+
+.otherloanpurpose-none {
+    display: block;
+}

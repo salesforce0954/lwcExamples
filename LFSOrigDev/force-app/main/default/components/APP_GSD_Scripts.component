@@ -1,0 +1,14 @@
+<apex:component >
+  <!-- jQuery -->
+  <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jquery.js')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jQueryMin.js')}"/>
+  <!-- Bootstrap Core JavaScript -->
+  <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"/>
+  <!-- Plugin JavaScript -->
+ <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/js/collapse.js')}" />
+  <!-- Contact Form JavaScript -->
+  <apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/jqBootstrapValidation.js')}"/>
+  <!--Custom scripts -->
+  <!--apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/js/custom.js')}"/-->
+  <apex:includeScript value="{!$Resource.autoHideNavBar}"/>
+</apex:component>

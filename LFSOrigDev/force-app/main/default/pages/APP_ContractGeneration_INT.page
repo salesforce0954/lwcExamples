@@ -1,0 +1,71 @@
+<!--
+/**
+* @Description: Pre-Contract Generation Checks page (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 17.DEC.2013
+* @History:
+  =====================================================================
+      12-17-13: Created - Mike
+      12-19-13: Added display/edit mode for tables - Mike
+   =====================================================================
+ */ 
+-->
+<apex:page id="pageId" standardController="Application__c" extensions="APP_ContractGenerationExt_INT" showHeader="false" 
+sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+<apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+    
+    <apex:form id="formId">
+        
+        <apex:pageMessages />
+        
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status2">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!refreshApplication}" reRender="formId" 
+                    status="status2" 
+                    onclick="document.getElementById('appPageId:contractGenerationInclude:'+
+                    'pageId:formId:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <br/>
+        
+        <apex:pageBlock title="Mandatory Checks">
+            
+            <apex:pageBlockSection columns="1">
+                
+                <apex:outputField value="{!application.Collateral_Count__c}"/>
+            
+                <apex:outputField value="{!application.POI_Count__c}"/>
+            
+                <apex:outputField value="{!application.AML_Count__c}"/>
+            
+                <apex:outputField value="{!application.Disbursement_Count__c}"/>
+            
+                <apex:outputField value="{!application.Credit_File_Check_Count__c}"/>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="pfr" value="PFR 1 Branch Compliance Checklist Count"/>
+                    <apex:outputText id="pfr" value="{!pfrCount}"/>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="bm" value="PFR 2 Branch Compliance Count"/>
+                    <apex:outputText id="bm" value="{!bmCount}"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:outputField value="{!application.Personal_Reference_Check_Count__c}"/>
+                
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+
+    </apex:form>
+        
+</apex:page>

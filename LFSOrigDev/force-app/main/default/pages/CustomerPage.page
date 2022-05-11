@@ -1,0 +1,120 @@
+<!--
+Author: Michael Lasala Cloud Sherpas
+Created Date: 2/15/2013
+Description: Customer Page on GEPlayPage2
+-->
+<apex:page showHeader="false" controller="CustomerPageController">
+    <style>
+    .ct{
+        text-align:center;
+    }
+    .pbBody{
+        height:500px;
+    }
+    
+    .bPageBlock{
+        border-top: 2px solid #808080;
+        }
+    </style>
+    <apex:form >
+        <apex:pageBlock title="Customer">
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="CLV Customer Id"/>
+                    <apex:outputText value="{!custId}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Home Phone"/>
+                    <apex:outputText value="{!phoneNo}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Date of Birth"/>
+                    <apex:outputText value="{!DoB}"> 
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Mobile Phone"/>
+                    <apex:outputText value="{!mobileNo}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Email"/>
+                    <apex:outputText value="{!emailAddress}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Mailing Address"/>
+                    <apex:outputText value="{!personAddress}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Spouse First Name"/>
+                    <apex:outputText value="{!spouseFName}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Accommodation Code"/>
+                    <apex:outputText value="{!accomCode}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Spouse Last Name"/>
+                    <apex:outputText value="{!spouseLName}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Offer Amount"/>
+                    <apex:outputText value="{!offerAmount}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Offer Start Date"/>
+                    <apex:outputText value="{!offerStartDate}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Offer Expiry Date"/>
+                    <apex:outputText value="{!offerExpiryDate}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Original Loan Owner"/>
+                    <apex:outputText value="{!originalLoanOwner}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="3rd Party Lead Status"/>
+                    <apex:outputText value="{!opp.X3rd_Party_Lead_Status__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="3rd Party Lead Number"/>
+                    <apex:outputText value="{!opp.X3rd_Party_Lead_Number__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="3rd Party Photo Tag"/>
+                    <apex:outputText value="{!opp.X3rd_Party_Photo_Tag__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="3rd Party Photo Link"/>
+                    <apex:outputLink value="{!externalPartyPhotoURL}" target="_blank">
+                        <apex:outputText value="{!externalPartyPhotoURL}"/>
+                    </apex:outputLink>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Call Back Time"/>
+                    <apex:outputText value="{!opp.Callback_Time__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="PicStarter Conversation"/>
+                    <apex:outputPanel rendered="{!IF(picStarterConvAttach != null ,true, false)}">
+                        <apex:outputLink value="{!URLFOR($Action.Attachment.Download, picStarterConvAttach.id)}" target="_blank">Conversation Transcript</apex:outputLink>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Lead Source"/>
+                    <apex:outputText value="{!opp.X3rd_Party_Lead_Source__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Lead Purpose"/>
+                    <apex:outputText value="{!opp.Loan_Purpose__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Lead Term"/>
+                    <apex:outputText value="{!opp.Loan_Term__c}"/>
+                </apex:pageBlockSectionItem>
+                
+
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

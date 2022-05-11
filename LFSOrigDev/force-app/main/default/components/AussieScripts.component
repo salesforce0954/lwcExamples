@@ -1,0 +1,129 @@
+<apex:component controller="ScriptsController">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+    <link href="{!URLFOR($Resource.aussietheme, '/css/style.aussie.css')}" rel="stylesheet" media="screen" id="stylelink" />
+    <!--[if IE 8]> <link href="{!URLFOR($Resource.aussietheme, '/css/ie8only.css')}" rel="stylesheet" media="screen" /> <![endif]-->
+    <apex:includeScript value="{!URLFOR($Resource.aussietheme, '/js/minified.js')}"/>
+    <script>
+        document.write()
+    </script>
+    <noscript style="background: #ff0000;display: block;color: #fff;text-align: center;font-size:16px;">JavaScript is required to use this website. Please enable JavaScript in your browser to enable all functionality.</noscript>
+    
+    <script language="JavaScript">
+        // var breadcrumbtext="{!vfName}";
+        // var iw_prop4="Prodcuts"; 
+        // var iw_prop5="Personal Loans"; 
+        // var iw_prop6="Etc."; 
+        // var iw_prop7=""; 
+        // var iw_prop8="EN";
+    </script>
+    
+    <!-- Begin: Form vars -->
+    <script type="text/javascript">
+        var formName = "GEMoneyAU_loans_superform";
+        var pageName = "{!vfName}";
+        switch(pageName){
+        case "APP_Eligibility":pageName ="app_start"; break;
+        case "app_jointpersonaldetails":pageName ="app_personaldetails"; break;
+        case "app_jointincome":pageName ="app_income"; break;
+        case "app_jointexpenses":pageName ="app_expenses"; break;
+        case "app_jointassets":pageName ="app_assets"; break;
+        case "app_jointdebtandliabilities":pageName ="app_debtandliabilities"; break;
+        case "app_main_postsubmit":pageName ="app_complete"; break;
+        }
+        var callbackLinkName = "";
+        var callbackLinkSurname = "";
+
+        /* <![CDATA[ */
+        // Set the page name
+        breadcrumbtext = "[eForm]:" + formName + ":" + pageName;
+        /* START: page state variables */
+        /*
+         Set the page state related variables for the following sections:
+         1. Prequalifier
+         2. Failed prequal
+         3. Doing form (1st screen)
+         4. Doing form (subsequent screens)
+         5. Form complete
+         */
+        if (pageName == "app_start") {
+        /* 1. Start of application */
+        s_pageState = "A02-1-0";
+        s_appStep = "";
+        }
+        /*
+         else if(pageName.indexOf("PreQualifier_Fail") == 0) {
+         // 2. Failed prequal - do NOT set a "declined" event, as that will count a prequal fail as a submitted app
+         s_appStep = 1;
+         s_formErrors = "";
+         s_reason = "Prequal";
+         }
+         */
+        else if (/^Page_\d+$/.test(pageName)) {
+        /* 2, 3, 4, 5. Regular form page - just extract the step number from the page name */
+        s_pageState = "";
+        s_appStep = pageName.match(/\d+$/);
+        }
+        else if (pageName == "app_submitwait") {
+        // 6. Form complete.
+        s_pageState = "A02-2-3";
+        s_appStep = "";
+        s_formErrors = "";
+        s_state = "";
+        s_zip = "";
+        s_gender = "";
+        s_maritalStatus = "Select|";
+        s_formVersion = "";
+        s_formOfferId = "";
+        s_formMarkSource = "";
+        s_formLoanPurp = "";
+        s_formLoanPurpNZ = "Select|";
+        /* The following values can be blank OR an integer */
+        s_amountRequested = "" == "" ? "" : "" - 0;
+        currentDate = new Date();
+        currentYear = currentDate.getFullYear();
+        s_DobYr = "";
+        s_age = (currentYear) - (s_DobYr == "" ? currentYear : s_DobYr);
+        s_income = "" == "" ? "" : "" - 0;
+        s_dependants = "Select|" == "" ? "" : "Select|" - 0;
+        }
+        else {
+        /* Unknown page state - if this occurs it is an error. */
+        s_pageState = "";
+        }
+        /* END: page state variables */
+
+
+        /* START: Form field error detection */
+        if (s_pageState != "A02-2-2") {
+        s_formErrors = (function() {
+            errorDivs = $("div.error"), /* Get all div class=error blocks */
+                errorCount = errorDivs.length, /* Number of such divs */
+                currentDiv = 0, /* Div counter */
+                result = errorCount ? [] : ""; /* Result - either array to hold error fields OR an empty string */
+            /* Loop through the error divs (if any) */
+            for (currentDiv; currentDiv < errorCount; currentDiv++) {
+            result.push(errorDivs[currentDiv].id);
+            }
+            /* If it's an array, turn it into a slash-delimited string */
+            result = errorCount ? result.join("/") : result;
+            /* Return the result */
+            return result;
+        })();
+        }
+        /* END: Form field error detection */
+
+        /* Now set the site section etc details */
+        var iw_prop4 = "Products"; /* Site section */
+        var iw_prop5 = "Personal Loans"; /* Global product category OR site sub-section */
+        var iw_prop6 = "Money Direct"; /* Local product category */
+        var iw_prop7 = "Personal Loan"; /* Product name OR site sub-sub-section */
+        var iw_prop8 = "en-AU"; /* Language */
+        /*]]> */
+    </script>
+    
+    <script type="text/javascript" src="{!omnitureSource}"></script>
+    
+</head>
+</apex:component>

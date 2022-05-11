@@ -1,0 +1,111 @@
+<!--
+/*
+ * @Description: Direct Debit Details page (Staff UI)
+ * @Author: Mike Lasala
+ * @Date Created: 11.DEC.2013
+ * @History:
+   ====================================================================
+      12-11-13: Created - Mike
+      12-12-13: Added apex:pageBlockTable for fields - Mike
+      01-04-14: Changed record base to Debit__c - Mike
+      03-07-14: Refactor to standard page
+   ====================================================================
+  */ 
+-->
+<apex:page id="pageId" standardController="Application__c" extensions="APP_DirectDebitDetailsExt_INT" showHeader="false" sidebar="false">
+    
+    <apex:form id="formId">
+        
+        <div style="text-align:center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <apex:commandButton value="New" status="status" onClick="goOpenSubtabDebit();return false" disabled="{!newEditContract}"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Processing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+
+            <apex:actionStatus id="status1">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!refreshDebit}" reRender="formId" status="status1" onclick="document.getElementById('appPageId:contractInclude:pageId:formId:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="pageblock1" title="Direct Debit">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Type</th>
+                    <th class="headerRow">Account Name</th>
+                    <th class="headerRow">Bank</th>
+                    <th class="headerRow">Branch</th>
+                    <th class="headerRow">BSB</th>
+                    <th class="headerRow">Account Number</th>
+                    <th class="headerRow">Frequency</th>
+                    <th class="headerRow">Minimum Monthly</th>
+                    <th class="headerRow">Higher Amount</th>
+                    <th class="headerRow">Commencement Date</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!debitList}" var="d">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!d.RecordType.Name}</td>
+                        <td class="dataCell">{!d.Account_Holders__c}</td>
+                        <td class="dataCell">{!d.Bank_Name__c}</td>
+                        <td class="dataCell">{!d.Branch_Location__c}</td>
+                        <td class="dataCell">{!d.BSB_Number__c}</td>
+                        <td class="dataCell">{!IF(application.Brand_Lookup__r.Country__c == 'AU', d.Account_Number__c, d.Account_Number_NZ__c)}</td>
+                        <td class="dataCell">{!d.Frequency__c}</td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0, number,$###,###,##0.00}">
+                                <apex:param value="{!d.Minimum_Monthly_Amount_Currency__c}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0, number,$###,###,##0.00}">
+                                <apex:param value="{!d.Specify_Higher_Amount__c}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                <apex:param value="{!d.Commencement_Date__c}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+	                        <!-- MLASALA 08-SEPT-2016 Stored XSS Code Scan fix -->
+                            <a onclick="openSubtab1('/{!JSENCODE(d.Id)}','{!JSENCODE(d.Name)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+        
+    </apex:form>
+    
+    
+    <script type="text/javascript">
+
+        function goOpenSubtabDebit() {
+            //First find the ID of the primary tab to put the new subtab in
+            sforce.console.getEnclosingPrimaryTabId(openSubtabDebit);
+        }
+        
+        var openSubtabDebit = function openSubtabDebit(result) {
+            //Now that we have the primary tab ID, we can open a new subtab in it
+            var primaryTabId = result.id;
+            
+            sforce.console.openSubtab(primaryTabId , '/setup/ui/recordtypeselect.jsp?ent={!debitObjId}&save_new_url={!keyPrefix}/e?&CF{!JSENCODE(applicationFieldId)}_lkid={!JSENCODE(application.Id)}&CF{!JSENCODE(applicationFieldId)}={!JSENCODE(application.Name)}', true, '', null);
+        };
+
+    </script>
+
+</apex:page>

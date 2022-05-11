@@ -1,0 +1,1599 @@
+<!--
+/**
+ * @Description: Offer Presentation Page
+ * @Author: Fel Saliba
+ * @Date Created: 24.OCT.2013
+ * @History:
+   =====================================================================
+       OCT-24 (Fel): Created.
+       2015-02-27: DBHZL386 Added Retrieve Payoff Figure from ICBS by Tony Xu
+   =====================================================================
+ */ 
+-->
+<apex:page id="offerPage" cache="false" standardController="Application__c" 
+extensions="OFF_OfferPresentationExt,Off_OfferPresentationRemote" sidebar="false" 
+showHeader="false" title="Offer Presentaion" action="{!validateRedirect}" standardStylesheets="false" 
+applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+<html>
+    
+    <!-- Scripts -->
+    <c:GEDDScripts />
+    <apex:includeScript value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/js/jquery-1.9.1.js')}" />   
+    
+    <!-- Staff UI Offer Page CSS -->
+        <link href="{!URLFOR($Resource.staffuicss, '/suiovr.css')}" rel="stylesheet" media="screen"/>
+    <!-- Staff UI Offer Page CSS -->
+    
+    <apex:outputPanel rendered="{!ISPICKVAL($Profile.UserType,'Standard')}">
+    </apex:outputPanel>
+    
+    <body>
+        <div class="mainwrapper suiovr">
+            <section>
+            
+                <apex:outputPanel id="header" rendered="{!AND(noErrors)}">
+                    <apex:outputPanel id="congrats" rendered="{!isCustomer}">
+                        <div class="row-fluid statusapproval">
+                            <div class="pagetitle rbbottom">
+                                <h3 class="droid-normal center">Congratulations!</h3>
+                                <h5 class="hlvtc-light center margint5 c666">You are conditionally approved!</h5>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                    
+                    <div class="maincontent progresscontainer">
+                        <!-- Progress bar -->
+                        <div class="row-fluid">
+                            <div class="progress">
+                                <apex:repeat value="{!wrapperHeader}" var="h">
+                                    <div class="bar {!h.headerColor}" style="width: {!h.headerWidth}%;">{!h.name}</div>
+                                    <!--<div class="bar pb-olive" style="width: 20%;">Educational Expenses</div>
+                                    <div class="bar pb-green" style="width: 45%;">$18,000 Available for you</div>-->
+                                </apex:repeat>
+                                <div class="bar pb-emerald" style="width: {!feesWidth}%;">Fees</div>
+                                <div class="bar pb-lightblue" style="width: {!remainingWidth}%;"><apex:outputText value="${0, number, ###,###,###,###.00}"> <apex:param value="{!remaining}"/> 
+                                </apex:outputText> Available for you</div>
+                            </div>
+                            <div class="clearfloat"></div>
+                            <div class="span12" style="margin-left:0;">
+                                <div class="fleft span6" style="text-align:left;margin-left:0 !important;">
+                                <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+                                <apex:param value="{!application.Total_Loan_Amount_with_Insurance__c}"/> 
+                                </apex:outputText></div>
+                                <div class="fright span6" style="text-align:right;margin-left:0 !important;">
+                                <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+                                <apex:param value="{!capacity}"/> </apex:outputText></div>
+                            </div>
+                        </div>
+                        
+                        <apex:outputPanel rendered="{!AND(isCustomer,displayHeader)}">
+                            <p class="center">
+                            We have assessed your credit worthiness and you are eligible for a higher loan amount.</p>
+                            <p class="center">You can <a href="#" class="text-info">add another loan purpose</a> or
+                             <a href="#" class="text-info">view the maximum amount</a> we can lend you.</p>
+                        </apex:outputPanel>
+                        <div class="divider10 rimview"></div>
+                        <div class="clearfix"></div>
+                    </div>
+                </apex:outputPanel>      
+
+                <div class="maincontent opLoanpurpose">           
+                    <div class="row-fluid">
+                        <apex:form id="frmId">
+                            <apex:inputHidden id="ctr" value="{!rowCount}"/>
+                            <apex:inputHidden id="ctrRemove" value="{!loanToRemove}"/>
+                            <apex:inputHidden id="ctrDisplay" value="{!displayCtr}"/>
+                            <apex:inputHidden id="checkDisable" value="{!disableFields}"/>
+                            <apex:inputHidden id="upsellId" value="{!application.Upsell_Opt_In__c}"/>
+                            <apex:inputHidden id="dateOfBirthStr" value="{!dateOfBirthStr}"/>
+                            <apex:inputHidden id="dateOfBirthStr2" value="{!dateOfBirthStr2}"/>
+                            <apex:inputHidden id="renderInsurance" value="{!renderInsurance}"/>
+                            <apex:inputHidden id="disbursementRowCount" value="{!disbursementRowCount}" />
+                            <apex:inputHidden id="disbursementNetPayOff" value="{!disbursementNetPayOff}" />
+                            <apex:actionFunction name="rerenderInsurance" action="{!rerenderInsurance}" rerender="frmId"/>
+                            <apex:actionFunction name="saveMethod" action="{!save}" rerender="addPbId, message, header" oncomplete="hideLoading();"/>
+                            <!--<apex:actionFunction name="addLoanDebtMethod" action="{!addLoanDebt}" />-->
+                            <!--<apex:actionFunction name="secureAssetMethod" action="{!secureAsset}" />-->
+                            <!--<apex:actionFunction name="creditOfferMethod" action="{!creditOffer}" />-->
+                            <apex:actionFunction name="insuranceOfferMethod" action="{!insuranceOffer}" rerender="message,frmId" oncomplete="hideLoading();"/> 
+                            <apex:actionFunction name="updateApplicationMethod" action="{!updateApplicationConsent}" />
+                            <apex:actionFunction name="rerenderEditPanel" rerender="editPanel"/>
+                            <apex:actionFunction name="refreshPage" action="{!refreshPage}" oncomplete="hideLoading();"/>
+                            <!-- Loading -->                            
+                            <div id="showLoading" style="display:none">
+                            <c:EnhancedActionStatus BackColor="#efefef" borderColor="#ffffff" borderSize="0"
+                            height="50px" width="130px" ImageUrl="{!$Resource.loading}" Message="Recalculating..." 
+                            messageStyle="color:darkred;font-size:11pt;font-weight:bold;padding:20px;"/>
+                            </div>
+
+                            <apex:pageBlock id="message"> 
+                                     <apex:pageMessages />  
+                            </apex:pageBlock>
+                            <apex:outputPanel rendered="{!IF(appResponse.size==0,true,false)}"> 
+                                 <a href="javascript:history.go(0)" class="refreshlink">Click to refresh the page</a> 
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!application.Online_Self_Serve_Eligible__c}">
+                                <apex:inputCheckbox id="lockCheckboxAgent" value="{!application.Staff_Hide__c}" disabled="{!OR(application.Staff_Hide__c,application.Customer_Confirmed_Online_Offer__c)}">
+                                    Staff Hide Online Offer 
+                                    <apex:actionSupport event="onchange" rerender="lockCheckbox" action="{!lockDownOffer}" onComplete="toggleRecalculation('block');refreshPage();"/>
+                                </apex:inputCheckbox>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <apex:inputCheckbox id="lockCheckboxCustomer" value="{!application.Customer_Confirmed_Online_Offer__c}" disabled="true">
+                                    Customer Confirmed Online Offer
+                                </apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:pageBlock id="loantbl" rendered="{!noErrors}">
+                                <apex:pageBlockButtons location="top" id="refButtons">
+                                    <div style="text-align:right;">
+                                        <apex:commandButton value="Refresh" action="{!refreshPage}" image="{!URLFOR($Resource.staffuicss, 'images/refresh.png')}" />
+                                    </div>
+                                    
+                                </apex:pageBlockButtons>
+                                <br/>
+                                <div class="row-fluid span12 loanfields removelmargin">
+                                    <div class="consolidationMessage" id="consolidationMessage" style="width: 100%; margin: 20px auto; font-family: initital; background-color: rgb(234, 244, 254) !important; color: rgb(31, 33, 35) !important; display: none;">
+                                        Please note, you may be charged fees by the other financier(s) when we repay your debts. Please include these fees in your requested loan amount. By continuing, 
+                                        you accept these fees in order to  achieve your objectives.
+                                    </div>
+                                    <div class="clearfloat"></div>                                    
+                                <div id="addfields" class="tablemainlist llfields">
+                                    <apex:repeat value="{!offerList}" var="offer" id="offerid">
+                                        <div class="span12" id="{!offer.counter}" style="{!IF(offer.loan.Id!=null,'display:block','display:none')}">
+                                            <div class="minusplusicon"><!-- container for minus icon -->
+                                                <!--<apex:commandLink onclick="hideLoan('{!offer.counter}');" value="remove"/>-->
+                                                <!-- Checkmarx -->
+                                                <!--<apex:outputPanel rendered="{!IF(isCustomer==false,true,IF(displayHeader==true,true,false))}">
+                         <a href="#" onclick="hideLoan('{!HTMLEncode(TEXT(offer.counter))}','{!HTMLEncode(offer.loan.Value__c)}');" id="removeId" 
+                         style="font-size: 11px;">--> 
+                                                <apex:outputPanel rendered="{!IF(isCustomer==false,true,IF(displayHeader==true,true,false))}">
+                         <a href="#" onclick="hideLoan('{!offer.counter}','{!offer.loan.Value__c}');" id="removeId" 
+                         style="font-size: 11px;"><apex:image url="{!URLFOR($Resource.getheme, 'images/minus_icon_dark.png')}"/></a>
+                                                </apex:outputPanel>
+                                            </div>
+                                            
+                                            <div class="pllabel"><!-- container for label -->
+                                                <label>I need</label>
+                                            </div>
+                                            
+                                            <div class="inpselfield"><!-- container for input or select -->
+                                                <!-- amount -->
+                     <h3><apex:outputText value="{!offer.loan.Loan_Amount__c}" 
+                     rendered="{!NOT(IF(isCustomer==false,true,IF(displayHeader==true,true,false)))}"/></h3>
+                     <apex:inputField id="lAmt" styleClass="input-block-level" 
+                     value="{!offer.loan.Loan_Amount__c}" onchange="enableSave();" 
+                     rendered="{!IF(isCustomer==false,true,IF(displayHeader==true,true,false))}"/>
+                                            </div>
+                                            
+                                            <div class="pllabel pllabel2"><!-- container for label -->
+                                                <label>for</label>
+                                            </div>
+                                            
+                                            <div class="inpselfield"><!-- container for input or select -->
+                                                
+   <div id="loanValueId{!offer.counter}" 
+   style="{!IF(AND(isCustomer==false,offer.loan.Value__c !='Other'),'display:block',IF(displayHeader==true,'display:block','display:none'))}">
+       <input type="hidden" class="loanValueSelectOrigHidden" value="{!offer.loan.Value__c}"/>
+       <apex:selectList styleClass="amainselect loanValueSelectOrig" id="loanPur" size="1"
+       value="{!offer.loan.Value__c}" onchange="checkValue(this,'{!offer.counter}'); rerenderEditPanel(); consolidationMessage(this, 1);"> 
+       <!-- disabled="{!IF(offer.loan.Value__c == 'Debt consolidation',true,false)}" -->
+                                                        <apex:selectOptions value="{!loanPurposeOptions}"/>
+                                                    </apex:selectList>
+                                                </div>
+                                                
+                                                
+            <h3><apex:outputText value="{!offer.loan.Value__c}" 
+            rendered="{!NOT(IF(isCustomer==false,true,IF(displayHeader==true,true,false)))}"/>
+            <apex:outputText rendered="{!NOT(IF(isCustomer==false,true,IF(displayHeader==true,true,false)))}"> 
+            <apex:param value="{!offer.loan.Value__c}"/> </apex:outputText></h3>
+            <div style="{!IF(AND(isCustomer==false,offer.loan.Value__c=='Other'),'display:block','display:none')}" 
+            id="otherloanId{!offer.counter}">
+                <apex:inputText onkeypress="return isAlNumericWithHyphen(event, this)" maxLength="20" 
+                value="{!Offer.loan.Other_Loan_Purpose__c}" styleClass="input-block-level" 
+                style="background: none repeat scroll 0% 0% rgb(32, 107, 153);opacity: 0.4;color: rgb(255, 255, 255);" 
+                id="lDescription" />
+                                                </div>
+                                            </div>
+
+                                            <div class="minusplusicon minusplusiconrmv">
+                                                <!-- container plus icon --> 
+                                                <!-- container for Refinance Edit button -->
+                                                <apex:outputPanel id="editPanel" rendered="{!IF(isCustomer==false,true,IF(displayHeader==true,true,false))}">
+                                                
+                                                    <apex:outputPanel rendered="{!offer.loan.Value__c == 'Refinance' || nRefinanceRow == offer.counter || CONTAINS(sRefinanceIds, TEXT(offer.counter))}">
+    <a href="#"
+     onclick="editDisbursement('{!HTMLENCODE(TEXT(offer.counter))}','{!HTMLENCODE(offer.loan.Value__c)}');" id="editId">Edit
+                                                        </a>
+                                                    </apex:outputPanel>
+                                                </apex:outputPanel>                                                   
+                                            </div>
+
+                                        </div>
+                                    </apex:repeat>
+                                    <div class="clearfix"></div>
+                                    <div class="span12">
+                                        <div class="minusplusicon"><!-- container for minus icon -->
+                                        </div>
+                                        
+                                        <div class="pllabel"><!-- container for label -->
+                                            <label>I need</label>
+                                        </div>
+                                        
+                                        <div class="inpselfield"><!-- container for input or select -->
+                                            <apex:inputField value="{!loan.Loan_Amount__c}" styleClass="input-block-level" id="loanAmt"/>
+                                        </div>
+                                        
+                                        <div class="pllabel pllabel2"><!-- container for label -->
+                                            <label>for</label>
+                                        </div>
+                                        
+                                        <div class="inpselfield"><!-- container for input or select -->
+                 <apex:selectList styleClass="amainselect loanValueSelectAdd" id="loanPur" size="1" value="{!loan.Value__c}"
+                  onchange="checkRefinanceCount(this); checkLoanValue(this); consolidationMessage(this, 2);">
+                                                <apex:selectOptions value="{!loanPurposeOptions}"/>
+                                            </apex:selectList>
+                                        </div>
+                                        
+                                        <div class="minusplusicon minusplusiconrmv"><!-- container plus icon -->
+                 <a href="#" onclick="addLoan();" id="addId" style="font-size: 11px;">
+                 <apex:image url="{!URLFOR($Resource.getheme, 'images/add_icon_dark.png')}"/></a>
+                                        </div>
+                                    
+                                    </div><!-- end span12 -->
+                                    
+                                    <apex:outputPanel rendered="{!IF(isCustomer==false,true,IF(displayHeader==true,true,false))}">
+                                        <div class="span12" style="display:none" id="otherId">
+                                            <div class="minusplusicon"><!-- container for minus icon -->
+                                            </div>
+                                            
+                                            <div class="pllabel"><!-- container for label -->
+                                                <label></label>
+                                            </div>
+                                            
+                                             <div class="inpselfield"><!-- container for input or select -->
+                                                <div class="input-block-level"></div>
+                                            </div>
+                                            
+                                            <div class="pllabel pllabel2" style="width: 100px;margin-left: -28px;"><!-- container for label -->
+                                                <label>Other Description</label>
+                                            </div>
+                                            
+                                            <div class="inpselfield"><!-- container for input or select -->
+                     <apex:inputText value="{!loan.Other_Loan_Purpose__c}" 
+                     onkeypress="return isAlNumericWithHyphen(event, this)" maxLength="20" 
+                     styleClass="input-block-level" id="other"/>
+                                            </div>
+                                            
+                                            <div class="minusplusicon minusplusiconrmv"><!-- container plus icon -->
+                                            </div>
+                                        
+                                        </div><!-- end span12 -->
+                                    </apex:outputPanel>
+                                    
+                                    <div class="clearfix"></div>
+                                    <div class="divider10"></div>
+                                    <div class="fright">
+                                    <!-- Added by MDAVID 04/18/2016 - Resize button to original height -->
+             <button style="height:20px" class="btn btn-large btn-activec fright buttonarrowimg" type="button" onclick="save();" 
+             id="saveId" disabled="true">Save Changes &amp; Recalculate</button>                                        
+                                    </div>
+
+                                </div><!-- addfields -->
+                                </div><!-- end loanfields -->
+                            </apex:pageBlock>
+
+
+                            <apex:pageBlock id="addPbId" rendered="{!noErrors}">
+                                <div class="clearfloat"></div>
+                            <div id="displayCalculated" style="display:block">
+
+                                <!-- Table -->
+                                <div class="row-fluid">
+                                    <!-- Added by MDAVID 04/18/2016 - Capitalize 'Total' label -->
+                                    <div class="computation" style="padding: 20px;">
+                                        <div class="span4 mfluid">                                            
+                                            <div class="totallist">
+      <!-- Added by MDAVID 04/18/2016 - Capitalize 'Total' label -->        
+      <span class="totalname" style="text-transform: uppercase;color:#666;color: #666;padding: 5px;margin-right: 10px;">Total</span><span class="total ttovr" style="font: 40px Arial, Verdana;color: #222;padding-top: 10px;vertical-align: middle;">
+      <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+      <apex:param value="{!application.Total_Loan_Amount_with_Insurance__c}"/> 
+      </apex:outputText></span><br />
+      <apex:outputPanel rendered="{!IF(application.Offered_Establishment_Fee__c!=null,IF(application.Offered_Establishment_Fee__c>0,true,false),false)}">
+      <span 
+      class="totalname3">Establishment Fee</span><span class="total3"><apex:outputText value="${0, number, ###,###,###,###.00}">
+       <apex:param value="{!application.Offered_Establishment_Fee__c}"/> </apex:outputText></span></apex:outputPanel><br />
+      <apex:outputPanel rendered="{!IF(application.Offered_PPSR_Search_Fee__c!=null,IF(application.Offered_PPSR_Search_Fee__c>0,true,false),false)}">
+      <span class="totalname3">Search Fee</span><span class="total3"><apex:outputText value="${0, number, ###,###,###,###.00}"> 
+      <apex:param value="{!application.Offered_PPSR_Search_Fee__c}"/> </apex:outputText></span></apex:outputPanel><br />
+      <apex:outputPanel rendered="{!IF(application.Offered_PPSR_Registration_Fee__c!=null,IF(application.Offered_PPSR_Registration_Fee__c>0,true,false),false)}">
+      <span class="totalname3">Registration Fee</span><span class="total3"><apex:outputText value="${0, number, ###,###,###,###.00}"> 
+      <apex:param value="{!application.Offered_PPSR_Registration_Fee__c}"/> </apex:outputText></span>
+      </apex:outputPanel><br />
+      <apex:outputPanel rendered="{!IF(application.Brokerage_Fee__c!=null,IF(application.Brokerage_Fee__c>0,true,false),false)}">
+      <span class="totalname3">
+      Broker Fee</span><span class="total3"><apex:outputText value="${0, number, ###,###,###,###.00}"> 
+      <apex:param value="{!application.Brokerage_Fee__c}"/> </apex:outputText></span></apex:outputPanel><br />
+      <apex:outputPanel rendered="{!IF(application.Total_Insurance_Premium__c!=null,IF(application.Total_Insurance_Premium__c>0,true,false),false)}">
+      <span class="totalname3">Total Insurance Premium</span><span class="total3"><apex:outputText value="${0, number, ###,###,###,###.00}"> 
+      <apex:param value="{!application.Total_Insurance_Premium__c}"/> </apex:outputText></span></apex:outputPanel>
+                                            </div> 
+                                        </div>
+                                         
+                                        <div class="span8 mfluid">
+                                        <!-- Added by MDAVID 04/18/2016 - Updated 'label' line-height --> 
+                <span class="totalname" style="text-transform: uppercase;line-height: 21px; font:16px Arial,Verdana;color: #666;padding: 5px;margin-right: 10px;"><apex:outputLabel style="line-height: 21px;"> {!application.Payment_Frequency__c} Repayments
+                 </apex:outputLabel> </span>
+                                            <span class="total span4 mrepay" style="line-height: 21px;font: 40px Arial, Verdana;color: #222;">                                              
+                    <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+                    <apex:param value="{!application.Frequency_EMI_with_Service_Fee__c}"/> </apex:outputText>
+                                            </span>
+                                            
+                                            <span class="span4 ddown" style="margin-top:-10px;">
+                    <apex:outputLabel style="line-height: 21px;"> Frequency <a href="#" class="txtooltip"
+                     title="Select the loan payment frequency you prefer."><span class="fui-question fright"></span></a> 
+                     <span class="fui-star-2"></span></apex:outputLabel><div class="clearfix"></div>
+                    <apex:selectList styleClass="amainselect" id="loanFreq" size="1" value="{!application.Payment_Frequency__c}" 
+                    onchange="enableSave();">
+                                                    <apex:selectOptions value="{!loanFrequencyOptions}"/>
+                                                </apex:selectList>
+                                            </span>
+                                            
+                                            <span class="span3 ddown" style="margin-top:-10px;line-height: 21px;">
+                    <apex:outputLabel style="line-height: 21px;"> Term <a href="#" class="txtooltip" title="Select the loan term that you prefer.">
+                    <span class="fui-question fright"></span></a> <span class="fui-star-2"></span></apex:outputLabel>
+                    <div class="clearfloat"></div>
+                    <!--<apex:inputField value="{!application.Loan_Term_Months__c}"
+                     onkeypress="return isNumberKey(event, this, 2)" styleClass="adjust_inpright1" onchange="enableSave();"/>-->
+                        <apex:selectList styleClass="amainselect" id="loanterm" size="1" value="{!loanTermSelected}" 
+                        onchange="enableSave();">
+                                                        <apex:selectOptions value="{!loanTermOptions}"/>
+                                                    </apex:selectList>
+                                            </span>
+                                        </div>
+                                        <div class="clearfix hline"></div>
+                                        <div class="span12 removelmargin">
+                                            <div class="span4">
+                                                <ul class="fui-question-ovrd">
+       <li><apex:outputText ><strong>Interest Rate</strong> p.a. <a href="#" class="txtooltip" 
+       title="Sed commodo auctor felis a sagittis. Pellentesque rutrum mi nec arcu fringilla, ut laoreet odio placerat.">
+       <span class="fui-question fright"></span></a></apex:outputText> 
+        <apex:outputText value="%{0, number, ###,###,###,###.00}">
+         <apex:param value="{!application.Offered_Interest_Rate__c}"/>
+        </apex:outputText><!--<apex:outputField value="{!appResponse[0].Annual_Interest_Rate__c}"/>--> </li>
+       <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Monthly Repayments w/ SF</strong> 
+       </apex:outputText> <apex:outputText value="${0, number, ###,###,###,###.00}" rendered="{!NOT(isCustomer)}"> 
+       <apex:param value="{!application.EMI_with_Service_Fee__c}"/> <a href="#" class="txtooltip" 
+       title="Nulla facilisi. Nulla in vestibulum dui, at lobortis mi. Nulla rhoncus enim ut sem
+        convallis, in eleifend libero ullamcorper.">
+       <span class="fui-question fright"></span></a></apex:outputText> </li>
+       <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Unsecured Limit </strong>
+        </apex:outputText> &nbsp;  <apex:outputField value="{!application.Max_Capacity_Unsecured__c}"
+         rendered="{!NOT(isCustomer)}"> <a href="#" class="txtooltip"
+          title="Nulla facilisi. Nulla in vestibulum dui, at lobortis mi. Nulla rhoncus enim ut 
+          sem convallis, in eleifend libero ullamcorper.">
+          <span class="fui-question fright"></span></a></apex:OutputField> </li>
+                                                </ul>
+                                            </div>
+                                            <div class="span4">
+                                                <ul class="fui-question-ovrd">
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Credit Score </strong></apex:outputText> 
+                        <apex:outputField value="{!application.Credit_Score__c}" rendered="{!NOT(isCustomer)}"/> </li>
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Secured Limit </strong></apex:outputText> 
+                        <apex:outputField value="{!application.Max_Capacity_Secured__c}" rendered="{!NOT(isCustomer)}"/> 
+                        </li>
+                                                </ul>
+                                            </div>
+                                            <div class="span4"><!-- Added as part of DBHZL-317 ---start-->
+                                                <ul class="fui-question-ovrd">
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Interest on Insurance </strong></apex:outputText> 
+                        <apex:outputtext value="${!application.Total_Insurance_Interest_Amount_Payable__c}"
+                         rendered="{!NOT(isCustomer)}"/></li>
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Interest on Principal+Fees </strong></apex:outputText>
+                         <apex:outputtext value="${!application.Total_Loan_Interest_Amount_Payable__c}"
+                          rendered="{!NOT(isCustomer)}"/> </li>
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Total Interest </strong></apex:outputText>
+                         <apex:outputtext value="${!totalInterest}"
+                          rendered="{!NOT(isCustomer)}"/> </li>
+                          <!-- Start :Added Total amount payable as part of Q1 2021-->
+                          <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Total Amount Payable </strong></apex:outputText>
+                         <apex:outputtext value="${!application.Total_Amount_Payable__c}"
+                          rendered="{!NOT(isCustomer)}"/> </li>
+                          <!-- End: Total amount payable as part of Q1 2021-->
+                                                </ul>
+                                            </div><!-- Added as part of DBHZL-317 -END->
+                                            
+                                            <!-- <div class="span4">
+                                                <ul class="fui-question-ovrd">
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Willing to Secure? </strong></apex:outputText> 
+                        <apex:inputField value="{!application.Willing_to_secure__c}" rendered="{!NOT(isCustomer)}"
+                         styleClass="fright" onchange="updateApplication();"/> </li>
+                        <li><apex:outputText rendered="{!NOT(isCustomer)}"><strong>Is Loan Secured? </strong></apex:outputText> 
+                        <apex:outputField value="{!application.Is_Secured__c}" rendered="{!NOT(isCustomer)}"
+                         styleClass="fright"/> </li>
+                                                </ul>
+                                            </div> -->
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div><!-- computation -->
+                                    
+                                </div><!-- span12 -->
+                                <!-- table -->                          
+ 
+                            </div><!-- End Display Calculated-->
+                            
+                                <div id="saveTextId" style="display:none;margin:0 auto;text-align:center;">
+                                    <div class="divider20"></div>
+                                    <center>
+                                        <div class="alert alert-success" style="width:60%;margin:0 auto;">
+                                            <h4>Please save to calculate updated payments and rates.</h4>
+                                        </div>
+                                    </center>
+                                    <div class="divider20"></div>
+                                </div>
+                            
+                            <div class="divider30"></div>
+
+                            <div id="offers" class="maincontent blogcontent sidebar-left" style="padding-left: 0px;padding-top: 0px;">
+                                <div class="row-fluid">
+
+                                    <!-- 1 sidebar -->
+                                            <!-- Debt consolidation and Credit Card will not be part of Phase 1
+                                            <div class="span6 marginlremove">
+                                                <div class="infoboxoption" style="border:0 !important;">
+                                                    <div class="infoboxpad" style="padding:0;border:0 !important;">
+                                                        <apex:outputPanel rendered="{!IF(AND(wrapperDebt.size>0,displayDebt),true,false)}">
+                                                        <div style="padding:15px;">
+              <h3>Consolidate other debts &nbsp;<apex:outputText value="Offered to customer" 
+              rendered="{!AND(debtDisplayOffered,NOT(isCustomer))}" /></h3><br />
+                                                            <apex:repeat value="{!wrapperDebt}" var="w" id="debtid">
+                                                            <label class="checkbox" for="checkbox2">
+                  <apex:inputCheckbox value="{!w.isConsolidated}" 
+                  onchange="addLoanDebt('{!w.total}',this,'{!application.Total_Loan_Amount_with_Insurance__c}');"/>
+                  Consolidate {!w.debtCategory} for $ {!w.frequency}
+                   per {!application.Payment_Frequency__c} (<apex:outputText value="${0, number, ###,###,###,###.00}"> 
+                   <apex:param value="{!w.total}"/> </apex:outputText> total)
+                                                            </label><div class="clearfix hline"></div>
+                                                            </apex:repeat> 
+                                                        </div>
+                                                        </apex:outputPanel>
+                                                        
+                                                        <apex:outputPanel rendered="{!IF(AND(application.Credit_Card_Eligibility_Flag__c, wrapperCredit.size>0),if(isCustomer==false,true,if(displayCreditCard == true,true,false)),false)}">
+                                                        <div style="padding:15px;">
+                                                            <h3>Credit Card Offers</h3><br />
+                                                             <apex:repeat value="{!wrapperCredit}" var="c" id="creditid">
+                                                            <label class="checkbox" for="checkbox2">
+                  <apex:inputCheckbox value="{!c.isSelected}" onchange="creditOffer();"/>
+                  {!c.productVersion.Product_Name__c}<br/><strong><apex:outputText value="Offered to Customer" 
+                  rendered="{!AND(c.offerExist,NOT(isCustomer))}" /></strong>
+                                                            </label><div class="clearfix hline"></div>
+                                                            </apex:repeat> 
+                                                        </div>
+                                                         </apex:outputPanel>
+                                                        
+                                                    </div>
+                                                    <apex:outputPanel rendered="{!IF(AND(wrapperDebt.size>0,displayDebt),true,false)}"> 
+                                                    <div class="infoboxhelp">
+             <a href="#" class="txtooltip" title="Sed commodo auctor felis a sagittis. Pellentesque rutrum mi nec arcu 
+             fringilla, ut laoreet odio placerat."><span class="fui-question"></span></a>
+                                                        <h3>Why consolidate your debt?</h3>
+                                                        <p>Nulla varius augue justo, a rhoncus purus aliquam vel. Nulla facilisi. Ut laoreet est vel mi iaculis condimentum</p>
+                                                    </div>
+                                                    </apex:outputPanel>
+                                                </div>
+                                            </div>
+                                            -->
+                                            <!-- span6 marginlremove -->
+
+                                            <!-- 2 right column -->
+                                            
+                                            <div class="span6">
+                                                <div class="infoboxoption" style="border:0 !important;">
+                                                    <div class="infoboxpad" style="padding:0;border:0 !important;">
+                                                        <!--
+                                                        <apex:outputPanel rendered="{!IF(NOT(isCustomer),IF(application.Willing_to_secure__c,true,false),false)}">
+                                                            <div class="paddingoffers" style="padding:15px;">
+                                                                <apex:outputPanel rendered="{!IF(assetList.size>0,true,false)}">
+             <h3>Would you like to increase the amount we can lend to you by securing your loan?&nbsp;<br/>
+             <apex:outputText value="Offered to customer" rendered="{!AND(assetDisplayOffered,NOT(isCustomer))}" />
+             </h3><br />
+                                                                </apex:outputPanel>
+                                                                
+                                                                <apex:repeat value="{!assetList}" var="asset" id="assetid">
+                                                                <label class="checkbox" for="checkbox2">
+                                                                    <apex:inputField value="{!asset.is_Secured__c}" onchange="secureAsset();"/> {!asset.Asset_Category__c}
+                                                                </label><div class="clearfix hline"></div>
+                                                                </apex:repeat>
+                                                            </div>
+                                                        </apex:outputPanel>
+                                                        -->
+                                                        
+                                                        <!--<apex:outputPanel rendered="{!IF(ageValidation, true, false)}" id="insurancePanel">-->
+
+                                                        <apex:outputPanel rendered="{!IF(ageValidation,true,false)}">
+                                                            <apex:outputPanel rendered="{!IF(AND(application.Insurance_Eligibility_Flag_Applicant_1__c>0,wrapperInsure.size>0),IF(isCustomer==false,true,IF(displayInsurance == true,true,false))
+                                                            ,false)}">
+                                                                                                    
+                                                                <div class="paddingoffers" style="padding:15px;">
+                                                                    
+                                                                    
+                                                                    <!------ Start AU Insurance Section ------>
+                                                                    <!-- BEGIN ARSHAD: BDR-115 -->
+                                        <apex:outputPanel rendered="{!IF(AND(applicant.Consent_to_Lpi__c == true,application.Loan_Insurance_Consent__c == true,application.Brand_Country__c == 'AU'), true,false)}">                                                    
+                                                                 <h3>Insurance Offers</h3><br />
+                                                                    <apex:outputPanel rendered="{!IF(AND(application.Loan_Insurance_Consent__c == true,application.Brand_Country__c == 'AU'), true,false)}">
+                                                                        <apex:repeat value="{!wrapperInsure}" var="i" id="insureid">
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(i.insuranceType == 'Life Insurance',true,false)}"> 
+            {!i.productVersion.Product_Name__c}<br /><strong><apex:outputText value="Offered to Customer" 
+            rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+                <li><apex:inputCheckbox value="{!i.applicant1}" onchange="insuranceOffer('applicant1','{!i.applicant2}',this);" disabled="{!IF(application.Max_Monthly_Capacity__c - application.EMI_with_Service_Fee__c < 0, true, false)}"/> 
+                Applicant {!applicant.First_Name__c} &nbsp;</li>
+                <li><apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c>0),true,false)}">
+                <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOffer('applicant2','{!i.applicant2}',this);"
+                 disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>0,i.applicant1==true,netIncomeEligible==true)),true,false)}"/>
+                 Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(AND(i.insuranceType == 'Disability Insurance',application.Insurance_Eligibility_Flag_Applicant_1__c>1),true,false)}">
+            {!i.productVersion.Product_Name__c}<br /><strong>
+            <apex:outputText value="Offered to Customer" rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+                <li><apex:inputCheckbox value="{!i.applicant1}" onchange="insuranceOffer('applicant1','{!i.applicant2}',this);" disabled="{!IF(application.Max_Monthly_Capacity__c - application.EMI_with_Service_Fee__c < 0, true, false)}"/> 
+                Applicant {!applicant.First_Name__c} &nbsp;</li>
+                <!-- <apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c>1),true,false)}"> -->
+                <!-- Added by Arshad as per BDR - 115 -->
+                <li><apex:outputPanel rendered="{!IF(AND(isJoint,applicant2.Consent_to_Lpi__c == true,applicant2.Loan_Insurance_Consent__c == true),true,false)}">
+                <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOffer('applicant2','{!i.applicant2}',this);" 
+                disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>1,i.applicant1==true,netIncomeEligible==true)),true,false)}"/>
+                Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                <!-- Condition for Joint Applicant to enable PTDI check box for Applicant 2 - Added by Arshad - BDR - 115 -->
+                <li><apex:outputPanel rendered="{!IF(AND(isJoint,applicant2.Consent_to_Lpi__c == true,applicant.Loan_Insurance_Consent__c == false,applicant2.Loan_Insurance_Consent__c == false),true,false)}">
+                <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOffer('applicant2','{!i.applicant2}',this);" 
+                disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>1,i.applicant1==true,netIncomeEligible==true)),true,false)}"/>
+                Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                <!-- End -->
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(AND(i.insuranceType == 'Involuntary Unemployment Insurance',application.Insurance_Eligibility_Flag_Applicant_1__c>2),true,false)}">
+            {!i.productVersion.Product_Name__c}<br /><strong><apex:outputText value="Offered to Customer" rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+                <li><apex:inputCheckbox value="{!i.applicant1}" 
+                onchange="insuranceOffer('applicant1','{!i.applicant2}',this);" disabled="{!IF(NOT(AND(hasDisability)),true,false)}"/>
+                 Applicant {!applicant.First_Name__c} &nbsp;</li>
+                <!-- <li><apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c>2),true,false)}"> -->
+                <!-- Added by Arshad as per BDR - 115 -->
+                <li><apex:outputPanel rendered="{!IF(AND(isJoint,applicant2.Consent_to_Lpi__c == true,applicant2.Loan_Insurance_Consent__c == true),true,false)}">
+                <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOffer('applicant2','{!i.applicant2}',this);"
+                 disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>2,i.applicant1==true,hasDisability,netIncomeEligible==true)),true,false)}"/>Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                 <!-- Condition for Joint Applicant to enable PTDI check box for Applicant 2 - Added by Arshad - BDR - 115 -->
+                <li><apex:outputPanel rendered="{!IF(AND(isJoint,applicant2.Consent_to_Lpi__c == true,applicant.Loan_Insurance_Consent__c == false,applicant2.Loan_Insurance_Consent__c == false),true,false)}">
+                <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOffer('applicant2','{!i.applicant2}',this);"
+                 disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>2,i.applicant1==true,hasDisability,netIncomeEligible==true)),true,false)}"/>Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                 <!-- End -->
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                                                                            <div class="clearfix hline"></div>
+                                                                        </apex:repeat> 
+                                                                        
+                                                                        <div align="center" class="tipamount">
+                                                                            <apex:outputPanel rendered="{!IF(application.Total_Insurance_Premium__c!=null,IF(application.Total_Insurance_Premium__c>0,true,false),false)}">
+            Total Insurance Premium &nbsp; <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+            <apex:param value="{!application.Total_Insurance_Premium__c}"/> </apex:outputText>
+                                                                            <div class="clearfix hline"></div>
+                                                                            </apex:outputPanel>
+                                                                        </div>
+                                                                        
+                                                                        <div align="center">
+                                                                            
+                                                                            <apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size==1,true,false)}">
+            <a href="#" onclick="redirectCollateral('{!urlencode(pc.Collateral_URL__c)}');">
+            Click Here</a> to view the Combined Financial Services Guide (FSG) and Product Disclosure Statement (PDS) 
+            for the above products.
+                                                                            </apex:repeat>
+                                                                            
+                                                                            <apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size>1,true,false)}">
+            <a href="#" onclick="redirectCollateral('{!urlencode(pc.Collateral_URL__c)}');">
+            Click Here</a> to view the Combined Financial Services Guide (FSG) 
+            and Product Disclosure Statement (PDS) for {!pc.Product__r.Name}. <br/>
+                                                                            </apex:repeat>                                                                        
+                                                                        </div>
+                                                                    </apex:outputPanel>
+                                                                    </apex:outputPanel>
+                                                                    <!-- END ARSHAD: BDR-115 -->
+                                                                    <!------ End of AU Insurance Section ---->
+                                                                    
+                                                                    <!------ Start NZ Insurance Section ------>
+                                                                    <apex:outputPanel rendered="{!IF(AND(application.Loan_Insurance_Consent__c == true,application.Brand_Country__c == 'NZ'), true,false)}">
+                                                                        <h3>Insurance Offers</h3><br />
+                                                                        <apex:repeat value="{!wrapperInsure}" var="i" id="insureidNZ">
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(AND(i.insuranceType == 'Life Insurance', application.Insurance_Eligibility_Flag_Applicant_1__c > 0),true,false)}">
+      {!i.productVersion.Product_Name__c}<br /><strong><apex:outputText value="Offered to Customer" 
+      rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+          <li><apex:inputCheckbox value="{!i.applicant1}" 
+          onchange="insuranceOfferNZ('applicant1','{!i.applicant2}',this,'{!netIncomeEligible}','Life');" disabled="{!IF(application.Max_Monthly_Capacity__c - application.EMI_with_Service_Fee__c < 0, true, false)}"/> 
+          Applicant {!applicant.First_Name__c} &nbsp;</li>
+          <li><apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c>0,application.Insurance_Eligibility_Flag_Applicant_2__c >0),true,false)}">
+          <apex:inputCheckbox value="{!i.applicant2}" onchange="insuranceOfferNZ('applicant2','{!i.applicant2}',this,'{!netIncomeEligible}','Life');" 
+          disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>0,application.Insurance_Eligibility_Flag_Applicant_2__c!=2,i.applicant1==true)),true,false)}"/>
+          Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(AND(i.insuranceType == 'Disability Insurance',application.Insurance_Eligibility_Flag_Applicant_1__c > 1),true,false)}">
+      {!i.productVersion.Product_Name__c}<br /><strong><apex:outputText value="Offered to Customer" 
+      rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+          <li><apex:inputCheckbox value="{!i.applicant1}" 
+          onchange="insuranceOfferNZ('applicant1','{!i.applicant2}',this,'{!netIncomeEligible}','Disability');" disabled="{!IF(application.Max_Monthly_Capacity__c - application.EMI_with_Service_Fee__c < 0, true, false)}"/>
+           Applicant {!applicant.First_Name__c} &nbsp;</li>
+          <li><apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c >=2),true,false)}">
+          <apex:inputCheckbox value="{!i.applicant2}" 
+          onchange="insuranceOfferNZ('applicant2','{!i.applicant2}',this,'{!netIncomeEligible}','Disability');" 
+          disabled="{!IF(NOT(AND(application.Insurance_Eligibility_Flag_Applicant_2__c>1,i.applicant1==true)),true,false)}"/>
+          Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                                                                            
+                                                                            <apex:outputPanel rendered="{!IF(AND(i.insuranceType == 'Involuntary Unemployment Insurance',application.Insurance_Eligibility_Flag_Applicant_1__c>2),true,false)}">
+      {!i.productVersion.Product_Name__c}<br /><strong><apex:outputText value="Offered to Customer" 
+      rendered="{!AND(i.offerExist,NOT(isCustomer))}" /></strong>
+                                                                            <ul class="subchek">                         
+          <li><apex:inputCheckbox value="{!i.applicant1}" 
+          onchange="insuranceOfferNZ('applicant1','{!i.applicant2}',this,'{!netIncomeEligible}','IUI');" 
+          disabled="true" id="app1IUI"/> Applicant {!applicant.First_Name__c} &nbsp;</li>
+          <li><apex:outputPanel rendered="{!IF(AND(isJoint,application.Insurance_Eligibility_Flag_Applicant_2__c>2),true,false)}">
+          <apex:inputCheckbox value="{!i.applicant2}" 
+          onchange="insuranceOfferNZ('applicant2','{!i.applicant2}',this,'{!netIncomeEligible}','IUI');" 
+          disabled="true" id="app2IUI"/>Applicant {!applicant2.First_Name__c}</apex:outputPanel></li>
+                                                                            </ul>
+                                                                            </apex:outputPanel>
+                                                                            <div class="clearfix hline"></div>
+                                                                        </apex:repeat> 
+                                                                        
+                                                                        <div align="center" class="tipamount">
+                                                                            <apex:outputPanel rendered="{!IF(application.Total_Insurance_Premium__c!=null,IF(application.Total_Insurance_Premium__c>0,true,false),false)}">
+         Total Insurance Premium &nbsp; <apex:outputText value="${0, number, ###,###,###,###.00}"> 
+         <apex:param value="{!application.Total_Insurance_Premium__c}"/> </apex:outputText>
+                                                                            <div class="clearfix hline"></div>
+                                                                            </apex:outputPanel>
+                                                                        </div>
+                                                                        
+                                                                        <div align="center">
+                                                                            <!-- Checkmarx -->
+                                                                            <!--<apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size==1,true,false)}">
+         <a href="#" onclick="redirectCollateral('{!urlencode(pc.Collateral_URL__c)}');">Click Here</a> to view the Combined 
+         Financial Services Guide (FSG) and Product Disclosure Statement (PDS) for the above products.
+                                                                            </apex:repeat>
+                                                                            
+                                                                            <apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size>1,true,false)}">
+         <a href="#" onclick="redirectCollateral('{!urlencode(pc.Collateral_URL__c)}');">
+         Click Here</a> to view the Combined Financial Services Guide (FSG) and Product Disclosure Statement 
+         (PDS) for {!pc.Product__r.Name}. <br/>
+                                                                            </apex:repeat>-->
+                                                                            <apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size==1,true,false)}">
+         <a href="#" onclick="redirectCollateral('{!pc.Collateral_URL__c}');">Click Here</a> to view the Combined 
+         Financial Services Guide (FSG) and Product Disclosure Statement (PDS) for the above products.
+                                                                            </apex:repeat>
+                                                                            
+                                                                            <apex:repeat value="{!prodCollateralList}" var="pc" rendered="{!IF(prodCollateralList.size>1,true,false)}">
+         <a href="#" onclick="redirectCollateral('{!pc.Collateral_URL__c}');">
+         Click Here</a> to view the Combined Financial Services Guide (FSG) and Product Disclosure Statement 
+         (PDS) for {!pc.Product__r.Name}. <br/>
+                                                                            </apex:repeat>
+                                                                        
+                                                                        </div> 
+                                                                    </apex:outputPanel>
+                                                                    <!------ End of NZ Insurance Section ---->
+                                                                    <!-- BEGIN ARSHAD: BDR-115 -->
+                                                                    <!-- <apex:outputPanel rendered="{!IF(AND(application.Loan_Insurance_Consent__c == false,application.Brand_Country__c == 'NZ'), true,false)}">-->
+                                                                    <!-- BEGIN ARSHAD: BDR- 117 -->
+                                                                    <apex:outputPanel rendered="{!IF(AND(!isJoint,application.Loan_Insurance_Consent__c == false,applicant.Consent_to_Lpi__c == true,application.Brand_Country__c == 'AU'), true,false)}">
+                                                                    <h3>Insurance Offers</h3>
+                                                                    <div class="checkbox_ovrid">
+            <apex:inputcheckbox styleClass="checkalign" value="{!application.Loan_Insurance_Consent__c}" 
+            onchange="updateApplication();"/> {!$Label.APP_LoanPage_Confirmation4} <br/>
+                                                                    </div>   
+                                                                    </apex:outputPanel>
+                                                                    
+                                                                    <!-- BEGIN ARSHAD: BDR-117 - For Joint Applicant Reverting PTDI Checkbox -->
+                                                                    <apex:outputPanel rendered="{!IF(AND(isJoint,application.Loan_Insurance_Consent__c == false,applicant.Consent_to_Lpi__c == true,application.Brand_Country__c == 'AU'), true,false)}">
+                                                                    <h3>Insurance Offers</h3>
+                                                                    <div class="checkbox_ovrid">
+                                                                     <apex:inputcheckbox styleClass="checkalign" value="{!application.Loan_Insurance_Consent__c}" onchange="updateApplication();"/> {!$Label.APP_LoanPage_Confirmation4} <br/>
+                                                                    </div>   
+                                                                    </apex:outputPanel>
+                                                                    <!-- END Arshad : BDR-117 -->
+                                                                    
+                                                                    <apex:outputPanel rendered="{!IF(AND(application.Loan_Insurance_Consent__c == false,application.Brand_Country__c == 'NZ'), true,false)}">
+                                                                    <h3>Insurance Offers</h3>
+                                                                    <div class="checkbox_ovrid">
+            <!-- ARSHAD: Removed the id for the below Checkbox: id="loanConfirmation4" -->
+            <apex:inputcheckbox styleClass="checkalign" value="{!application.Loan_Insurance_Consent__c}" 
+            onchange="updateApplication();"/> {!$Label.APP_LoanPage_Confirmation4} <br/>
+                                                                    </div>   
+                                                                    </apex:outputPanel>
+                                                                    <!-- END ARSHAD: BDR- 117 -->
+                                                                    <!-- inline -->
+                                                                    <!-- END ARSHAD: BDR-115 --> 
+
+                                                                </div> <!-- end of padding 15px-->
+                                                                
+                                                                    <apex:outputPanel rendered="{!IF(AND(application.Insurance_Eligibility_Flag_Applicant_1__c>0,wrapperInsure.size>0),IF(isCustomer==false,true,IF(displayInsurance == true,true,false)),false)}">                                                                
+                                                                    <div class="infoboxhelp">
+              <a href="#" class="txtooltip" 
+              title="Sed commodo auctor felis a sagittis. Pellentesque rutrum mi nec arcu fringilla, ut laoreet odio placerat.">
+              <span class="fui-question"></span></a>
+                                                                            <h3>Why insure your loan?</h3>
+                                                                            <p>Nulla varius augue justo, a rhoncus purus aliquam vel. Nulla facilisi. Ut laoreet est vel mi iaculis condimentum</p>
+                                                                    </div>
+                                                                </apex:outputPanel>
+                                                            </apex:outputPanel>
+                                                        </apex:outputPanel>
+                                                    </div><!-- infoboxpad -->                                                    
+                                                </div> <!-- infobox option -->
+                                            </div><!-- span7 earlyfull -->
+
+                                </div><!-- row-fluid -->
+                            </div><!-- end div offers -->
+
+                            </apex:pageBlock><!-- end addPbID -->
+
+                        </apex:form>
+                    </div><!-- row-fluid -->
+                </div><!-- maincontent -->
+
+            </section>
+
+        </div><!-- end mainwrapper -->
+
+        <apex:form id="disbursementForm">
+            <apex:inputHidden id="ctr" value="{!rowCount}"/>
+            <apex:inputHidden id="ctrRemove" value="{!loanToRemove}"/>
+            <apex:inputHidden id="ctrDisplay" value="{!displayCtr}"/>        
+            <apex:inputHidden id="rowRefinance" value="{!nRefinanceRow}"/>    
+            <apex:inputHidden id="rowRefinanceEdit" value="{!nRefinanceEditId}"/>
+            <apex:inputhidden id="payoffAmountRetrieved" value="{!currentDisbursementWrapper.disbursement.Retrieved_Payout_Amount__c}" />
+
+            <apex:actionFunction name="showDisbursementMethod" action="{!showDisbursement}"
+             reRender="mainPanel,disbursementPanel" oncomplete="calculateNetPayOffAmount();"/>
+            <apex:actionFunction name="saveDisbursementMethod" action="{!saveDisbursement}" reRender="mainPanel"/>
+            <apex:actionFunction name="editDisbursementMethod" action="{!editDisbursement}" 
+            reRender="mainPanel,disbursementPanel" oncomplete="calculateNetPayOffAmount();"/>
+            <apex:actionFunction name="calculateNetPayOff" reRender="disbursementPanel" oncomplete="calculateNetPayOffAmount();"/>        
+
+            <apex:outputPanel id="mainPanel">
+                <apex:outputPanel id="subPanel" styleClass="customPopup" layout="block" rendered="{!bDisplayDisbursementPopup}">
+                    <apex:pageBlock title="Refinance" id="dblock">
+                        <div class="mainwrapper suiovr suiovrmod">
+                            <div class="opLoanpurpose">
+                                <div class="loanfields">
+                                    <div id="addfields" class="tablemainlist llfields">
+                                        <apex:outputPanel >
+                                            <div class="span12" style="display: none;">
+                                                <div class="pllabel">
+                                                    <label>Payee</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                             
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Payee__c}" 
+                                                 id="Payee"/>
+                                                </div>
+                                            </div> 
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Account Number</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Bank_Acc_No__c}" 
+                                                 id="AccountNumber" rendered="{!IF(brand.Country__c == 'AU', true, false)}"/>
+                                                 <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Bank_Acc_No_NZ__c}" 
+                                                 id="AccountNumberNZ" rendered="{!IF(brand.Country__c == 'NZ', true, false)}"/>
+                                                </div>
+                                            </div>
+                                             <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Interest Rate</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Interest_Rate__c}" 
+                                                 id="InterestRate"/>
+                                                </div>
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel id="manualInfo" >
+
+                                            <div class="span12" style="display: none;">
+                                                <div class="pllabel">
+                                                    <label>Disbursement Account Type</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Disbursement_Account_Type__c}"
+                                                  id="DisbursementAccountType"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12" style="display: none;">
+                                                <div class="pllabel">
+                                                    <label>Disbursement Outcome</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level"
+                                                  value="{!currentDisbursementWrapper.disbursement.Disbursement_Outcome__c}" 
+                                                  id="DisbursementOutcome"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12"> <!--class="display:none"-->
+                                                <div class="pllabel">
+                                                    <label>Payout Effective Date</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Payout_Effective_Date__c}" 
+                                                 id="PayoutEffectiveDate"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Principal Amount</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Principal_Amount__c}" 
+                                                 id="PrincipalAmount" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Interest Due</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Interest_Due__c}" 
+                                                 id="InterestDue" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Late Fees Due</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Late_Fees_Due__c}" 
+                                                 id="LateFeesDue" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Penalty Interest Due</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Penalty_Interest_Due__c}" 
+                                                 id="PenaltyInterestDue" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Fees or Charges Due</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level"
+                                                  value="{!currentDisbursementWrapper.disbursement.Fees_or_Charges_Due__c}" 
+                                                  id="FeesorChargesDue" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Charge Off Amount</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Charge_Off_Amount__c}" 
+                                                 id="ChargeOffAmount" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Insurance Rebate</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Insurance_Rebate__c}"
+                                                  id="InsuranceRebate" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Early Termination Fee</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Early_Termination_Fee__c}" 
+                                                 id="EarlyTerminationFee" onchange="calculateNetPayOff();"/>
+                                                </div>
+                                            </div>
+                                            <div class="span12">
+                                                <div class="pllabel">
+                                                    <label>Applicable Party</label>
+                                                </div>
+                                                <div class="inpselfield">
+                                                    <apex:inputField styleClass="input-block-level" 
+                                                 value="{!currentDisbursementWrapper.disbursement.Applicable_Party__c}" 
+                                                 id="ApplicableParty"/>
+                                                </div>
+                                            </div>                              
+                                        </apex:outputPanel>
+                                        
+                                        <div>
+                                                <div class="pllabel">
+                                                    <label class="noborder" id="netPayoffLabel">Net Pay Off Amount</label>
+                                                </div>
+                                                <div class="pllabel">
+                                                    <label class="noborder2" id="netPayOffDue"></label>
+                                                </div>
+                                                <!-- 
+                                                <div class="pllabel">
+                                                    <label class="noborder">Payoff Amount Retrieved</label>
+                                                </div>
+                                                <div class="pllabel">
+                                                    <label class="noborder2" id="payoffAmountRetrieved"></label>
+                                                </div>
+                                                -->
+                                                
+                                        </div>    
+                                    </div>
+                                    <div class="clearfix" style="clear:both'"></div>
+                                </div>
+                                <div class="clearfix" style="clear:both'"></div>
+                            </div>
+                            <div class="clearfix" style="clear:both'"></div>
+                            
+                        </div>
+                        <div class="span12">
+                        
+                            <div class="span3"> 
+                            </div>
+       <div class="span3">
+           <apex:commandButton id="retrievePayoffButton" action="{!retrievePayoff}" 
+           value="Retrieve Payoff Figure" 
+           onClick="document.getElementById('offerPage:disbursementForm:dblock:loadingGif').style.visibility='visible'" 
+           onComplete="startTimer()"/> 
+           <apex:image id="loadingGif"
+            url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"  
+           style="visibility:hidden;"/>           
+           <apex:commandButton id="saveButton" action="{!saveDisbursement}" onclick="fillDefaultValues()"
+           value="Save" reRender="mainPanel, editPanel, disbursementPanel"
+            oncomplete="setLoanAmount(); enableSave();"/>                               
+           &nbsp;&nbsp;
+           <apex:commandButton id="cancelButton" action="{!cancelDisbursement}" 
+           value="Cancel" reRender="mainPanel, editPanel" oncomplete="setLoanAmount();"/>   
+           
+       </div>
+                        </div>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+
+
+            </apex:outputPanel>
+             
+            <apex:outputPanel id="disbursementPanel">
+                <script>
+                    //BEGIN 20-AUG-2015 DYU - CODE SCAN FIX ADDED JSENCODE
+                    var principalAmount = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Principal_Amount__c))}';
+                    var interestDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Interest_Due__c))}';
+                    var lateFeesDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Late_Fees_Due__c))}';
+                    //END 20-AUG-2015 DYU
+                    //BEGIN 14-JAN-2016 MDAVID - CODE SCAN FIX ADDED JSENCODE - CHECKMARX
+                    //var penaltyInterestDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Penalty_Interest_Due__c))}';
+                    //var feesOrChargesDue = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Fees_or_Charges_Due__c))}';
+                    //var chargeOffAmount = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Charge_Off_Amount__c))}';
+                    //var insuranceRebate = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Insurance_Rebate__c))}';
+                    //var earlyTerminationFee = '{!JSEncode(TEXT(currentDisbursementWrapper.disbursement.Early_Termination_Fee__c))}';
+                    //END 14-JAN-2016 MDAVID
+                    var penaltyInterestDue = '{!currentDisbursementWrapper.disbursement.Penalty_Interest_Due__c}';
+                    var feesOrChargesDue = '{!currentDisbursementWrapper.disbursement.Fees_or_Charges_Due__c}';
+                    var chargeOffAmount = '{!currentDisbursementWrapper.disbursement.Charge_Off_Amount__c}';
+                    var insuranceRebate = '{!currentDisbursementWrapper.disbursement.Insurance_Rebate__c}';
+                    var earlyTerminationFee = '{!currentDisbursementWrapper.disbursement.Early_Termination_Fee__c}';
+                    
+                    var netPayOffDue = '{!disbursementNetPayOff}';
+                    var dcounter = '{!disbursementRowCount}';
+                </script> 
+                <!--<input type="hidden" name="sfDocId" value="{!JSENCODE(recordIdSaved)}" />-->
+            </apex:outputPanel>               
+        </apex:form>
+    </body>
+
+    
+    <script type="text/javascript">
+        jQuery.noConflict();
+        var x = new Array();
+        var disbursementArray = new Array();
+        var rowCount = {!rowCount};
+        var payoffAmount = 0;
+        //Retrieve Payoff Status
+        var payoffAmountRetrieved = false;              
+        function hideLoan(div,loanValue){
+            if(document.getElementById('offerPage:frmId:checkDisable').value == 'false'){
+                 var d = document.getElementById('offerPage:frmId:ctrDisplay').value;
+                //alert(d);
+                if(d == 1){
+                    alert('cannot remove all Loan Purposes');
+                }
+                //else if(loanValue == 'Debt consolidation'){
+                //    alert('cannot remove Debt consolidation');
+                //}
+                else{
+                    document.getElementById(div).style.display = "none";
+                    x.push(div);
+                    d = d - 1;
+                    document.getElementById('offerPage:frmId:ctrDisplay').value = d;
+                    enableSave();
+                }
+            }     
+        }
+        
+        function addLoan(){
+            if(document.getElementById('offerPage:frmId:loantbl:loanPur').value == 'Please Select'
+               ||document.getElementById('offerPage:frmId:loantbl:loanAmt').value == null || 
+               document.getElementById('offerPage:frmId:loantbl:loanAmt').value == ''){
+                   alert('Please provide valid Loan Purpose / Amount to proceed');
+            }
+            else if(document.getElementById('offerPage:frmId:loantbl:loanPur').value == 'Other' && 
+            document.getElementById('offerPage:frmId:loantbl:other').value == ''){
+                alert('Other Description is Required');
+            }
+            else
+            {
+                //if((rowCount+1) < {!JSEncode(TEXT($Setup.Application_Wizard_Settings__c.Max_Records_Loan_Purpose__c))}){ - CHECKMARX
+                if((rowCount+1) < {!$Setup.Application_Wizard_Settings__c.Max_Records_Loan_Purpose__c}){
+                    rowCount++; 
+                    var loanPurpose = document.getElementById('offerPage:frmId:loantbl:loanPur').value;
+                    var loanAmt = document.getElementById('offerPage:frmId:loantbl:loanAmt').value;
+                    var loanOther = document.getElementById('offerPage:frmId:loantbl:other').value;
+                    
+                    document.getElementById(rowCount).style.display = "block";
+                    document.getElementById('offerPage:frmId:loantbl:loanPur').value = 'Please Select';
+                    document.getElementById('offerPage:frmId:loantbl:loanAmt').value = '';
+                    document.getElementById('offerPage:frmId:loantbl:other').value = '';
+                                    
+                    var count = rowCount - 1;
+                    document.getElementById('offerPage:frmId:loantbl:offerid:'+count+':loanPur').value = loanPurpose;
+                    document.getElementById('offerPage:frmId:loantbl:offerid:'+count+':lAmt').value = loanAmt;
+                    if(loanPurpose == 'Other'){
+                       document.getElementById('offerPage:frmId:loantbl:offerid:'+count+':lDescription').value = loanOther;
+                       document.getElementById('offerPage:frmId:loantbl:offerid:'+count+':lDescription').disabled = true;
+                       document.getElementById('otherloanId'+rowCount).style.display = "block"; 
+                       document.getElementById('loanValueId'+rowCount).style.display = "none"; 
+                    }
+                    else{
+                        document.getElementById('otherloanId'+rowCount).style.display = "none";
+                        document.getElementById('loanValueId'+rowCount).style.display = "block"; 
+                    }
+                    
+                   document.getElementById('otherId').style.display = "none";
+                   var d = parseInt(document.getElementById('offerPage:frmId:ctrDisplay').value);
+                   d = d+1;
+                   document.getElementById('offerPage:frmId:ctrDisplay').value = d;
+                   enableSave();
+                   
+                   if (loanPurpose == 'Refinance') {
+                        document.getElementById('offerPage:disbursementForm:rowRefinance').value = rowCount;
+                        document.getElementById('offerPage:frmId:loantbl:offerid:' + count +':loanPur').value == 'Refinance';
+                        disbursementArray.push(rowCount);
+                        showDisbursement();          
+                   } 
+
+                }
+            }
+        }
+        
+        function isNumberKey(evt, field, maxlimit) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(field.value.length >= maxlimit) return false;
+            if(charCode == 46) return false;
+            return true;
+        }
+        
+
+        function isAlNumericWithHyphen(evt, field) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+        if ((charCode == 08 || charCode == 45 || charCode == 189 || charCode == 39 ||charCode == 32 ||
+        ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+            return true;
+         
+        return false;
+    }
+        
+        function save(){        
+            document.getElementById('offerPage:frmId:ctrRemove').value = x;
+            document.getElementById('offerPage:frmId:ctr').value = rowCount;
+            document.getElementById('showLoading').style.display = "block";
+            enableFields();
+            saveMethod();
+        } 
+        
+        function checkValue(field,ctr){
+           if(field.value == 'Other'){
+               var row = parseInt(ctr) - 1;
+               parseInt(row);
+               document.getElementById('otherloanId'+ctr).style.display = "block";
+               document.getElementById('offerPage:frmId:loantbl:offerid:'+row+':lDescription').disabled = false;    
+            }
+            else{
+               document.getElementById('otherloanId'+ctr).style.display = "none";
+            }
+            enableSave();
+        }
+        
+        function enableSave(){
+            document.getElementById('saveId').className = "btn";
+            document.getElementById('saveId').disabled = false;
+            document.getElementById('saveTextId').style.display = "block";
+            document.getElementById('displayCalculated').style.display = "none";
+            document.getElementById('offers').style.display = "none";
+        }
+        function enableFields(){
+            document.getElementById('offerPage:frmId:checkDisable').value= false;
+            document.getElementById('offerPage:frmId:upsellId').value = true;
+            
+            for(var x = 0;x<=rowCount;x++){
+                   //if(document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':loanPur').value == 'Debt consolidation'){
+                   //     document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lAmt').disabled = true;
+                   //}
+                   //else 
+                   if(document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':loanPur').value == 'Other'){
+                       document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lDescription').disabled = true;
+                       var ctr = x+1;
+                       document.getElementById('loanValueId'+ctr).style.display = "none";
+                   }
+                   else{
+                       document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':loanPur').disabled = false;
+                       document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lAmt').disabled = false;                   
+                   }
+            }
+            document.getElementById('offerPage:frmId:loantbl:loanPur').disabled = false;
+            document.getElementById('offerPage:frmId:loantbl:loanAmt').disabled = false;
+            document.getElementById('addId').disabled = false;
+            document.getElementById('offerPage:frmId:addPbId:loanFreq').disabled = false;
+            document.getElementById('offerPage:frmId:addPbId:loanterm').disabled = false;
+        }
+        
+        function secureAsset(){
+            document.getElementById('showLoading').style.display = "block";
+            secureAssetMethod();
+        }
+        function insuranceOffer(applicant,applicant2Value,field){
+            // var loanTerm = {!application.Loan_Term_Months__c} / 12; 
+            // var dbirth = Date.parse('{!JSEncode(applicant.Date_of_Birth_WS__c)}');
+            // var age = Math.abs(new Date() - dbirth);
+            // var temp = age / 1000;
+            // var years = Math.floor(temp / 31536000);
+            // var loanMaturity = loanTerm + years; 
+            
+            if(applicant == 'applicant1' && field.checked == false && applicant2Value == 'true'){
+                alert('Action not allowed. Please Uncheck Applicant 2 checkbox first');
+                field.checked = true;
+            }
+            // else if(loanMaturity > 70){
+            //     alert('Age Loan Maturity exceeded ' + loanMaturity);
+            //     field.checked = false;
+            // }
+            // else if('{!isJoint}'){
+            //     var dbirth2 = Date.parse('{!JSENCODE(applicant2.Date_of_Birth_WS__c)}');
+            //     var age2 = Math.abs(new Date() - dbirth2);
+            //     var temp2 = age2 / 1000;
+            //     var years2 = Math.floor(temp2 / 31536000);
+            //     var loanMaturity2 = loanTerm + years2; 
+                
+            //     if(loanMaturity2 > 70){
+            //         alert('Age Loan Maturity exceeded for applicant 2 ' + loanMaturity2);
+            //         field.checked = false;
+            //     }
+            //     else{
+            //         document.getElementById('showLoading').style.display = "block";
+            //         insuranceOfferMethod();
+            //     }
+                
+            // }
+            // else{
+                document.getElementById('showLoading').style.display = "block";
+                insuranceOfferMethod();
+            // }
+        }
+        function insuranceOfferNZ(applicant,applicant2Value,field,netIncomeEligible,insuranceType){
+            
+            if(applicant == 'applicant1' && field.checked == false && applicant2Value == 'true'){
+                alert('Action not allowed. Please Uncheck Applicant 2 checkbox first');
+                field.checked = true;
+            }
+            
+            if(applicant == 'applicant1' && field.checked == true && insuranceType == 'Disability'){
+                //set applicant 1 iui to true
+                document.getElementById('offerPage:frmId:addPbId:insureidNZ:2:app1IUI').checked = true;
+                
+            }
+            else if (applicant == 'applicant1' && field.checked == false && insuranceType == 'Disability'){
+                //set applicant 1 iui to false
+                document.getElementById('offerPage:frmId:addPbId:insureidNZ:2:app1IUI').checked = false;
+            }
+            
+            // if(applicant == 'applicant2' && field.checked == true && insuranceType == 'Disability' && netIncomeEligible == 'true'){
+            if(applicant == 'applicant2' && field.checked == true && insuranceType == 'Disability'){
+                //set applicant 2 iui to true
+                document.getElementById('offerPage:frmId:addPbId:insureidNZ:2:app2IUI').checked = true;
+            }
+            else if (applicant == 'applicant2' && field.checked == false && insuranceType == 'Disability'){
+                //set applicant 2 iui to false
+                document.getElementById('offerPage:frmId:addPbId:insureidNZ:2:app2IUI').checked = false;                
+            }
+            
+            document.getElementById('showLoading').style.display = "block";
+            insuranceOfferMethod();
+        }
+        function creditOffer(){
+            document.getElementById('showLoading').style.display = "block";
+            creditOfferMethod();
+        }
+        function updateApplication(){
+            document.getElementById('showLoading').style.display = "block";
+            updateApplicationMethod();
+        }
+        function redirectCollateral(url){
+            window.open(url);
+        }
+        function consolidationMessage(field, source) {
+            let consolidationCounter = 0;
+            let inputHiddenOrigValue = document.getElementsByClassName("loanValueSelectOrigHidden");
+            let newOrigValue = document.getElementsByClassName('loanValueSelectOrig');
+            
+            //loop the original loan purpose value and check if there is a change to Consolidation
+            for(let i = 0; i < 10; i++) {
+                let origValue = inputHiddenOrigValue[i].value;
+                let newValue = newOrigValue[i].value;
+                if(origValue != newValue && newValue == 'Consolidation') {
+                    consolidationCounter++;
+                }
+            }
+
+            for(let x of document.getElementsByClassName('loanValueSelectAdd')) {
+                if(x.value == 'Consolidation') {
+                    consolidationCounter++;
+                }
+            }              
+
+            if(consolidationCounter > 0){
+                document.getElementById('consolidationMessage').style.display = 'block';
+            } else {
+                document.getElementById('consolidationMessage').style.display = 'none';
+            }
+        }
+        function checkLoanValue(field){
+            if(field.value == 'Other'){
+               document.getElementById('otherId').style.display = "block";
+            }
+            else{
+               document.getElementById('otherId').style.display = "none";
+            }
+        }
+        window.onload = function disableFields(){
+            //for(var x = 0;x<=rowCount;x++){
+            //    if(document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':loanPur').value == 'Debt consolidation'){
+            //        document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lAmt').disabled = true;
+            //    }
+            //    else{
+            //        document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lDescription').disabled = true;
+            //    }            
+            //}
+            if('{!disableFields}' == 'true'){
+                for(var x = 0;x<=rowCount;x++){
+                   document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':loanPur').disabled = true;
+                   document.getElementById('offerPage:frmId:loantbl:offerid:'+x+':lAmt').disabled = true;
+                }
+                document.getElementById('offerPage:frmId:loantbl:loanPur').disabled = true;
+                document.getElementById('offerPage:frmId:loantbl:loanAmt').disabled = true;
+                document.getElementById('addId').disabled = true;
+                document.getElementById('offerPage:frmId:addPbId:loanFreq').disabled = true;
+                document.getElementById('offerPage:frmId:addPbId:loanterm').disabled = true;            
+            }
+            document.getElementById('offerPage:frmId:dateOfBirthStr').value = '{!JSEncode(applicant.Date_of_Birth_WS__c)}';
+            if('{!isJoint}'){
+                document.getElementById('offerPage:frmId:dateOfBirthStr2').value = '{!JSEncode(applicant2.Date_of_Birth_WS__c)}';
+            }        
+            var db = document.getElementById('offerPage:frmId:dateOfBirthStr').value;
+            
+            var today = new Date();
+            var birthDate = new Date(db);
+            var age = today.getFullYear() - birthDate.getFullYear();
+            var m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            var loanTerm = '{!JSENCODE(loanTermSelected)}';
+            age = age + parseInt(loanTerm.substring(0,1));
+            if(age > 70 && '{!application.Brand_Country__c}' == 'AU'){
+                document.getElementById('offerPage:frmId:renderInsurance').value = false;
+            }
+            else{
+                document.getElementById('offerPage:frmId:renderInsurance').value = true;
+            } 
+            rerenderInsurance();
+        }
+        
+        function hideLoading(){
+            document.getElementById('showLoading').style.display = "none";
+        }
+
+        function addLoanDebt(debtTotal,field,loanAmount){
+       
+           var total = parseInt(debtTotal) + parseInt(loanAmount);
+           if(field.checked){
+               if('{!application.Is_Secured__c}' == 'false' && {!application.Max_Capacity_Unsecured__c} < total ){
+                   alert('Error: Total Loan Amount should not exceed Maximum Capacity Unsecured Amount'); 
+                   field.checked = false;              
+               }
+               else if('{!application.Is_Secured__c}' == 'true' && {!application.Max_Capacity_Secured__c} < total){
+                   alert('Error: Total Loan Amount should not exceed Maximum Capacity Secured Amount');
+                   field.checked = false;
+               }
+               else{
+                   document.getElementById('showLoading').style.display = "block";
+                   addLoanDebtMethod();
+               } 
+           }
+           else{
+               document.getElementById('showLoading').style.display = "block";
+               addLoanDebtMethod();
+           } 
+            
+        }
+        
+        function checkRefinanceCount() {
+            var ctr = 0;
+            for(var x = 0; x < rowCount; x++){
+                if(document.getElementById('offerPage:frmId:loantbl:offerid:' + x +':loanPur').value == 'Refinance') {
+                    ctr++;
+                    if (ctr > 3) {
+                        alert('You are allowed a maximum of 3 Refinance Loan Purposes.');
+                        return false;
+                    }
+                }        
+            }        
+            if(document.getElementById('offerPage:frmId:loantbl:loanPur').value == 'Refinance'){
+                ctr++;
+                if (ctr > 3) {
+                    alert('You are allowed a maximum of 3 Refinance Loan Purposes.');
+                    document.getElementById('offerPage:frmId:loantbl:loanPur').value = 'Please Select';
+                    return false;
+                }
+            }        
+        }
+
+        function showDisbursement() {
+            showDisbursementMethod();
+        }
+
+        function saveDisbursement() {
+            saveDisbursementMethod();
+        }
+
+        function editDisbursement(div, loanValue) {
+            //alert('EDIT DISB: ' + div + loanValue);
+            document.getElementById('offerPage:disbursementForm:rowRefinance').value = div;
+            editDisbursementMethod();
+        }
+        
+        function calculateNetPayOffAmount(){
+            var netPayOff = 0;
+            if(!payoffAmountRetrieved){
+                if(principalAmount != ''){
+                    netPayOff += parseFloat(principalAmount);
+                }
+                if(interestDue != ''){
+                    netPayOff += parseFloat(interestDue)
+                }
+                if(lateFeesDue != ''){
+                    netPayOff += parseFloat(lateFeesDue)
+                }
+                if(penaltyInterestDue != ''){
+                    netPayOff += parseFloat(penaltyInterestDue)
+                }
+                if(feesOrChargesDue != ''){
+                    netPayOff += parseFloat(feesOrChargesDue)
+                }
+                if(chargeOffAmount != ''){
+                    netPayOff += parseFloat(chargeOffAmount)
+                }
+                if(insuranceRebate != ''){
+                    netPayOff -= parseFloat(insuranceRebate)
+                }
+                if(earlyTerminationFee != ''){
+                    netPayOff += parseFloat(earlyTerminationFee)
+                }
+            }else{
+                netPayOff += parseFloat(payoffAmount);
+            }
+            
+            document.getElementById('netPayOffDue').innerHTML = netPayOff.toFixed(2);
+        }
+        function setLoanAmount(){
+            //var counter = document.getElementById("offerPage:frmId:disbursementRowCount").value;
+            //var netPayOffDue = document.getElementById("offerPage:frmId:disbursementNetPayOff").value;
+            dcounter = parseInt(dcounter)-1;
+            document.getElementById("offerPage:frmId:loantbl:offerid:"+dcounter+":lAmt").value = netPayOffDue;
+        }
+        
+     //****************************NEW ADDEED TXU*************************************   
+      var count=65;
+      var counter;
+      
+      function startTimer(){
+      
+        //If Account number is not provided, stop
+        if('{!brand.Country__c}' == 'NZ'){ //NZ and AU are using different Account Number Field
+            if(document.getElementById('offerPage:disbursementForm:dblock:AccountNumberNZ').value == '' || document.getElementById('offerPage:disbursementForm:dblock:AccountNumberNZ').value == null){
+                alert('Please provide the Account Number for Payoff Quote Retrieval');
+                document.getElementById('offerPage:disbursementForm:dblock:loadingGif').style.visibility='hidden';
+            }else{
+                counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+            }
+        }else{
+            if(document.getElementById('offerPage:disbursementForm:dblock:AccountNumber').value == '' || document.getElementById('offerPage:disbursementForm:dblock:AccountNumber').value == null){
+                alert('Please provide the Account Number for Payoff Quote Retrieval');
+                document.getElementById('offerPage:disbursementForm:dblock:loadingGif').style.visibility='hidden';
+            }else{
+                counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+            }
+        }
+      }
+      
+      function timer()
+      {
+        count=count-1;      
+        if(count <= 0){      
+          clearInterval(counter);
+          alert("Retrieve Payoff Amount Failed, Please manually enter the Disbursement Detail then Click Save ");
+          document.getElementById('offerPage:disbursementForm:dblock:loadingGif').style.visibility='hidden';
+          //document.getElementById('offerPage:disbursementForm:dblock:manualInfo').show;
+          document.getElementById('netPayoffLabel').style.visibility = 'visible';
+          document.getElementById('netPayOffDue').style.visibility = 'visible';    
+          //reset counter
+          counter = 65;     
+          //hidCom();         
+        } 
+        if(count %5 == 0){
+         checkAppResponseNonStreaming();
+        }
+      }      
+
+      //Javascript polling workaround to replace streaming api
+       function checkAppResponseNonStreaming() {
+            var applicationIdToLook = '{!application.Id}';
+
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.Off_OfferPresentationRemote.checkForRetrievePayoffApplicationResponse}',
+                applicationIdToLook, 
+                function(result, event) {
+                    //console.log(result);
+                    if (event.status) {
+                       if(result !== null) {
+                            document.getElementById('offerPage:disbursementForm:dblock:InterestRate').value = result.RPQ_Interest_Rate__c;                              
+                            document.getElementById('offerPage:disbursementForm:dblock:InsuranceRebate').value = result.RPQ_Insurance_Rebate__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:PrincipalAmount').value = result.RPQ_Principal_Amount__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:InterestDue').value = result.RPQ_Interest_Due__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:LateFeesDue').value = result.RPQ_Late_Fees_Due__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:PenaltyInterestDue').value = result.RPQ_Penalty_Interest_Due__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:FeesorChargesDue').value = result.RPQ_Fees_or_Charges_Due__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:ChargeOffAmount').value = result.RPQ_Charge_Off_Amount__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:EarlyTerminationFee').value = result.RPQ_Early_Termination_Fee__c;
+                            
+                            //The Payee depends on brand
+                            if('{!brand.Country__c}' == 'AU'){
+                                //BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                                document.getElementById('offerPage:disbursementForm:dblock:Payee').value = '{!$Setup.Application_Wizard_Settings__c.Global_Brand__c}';
+                            }else{
+                                if('{!brand.Country__c}' == 'NZ'){
+                                    document.getElementById('offerPage:disbursementForm:dblock:Payee').value = '{!$Setup.Application_Wizard_Settings__c.Global_Brand__c} PL'; 
+                                }
+                                //END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                            }
+                            
+                            //Default disbursement account type to personal loan
+                            document.getElementById('offerPage:disbursementForm:dblock:DisbursementAccountType').value = 'Personal Loan';
+                            
+                            //Default disbursement outcome to Close
+                            document.getElementById('offerPage:disbursementForm:dblock:DisbursementOutcome').value = 'Close';
+                            
+                            //Set date to today's date
+                            document.getElementById('offerPage:disbursementForm:dblock:PayoutEffectiveDate').value = '{!retrievalDate}';
+                            
+                            
+                            payoffAmountRetrieved = true;
+                            payoffAmount = result.Retrieved_Payoff_Amount__c;
+                            document.getElementById('offerPage:disbursementForm:dblock:retrievePayoffButton').hidden = "true";
+                            /**
+                            document.getElementById('offerPage:disbursementForm:payoffAmountRetrieved').value = payoffAmount;
+                            document.getElementById('payoffAmountRetrieved').innerHTML = payoffAmount;
+                            document.getElementById('netPayoffLabel').style.visibility='hidden';
+                            document.getElementById('netPayOffDue').style.visibility='hidden';
+                            //document.getElementById('offerPage:disbursementForm:dblock:manualInfo').hidden = "true";                   
+                            **/
+                            document.getElementById('offerPage:disbursementForm:dblock:loadingGif').style.visibility='hidden';
+                            calculateNetPayOffAmount();
+                            clearInterval(counter);                                                 
+                       }
+                    } 
+                }, 
+                {escape: true}
+            );
+        }
+        
+        function fillDefaultValues(){
+            //The Payee depends on brand
+                            if('{!brand.Country__c}' == 'AU'){
+                                //BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                                document.getElementById('offerPage:disbursementForm:dblock:Payee').value = '{!$Setup.Application_Wizard_Settings__c.Global_Brand__c}';
+                            }else{
+                                if('{!brand.Country__c}' == 'NZ'){
+                                    document.getElementById('offerPage:disbursementForm:dblock:Payee').value = '{!$Setup.Application_Wizard_Settings__c.Global_Brand__c} PL'; 
+                                }
+                                //END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+                            }
+                            
+                            //Default disbursement account type to personal loan
+                            document.getElementById('offerPage:disbursementForm:dblock:DisbursementAccountType').value = 'Personal Loan';
+                            
+                            //Default disbursement outcome to Close
+                            document.getElementById('offerPage:disbursementForm:dblock:DisbursementOutcome').value = 'Close';
+                            
+                            //Set date to today's date
+                            document.getElementById('offerPage:disbursementForm:dblock:PayoutEffectiveDate').value = '{!retrievalDate}';
+         }    
+                        
+        
+
+        function openPrimaryTab() {
+            //Open a new primary tab with the salesforce.com home page in it
+            sforce.console.openPrimaryTab(null, '/{!application.Id}?tab=offerTab&submit=true', true, 
+                'New Application', openSuccess, 'salesforceTab');
+        }
+        
+        var openSuccess = function openSuccess(result) {
+            //Report whether opening the new tab was successful
+            if (result.success == true) {
+
+            } else {
+               
+            }
+        };
+
+        function closeTab() {
+            //First find the ID of the current tab to close it
+            sforce.console.getEnclosingTabId(closeSubtab);
+        }
+        
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+        
+        function toggleRecalculation(display){
+            document.getElementById("showLoading").style.display = display;
+        }
+    </script>    
+</html>
+
+</apex:page>

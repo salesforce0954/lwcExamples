@@ -1,0 +1,974 @@
+<apex:component >
+    
+    <style>
+        .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .applicationDetailsSection {
+            padding-right: 10%;
+            padding-button: 2.5%;
+        }
+        
+    </style>
+
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+        <!-- Application Details HEADER -->
+         <section class='slds-col slds-size--2-of-2 sectionBorder'>
+             <div class="slds-m-bottom--medium slds-theme--inverse slds-page-header slds-box slds-text-align--left sectionHeading">
+                <div class="slds-text-heading slds-m-vertical--small">Application Details</div>
+            </div>
+            
+            <div class="applicationDetailsSection">
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- app_Brand_Lookup__c for Both -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label req" for="app_Brand_Lookup__c">Product</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isProduct" id="app_Brand_Lookup__c" name="app_Brand_Lookup__c" onload="renderKiwibank();" onchange="BranchPickVal();renderKiwibank();loanTermBSOFF();renderSubType();"></select>
+                        </div>
+                    </section>
+                    
+                    <!-- app_Channel__c for both -->        
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label req" for="app_Channel__c">Channel</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isChannel" id="app_Channel__c" name="app_Channel__c" onchange="renderBroker();"></select>
+                        </div>
+                    </section>              
+                </div>
+                <!-- Show Type for NewZealand -->
+                <div class="{!IF($CurrentPage.parameters.country == 'NZ', 'slds-show' , 'slds-hide')}">
+                
+                 <div style="display: {!IF($ObjectType.Application__c.fields.Type_of_Product__c.Updateable, 'block' , 'none')}">
+                        <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                                            
+                        <!-- NZ Product Type -->                
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                            <div class="slds-form-element__label req" for="app_Type_of_Product__c">Type</div>
+                        </section>
+                        
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                            <div class="slds-form-element__control">
+                                <!-- MLASALA: 01-APR-2016 - DEFECT 444 FIX -->
+                                <select class="slds-select isProductType" id="app_Type_of_Product__c" name="app_Type_of_Product__c"  onchange="BranchPickVal();updateLoanPurposeValues();ApplicationSubTypePickVal();subTypePickVal();"></select>
+                            </div>
+                        </section>
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left"/>
+                        <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left"/>  
+                        </div>
+                   </div>
+                </div>
+                        <div id="subTypeSection" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                            <!-- Sub Type Added by Suneel Better Start-->        
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                                <div class="slds-form-element__label req" for="app_SubType__c">SubType</div>
+                            </section>
+                            
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                                <div class="slds-form-element__control">
+                                    <select class="slds-select isSubType" id="app_SubType__c" name="app_SubType__c" onchange="updateBetterStartValues();updateBSLoanPurposeValues();loanPurposeTermValues();renderConsent();"></select>
+                                </div>
+                            </section>
+
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                                <div class="slds-form-element__label"/>
+                            </section>
+                            
+                            <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                                <div class="slds-form-element__control"/>
+                            </section>
+                        </div>    
+                
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                                   
+                    <!-- Business Source -->        
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label req" for="app_Mirror__c">Business Source</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isBusinessSource" id="app_Mirror__c" name="app_Mirror__c"></select>
+                        </div>
+                    </section>
+                    
+                    <!-- Application Type -->        
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label req" for="app_Business_Source__c">Application Type</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isApplicationType" id="app_Business_Source__c" name="app_Business_Source__c"></select>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- Broker Secion -->
+                <div id="BrokerSection" style="display:none;" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- Broker -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="">Broker</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="Broker" name="Broker" class="slds-input" type="text"/>
+                            <input id="app_Broker__c" name="app_Broker__c" type="text" style="display:none"/>
+                            <input id="disb_Payee__c" name="disb_Payee__c" type="text" style="display:none"/>
+                        </div>
+                    </section>
+                    
+                    <!-- Broker Fee -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="disb_Amount__c">Broker Fee</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="disb_Amount__c" name="disb_Amount__c" class="slds-input isRequired isNumberAmount" type="text"/>
+                        </div>
+                    </section>
+                    
+                </div>
+
+               
+                
+                <div class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- Sales Team -->     
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label req" for="app_Branch__c">Sales Team</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select isSalesTeam" id="app_Branch__c" name="app_Branch__c" disabled="true"></select>
+                        </div>
+                    </section>
+                    
+                    <!-- Settlement Date for Both-->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="app_Settlement_Date__c">Settlement Date</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app_Settlement_Date__c" name="app_Settlement_Date__c" class="slds-input" type="text"/>
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- Kiwibank Section -->
+                <div id="KiwibankSection" style="display:none;" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- Kiwibank BPUID -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="app_PBUID__c">Kiwibank BPUID</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app_PBUID__c" name="app_PBUID__c" class="slds-input isNumberPBUID" type="text" maxlength="5" onkeypress="return isNumberKey(event)"/> <!-- isMaxLength5 -->
+                        </div>
+                    </section>
+                    
+                    <!-- Kiwibank Access Number -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="app1_Kiwi_Bank_Access_Number__c">Kiwibank Access Number (Applicant 1)</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app1_Kiwi_Bank_Access_Number__c" name="app1_Kiwi_Bank_Access_Number__c" class="slds-input isNumberAccess" type="text" maxlength="15" onkeypress="return isNumberKey(event)"/> <!-- isMaxLength15 -->
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <div id="kiwibankAccessNumber2Section" style="display:none;" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- Kiwibank Access Number -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--3-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="app2_Kiwi_Bank_Access_Number__c">Kiwibank Access Number (Applicant 2)</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app2_Kiwi_Bank_Access_Number__c" name="app2_Kiwi_Bank_Access_Number__c" class="slds-input isNumberAccess" type="text" maxlength="15" onkeypress="return isNumberKey(event)"/> <!-- isMaxLength15 -->
+                        </div>
+                    </section>
+                    
+                </div>
+                
+                <!-- BEGIN MLASALA 26-SEPT-16 TQLQW-487 Promo engine -->
+                <div id="promoSection" style="display:none;" class="slds-grid slds-wrap slds-m-vertical--xx-small">
+                    
+                    <!-- Promo ID -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label" for="app_Promo_ID__c">Promo ID</div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="app_Promo_ID__c" name="app_Promo_ID__c" class="slds-input" type="text" maxlength="12"/>
+                        </div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--2-of-4"/>
+                </div>
+                <!-- END MLASALA 26-SEPT-16 TQLQW-487 Promo engine -->
+                
+                <!-- Added By Afreen for Society One fields - 15-Aug-2016 -->
+                <!-- 3rd Party Application Section -->
+                <div id="3rdPartyApplicationSection1" class="slds-grid slds-wrap slds-m-vertical--xx-small" style="display: {!IF($CurrentPage.parameters.country == 'NZ', 'none' , '')}">
+                    
+                    <!--3rd Party Application Number -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label " for="3rdPartyAppNum">3rd Party Application Number</div>
+                    </section>
+
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="3rdPartyAppNum" name="3rdPartyAppNum" class="slds-input" type="text"/>
+                        </div>
+                    </section>
+
+                    <!--3rd Party Risk Grade -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label " for="3rdPartyRiskGrade">3rd Party Risk Grade</div>
+                    </section>
+
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <select class="slds-select " id="3rdPartyRiskGrade" name="3rdPartyRiskGrade"></select>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="3rdPartyApplicationSection2" class="slds-grid slds-wrap slds-m-vertical--xx-small"  style="display: {!IF($CurrentPage.parameters.country == 'NZ', 'none' , '')}">
+                     <!--3rd Party Quoted Rate -->
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--right">
+                        <div class="slds-form-element__label " for="3rdPartyQuotedRisk">3rd Party Quoted Rate</div>
+                    </section>
+
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4 slds-text-align--left">
+                        <div class="slds-form-element__control">
+                            <input id="3rdPartyQuotedRisk" name="3rdPartyQuotedRisk" class="slds-input isNumber isMaxLength7 is2DecimalPlaces" type="text"/>
+                        </div>
+                    </section>
+                    
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4"/>
+                    <section class="slds-col slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-4"/>
+                                       
+                </div>
+                
+             </div>
+        </section>
+        
+    </html>
+    
+    <script>
+    sforce.connection.sessionId = "{!$Api.Session_ID}";
+    var COUNTRY = '{!JSENCODE($CurrentPage.parameters.country)}'
+    var quoteId= '{!JSENCODE($CurrentPage.parameters.qid)}';
+    
+    /*
+         *Author: Tony Xu
+         *Description: This function changes the application type picklist value depends on app_Brand_Lookup__c
+         *             For AU app_Brand_Lookup__c currently application type is default to "Peronal Loan"
+         *             And for NZ There will be "Personal Loan" and "Auto Loan"
+        */
+    function ApplicationTypePickVal(){
+        initPicklist('select#app_Type_of_Product__c');
+      
+        if(COUNTRY == 'AU'){
+            $('select#app_Type_of_Product__c').append( $('<option>')
+                                                      .val('Personal Loan')
+                                                      .html('Personal Loan')
+                                                     );
+            //Default it to Personal Loan
+            $('select#app_Type_of_Product__c').val('Personal Loan');
+        }else{
+            $('select#app_Type_of_Product__c').append( $('<option>')
+                                                      .val('Personal Loan')
+                                                      .html('Personal Loan')
+                                                     );
+            $('select#app_Type_of_Product__c').append( $('<option>')
+                                                      .val('Auto Loan')
+                                                      .html('Auto Loan')
+                                                     );
+        }
+    }
+
+    function quotedRiskGradePickVal(){
+        initPicklist('select#3rdPartyRiskGrade');
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('AA').html('AA'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('A').html('A'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('B').html('B'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('C').html('C'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('D').html('D'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('D1').html('D1'));
+        $('select#3rdPartyRiskGrade').append( $('<option>').val('E').html('E'));
+    }
+    
+    /**
+        *Author: Tony Xu
+        *Description: Populate the app_Brand_Lookup__c Picklist Depends on User's assigned brand
+        **/
+    function BrandPickVal(){
+        //Query the Brand_Assignment__c table to see the user's assigned brand
+        try{
+            initPicklist('select#app_Brand_Lookup__c');
+            // Update By Adrian Recio
+            // Description: Adjusted query to fix missing product picklist issue
+            // Change Date: 9/12/2015
+            var result = sforce.connection.query("Select Brand__r.Id, Brand__r.Name, Brand__r.iOvation_Type_Sales__c, Brand__r.Status__c From Brand_Assignment__c Where User__c = '{!$User.ID}' and Brand__r.Status__c='Active'");
+            /*
+            var result = sforce.connection.query("Select Id, Name, Status__c, iOvation_Type_Sales__c From Brand__c Where Id IN (Select Brand__c From Brand_Assignment__c Where User__c = '{!$User.ID}') AND Status__c = 'Active'");
+            */
+            //console.log('Brand Assignment Query Result:' + result);
+            if(result.size=='1'){
+                $('select#app_Brand_Lookup__c').append( $('<option>')
+                                                                   .val(result.records.Brand__r.Id)
+                                                                   .html(result.records.Brand__r.Name)
+                                                                  );
+                brandiOvationMap[result.records.Brand__r.Id] = result.records.Brand__r.iOvation_Type_Sales__c;
+                //console.log('has entered loop.');
+            }else{
+                var brand = 0;
+                while(brand < result.records.length){
+                    $('select#app_Brand_Lookup__c').append( $('<option>')
+                                                                       .val(result.records[brand].Brand__r.Id)
+                                                                       .html(result.records[brand].Brand__r.Name)
+                                                          );
+                                brandiOvationMap[result.records[brand].Brand__r.Id] = result.records[brand].Brand__r.iOvation_Type_Sales__c;
+                                //console.log('has entered loop.');
+                    brand++;
+                }
+            }
+            salesAndLeadsPrefill('Personal_And_App_Details'); // populate the Eligibilty fields for Pickstarter - Afreen - US 481
+        }catch(error){
+            console.log(error);
+        }
+    }
+    
+    /**
+        *Author: Tony Xu
+        *Description: On change of app_Channel__c need to display/hide Broker Section
+        **/
+    function renderBroker(){
+        
+        if($('select#app_Channel__c').val() == 'Broker'){
+            //Need to read the Broker List
+            getBrokerList();
+            $('div#BrokerSection').show();
+            
+        }else{
+            $('div#BrokerSection').hide();
+            clearValidationMessagesBySection('#BrokerSection');
+        }
+    }
+
+    /**
+        * Author : Afreen Khan
+        * Description : On change of app_Channel__c need to display/hide the 3rd Party Application Section
+    **/
+
+    function render3rdPartyApp(){
+        if($('select#app_Channel__c').val() == '3rd Party Application'){
+
+            $('div#3rdPartyApplicationSection1').show(); 
+            $('div#3rdPartyApplicationSection2').show();        
+        }else{
+            $('div#3rdPartyApplicationSection1').hide();
+            $('div#3rdPartyApplicationSection2').hide(); 
+        }
+    }
+    
+    /**
+        *Author: Tony Xu
+        *Description: We need to read the complete list of broker out from the database as the name is tokenized and we cannot
+        *               perform live search with tokenized data. This is only called when app_Channel__c is changed to Broker. As the 
+        *               max batch is 2000, we need to perform query more 
+        */
+    var BrokerList = [];
+    function getBrokerList(){
+        if(BrokerList.length==0){
+            //MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce
+            var result = sforce.connection.query("SELECT id, name, Lastname_Firstname__c, Account.Broker_Payee_Name__c, Account.Name FROM Contact WHERE RecordType.DeveloperName = 'APAC_Contact' AND Contact_Accreditation_Status__c = 'Active' AND (Broker_Product__c = 'PL' OR Broker_Product__c = 'PL;Motor Solutions')",{
+                onSuccess:getBrokerListSuccess,
+                onFailure: function(error){
+                    console.log(error);
+                }
+            });
+        }
+    } 
+    
+    function getBrokerListSuccess(result){
+        var resultSet = result.getArray('records');
+        var broker = 0;
+        while(broker < resultSet.length){
+            BrokerList.push({'label': resultSet[broker].Lastname_Firstname__c + '('+resultSet[broker].Account.Name+')', 'id':resultSet[broker].Id});
+            broker++;
+        }
+        if(result.queryLocator){
+            sforce.connection.queryMore(result.queryLocator,{
+                onSuccess: getBrokerListSuccess,
+                onFailure: function(error){
+                    console.log(error);
+                }    
+            });
+        }else{
+            $('input#Broker').autocomplete({
+                source : BrokerList,
+                select: function(event, ui){
+                    //As auto complete cannot store name-value, so we need to put the id of the selection into a hidden field for later insert to DB
+                    $('input#app_Broker__c').val(ui.item.id);
+                    $('input#disb_Payee__c').val(ui.item.payee);
+                }
+            }); 
+            $('input#Broker').prop('disabled',false);
+        }
+    }  
+    
+    
+    /**
+        *Author: Tony Xu
+        *Description: On change of Product need to display/hide Kiwibank Section
+        */
+    function renderKiwibank(){
+        if($('select#app_Brand_Lookup__c option:selected').text() == 'Kiwibank'){
+            $('div#KiwibankSection').show();
+        }else{
+            $('div#KiwibankSection').hide();
+            $('input#app_PBUID__c').val('');
+            $('input#app1_Kiwi_Bank_Access_Number__c').val('');
+            $('input#app2_Kiwi_Bank_Access_Number__c').val('');
+        }
+        
+        //BEGIN MLASALA 26-SEPT-16 TQLQW-487 Promo engine
+        if($('select#app_Brand_Lookup__c option:selected').text() == 'Kiwibank' || 
+           $('select#app_Brand_Lookup__c option:selected').text() == 'GEM'){
+            
+            $('#promoSection').show();
+        } else {
+            $('#promoSection').hide();
+        }
+        //END MLASALA 26-SEPT-16 TQLQW-487 Promo engine
+        
+        showHideJointKiwibankAccess();
+    }
+    
+    /*  Author: Arshad
+     *  Description: Added by Arshad for Better Start
+      function to load the subtype values based on the Type selection */
+     
+    function renderSubType(){
+        if((
+            $('select#app_Brand_Lookup__c option:selected').text() == 'Kiwibank' || 
+           $('select#app_Brand_Lookup__c option:selected').text() == 'GEM'
+            ) && ('select#app_Type_of_Product__c').val() == 'Auto Loan'){   
+             $('#app_SubType__c').empty();
+             initPicklist('#app_SubType__c');
+            $('select#app_SubType__c').append( $('<option>')
+                                                    .val('Standard PL')
+                                                    .html('Standard PL')
+                                                  );
+        }else if((
+            $('select#app_Brand_Lookup__c option:selected').text() == 'Kiwibank' || 
+           $('select#app_Brand_Lookup__c option:selected').text() == 'GEM'
+            ) && ('select#app_Type_of_Product__c').val() == 'Personal Loan'){   
+             $('#app_SubType__c').empty();
+             initPicklist('#app_SubType__c');
+            $('select#app_SubType__c').append( $('<option>')
+                                                    .val('Better Start PL')
+                                                    .html('Better Start PL')
+                                    );
+            $('select#app_SubType__c').append( $('<option>')
+                                                    .val('Standard PL')
+                                                    .html('Standard PL')
+                                                  );
+        }    
+}
+
+/*     if($('select#app_Type_of_Product__c option:selected').text() == 'Personal Loan'){
+ *           $('#subTypeSection').show();
+ *       }else{
+ *           $('#subTypeSection').hide();
+ *        }
+ *      }
+ */
+ 
+        
+     /* Added by Arshad for Better Start to show/hide consent 10-Jun-2019 */
+     /* Testing Started... */
+     function renderConsent(){
+       if($('select#app_SubType__c').val() == 'Standard PL' && COUNTRY == 'AU'){            
+            $('#showNHideLoanInsuranceConsent').hide();
+            $('#showNHideLoanInsuranceConsenttwo').hide();
+            $('#showNHideEligibility').hide();
+            $('#showNHideEligibilitytwo').hide();            
+            $('#section1').hide();
+            $('#section2').hide();
+            $('#section3').hide();
+            
+            $('#app1_Consent_to_Lpi__c').prop('required',true);   
+                     
+        }else if($('select#app_SubType__c').val() == 'Standard PL' && COUNTRY == 'NZ'){
+            $('#showNHideLoanInsuranceConsent').show();
+            $('#showNHideLoanInsuranceConsenttwo').show();
+            $('#showNHideEligibility').show();
+            $('#showNHideEligibilitytwo').show();            
+            $('#section2').show();
+            $('#section3').show();                  
+        }else if($('select#app_SubType__c').val() == 'Better Start PL' && (COUNTRY == 'AU' || COUNTRY == 'NZ')){            
+            $('#showNHideLoanInsuranceConsent').hide();
+            $('#showNHideLoanInsuranceConsenttwo').hide();
+            $('#showNHideEligibility').hide();
+            $('#showNHideEligibilitytwo').hide();            
+            $('#section1').hide();
+            $('#section2').hide();
+            $('#section3').hide();            
+            
+            $('#app1_Consent_to_Lpi__c').prop('required',true);   
+                     
+        }
+     }
+          
+/*    function checkConsentSelected(){
+         if($('#app_SubType__c option:selected').text()){
+             
+         }
+     }
+*/
+     /* End by Arshad */        
+      
+    /**
+        *Author: Tony Xu
+        *Description: Get the branch from Branch_Assignment__c
+                        For AU Application the branch based on brand
+                        for NZ application the branch based on brand and Product Type
+        */
+    function BranchPickVal(){
+        //Firstly disable the Branch picklist
+        $('select#app_Branch__c').prop('disabled',true);
+        $('select#app_Branch__c').empty();
+        sforce.connection.sessionId = "{!$Api.Session_ID}";
+        //console.log($('select#app_Type_of_Product__c').val());
+        if($('select#app_Brand_Lookup__c').val() != '' && $('select#app_Type_of_Product__c').val() != ''){
+            //console.log('update branch');
+            var query;
+            if (COUNTRY == 'AU'){
+                query = "Select id, name, Type__c, Brand__c, Branch_Status__c FROM Branch__c WHERE Brand__c = '"+$('select#app_Brand_Lookup__c').val()+"' AND Branch_Status__c = 'Active' ORDER BY Name ASC";
+            }else {
+                query = "Select id, name, Type__c, Brand__c, Branch_Status__c FROM Branch__c WHERE Brand__c = '"+$('select#app_Brand_Lookup__c').val()+"' AND Type__c INCLUDES('"+$('select#app_Type_of_Product__c').val()+"') AND Branch_Status__c = 'Active' ORDER BY Name ASC";
+            }
+
+            var result = sforce.connection.query(query,{
+                onSuccess: function(result){
+                    if(result.size>0){
+                         initPicklist('select#app_Branch__c');
+                        var branches = result.getArray('records');
+                        var branch = 0;
+                        while(branch < branches.length){
+                            $('select#app_Branch__c').append( $('<option>')
+                                                             .val(branches[branch].Id)
+                                                             .html(branches[branch].Name)
+                                                            );
+                            branch++;
+                        }
+                        $('select#app_Branch__c').prop('disabled',false);
+                    }
+                    salesAndLeadsPrefill('Loan_Purpose_and_App_Details'); // populate the Loan Purpose fields for Pickstarter - Afreen - US 481
+                },
+                onFailure: function(error){
+                    console.log(error);
+                }
+            });
+        }
+    }
+    
+    /*  Description: Populate Loan Purpose Term picklist
+         *  Author: Mike Lasala
+         *  Date Created: 12-OCT-2015
+         *  Input: None
+         */
+    function loanPurposeTermValues(){    
+    if($('select#app_SubType__c').val() != 'Better Start PL'){
+        //Disable the loan purpose term field
+        //$('#app_Loan_Term__c').prop('disabled',true);
+        $('#app_Loan_Term__c').empty();
+
+        sforce.connection.sessionId = "{!$Api.Session_ID}";
+        
+        var result = sforce.connection.query("SELECT Loan_Term__c FROM Brand__c WHERE Id = '"+$('select#app_Brand_Lookup__c').val()+"'",{
+            onSuccess: function(result){
+                initPicklist('select#app_Loan_Term__c');
+                if(result.size > 0){
+                    
+                    var loanTerm = result.getArray('records');
+                    var loanTerms = loanTerm[0].Loan_Term__c.split(';');
+                    loanTerms.sort();
+                    
+                    for(var i=0; i<loanTerms.length; i++){
+                        if(loanTerms[i].toLowerCase().indexOf("months") >= 0){
+                            
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                            
+                        }
+                    }
+                    
+                    for(var i=0; i<loanTerms.length; i++){
+                        if(loanTerms[i].toLowerCase().indexOf("months") < 0){
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                            
+                        }
+                    }
+                    
+                    $('#app_Loan_Term__c').prop('disabled',false);
+                    salesAndLeadsPrefill('Loan_Purpose_and_App_Details'); // populate the Loan Purpose fields for Pickstarter - Afreen - US 481
+                }
+            },
+            
+            onFailure: function(error){
+                console.log(error);
+            }
+        });
+        }
+        else
+        {
+                $('#app_Loan_Term__c').empty();
+                sforce.connection.sessionId = "{!$Api.Session_ID}";
+           var result = sforce.connection.query("SELECT Loan_Term_Better_Start__c FROM Brand__c WHERE Id = '"+$('select#app_Brand_Lookup__c').val()+"'",{
+            onSuccess: function(result){
+                initPicklist('select#app_Loan_Term__c');
+                if(result.size > 0){
+                    var loanTerm = result.getArray('records');
+                    var loanTerms = loanTerm[0].Loan_Term_Better_Start__c.split(';');
+                    loanTerms.sort();
+                    for(var i=0; i<loanTerms.length; i++){
+
+                        if(loanTerms[i].toLowerCase().indexOf("months") >= 0){
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                        }
+                    }
+                    
+                    for(var i=0; i<loanTerms.length; i++){
+                        if(loanTerms[i].toLowerCase().indexOf("months") < 0){
+                            
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                            
+                        }
+                    }
+                    
+                    $('#app_Loan_Term__c').prop('disabled',false);
+                    salesAndLeadsPrefill('Loan_Purpose_and_App_Details'); // populate the Loan Purpose fields for Pickstarter - Afreen - US 481
+                }
+            },
+            
+            onFailure: function(error){
+                console.log(error);
+            }
+        });
+   }
+}
+
+function setLoanTerm(){
+   
+     $('#app_Loan_Term__c').val("2 years");
+}
+
+// Better Start 
+function loanTermBSOFF(){
+        //Disable the loan purpose term field
+        //$('#app_Loan_Term__c').prop('disabled',true);
+          $('#app_Loan_Term__c').empty();
+
+        sforce.connection.sessionId = "{!$Api.Session_ID}";
+        let field = 'Loan_Term__c';
+        if($('select#app_SubType__c').val() == 'Better Start PL'){
+            field = 'Loan_Term_Better_Start__c';
+        }
+        var result = sforce.connection.query("SELECT "+field+" FROM Brand__c WHERE Id = '"+$('select#app_Brand_Lookup__c').val()+"'",{
+            onSuccess: function(result){
+                initPicklist('select#app_Loan_Term__c');
+                if(result.size > 0){
+                    
+                    var loanTerm = result.getArray('records');
+                    let loanTerms=[];
+                    if($('select#app_SubType__c').val() == 'Better Start PL') {
+                        loanTerms =  loanTerm[0].Loan_Term_Better_Start__c.split(';');
+                    } else {
+                        loanTerms = loanTerm[0].Loan_Term__c.split(';');
+                    }
+                    
+                    loanTerms.sort();
+                    
+                    for(var i=0; i<loanTerms.length; i++){
+                        if(loanTerms[i].toLowerCase().indexOf("months") >= 0){
+                            
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                            
+                        }
+                    }
+                    
+                    for(var i=0; i<loanTerms.length; i++){
+                        if(loanTerms[i].toLowerCase().indexOf("months") < 0){
+                            $('#app_Loan_Term__c').append( $('<option>')
+                                                          .val(loanTerms[i])
+                                                          .html(loanTerms[i])
+                                                         );
+                            
+                        }
+                    }
+                    
+                    $('#app_Loan_Term__c').prop('disabled',false);
+                    
+                    //Soft Quote Changes: START  
+                    if(quoteId != ''){
+                    var result = sforce.connection.query("Select Loan_Term__c FROM Quote__c WHERE Id = '"+quoteId+"'",{
+                    onSuccess: function(result){
+                        if(result.size > 0){
+                            var records = result.getArray('records');
+                            var loanTerm = records[0].Loan_Term__c;
+                            $("#app_Loan_Term__c").val(loanTerm);
+                            $('#loan_Value__c1').trigger('onchange');
+                        }
+                    },
+                   onFailure: function(error){
+                        console.log(error);
+                    }
+                    
+                    });
+                        }
+                    //Soft Quote Changes: END
+                    
+                    
+                    salesAndLeadsPrefill('Loan_Purpose_and_App_Details'); // populate the Loan Purpose fields for Pickstarter - Afreen - US 481
+                }
+            },
+            
+            onFailure: function(error){
+                console.log(error);
+            }
+        });
+}
+// End 
+    
+    //BEGIN MLASALA: 01-APR-2016 - DEFECT 444 FIX
+    /*  Description: Populate loan purpose value picklist based on type of product
+                     Only applicable for NZ
+     *  Author: Mike Lasala
+     *  Date Created: 01-APR-2016
+     *  Input: None
+     */
+         function updateLoanPurposeValues(){
+        if(COUNTRY != 'AU'){
+        $('#loan_Value__c1').empty();
+        
+        //Set default picklist values
+        initPicklist('#loan_Value__c1');
+            
+        //Identify type of product
+        if($('select#app_Type_of_Product__c').val() == 'Auto Loan'){
+            //Auto loan, only car purchase should be set as value
+            $("select#loan_Value__c1").append($("<option>").val('Car purchase').html('Car purchase'));
+            
+        } else {
+            //Personal loan, BAU values
+            loadLoanPurposeValues();
+        }
+        }
+    }
+
+    //BEGIN MLASALA: 01-APR-2016 - DEFECT 444 FIX
+    /*  Description: Populate loan purpose value picklist based on type of product
+                     Only applicable for NZ
+     *  Author: Mike Lasala
+     *  Date Created: 01-APR-2016
+     *  Input: None
+     */     
+    function updateBSLoanPurposeValues(){
+        if(COUNTRY != 'AU'){
+        $('#loan_Value__c1').empty();
+        
+        //Set default picklist values
+        //initPicklist('#loan_Value__c1');
+            
+        //Identify type of product
+        if($('select#app_Type_of_Product__c').val() == 'Auto Loan' && $('select#app_SubType__c').val() == 'Standard PL'){
+            
+            //Auto loan, only car purchase should be set as value
+            initPicklist('#loan_Value__c1');  
+            $("select#loan_Value__c1").append($("<option>").val('Car purchase').html('Car purchase'));
+            
+        } else if($('select#app_Type_of_Product__c').val() == 'Personal Loan' && $('select#app_SubType__c').val() == 'Better Start PL'){
+                  $("select#loan_Value__c1").append($("<option>").val('Consolidation').html('Consolidation')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Auto Purchase').html('Auto Purchase')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Auto Repairs').html('Auto Repairs')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Caravan/Boat/Recreational').html('Caravan/Boat/Recreational')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Education').html('Education')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Home improvements').html('Home improvements')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Household furnishings').html('Household furnishings')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Medical & Dental').html('Medical & Dental')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Travel/Holiday').html('Travel/Holiday')); 
+                  $("select#loan_Value__c1").append($("<option>").val('Other').html('Other')); 
+        }
+         else {
+            
+                    //Personal loan, BAU values
+                    initPicklist('#loan_Value__c1');
+                    loadLoanPurposeValues();
+        }
+    }
+    }
+
+    //END MLASALA: 01-APR-2016 - DEFECT 444 FIX
+
+    /*  Description: Populate loan purpose value picklist based on  Subtype --Better Start
+     *  Author: Suneel Desiraju
+     *  Date Created: 10-05-2019
+     *  Input: None
+     */
+    function updateBetterStartValues(){
+     $('#loan_Value__c1').empty();
+        
+        //Set default picklist values
+       //initPicklist('#loan_Value__c1');
+            
+        //Identify type of product
+        if($('select#app_Type_of_Product__c').val() == 'Personal Loan' && $('select#app_SubType__c').val() == 'Better Start PL'){
+            //Auto loan, only car purchase should be set as value
+            $("select#loan_Value__c1").append($("<option>").val('Debt consolidation').html('Debt consolidation'));
+            $("select#loan_Value__c1").append($("<option>").val('Car purchase').html('Car purchase'));
+            $("select#loan_Value__c1").append($("<option>").val('Car repairs').html('Car repairs'));
+            $("select#loan_Value__c1").append($("<option>").val('Educational expenses').html('Educational expenses'));
+            $("select#loan_Value__c1").append($("<option>").val('Home improvements').html('Home improvements'));
+            $("select#loan_Value__c1").append($("<option>").val('Household furnishings').html('Household furnishings'));
+            $("select#loan_Value__c1").append($("<option>").val('Medical / Dental').html('Medical / Dental'));
+            $("select#loan_Value__c1").append($("<option>").val('Other vehicle purchase').html('Other vehicle purchase'));
+            $("select#loan_Value__c1").append($("<option>").val('Small debts').html('Small debts'));
+            $("select#loan_Value__c1").append($("<option>").val('Travel').html('Travel'));   
+            $("select#loan_Value__c1").append($("<option>").val('Other').html('Other'));   
+        } else {
+            initPicklist('#loan_Value__c1');
+            //Personal loan, BAU values
+            loadLoanPurposeValues();
+        }
+    }
+    //END Suneel : 10-/05/2019 
+    
+    /* Added by Arshad to make a dependent picklist for SubType */
+
+     function ApplicationSubTypePickVal(){    
+     $('#app_SubType__c').empty();
+        
+        //Set default picklist values
+        initPicklist('#app_SubType__c');
+        
+        if($('select#app_Type_of_Product__c').val() == 'Auto Loan'){
+            $('select#app_SubType__c').append( $('<option>')
+                                                      .val('Standard PL')
+                                                      .html('Standard PL')
+                                                   );
+        }
+         else{
+            $('select#app_SubType__c').append( $('<option>')
+                                                    .val('Better Start PL')
+                                                    .html('Better Start PL')
+                                                  );
+            $('select#app_SubType__c').append( $('<option>')
+                                                    .val('Standard PL')
+                                                    .html('Standard PL')
+                                                  );
+             } 
+    }
+    //END Arshad : 20-/05/2019 
+    $( "#app_Settlement_Date__c" ).datepicker({ dateFormat: 'dd/mm/yy' });
+    
+    /*  Description: Switch on/off Better Start function
+         *  Author: Suneel Desiraju
+         *  Date Created: 18-06-2019
+         *  Project: Better Start
+         */
+    
+  
+window.addEventListener('load', function() {
+betterStartSwitchOff();
+renderConsentAU();
+})
+    function betterStartSwitchOff(){
+  sforce.connection.sessionId = "{!$Api.Session_ID}";
+   var result = sforce.connection.query("select BetterStartNZActive__c,BetterStartAUActive__c from Better_Start_Offer__c ",{
+   onSuccess: function(result){
+      if(result.size > 0){
+         var bsSwitchOff = result.getArray('records');
+         var bsSwitchAU = bsSwitchOff[0].BetterStartAUActive__c;  
+         var bsSwitchNZ = bsSwitchOff[0].BetterStartNZActive__c;   
+          if(COUNTRY == 'AU'){
+            if(bsSwitchAU == 'false'){
+               $('#subTypeSection').hide();
+            }else if(bsSwitchAU == 'true'){
+               $('#subTypeSection').show();
+             }
+        }else{
+             if(bsSwitchNZ  == 'false'){
+                $('#subTypeSection').hide();
+             }else if(bsSwitchNZ  == 'true'){
+                $('#subTypeSection').show();
+              }   
+         }
+      }
+   },
+   onFailure: function(error){
+                console.log(error);
+            }
+   });
+}
+
+function renderConsentAU(){
+       if(COUNTRY == 'AU'){            
+            $('#showNHideLoanInsuranceConsent').hide();
+            $('#showNHideLoanInsuranceConsenttwo').hide();
+            $('#showNHideEligibility').hide();
+            $('#showNHideEligibilitytwo').hide();            
+            $('#section1').hide();
+            $('#section2').hide();
+            $('#section3').hide();
+            
+            $('#app1_Consent_to_Lpi__c').prop('required',true);   
+       }              
+  }
+
+    </script>
+    
+</apex:component>

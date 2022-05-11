@@ -1,0 +1,197 @@
+<!--
+ @Description: Contract Acceptance page
+ @Author: Adrian Recio
+ @Date Created: Feb-25-2016
+ @History:
+ =====================================================================
+ 25-02-16: Created - Adrian
+ =====================================================================
+-->
+<apex:page standardController="Application__c" extensions="APP_GSD_ContractAcceptanceExt" 
+standardStylesheets="false" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+    
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/> 
+
+    
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/> 
+
+    <!-- Custom CSS / Scripts-->
+    <!--apex:include pageName="APP_GSD_BrandScript"/-->
+
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+        
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_ContractAcceptanceExt';                         //Used for calling remote action for base controller
+        
+        //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+    </script>
+    
+    
+    <html>
+        <title>Latitude Financial Services: Contract Acceptance</title>
+     
+            <!-- LOAN DETAILS CONTAINER -->
+            <div >  
+                <!-- LOAN DETAILS COMPONENT -->
+                
+                <c:APP_GSD_LoanDetailComponent />
+               
+                
+            </div>
+
+            <br/>
+            <br/>
+
+            <div style="text-align: center">
+                <apex:outputPanel layout="block" rendered="{!IF(AND(OR(Application__c.Response_Code__c == 'PCO', 
+                                                           Application__c.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                           Application__c.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                           Application__c.Acceptance_Channel__c == 'Online Acceptance'), true, false)}">
+                    
+                    
+                        <!-- Middle Content  -->
+                        <div class="container">
+                            <div class="row" id="thumbsRow">
+                               <div class="thumbsup_margin middle-content-margin">
+                                   <span id="thumbsUp" class="icon_file_logo icon_middle_width_lg center-block img-responsive">
+                    
+                                  <span class="icon_mark center-block icon_middle_width_xs"></span></span>
+                                </div>
+                                <div class="secondary-margin text-center center-block">
+                                  <span id="heading1" class="module1-label lat-blue">You've reached the final step!</span>
+                                </div>
+                                <div class="center-block mid-content">
+                                <!--
+                                  <span id="intro" class="intro-label lat-dark-grey">
+                                  Please review and acknowledge each of the documents below, before accepting your loan contract. Then we'll transfer your money to your nominated account within 2 business days. Each applicant must login separately to complete this step.
+                                  </span>
+                                  -->
+                                  <span id="intro" class="intro-label lat-dark-grey">
+                                  
+                                  Please review and acknowledge each of the documents below. 
+                                  <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                                  Then we'll transfer your money to your nominated account within 2 business days. 
+                                  Alternatively if you have asked to receive your funds via cheque, we'll be sending this out to you very soon.
+                                  </apex:outputPanel>
+                                  <apex:outputPanel rendered="{!Application__c.Application_Type__c=='Joint'}">
+                                  Each applicant must login separately to complete this step.
+                                  </apex:outputPanel>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="container">
+                              <div class="text-center">
+                                <div class="middle-content-margin">
+                                  <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                                </div>
+                                <div class="gap-content"></div>
+                              </div>
+                            </div>
+                            <!--end Middle Content  -->
+                                        
+                 </apex:outputPanel>     
+                
+                <apex:outputPanel layout="block" rendered="{!IF(AND(OR(Application__c.Response_Code__c == 'PCO',
+                                                           Application__c.Response_Code__c == 'Pending FIA',
+                                                           Application__c.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                           Application__c.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                           Application__c.Acceptance_Channel__c == 'Offline Acceptance'), true, false)}">
+                   
+                        
+                      <!-- Middle Content  -->
+                        <div class="container">
+                            <div class="row" id="thumbsRow">
+                               <div class="thumbsup_margin middle-content-margin">
+                                   <span id="thumbsUp" class="icon_file_logo icon_middle_width_lg center-block img-responsive">
+                    
+                                  <span class="icon_mark center-block icon_middle_width_xs"></span></span>
+                                </div>
+                                <div class="secondary-margin text-center center-block">
+                                <!--
+                                  <span id="heading1" class="module1-label lat-blue">The final step!</span>
+                                  -->
+                                  <span id="heading1" class="module1-label lat-blue">You've reached the final step!</span>
+                                </div>
+                                <div class="center-block mid-content">
+                                  <!-- 
+                                  <span id="intro" class="intro-label lat-dark-grey">
+                                    Your loan is approved. Simply print, read and sign your documents and upload (or fax) them to us. 
+                                    Then we'll transfer your money to your nominated account within X business days.
+                                 </span>
+                                 -->
+                                 <span id="intro" class="intro-label lat-dark-grey">
+                                    <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                                      Your loan is approved. Simply print, read and sign your documents and upload (or fax) them to us. We'll 
+                                      then transfer your money to your nominated account usually within 1-2 business days. 
+                                      Alternatively if you have asked to receive your funds via cheque, we'll be sending this out to you very soon.
+                                    </apex:outputPanel>
+
+                                    <apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                                      Your loan is approved. Simply print, read and sign your documents and upload (or fax) them to us. We'll 
+                                      then transfer your money to your nominated account. We recommend you retain a copy of these documents for future reference.
+                                    </apex:outputPanel>
+                                 </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="container">
+                              <div class="text-center">
+                                <div class="middle-content-margin">
+                                  <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                                </div>
+                                <div class="gap-content"></div>
+                              </div>
+                            </div>
+                            <!--end Middle Content  -->    
+                </apex:outputPanel>
+                
+            </div>
+      
+         
+            <div id="contractAccept">
+                <apex:outputPanel Id="onlineblock" layout="block" rendered="{!IF(AND(OR(Application__c.Response_Code__c == 'PCO', 
+                                                                                       Application__c.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                                                       Application__c.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                                                       Application__c.Acceptance_Channel__c == 'Online Acceptance'), true, false)}">
+                                                                               
+                    <c:APP_GSD_ContractAcceptanceOnline id="onlineComponent" application="{!Application__c.Id}"/>       
+            
+                </apex:outputPanel> 
+              
+                <apex:outputPanel Id="offlineblock" layout="block" rendered="{!IF(AND(OR(Application__c.Response_Code__c == 'PCO', 
+                                                                             		   Application__c.Response_Code__c == 'Pending FIA', 
+                                                                                       Application__c.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                                                       Application__c.Response_Code__c == 'PCO Applicant 2 Pending'), 
+                                                                                       Application__c.Acceptance_Channel__c == 'Offline Acceptance'), true, false)}">
+                    <c:APP_GSD_ContractAcceptanceOffline application="{!Application__c.Id}" />
+                </apex:outputPanel> 
+            
+            </div>
+            <br/>
+            <br/>
+          
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+      
+   
+    </html>
+      
+</apex:page>

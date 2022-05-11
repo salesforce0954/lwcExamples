@@ -1,0 +1,129 @@
+<!--
+/**
+ * @Description: Main Page for Waiting Page
+ * @Author: Jan Mark Domingo
+ * @Date Created: 19.SEPT.2013
+ * @History:
+   =====================================================================
+       09-19-13: Created - Mac       
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_WaitPageExt_INT,Off_OfferPresentationRemote" showHeader="false" sideBar="false" id="appWait" action="{!checkPushTopic}">
+    <apex:includeScript value="{!$Resource.streaming_cometd}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery}"/>
+    <apex:includeScript value="{!$Resource.streaming_json2}"/>
+    <apex:includeScript value="{!$Resource.streaming_jquery_cometd}"/>
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    
+    <apex:form id="theForm">
+        <apex:inputHidden id="applicationID" value="{!appId}" />
+        <apex:inputHidden id="applicationRespID" value="{!appRespId}" />
+
+        <div class="alert alert-info">
+            <apex:outputPanel rendered="{!showComponent}">
+                <c:WaitPageLoadingDialog BackColor="#f7f9fa"
+                   borderColor="#e9ecef"
+                   borderSize="1"
+                   height="100px"
+                   width="200px"
+                   margintop="-25px"
+                   marginleft="-150px"
+                   ImageUrl="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                   Message="Waiting for Response - Please Wait"/>
+            </apex:outputPanel>
+        </div>
+        <div class="alert alert-info">
+        <apex:outputPanel rendered="{!IF(appResList.size==0,true,false)}"> 
+            <a href="javascript:history.go(0)" class="refreshlink">Click to refresh the page</a> 
+        </apex:outputPanel>
+        </div>
+      <apex:actionFunction action="{!hideComponent}" name="hidCom" rerender="theForm"/>       
+      
+    </apex:form>
+
+    <script type="text/javascript">      
+      var count="{!timeoutSettings}";
+
+      var counter=setInterval(timer, 1000); //1000 will  run it every 1 second        
+      
+      function timer()
+      {
+        count=count-1;      
+        if(count <= 0){      
+          clearInterval(counter);          
+          hidCom();         
+        } 
+        if(count %5 == 0){
+         checkAppResponseNonStreaming();
+        }
+      }      
+
+      //Javascript polling workaround to replace streaming api
+       function checkAppResponseNonStreaming() {
+            var applicationIdToLook = '{!applicationId}';
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.Off_OfferPresentationRemote.checkForApplicationResponseNonStreaming}',
+                applicationIdToLook, 
+                function(result, event) {
+                    if (event.status) {
+                       if(result !=null) {
+                        console.log('Afreen result:'+result + result.Restart_Indicator__c);
+                            //If not in console, redirect to standard proceed offer, else, open a new tab using the existing
+                            if (!(sforce.console.isInConsole())) {
+                              proceedOffer();
+                            } else if(result.Restart_Indicator__c == 1 || result.Restart_Indicator__c ==2){ // May_13-2016 Afreen - Redirect to Search page
+                              opensearchTab();
+                              closeTab();
+                            }else{
+                              openPrimaryTab();
+                              closeTab();
+                            }
+                            clearInterval(counter);
+                       }
+                    } 
+                }, 
+                {escape: true}
+            );
+        }
+
+        function opensearchTab() {
+            //Open a new primary tab with the salesforce.com home page in it
+
+            sforce.console.openPrimaryTab(null, '/{!applicationId}?tab=searchtab&submit=true', true, 
+                'New Application', openSuccess, 'salesforceTab');
+        }
+
+        function openPrimaryTab() {
+            //Open a new primary tab with the salesforce.com home page in it
+            sforce.console.openPrimaryTab(null, '/{!applicationId}?tab=offerTab&submit=true', true, 
+                'New Application', openSuccess, 'salesforceTab');
+        }
+        
+        var openSuccess = function openSuccess(result) {
+            //Report whether opening the new tab was successful
+            if (result.success == true) {
+
+            } else {
+               
+            }
+        };
+
+        function closeTab() {
+            //First find the ID of the current tab to close it
+            sforce.console.getEnclosingTabId(closeSubtab);
+        }
+        
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+      window.onload = timer();
+
+    </script>
+
+    <apex:form >
+        <apex:actionFunction action="{!proceedToOffer}" name="proceedOffer"/>
+    </apex:form>
+</apex:page>

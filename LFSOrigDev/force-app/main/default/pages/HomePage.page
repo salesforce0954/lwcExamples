@@ -1,0 +1,7 @@
+<apex:page showHeader="false" standardStylesheets="true">
+<apex:composition template="{!$Site.Template}">
+<apex:define name="body">
+<!-- Page's Content go here -->
+</apex:define>
+</apex:composition>
+</apex:page>

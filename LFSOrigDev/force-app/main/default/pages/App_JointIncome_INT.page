@@ -1,0 +1,521 @@
+<!--
+ * @Description: Joint Application Income page (Staff UI)
+ * @Author: Mike Lasala
+ * @Date Created: 19.NOV.2013
+ * @History:
+   =====================================================================
+      11-19-13: Created - Mike
+      01-14-14: Refactored to cater single and joint application - Mike
+      02-17-14: Included Previous Employment Status,Time at previous employer (years) 
+                and Time at previous employer (months) field
+      10-31-14: Made changes for DBHZL-34 - Tony Xu   
+      04-09-15: Updated - Include client side validations - DYU        
+   =====================================================================
+-->
+<apex:page standardController="Application__c" extensions="APP_JointIncomeExt_INT" showHeader="false" id="GETheme" action="{!setApplicantTab}">
+    <!-- Added by DYU 04-09-15 - JQUERY Validate Plugin -->
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+     <script>var jquery1 = jQuery.noConflict( true ); var res = true;</script>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScript}"/>
+    
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>        
+
+     <script>
+        window.onload = function(){setTab();}
+        
+        
+        function checkIncomeFields(action){
+            document.getElementById('GETheme:frmId:redirectTxt').value = action;
+            document.getElementById('GETheme:frmId:flag').value = false;
+            validateIncome();
+        }
+         
+        function setListOnLoad(applicantTab){
+            if(applicantTab == 'applicant1Tab'){
+                setList('1');
+            } else if(applicantTab == 'applicant2Tab'){
+                setList('2');
+            } else {
+            
+            }
+        }
+        
+        function setList(list){
+            document.getElementById('GETheme:frmId:selectedList').value = list;
+        }
+        
+        function deleteRow(Id){
+            document.getElementById('GETheme:frmId:selectedId').value = Id;
+            removeIncome();
+        }
+                    
+        function isAlNumericWithHyphen(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 8 || charCode == 45 || charCode == 189 || charCode == 32 ||((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                return true;
+             
+            return false;
+        }
+               
+       function isNumberKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+            if(charCode == 46) return false;
+            return true;
+        }
+        
+        function isAlNumeric(evt, field, maxlimit) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if ((charCode == 45 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57)))&& field.value.length < maxlimit)
+                return true;
+             
+            return false;
+        }
+        function getIncomeFields(){
+            getTotalIncomeTab2();
+        }
+
+        //Added by DYU 04-09-15 - Function after client side validations has been triggered
+        function checkApp(val){
+            //save or next button
+            if(res && (val == 'Save' || val == 'Next')){
+                checkIncomeFields(val);
+            }else{
+                document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='hidden';
+            }
+            //enable save and next button
+            if(val == 'Next')
+                document.getElementById('GETheme:frmId:incomePageBlock:nextBtn').disabled = false;
+            //enable save button
+            if(val == 'Save')
+                document.getElementById('GETheme:frmId:incomePageBlock:saveBtn').disabled = false;            
+        }
+         
+         var incomeChangesYes1 = "GETheme:frmId:incomePageBlock:incomeChangesYes1";
+         var incomeChangesNo1 = "GETheme:frmId:incomePageBlock:incomeChangesNo1";
+         
+         var incomeChangesA2Yes1 = "GETheme:frmId:incomePageBlock:incomeChangesYes2";
+         var incomeChangesA2No1 = "GETheme:frmId:incomePageBlock:incomeChangesNo2";
+         
+       var incomeChangesValue;
+       var incomeChangesValue2;
+       
+          function incomeChangesConfirmation(elem){
+          
+                incomeChangesValue = document.getElementById("GETheme:frmId:incomeChangesValue");
+                incomeChangesValue2 = document.getElementById("GETheme:frmId:incomeChangesValue2");
+                var incomeChangesMessage = document.getElementById("incomeChangesMessage");
+               
+                  if(elem.id == incomeChangesYes1){
+                        incomeChangesValue.value = elem.innerHTML.trim();
+                         incomeChangesMessage.style.display='block';
+                        incomeChangesMessage.innerHTML = 'Please adjust your income to the expected lower amount in the income fields above.';                     
+                       document.getElementById('GETheme:frmId:incomePageBlock:confirmincomechange1').value = incomeChangesValue.value;
+
+                    }
+                if(elem.id == incomeChangesNo1){
+                       incomeChangesValue.value = elem.innerHTML.trim(); 
+                       incomeChangesMessage.style.display= 'none'; 
+                       document.getElementById('GETheme:frmId:incomePageBlock:confirmincomechange1').value = incomeChangesValue.value;
+
+                }
+                
+                if(elem.id == incomeChangesA2Yes1){
+                        incomeChangesValue2.value = elem.innerHTML.trim();
+                        incomeChangesMessageA2.style.display='block';
+                        incomeChangesMessageA2.innerHTML = 'Please adjust your income to the expected lower amount in the income fields above.';                        
+                       document.getElementById('GETheme:frmId:incomePageBlock:confirmincomechange2').value = incomeChangesValue2.value;
+
+                    }
+                if(elem.id == incomeChangesA2No1){
+                       incomeChangesValue2.value = elem.innerHTML.trim();
+                       incomeChangesMessageA2.style.display = 'none';                      
+                       document.getElementById('GETheme:frmId:incomePageBlock:confirmincomechange2').value = incomeChangesValue2.value;
+
+                   }
+                 checkRequiredfields();
+                }
+                
+                 var selectedStyle;
+                var unSelectedStyle;
+                
+            selectedStyle = "color: #fff; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;";
+            unSelectedStyle = "color: #4465ad; background:#fff; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;";
+        
+                
+                  function checkRequiredfields(){
+                  incomeChangesValue = document.getElementById("GETheme:frmId:incomeChangesValue");
+                  incomeChangesValue2 = document.getElementById("GETheme:frmId:incomeChangesValue2");
+                  
+                    if(incomeChangesValue.value.trim() == "YES"){
+                        document.getElementById(incomeChangesYes1).setAttribute("style",selectedStyle);
+                        document.getElementById(incomeChangesNo1).setAttribute("style",unSelectedStyle);
+                    }else if(incomeChangesValue.value.trim() == "NO"){
+                        document.getElementById(incomeChangesNo1).setAttribute("style",selectedStyle);
+                        document.getElementById(incomeChangesYes1).setAttribute("style",unSelectedStyle);
+                    }
+                    
+                     if(incomeChangesValue2.value.trim() == "YES"){
+                        document.getElementById(incomeChangesA2Yes1).setAttribute("style",selectedStyle);
+                        document.getElementById(incomeChangesA2No1).setAttribute("style",unSelectedStyle);
+                    }else  if(incomeChangesValue2.value.trim() == "NO"){
+                        document.getElementById(incomeChangesA2No1).setAttribute("style",selectedStyle);
+                        document.getElementById(incomeChangesA2Yes1).setAttribute("style",unSelectedStyle);
+                    }
+                    
+                   
+            }
+              
+             
+    </script>
+    
+    
+    <!-- The following script is added by Tony Xu for DBHZL-34, to replace default "--Nonoe--" option for picklist with "Please Select" -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.js"></script>
+    <script type="text/javascript">
+        $.noConflict();
+        jQuery(document).ready(function($) {
+            $('[id*=a1PrimaryEmploymentStatusPick] option[value=""]').text("Please Select");    
+            $('[id*=a1PreviousEmploymentStatusPick] option[value=""]').text("Please Select");  
+            $('[id*=a2PrimaryEmploymentStatusPick] option[value=""]').text("Please Select");    
+            $('[id*=a2PreviousEmploymentStatusPick] option[value=""]').text("Please Select");   
+        }); 
+    </script>
+    
+    
+    
+    <apex:form id="frmId" styleClass="validateLoanForm">
+        <div class="incomeLayout">
+        <apex:inputHidden id="flag"/>
+        <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+        <apex:inputHidden id="selectedList" value="{!selectedList}" />
+        <apex:inputHidden id="selectedId" value="{!selectedRow}"/>
+        <apex:inputHidden id="appSize" value="{!appSize}"/>
+        
+        <apex:inputHidden id="incomeChangesValue" value="{!confirmIncomeChanges}"/>
+        <apex:inputHidden id="incomeChangesValue2" value="{!confirmIncomeChangesA2}"/>
+
+        
+        <apex:actionFunction name="setTab" action="{!setApplicantTab}" oncomplete="setListOnLoad('{!applicantTab}');"/>
+        <apex:actionFunction name="validateIncome" action="{!pageRedirect}" />
+        <apex:actionFunction name="getTotalIncomeMethod" action="{!getTotalIncome}" rerender="totalIncId, totalIncId2"/>
+        <apex:actionFunction name="addIncome" action="{!addIncome}" rerender="incomePageBlock"/>
+        <apex:actionFunction name="removeIncome" action="{!removethisIncome}" rerender="incomePageBlock"/>
+        
+        <apex:pageBlock id="incomePageBlock" title="Income after tax">
+            
+            
+            <apex:pageMessages id="errorId"/>
+            
+            <apex:tabPanel value="{!applicantTab}" id="tabPanelId" switchType="client" styleClass="subtabBlue">
+            
+                <apex:tab label="Applicant 1" name="applicant1Tab" ontabenter="setList('1')">
+                    <apex:outputPanel id="income1">
+                        <div class="incomemaindiv">
+                            
+                            <div>
+                                <label class="labeltd width200">Primary Employment Status</label>
+                                <div class="requiredBlock2"></div>
+                                
+                                <!-- This is removed by Tony Xu for DBHZL-34
+                                    -- Changed the selectList to inputField as AU and NZ users need to see different picklist value
+                                    base on recordType assigned to their profile.
+                                
+                                <apex:selectList size="1" styleClass="width440" value="{!applicant.Primary_Employment_Status__c}">
+                                    <apex:selectOptions value="{!employmentStatusOptions}"/>
+                                </apex:selectList>
+                                
+                                -->
+                                <!-- Added by Tony Xu for DBHZL-34 -->
+                                <apex:inputField id="a1PrimaryEmploymentStatusPick" styleClass="width440 isPicklist" value="{!applicant.Primary_Employment_Status__c}"/>
+                                
+                                <div class="clearfix"></div>
+                                <apex:outputText styleClass="warningMessage marginl220" escape="false" rendered="{!employmentStatusValid}" value="Error: Please select primary employment"/>
+                            </div>
+                            <div class="clearfix"></div>
+                            <!-- Changed div to output panel for dynamically rendering of this field based on user's acccess to the field -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Previous_Employment_Status__c.Accessible}">
+                                <label class="labeltd width200">Previous Employment Status</label>
+                                <div class="requiredBlocknull"></div>
+                                
+                                <!-- This is Removed by Tony Xu for DBHZL-34 
+                                    -- Changed the selectList to inputField as AU and NZ users need to see different picklist value
+                                    base on recordType assigned to their profile.
+                                
+                                <apex:selectList size="1" styleClass="width440" value="{!applicant.Previous_Employment_Status__c}">
+                                    <apex:selectOptions value="{!preEmploymentStatusOptions}"/>
+                                </apex:selectList>
+                                -->
+                                
+                                <!-- Added By Tony Xu For DBHZL-34 -->
+                                <apex:inputField id="a1PreviousEmploymentStatusPick" styleClass="width440" value="{!applicant.Previous_Employment_Status__c}" />
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpStatusValid}" value="Error: Please select previous employment status"/>    
+                            </apex:outputPanel> 
+                            
+                            <div class="clearfix"></div>
+                            <!-- Previous Employer Name -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Prev_Emp_Bus_Name__c.Accessible}">
+                                <label class="labeltd width200">Previous Employer Name </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputField styleClass="width440" value="{!applicant.Prev_Emp_Bus_Name__c}" />
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpNameValid}" value="Error: Please enter previous employment name"/>    
+                            </apex:outputPanel>    
+                            
+                            <div class="clearfix"></div>
+                            <!-- Changed div to output panel for dynamically rendering of this field based on user's acccess to the field -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Time_at_previous_employer_years__c.Accessible}">
+                                <label class="labeltd width200">Time at previous employer (years) </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputText value="{!applicant.Time_at_previous_employer_years__c}" onkeypress="return isNumberKey(event, this)" maxlength="2"/>
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpYearValid}" value="Error: Please enter Time at previous employer (years)"/>     
+                            </apex:outputPanel>
+                            <div class="clearfix"></div>
+                            <!-- Changed div to output panel for dynamically rendering of this field based on user's acccess to the field -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Time_at_previous_employer_months__c.Accessible}">
+                                <label class="labeltd width200">Time at previous employer (months) </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputText value="{!applicant.Time_at_previous_employer_months__c}" onkeypress="return isNumberKey(event, this)" maxlength="2"/>
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpMonthValid}" value="Error: Please enter Time at previous employer (months)"/>   
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!invalidPreEmployerMonth}" value="Error: Please enter a valid number of months"/>
+                            </apex:outputPanel>
+                            <div class="clearfix"></div>
+                            <div>
+                                <div class="pbSubheader bluepartition">
+                                    <h3 class="marginleft4px">Income</h3>
+                                </div>
+                            </div>
+                            
+                            <div class="boxincludeFields">
+                                <apex:variable value="{!-1}" var="rowNum"/>
+                                <apex:variable value="{!incomeAddList.size}" var="rowSize"/>
+                                <apex:repeat value="{!incomeAddList}" var="incomeWrap" id="incomeRepeat">
+                                     <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                                    <c:APP_JointIncome_INT incomeWrap="{!incomeWrap}" id="component-1" incomeSlot="{!FLOOR(rowNum)}" brandRegion="{!brand.Country__c}" />
+                                </apex:repeat>
+                            </div>
+                            <div class="clearfix"></div>
+                            <div class="totalincome">
+                                <apex:outputPanel id="totalIncId">
+                                     <strong>Total Income:</strong>
+                                     <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!totalIncome}"/>
+                                    </apex:outputText>
+                                </apex:outputPanel>
+                            </div>
+                            <div class="addbutton1">
+                                <apex:actionStatus id="status6">
+                                    <apex:facet name="stop">
+                                        <apex:commandButton value="Add More" action="{!addIncome}" rerender="incomePageBlock" rendered="{!incomeListSize < $Setup.Application_Wizard_Settings__c.Max_Records__c}" status="status6" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandButton value="Adding..." disabled="true"/>
+                                    </apex:facet>                         
+                                </apex:actionStatus>
+                            </div>
+                            <div class="clearfix"></div>
+                            <!-- Responsible Lending -->
+                             <hr/>
+                             <br/>
+                            <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+
+                                                         <div  id="incChanges">
+                                        <label style="padding: 5px 10px;float: left;text-align: right;font-size: 101%;font-weight: bold;color: #4a4a56;">Are you aware of any changes in near future that may reduce your income?</label><br/><br/><br/>                                    
+                                          <apex:outputLabel value="YES" styleClass="slds-button slds-button--neutral gem-mobile-style-flabel" id="incomeChangesYes1" onclick="incomeChangesConfirmation(this);"
+                                                                    style="{!if(AND(brand.Country__c == 'NZ',confirmincomechange1=='YES'),'color: #fff; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"
+                                                                />
+                                                                <apex:outputLabel value="NO" styleClass="slds-button slds-button--neutral" id="incomeChangesNo1" onclick="incomeChangesConfirmation(this);"
+                                                                    style="{!if(AND(brand.Country__c == 'NZ',confirmincomechange1=='NO'),'color: #fff; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"
+                                                                />
+                                                                <div id="incomeChangesMessage" style="display:none;padding: 5px 10px;font-size: 101%;font-weight: bold;color: #4a4a56;" />
+                                                                <apex:inputText style="visibility:hidden;height:0;width:0" id="confirmincomechange1" value="{!confirmincomechange1}" styleClass=""
+                                                                />
+                                                                <div id="incomeOneErr" style="display:none;" />
+                                        </div>
+                                        </apex:outputPanel>
+                                        
+                                        
+                            <!-- End -->
+                        </div><!-- end incomemaindiv -->
+                        
+                    </apex:outputPanel>
+                </apex:tab>
+                
+                <apex:tab id="tab2" label="Applicant 2" name="applicant2Tab" ontabenter="setList('2')" rendered="{!applicantList.size>1}">
+                    <apex:outputPanel id="income2">
+                        <div class="incomemaindiv">
+                            <div> 
+                                <label class="labeltd width200">Primary Employment Status</label>
+                                <div class="requiredBlock2"></div>
+                                
+                                <!-- This is removed by Tony Xu for DBHZL-34
+                                    -- Changed the selectList to inputField as AU and NZ users need to see different picklist value
+                                    base on recordType assigned to their profile.
+                                <apex:selectList size="1" styleClass="width440" value="{!applicant2.Primary_Employment_Status__c}">
+                                    <apex:selectOptions value="{!employmentStatusOptions}"/>
+                                </apex:selectList>
+                                -->
+                                <!-- Added by Tony Xu for DBHZL-34 -->
+                                <apex:inputField id="a2PrimaryEmploymentStatusPick" styleClass="width440" value="{!applicant2.Primary_Employment_Status__c}" />
+                                <div class="clearfix"></div>
+                                <apex:outputText styleClass="warningMessage marginl220" escape="false" rendered="{!employmentStatusValid2}" value="Error: Please select primary employment"/>
+                            </div>
+                            <div class="clearfix"></div>
+                            
+                            <div>
+                                <label class="labeltd width200">Previous Employment Status</label>
+                                <div class="requiredBlocknull"></div>
+                                
+                                <!-- This is removed by Tony Xu for DBHZL-34
+                                    -- Changed the selectList to inputField as AU and NZ users need to see different picklist value
+                                    base on recordType assigned to their profile.
+                                <apex:selectList size="1" styleClass="width440" value="{!applicant2.Previous_Employment_Status__c}">
+                                    <apex:selectOptions value="{!preEmploymentStatusOptions}"/>
+                                </apex:selectList>
+                                -->
+                                
+                                <!-- Added by Tony Xu for DBHZL-34 -->
+                                <apex:inputField id="a2PreviousEmploymentStatusPick" styleClass="width440" value="{!applicant2.Previous_Employment_Status__c}" />
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpStatusValid2}" value="Error: Please select previous employment status"/>   
+                            </div>
+                            <div class="clearfix"></div>
+                            <!-- Previous Employer Name -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Prev_Emp_Bus_Name__c.Accessible}">
+                                <label class="labeltd width200">Previous Employer Name </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputField styleClass="width440" value="{!applicant2.Prev_Emp_Bus_Name__c}" />
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!!previousEmpNameValid2}" value="Error: Please enter previous employer name"/>    
+                            </apex:outputPanel>  
+                            
+                            <!-- Changed div to output panel for dynamically rendering of this field based on user's acccess to the field -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Time_at_previous_employer_years__c.Accessible}">
+                                <label class="labeltd width200">Time at previous employer (years) </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputText value="{!applicant2.Time_at_previous_employer_years__c}" onkeypress="return isNumberKey(event, this)" maxlength="2"/>
+                                <div class="clearfix"></div>
+                            </apex:outputPanel>
+                            <div class="clearfix"></div>
+                            <!-- Changed div to output panel for dynamically rendering of this field based on user's acccess to the field -->
+                            <apex:outputPanel layout="block" rendered="{!$ObjectType.Applicant__c.fields.Time_at_previous_employer_months__c.Accessible}">
+                                <label class="labeltd width200">Time at previous employer (months) </label>
+                                <div class="requiredBlocknull"></div>
+                                <apex:inputText value="{!applicant2.Time_at_previous_employer_months__c}" onkeypress="return isNumberKey(event, this)" maxlength="2"/>
+                                <div class="clearfix"></div>
+                                <apex:outputLabel styleClass="warningMessage" rendered="{!invalidPreEmployerMonth2}" value="Error: Please enter a valid number of months"/>
+                            </apex:outputPanel>
+                            <div>
+                                <div class="pbSubheader bluepartition">
+                                    <h3 class="marginleft4px">Income</h3>
+                                </div>
+                            </div>
+                            
+                            <div class="boxincludeFields">
+                                <apex:variable value="{!-1}" var="rowNum2"/>
+                                <apex:variable value="{!incomeAddList2.size}" var="rowSize2"/>
+                                <apex:repeat value="{!incomeAddList2}" var="incomeWrap" id="income2Repeat">
+                                    <apex:variable var="rowNum2" value="{!rowNum2 + 1}"/>
+                                    <c:APP_JointIncome_INT incomeWrap="{!incomeWrap}" id="component-2" incomeSlot="{!FLOOR(rowNum2)}" brandRegion="{!brand.Country__c}"/>
+                                </apex:repeat>
+                            </div>
+                            
+                            <div class="clearfix"></div>
+                            <div class="totalincome">
+                                    <apex:outputPanel id="totalIncId2">
+                                         <strong>Total Income:</strong>
+                                         <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!totalIncome2}"/>
+                                        </apex:outputText>
+                                    </apex:outputPanel>
+                            </div>
+                            <div class="addbutton1">
+                                <apex:actionStatus id="status5">
+                                    <apex:facet name="stop">
+                                        <apex:commandButton value="Add More" action="{!addIncome}" rerender="incomePageBlock" rendered="{!incomeList2Size < $Setup.Application_Wizard_Settings__c.Max_Records__c}" status="status5" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandButton value="Adding..." disabled="true"/>
+                                    </apex:facet>                         
+                                </apex:actionStatus>
+                            </div>
+                            <div class="clearfix"></div>
+                            <!-- Responsible Lending 
+                                           <div class="clearfix"></div>-->
+                                         <hr/>
+                                         <br/>
+                                         <apex:outputPanel rendered="{!brand.Country__c=='NZ'}">
+                                                         <div id="incChanges">
+                                        <label style="padding: 5px 10px;float: left;text-align: right;font-size: 101%;font-weight: bold;color: #4a4a56;">Are you aware of any changes in near future that may reduce your income?</label> <br/><br/><br/>                                      
+                                            <apex:outputLabel value="YES" styleClass="slds-button slds-button--neutral gem-mobile-style-flabel" id="incomeChangesYes2" onclick="incomeChangesConfirmation(this);"
+                                                                    style="{!if(AND(brand.Country__c == 'NZ',confirmincomechange2=='YES'),'color: #fff; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"
+                                                                />
+                                                                <apex:outputLabel value="NO" styleClass="slds-button slds-button--neutral" id="incomeChangesNo2" onclick="incomeChangesConfirmation(this);"
+                                                                    style="{!if(AND(brand.Country__c == 'NZ',confirmincomechange2=='NO'),'color: #fff; background:#4465ad; border: 1px solid #4465ad !important;padding:3px 55px;margin-left:35px;','color: #969696; background:#ffffff; border: 1px solid #969696 !important;padding:3px 55px;margin-left:35px;')}"
+                                                                />
+                                                                <apex:inputText style="visibility:hidden;height:0;width:0" id="confirmincomechange2" value="{!confirmincomechange2}" styleClass=""
+                                                                />
+                                                                <div id="incomeOneErr" style="display:none;" />
+                                                               <div id="incomeChangesMessageA2" style="display:none;padding: 5px 10px;font-size: 101%;font-weight: bold;color: #4a4a56;" />
+
+                                        </div>
+                                        </apex:outputPanel>
+                            <!-- End -->
+                           
+                        </div><!-- end incomemaindiv -->
+                    </apex:outputPanel>
+                </apex:tab>
+            
+            </apex:tabPanel> 
+            <div class="clearfix"></div>
+            <div>
+                <div align="center">
+                    <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+                    <br/>                        
+                    <apex:actionStatus id="status2">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Save & Next" id="nextBtn" styleClass="btnSubmitLoan" rendered="{!IF(Mode == 'Edit', false, true)}" rerender="false" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'; this.disabled='true';" onComplete="checkApp('Next'); return false;" status="status2"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>
+                    <apex:actionStatus id="status">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Save & Close" rerender="false" styleClass="btnSubmitLoan" id="saveBtn" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'; this.disabled='true';" onComplete="checkApp('Save'); return false;" status="status"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Saving..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>                        
+                    <apex:actionStatus id="status4">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Back" id="backBtn1" oncomplete="checkIncomeFields('Back');" reRender="status4" status="status4" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>
+                    <apex:actionStatus id="status3">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Cancel" id="closeBtn" reRender="status3" status="status3" onclick="document.getElementById('GETheme:frmId:incomePageBlock:loadingGif').style.visibility='visible'" oncomplete="checkIncomeFields('Cancel');"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Cancelling..." disabled="true"/>
+                        </apex:facet>                         
+                    </apex:actionStatus>
+                </div>
+            </div>
+        </apex:pageBlock>
+        <div class="clearfix"></div>
+    </div><!-- end incomeLayout -->
+    </apex:form>
+</apex:page>

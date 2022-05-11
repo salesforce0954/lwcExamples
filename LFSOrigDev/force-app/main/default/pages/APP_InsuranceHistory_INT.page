@@ -1,0 +1,70 @@
+<!--
+/**
+* @Description: Insurance History page (Staff UI)
+
+* @Author: Mike Lasala
+* @Date Created: 08.AUG.2015
+* @History:
+  =====================================================================
+      08-10-15: CREATED - MLASALA
+  =====================================================================
+ */ 
+-->
+<apex:page id="insuranceHistoryPage" standardController="Application__c" extensions="APP_InsuranceHistoryExt_INT" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+	
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>   
+
+    <apex:form id="insuranceHistoryForm">
+
+		<div align="center">
+
+			<!-- LOADER IMAGE -->
+	        <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+	        style="visibility:hidden;"/>
+	        <br/>
+	        <apex:actionStatus id="status">
+	            <apex:facet name="stop">
+
+	            	<!-- REFRESH BUTTON -->
+	                <apex:commandButton value="Refresh" action="{!refresh}" reRender="insuranceHistoryForm" status="status" onclick="document.getElementById('appPageId:insuranceHistoryInclude:insuranceHistoryPage:insuranceHistoryForm:loadingGif').style.visibility='visible'"/>
+	            </apex:facet>
+	            <apex:facet name="start">
+	                <apex:commandButton value="Refreshing..." disabled="true"/>
+	            </apex:facet>
+	        </apex:actionStatus>
+	    </div>
+	    <br/>
+
+	    <apex:pageBlock id="insuranceHistoryPageBlock" title="Insurance History">
+
+	    	<!-- INSURANCE HISTORY TABLE -->
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+
+                	<!-- INSURANCE HISTORY COLUMNS -->
+                    <th class="headerRow">Insurance Type</th>
+                    <th class="headerRow">Previous Value</th>
+                    <th class="headerRow">New Value</th>
+                    <th class="headerRow">Changed By</th>
+                    <th class="headerRow">Changed Date</th>
+                </tr>
+
+                <apex:repeat value="{!insuranceHistoryList}" var="i" id="insuranceHistoryPageBlockTable">
+                    <tr class="dataRow">
+
+                    	<!-- INSURANCE HISTORY FIELDS -->
+                        <td class="dataCell">{!i.Insurance_Type__c}</td>
+                        <td class="dataCell">{!i.Previous_Value__c}</td>
+                        <td class="dataCell">{!i.New_Value__c}</td>
+                        <td class="dataCell">{!i.Changed_By__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!i.CreatedDate}"/>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+
+	</apex:form>
+
+</apex:page>

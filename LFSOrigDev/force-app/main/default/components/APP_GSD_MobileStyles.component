@@ -1,0 +1,314 @@
+<apex:component >
+    <!------------------------------------------------>
+    <!-- @author  gerome.teodosio@cloudsherpas.com  -->
+    <!-- @desc    Overwrites some styles to fit the -->
+    <!--             mobile version                 -->
+    <!------------------------------------------------>
+  <style>
+    .GAdd-loan {
+      display: none;
+    }
+    
+    /*.GPrimary-button {*/
+    /*  border-radius: 0 !important;*/
+    /*  background-color: #006AC6 !important;*/
+    /*}*/
+    
+    .span12 select,
+    .span6 select,
+    .span3 select,
+    .GPicklist-fix select {
+      padding: 0 10px !important;
+    }
+    
+    .optionyn1 label {
+      width: 40% !important;
+    }
+    
+    .GHeader-title {
+        display: none !important;
+    }
+    
+    .boxloan, 
+        .boxloan1 {
+            height: auto !important;
+        }
+    
+    @media screen and (max-width: 415px) {
+      .GHeader-title {
+          display: block !important;
+      }
+        
+      .pllabel label {
+        font-size: 16px;
+      }
+    
+      .btn.btn-large {
+        height: inherit;
+        padding: 18px 17px;
+      }
+    
+      .minusplusicon {
+        width: 50px; 
+      }
+      
+      .adconad {
+        margin-top: 0;   
+        float: none;
+      }
+      
+      .themelogo {
+        background-repeat: no-repeat;
+      }
+      
+      .headertitle {
+        width: 100% !important;
+      }
+      
+      .headertitle h3 {
+        padding-left: 0;
+        margin-top: 0;
+        line-height: 30px;
+        padding-bottom: 0 !important;
+      }
+      
+      .headerdivider {
+        display: none !important;
+      }
+      .minusplusicon.adconad {
+        float: none;
+        margin: 0 auto;
+        width: 100% !important;
+        font-size: 15px;
+        text-align:center;
+      }
+      
+      .adjustmeicon {
+        border: 2px dashed white;
+        background-color: #006ac6;
+        border-radius: 2px;
+        margin-top: 20px;
+        color: white;
+        width: 100%;
+        margin: 20px 0px;
+      }
+      
+      .plusicon {
+        display: inline-block !important;
+        vertical-align: middle;
+      }
+      
+      .inpselfield select {
+        padding: 6px 10px;
+      }
+      
+      .lp_area,
+      .dbtotal,
+      .GDeMargin{
+        margin: 0 !important;
+      }
+      
+      .maincontent,
+      .computation {
+        padding: 0px;
+      }
+      
+      .GAdd-loan{
+        display: inline-block;
+      }
+      
+      .minusplusicon.miconad {
+        background-color: #006ac6;
+        padding: 5px;
+        width: 34px;
+        margin-top: -115px;
+        border-radius: 5px;
+      }
+      
+      .inpselfield {
+        margin-right: 0 !important;
+      }
+       
+      .computation .span6 > select, 
+      .computation .span6 {
+        width: 100% !important;
+      }
+      
+      .GGetting-started,
+      .GMob-container{
+        /*width: 90% !important;*/
+        margin: 0 auto !important;
+      }
+
+      .GBut-left-pad {
+        padding-right: 50px !important;
+      }
+
+      .totalname {
+        width: 100% !important;
+      }
+      
+      .container-fluid {
+        padding: 0 15px !important; 
+      }
+      
+      .pllabel, .pllabel2 {
+        width: 50px;
+        padding: 16px 0px;
+        margin-right: 10px;
+      }
+      
+      .header-inner {
+          padding: 0 !important;
+      }
+      
+      button.btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright,
+      .btn.btn-block.btn-large.fright.btn-reset-m.btn-activec.val_button.buttonarrowimg.nextBtn.GBut-left-pad,
+      .btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright{
+        width: 100% !important;
+        text-align: left;
+      }
+      
+      .btn.btn-block.btn-large.fright.btn-reset-m.btn-activec.val_button.buttonarrowimg.nextBtn.GBut-left-pad {
+          background-position: 90% 50%;
+      }
+        
+      button.btn.btn-block.btn-large.btn-reset-m.btn-normalc.fright > span {
+        float: right;
+      }
+      
+      .span6 select,
+      .span3 select,
+      .GPicklist-fix select {
+        padding: 0 10px !important;
+      }
+      
+      .headertitle {
+        position: absolute;
+        top: 8px;
+        width: 45% !important;
+        margin: 0 auto;
+        margin-left: 100px;
+      }
+      
+      .GRemove-loan {
+        width: 35px !important;
+      }
+      
+      .GAdd-income {
+        border: 2px dashed white !important;
+        background-color: #006ac6 !important;
+        border-radius: 2px !important;
+        margin: 0 auto!important;
+        color: white !important;
+      }
+      
+      .btn-addanother {
+        padding-right: 75px !important;
+        background-image: url(img/add-icon-dark.png);
+        background-repeat: no-repeat;
+        background-position: 88% !important;
+      }
+      
+      
+      
+      .span6 .GNext-but-fix {
+          margin: 0 !important;
+      }
+      
+      .span12 .chkboxfix {
+        margin-top: 12px;
+      }
+      
+      .loanamountdiv {
+        padding-bottom: 30px !important;
+      }
+      
+      
+      .lp_eligibility {
+        display: block;
+      }
+      
+      .span12.fleft button.btn.btn-block.btn-normalc.btn-large.GPrimary-button {
+        padding: 5px !important;
+        font-size: 12px;
+        width: 80px !important;
+        white-space: normal;
+        border-radius: 3px !important;
+        word-break: break-word;
+        position: absolute;
+        right: 10px;
+        top: -80px;
+      }
+      
+      .span12.fleft button .arrowrighticon {
+        display: none;
+      }
+        
+        
+        .pbBody > .span12 {
+            display: none !important;
+        }
+        
+        .span12.loadercontainer.removelmargin {
+            float: left;
+            width: 100%;
+        }
+        
+        
+      /*************************************/
+      
+      .GDepad {
+         padding: 0 !important; 
+      }
+      
+      .GForm-group {
+        width: 100%;
+      }
+
+      .GForm-group .GForm-field {
+        width: 100% !important;
+      }
+      
+      label.error {
+          margin-left: 0 !important;
+      }
+      
+      .body-label-bold {
+          font-size: 12px;
+      }
+      
+      .accordion-heading i {
+        margin-right: 20px;
+      }
+      
+      .isRequired.input-block-level.isAmount.vNumberAmount {
+        width: 100% !important;
+      }
+    }
+    
+    @media screen and (max-width: 320px) {
+        .span6 .arrowrighticon {
+            margin: 25px;
+            position: absolute;
+            left: 250px;
+        }
+      .themelogo {
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+    }
+            
+    @media screen and (min-width: 375px) {
+        .span6 .arrowrighticon {
+            margin: 25px;
+            position: absolute;
+            left: 300px;
+          }
+        .themelogo {
+            margin-top: 3px;
+            margin-left: 10px;
+        }
+    }
+  </style>
+</apex:component>

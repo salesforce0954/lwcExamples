@@ -1,0 +1,581 @@
+<apex:page standardController="Application__c" extensions="APP_WaitPageExt,Off_OfferPresentationRemote" 
+showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" 
+docType="html-5.0" action="{!checkApplicationDetails}" cache="false" id="GETemplate">
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            var current;
+            var max = parseInt("{!timeoutSettings}");
+            var initial = 0; //initial state of progressbar
+
+            $("#progressbar").progressbar({
+
+                value: initial,
+                max: max
+
+            });
+
+            var count="{!timeoutSettings}";
+
+            function update() {
+
+                current = initial; //value on each function call
+
+                $("#progressbar").height(20);
+                $("#progressbar").progressbar({
+                    value: current
+                });
+
+                if (current >= max) {
+                    clearInterval(interval);
+                }
+
+                if(current %5 == 0){                            
+                    checkAppResponseNonStreaming();
+                }
+
+                if(current == count){
+                    proceedToPostSubmit();
+                }
+
+                initial += 0.25;//how fast will the progressbar load
+
+            };
+
+            var interval = setInterval(update, 100);//how fast to update
+
+        });
+
+       //javascript remoting
+       //streaming api work around
+function checkAppResponseNonStreaming() {
+
+     var applicationIdToLook = '{!applicationId}';
+
+     Visualforce.remoting.Manager.invokeAction(
+
+         '{!$RemoteAction.Off_OfferPresentationRemote.checkForApplicationResponseNonStreaming}', applicationIdToLook, function(result, event){
+             
+             if (event.status) {
+
+                if(result != null) {     
+
+                     proceedToPostSubmit();
+                     clearInterval(counter);
+
+                }
+
+             }
+
+         },
+
+         {escape: true}
+
+     );
+
+ }
+
+    </script>
+
+    <style>
+
+        /* css for submit wait page only */
+
+      .ui-progressbar .ui-progressbar-value {
+        margin: -1px;
+        height: 100%;
+        transition: width 0.5s;
+        -webkit-transition: width 0.5s;
+         background-image: none !important;
+         background-color: #77B922 !important; //Any colour can go here
+         
+        }
+                
+
+        input[type="checkbox"] {
+        margin: 0px 0 0;
+        margin-top: 1px \9;
+        line-height: normal;
+        }
+
+         td {padding-bottom:10px;}
+
+        .comptitle {color:#3a73ba;}
+        
+        .boxloan  {
+        border: #999 solid 1px; 
+        padding: 25px 20px 30px 15px; 
+        margin:5px auto;
+        {!if($Site.name=='Gem'|| $Site.name == 'Kiwibank', 'height:300px;', '')}
+        {!if($Site.name=='Latitude', 'height:370px;', '')}      /* MLASALA: 22-MAR-16 TQLQW-127 Re-brand */
+        }
+        .boxloan1  {
+        border: #999 solid 1px; 
+        padding: 25px 20px 30px 15px; 
+        margin:5px auto;{!if($Site.name=='Gem'|| $Site.name == 'Kiwibank', 'height:300px;', '')}
+        {!if($Site.name=='Latitude', 'height:370px;', '')}      /* MLASALA: 22-MAR-16 TQLQW-127 Re-brand */
+        }
+
+         /* Base for label styling */
+        [type="checkbox"]:not(:checked),
+        [type="checkbox"]:checked {
+          position: absolute;
+          left: -9999px;
+        }
+        [type="checkbox"]:not(:checked) + label,
+        [type="checkbox"]:checked + label {
+          position: relative;
+          padding-left: 25px;
+          cursor: pointer;
+        }
+
+        /* checkbox aspect */
+        [type="checkbox"]:not(:checked) + label:before,
+        [type="checkbox"]:checked + label:before {
+          content: '';
+          position: absolute;
+          left:0; top: 2px;
+          width: 17px; height: 17px;
+          border: 1px solid #aaa;
+          background: #f8f8f8;
+          border-radius: 3px;
+          box-shadow: inset 0 1px 3px rgba(0,0,0,.3)
+        }
+        /* checked mark aspect */
+        [type="checkbox"]:not(:checked) + label:after,
+        [type="checkbox"]:checked + label:after {
+          content: '?';
+          position: absolute;
+          top: 0; left: 4px;
+          font-size: 14px;
+          color: #09ad7e;
+          transition: all .2s;
+        }
+        /* checked mark aspect changes */
+        [type="checkbox"]:not(:checked) + label:after {
+          opacity: 0;
+          transform: scale(0);
+        }
+        [type="checkbox"]:checked + label:after {
+          opacity: 1;
+          transform: scale(1);
+        }
+        /* disabled checkbox */
+        [type="checkbox"]:disabled:not(:checked) + label:before,
+        [type="checkbox"]:disabled:checked + label:before {
+          box-shadow: none;
+          border-color: #bbb;
+          background-color: #ddd;
+        }
+        [type="checkbox"]:disabled:checked + label:after {
+          color: #999;
+        }
+        [type="checkbox"]:disabled + label {
+          color: #aaa;
+        }
+        /* accessibility */
+        [type="checkbox"]:checked:focus + label:before,
+        [type="checkbox"]:not(:checked):focus + label:before {
+          border: 1px dotted blue;
+        }
+
+
+        .loadercontainer {background: #eaeaea; padding:10px 10px 10px 10px; border: #f1f1f1 solid 1px; }
+        .submitwaitview {}
+        .submitwaitview #addfields .pllabel {}
+        .submitwaitview #addfields .inpselfield label {font-size:30px;}
+        
+        
+        input[type="submit"].plusfield {
+            background: url({!URLFOR($Resource.getheme, 'images/add_icon.png')}) no-repeat;
+            border: 0;
+            width: 25px;
+            height: 25px;
+            }
+         input[type="submit"].minusfield {
+            background: url({!URLFOR($Resource.getheme, 'images/minus_icon.png')}) no-repeat;
+            border: 0;
+            width: 25px;
+            height: 25px;
+            }
+            .buttonblock {word-wrap:break-word;}
+            
+            .mv_overyears {font-size: 30px;margin-top: 10px;}
+            .inpselfield {margin-top:13px!important; padding-left:10px;}
+        
+
+        /*Media queries*/
+        @media (max-width: 350px) {
+            .submitwaitview #addfields .inpselfield {width: 70%;}
+            .submitwaitview .overyearslabel {width:49% !important;color: #666;}
+            .submitwaitview .mv_overyears {width:49% !important;text-align:right !important;margin-top: 10px !important;}
+            .submitwaitview .minusplusicon {display:none;}
+        }
+
+        @media (max-width: 768px) {
+            .rimview {display: none !important;}
+        }       
+        
+        /*Media queries*/
+        /* iPhone 5 Retina regardless of IOS version */
+        @media (device-height : 568px) 
+           and (device-width : 320px) 
+           and (-webkit-min-device-pixel-ratio: 2)
+        /* and (orientation : todo: you can add orientation or delete this comment)*/ {
+                         /*IPhone 5 only CSS here*/
+                         
+        .progressloader {margin-top:-20px;}              
+        .marketingboxes  {margin-top:-20px;}    
+        .loadheader     {margin-bottom:-20px;}  
+        .nonespan {display:none;}            
+        }
+
+    </style>
+    <c:App_WebAnalyticAttributes basecontroller="{!this}"/> <!--Afreen - 26-SEPT-2016 - US-519   -->
+    <apex:form id="theForm" >
+
+        <apex:inputHidden id="applicationID" value="{!appId}" />
+        <apex:inputHidden id="applicationRespID" value="{!appRespId}" />
+        <apex:inputHidden id="curApplicationId" value="{!applicationId}" />
+
+        <apex:actionFunction action="{!proceedToPostSubmit}" name="proceedToPostSubmit"/>
+
+    </apex:form>
+
+    <apex:composition template="{!$Site.Template}">
+
+        <apex:define name="GEDDBody">
+                
+                <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'submitwaitview', 'maincontent submitwaitview')}">
+                    <div class="row-fluid">
+                        <div><apex:include pageName="APP_LoanPurposeRO"/></div>
+                    </div>
+                </div>
+
+                <!-- created a separate header title for mobile version -->
+            <div class="headertitle GHeader-title" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                <h3 class="droid-normal dark main-page-header">Personal loan <span class="clearright"></span>application</h3>
+            </div>
+                
+                <div class="maincontent submitwaitview">
+                     <div class="row-fluid span12 txtalignc loadheader removelmargin">
+
+                        <h3 class="comptitle" style="color:{!if($Site.name==$Label.Kiwibank_Site_Name,'#6FA23E',titleStyle)};">
+                        Assessing your application now. Won't be a minute.</h3>
+                            <div class="divider5"></div>
+                        <p style="{!if(OR($site.Name=='Gem', $site.Name=='Kiwibank'), 'margin-bottom: 40px;', '')}">Please do not press back or refresh your browser.</p>
+                        <div class="clearfix"></div>
+                        <div class="divider20 visible-desktop rimview nonespan"></div>
+                        
+                      </div>
+                      
+                     <div class="row-fluid progressloader ">  
+
+                        <div class="span1 visible-desktop rimview nonespan"></div>
+                            <div class="span12 loadercontainer removelmargin">
+                                <div id="progressbar"></div>
+                            </div>
+                        <div class="span1 visible-desktop rimview nonespan"></div> 
+
+                    </div>    
+            
+                <div class="divider50 visible-desktop rimview"></div>
+
+                <apex:form >
+                  
+                    <div class="row-fluid marketingboxes">    
+                    <div class="span1 visible-desktop rimview nonespan"></div>
+                    <div class="span12 removelmargin"> <apex:outputText value="{!marketingContent}" escape="false" /> </div>
+                    <div class="span1 visible-desktop rimview"></div>
+                    </div>
+
+                    <div class="divider50 visible-desktop rimview nonespan"></div>
+
+                </apex:form>                
+                
+                </div><!--end of maincontent-->
+                
+        </apex:define>
+
+    </apex:composition>   
+    
+    
+    <!-- @title     Design OverRide for APP_SubmitWait VF Page -->
+    <!-- @author    gerome.teodosio@cloudsherpas.com           -->
+    <!--            gerome.h.teodosio@Accenture.com            -->
+        
+    <!-- Include MobileStyles component to fix general mobile style issues -->
+    <c:APP_GSD_MobileStyles />
+    
+    <style>
+        @media screen and (max-width: 415px) {
+          .lp_eligibility {
+            display: block !important;
+          }
+        
+          .inpselfield {
+            width: 70% !important;
+            padding-top: 5px;
+          }
+       }
+       .span12 label {
+            width: 100% !important;
+        }
+        
+        .computation .totalname{
+            margin-left: 35px;
+        }
+        
+        .overfield{
+            margin-left: 0 !important;
+        }
+        
+        .overyearslabel{
+            color: #666;
+            font-weight: normal !important;
+        }
+    </style>
+    
+    <!-- Include StylePicker component to fix general brand style issues -->
+    <c:APP_GSD_StylePicker />
+    
+    <!-- Latitude brand styling specific for APP_SubmitWait VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+        <style>
+            @media screen and (min-width: 415px) {
+                .boxloan, .boxloan1 {
+                    height: 650px !important;
+                }
+                
+                .tablemainlist .span12 .pllabel label {
+                    color: #75787b;
+                    font-size: 16px;
+                }
+                
+                .inpselfield label {
+                    margin-top: 5px;
+                }
+            }
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 130px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                    margin-left: 0px;
+                }
+                .pllabel2 {
+                    margin-left: 0px;
+                }
+                .minusplusicon {
+                    width: 25px;
+                }
+                .submitwaitview #addfields .inpselfield label {
+                    font-size: 25px;
+                    white-space: normal !important;
+                }
+                .computation .total {
+                    margin-top: -35px;
+                }
+                .maincontent.submitwaitview {
+                    padding-left: 30px !important;
+                }
+                p {
+                    margin: 0 0 25px;
+                }
+                
+                .headertitle{
+                    width: 100% !important;
+                    margin-left: 0 !important;
+                }
+                .submitwaitview .divider30{
+                    display: none;
+                }
+                
+                .mainalert{
+                    margin-bottom: 0 !important;
+                }
+                
+                .pllabel{
+                    margin-left: 10px !important;
+                }
+                
+                .submitwaitview .mv_overyears{
+                    text-align: left !important;
+                }
+                
+                .computation .span5{
+                    margin-left: 10px !important;
+                }
+                
+                .computation .total span{
+                    bottom: 0;
+                }
+                
+                .maincontent.submitwaitview{
+                    padding-left: 0 !important;
+                }
+            }
+            
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 140px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                    margin-left: 0px;
+                }
+                .pllabel2 {
+                    margin-left: 0px;
+                }
+                .minusplusicon {
+                    width: 25px;
+                }
+                .submitwaitview #addfields .inpselfield label {
+                    font-size: 25px;
+                    white-space: normal !important;
+                }
+                .computation .total {
+                    margin-top: -35px;
+                }
+                .computation .dbtotal {
+                    width: 95% !important;
+                }
+                .maincontent.submitwaitview {
+                    padding-right: 10px;
+                }
+                .mv_overyears {
+                    margin-top: 2% !important;
+                    text-align: right;
+                }
+                .computation .span4 {
+                    width: 50%;
+                }
+            }
+            
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .headertitle {
+                    margin-left: 145px;
+                }
+                .themelogo {
+                    margin-top: 10px;
+                    margin-left: 0px;
+                }
+                .pllabel2 {
+                    margin-left: 0px;
+                }
+                .minusplusicon {
+                    width: 25px;
+                }
+                .submitwaitview #addfields .inpselfield label {
+                    font-size: 25px;
+                    white-space: normal !important;
+                }
+                .computation .total {
+                    margin-top: -35px;
+                }
+                .computation .dbtotal {
+                    width: 95% !important;
+                }
+                .maincontent.submitwaitview {
+                    padding-right: 10px;
+                }
+                .mv_overyears {
+                    margin-top: 2% !important;
+                    text-align: right;
+                }
+                .computation .span4 {
+                    width: 50%;
+                }
+            }
+            
+        </style>     
+    </apex:outputPanel>
+    
+    <!-- Kiwibank brand styling specific for APP_SubmitWait VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+        <style>
+            @media screen and (min-width: 415px) {
+                h3.droid-normal.center.dark {
+                    font-size: 35px !important;
+                    margin: 30px 0px 0px -120px;
+                }
+                
+                .boxloan, .boxloan1 {
+                    height: 450px !important;       /* MLASALA: 20-APR-16 DEFECT 698 FIX */
+                }
+            }
+    
+            @media screen and (max-width: 415px) {
+                .row-fluid.header-inner {
+                    padding: 0 !important;
+                }
+                
+                div#header-logo {
+                    height: 100px;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <!-- Aussie brand styling specific for APP_SubmitWait VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <style>
+            @media screen and (min-width: 415px) {
+               .maincontent .maincontent {
+                    margin-left: 0px !important;
+                }
+                
+                .boxloan, .boxloan1 {
+                    height: 500px !important;
+                }
+            } 
+            /*For Iphone 4 and 5*/
+            @media screen and (max-width: 320px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                }
+            }
+            /*For Iphone 6*/
+            @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 50px !important;
+                }
+            }
+            /*For Iphone 6+*/
+            @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                .span5.headertitle {
+                    margin-left: 40px !important;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+    
+    <!-- Gem brand styling specific for APP_SubmitWait VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+        <style>
+            @media screen and (min-width: 415px) {
+                .boxloan, .boxloan1 {
+                    height: 550px !important;
+                }
+                
+                .inpselfield .inpselfieldrebranding {
+                    margin-top: 5px;
+                }
+            } 
+            
+            @media screen and (max-width: 415px) {
+                .themelogo {
+                    margin-left: 20px;
+                    margin-top: 15px;
+                    width: 80px;
+                }
+            }
+        </style>
+    </apex:outputPanel>
+</apex:page>

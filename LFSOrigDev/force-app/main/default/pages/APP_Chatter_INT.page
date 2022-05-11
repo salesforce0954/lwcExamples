@@ -1,0 +1,3 @@
+<apex:page standardController="Application__c">
+     <chatter:feed entityId="{!id}" showPublisher="true"/> 
+</apex:page>

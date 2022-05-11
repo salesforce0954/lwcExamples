@@ -1,0 +1,25 @@
+<apex:component controller="MetricStatisticsController">
+  
+  <table width="100%">
+  <tr>
+      <td width="30%" align="right" style="padding-right:10px;">Calls:</td>
+      <td width="70%" align="left">{!NumberOfCalls}</td>
+  </tr>
+  <tr>
+      <td width="30%" align="right" style="padding-right:10px;">RPCs:</td>
+      <td width="70%" align="left">{!RPCS}</td>
+  </tr>
+  <tr>
+      <td width="30%" align="right" style="padding-right:10px;">Applications:</td>
+      <td width="70%" align="left">{!Applications}</td>
+  </tr>
+  </table>
+  
+  <table width="100%">
+  <tr>
+      <td width="70%" align="left" style="padding-right:10px;">No. of leads left in the Queue:</td>
+      <td width="30%" align="left">{!OpptyQueue}</td>
+  </tr> 
+  </table>
+
+</apex:component>

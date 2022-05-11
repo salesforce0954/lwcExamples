@@ -1,0 +1,27 @@
+<apex:page controller="OpportunitySetupController" sidebar="false"
+	showHeader="false">
+    <apex:form >
+        <apex:pageBlock >
+        
+			<apex:pageMessage summary="You have no Followups in your diary"
+				severity="warning" strength="3" rendered="{!displayErrorMsg}" />
+        <apex:pageMessages />
+                
+                <apex:pageBlockTable id="newsDT" value="{!tempList}" var="o" >
+                    <apex:column headerValue="Opportunity Name" >
+                        <apex:outputLink target="_blank" value="/{!o.OppId}/e" id="link">
+                            {!o.OppName}<!--opp.name-->
+                        </apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Due Date" value="{!o.ActDueDate}" />
+                    <apex:column headerValue="Campaign Name" value="{!o.CampName}" />
+                </apex:pageBlockTable>
+            
+            <apex:pageBlockButtons location="bottom" >
+				<apex:commandButton value="Close" id="closeButton"
+					onClick="window.close();" />
+            </apex:pageBlockButtons>
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,132 @@
+<apex:page id="disbursementPage" standardController="Application__c" 
+extensions="APP_DisbursementCC_INT" showHeader="false" sidebar="false">
+
+    <script type="text/javascript">
+
+        function goOpenSubtabDisbursement() {
+            //First find the ID of the primary tab to put the new subtab in
+            sforce.console.getEnclosingPrimaryTabId(openSubtabDisbursement);
+        }
+        
+        var openSubtabDisbursement = function openSubtabDisbursement(result) {
+            //Now that we have the primary tab ID, we can open a new subtab in it
+            var primaryTabId = result.id;
+            
+            sforce.console.openSubtab(primaryTabId,
+        '/setup/ui/recordtypeselect.jsp?ent={!objectId}&save_new_url={!keyPrefix}/e?&CF{!applicationFieldId}_lkid'+
+        '={!application.Id}&CF{!applicationFieldId}={!application.Name}',
+        true, '', null);
+            /*CHECKMARX: sforce.console.openSubtab(primaryTabId,
+        '/setup/ui/recordtypeselect.jsp?ent={!objectId}&save_new_url={!keyPrefix}/e?&CF{!JSENCODE(applicationFieldId)}_lkid'+
+        '={!JSENCODE(application.Id)}&CF{!JSENCODE(applicationFieldId)}={!JSENCODE(application.Name)}',
+        true, '', null);
+            */
+    };
+
+        /* This function is instrumental in calling a Remote function in apex and then opening
+        a create new paghe for direct debit with values pre-populated.
+    */
+    function goOpenSubtabDirectDebit(disbursementId){
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_DisbursementCC_INT.createDirectDebit}',disbursementId,
+            function(directDebitValues,event){
+                if(event.status){
+                    sforce.console.getEnclosingPrimaryTabId(function openSubtabDirectDebit(result) {
+                        var primaryTabId = result.id;
+                        var debitValuesArr = directDebitValues.split(';');
+                        if(debitValuesArr[0] === 'AU')
+                        {
+                            sforce.console.openSubtab(primaryTabId,
+                                '/'+debitValuesArr[1]+'/e?&RecordType='+debitValuesArr[2]+'&'+debitValuesArr[3]+'='+debitValuesArr[4]+
+                                '&'+debitValuesArr[5]+'='+debitValuesArr[6]+'&'+debitValuesArr[7]+'='+debitValuesArr[8]+'&'+debitValuesArr[9]+
+                                '='+debitValuesArr[10]+'&'+debitValuesArr[11]+'='+debitValuesArr[12]+'&'+debitValuesArr[13]+'='+debitValuesArr[14],
+                                true, '', null); 
+                        }
+                        else if(debitValuesArr[0] === 'NZ')
+                        {
+                            sforce.console.openSubtab(primaryTabId,
+                                '/'+debitValuesArr[1]+'/e?&RecordType='+debitValuesArr[2]+'&'+debitValuesArr[3]+'='+debitValuesArr[4]+
+                                '&'+debitValuesArr[5]+'='+debitValuesArr[6]+'&'+debitValuesArr[7]+'='+debitValuesArr[8]+'&'+debitValuesArr[9]+
+                                '='+debitValuesArr[10]+'&'+debitValuesArr[11]+'='+debitValuesArr[12]+'&'+debitValuesArr[13]+'='+debitValuesArr[14]+
+                                '&'+debitValuesArr[15]+'='+debitValuesArr[16]+'&'+debitValuesArr[17]+'='+debitValuesArr[18],
+                                true, '', null);     
+                        }
+                    });
+                  
+                }
+            }
+        ); 
+    }
+
+    </script>
+
+    <apex:form id="frm">
+
+        <apex:pageMessages id="error"/>
+
+        <div align="center">
+            <!-- loading bar -->
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="display:none;"/>
+            <br/>
+            <!-- new button -->    
+            <apex:commandButton value="New" onClick="goOpenSubtabDisbursement();return false" />
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <!-- refresh button -->
+                    <apex:commandButton value="Refresh" action="{!refresh}" reRender="frm" status="status" onclick="document.getElementById('appPageId:disbursementInclude:disbursementPage:frm:loadingGif').style.display='block'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>                         
+            </apex:actionStatus>
+        </div>
+
+        <br/>
+        <!-- disbursement table -->
+        <apex:pageBlock title="Disbursements" id="pageblock">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Record Type</th>
+                    <th class="headerRow">Amount</th>
+                    <th class="headerRow">Biller Code</th>
+                    <th class="headerRow">Payee</th>
+                    <th class="headerRow">BSB</th>
+                    <th class="headerRow">Bank Account Number</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!disbursementList}" var="d">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!d.Record_Type_Name__c}</td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0, number,$###,###,##0.00}">
+                                <apex:param value="{!d.Amount__c}"/>
+                            </apex:outputText>
+                        </td>
+                        <!-- <td class="dataCell">{!d.Biller_Code__r.Name}</td> -->
+                        <td class="dataCell">{!d.BillerCode__c}</td>
+                        <td class="dataCell">{!d.Payee__c}</td>
+                        <td class="dataCell">{!d.BSB__c}</td>
+                        <td class="dataCell">{!IF(application.Brand_Lookup__r.Country__c == 'AU', d.Bank_Acc_No__c, d.Bank_Acc_No_NZ__c)}</td>
+                        <td class="dataCell">
+                            <!-- MLASALA 08-SEPT-2016 Stored XSS Code Scan fix -->
+                            <a onclick="openSubtab1('/{!JSENCODE(d.Id)}','{!JSENCODE(d.Name)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                        <td class="dataCell">
+                            <!-- New Button Added for Copying Disbursement details to Direct Debit:START -->
+                            	<apex:commandButton value="Create Direct Debit" title="Click to copy Disbursement details to Direct Debit" id="cddButton" onClick="goOpenSubtabDirectDebit('{!d.Id}');return false" rendered="{! IF(OR(d.Record_Type_Name__c == 'Direct Credit',d.Record_Type_Name__c == 'Direct Credit NZ'),TRUE,FALSE)}"/>
+                            <!-- New Button Added for Copying Disbursement details to Direct Debit:END -->
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <!-- total disbursement amount -->
+            <apex:outputPanel style="text-align:right">
+                <strong>TOTAL DISBURSEMENT SUM: </strong>
+                <apex:outputText id="totValue" value="{!TotalDisbursementAmount}"/>
+            </apex:outputPanel>  
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

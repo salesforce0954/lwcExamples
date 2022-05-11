@@ -1,0 +1,1550 @@
+<!--
+/**
+* @Description: Main Navigation Page for the GE Loan----DEVORG
+* @Author: Jan Mark Domingo
+* @Date Created: 01.OCT.2013
+* @History:
+  =====================================================================
+      10-01-13: Created - Mac
+      10-10-13: Added Javascript function to count session duration - Mike
+      10-14-13: Removed Javascript function to count session duration - Russell
+      10-18-13: Added Next button for Sales UI navigation - Mike
+      11-25-13: Removed use of Mode variable - Mike
+      01-31-14: Refactored - Mike
+      03-24-14: Convert sidebar to component(GEDDSidebar) - Adrian
+      02-29-16: TQLQW - 104 Rebranding - MDAVID
+  =====================================================================
+*/
+-->
+<apex:page standardController="Application__c" extensions="APP_MainExt" showHeader="false" id="GETemplate" standardStylesheets="false"
+    applyHtmlTag="true" applyBodyTag="true" docType="html-5.0" cache="false" action="{!commonAuthorizationRequired}">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}" />
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="GEDDBody">
+            <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, 
+'/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+            <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"
+            />
+            <!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>-->
+
+            <apex:outputPanel rendered="{!$site.Name!='Latitude'}">
+                <style>
+                    .lp_eligibility .llfields .minusplusicon.adconad {
+                        margin-top: 0 !important;
+                        background: transparent;
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!$site.Name=='Latitude'}">
+                <style>
+                    .computation .totalname {
+                        padding-left: 87px !important;
+                    }
+
+                    @media screen and (max-width: 415px) {
+                        .computation .totalname {
+                            padding-left: 0 !important;
+                        }
+
+                        .computation .total {
+                            padding-left: 0 !important;
+                        }
+
+                        .lp_eligibility .llfields .minusplusicon.adconad {
+                            margin-top: 0 !important;
+                            width: 65% !important;
+                            background: transparent;
+                        }
+                    }
+
+                    @media screen and (min-width: 769px) {
+                        /*.pllabel2 {*/
+                        /*    width: 43px;*/
+                        /*}*/
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!$site.Name=='Gem'}">
+                <style>
+                    .headertitle h3 {
+                        padding-left: 20px;
+                    }
+
+                    #header-logo .themelogo {
+                        margin-left: 0;
+                    }
+
+                    .lp_eligibility .llfields .minusplusicon.adconad {
+                        margin-top: -42px !important;
+                    }
+                </style>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$site.Name=='Kiwibank'}">
+                <style>
+                    @media screen and (max-width: 415px) {
+                        .maincontent .computation {
+                            padding-left: 10px !important;
+                            padding-right: 10px !important;
+                        }
+
+                        .computation .totalname {
+                            padding-left: 0 !important;
+                        }
+                    }
+                </style>
+            </apex:outputPanel>
+            <style>
+                .buttonblock {
+                    word-wrap: break-word;
+                }
+
+
+
+                .bPageBlock button.btn.btn-large {
+                    width: 100%;
+                }
+
+                .width800 {
+                    width: 95% !important;
+                }
+
+                <apex:outputPanel rendered="$site.Name!='Kiwibank'">.lp_eligibility .llfields .minusplusicon.adconad {
+                    width: 75% !important;
+                }
+
+                </apex:outputPanel>@media screen and (min-width: 415px) {
+                    .lp_eligibility .llfields .minusplusicon.adconad.kiwidashfix {
+                        margin-top: -62px !important;
+                    }
+                }
+
+                @media screen and (max-width: 415px) {
+                    section .maincontent.sidebar-left.mobileCon {
+                        padding-left: 0 !important;
+                    }
+
+                    .bPageBlock button.btn.btn-large {
+                        width: 100% !important;
+                    }
+                }
+            </style>
+
+
+            <script type="text/javascript">
+                function isNumberKey(evt, field) {
+                    var charCode = (evt.which) ? evt.which : event.keyCode;
+                    if (charCode != 46 && charCode > 31
+                        && (charCode < 48 || charCode > 57))
+                        return false;
+                    if (charCode == 118) return false;
+                    //if(field.value.length >= maxlimit) return false;
+                    if (charCode == 46) return false;
+                    if (charCode == 32) return false;
+                    return true;
+                }
+
+                function trimField(element) {
+                    element.value = element.value.replace(/,/g, "");
+                }
+
+                function calculateTotalLoanAmount(elem) {
+                    if (isNaN(elem.value)) {
+                        elem.value = '';
+                    }
+                    UpdateAmount();
+                }
+
+                function calculateLoan(action) {
+                    document.getElementById('GETemplate:GETemplate:mainForm:redirectTxt').value = action;
+                    var amount = document.getElementById('GETemplate:GETemplate:mainForm:loanPPageBlock:lw:0:component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c');
+                    calculateTotalLoanAmount(amount);
+                    validateLoan();
+                }
+
+                function setFlagFalse(action) {
+                    document.getElementById('GETemplate:GETemplate:mainForm:flag').value = false;
+                    document.getElementById('GETemplate:GETemplate:mainForm:redirectTxt').value = action;
+
+                    validateLoan();
+
+                }
+
+                function delApplicant() {
+                    var r = confirm("Please confirm whether you wish to remove applicant 2 or Cancel to go back to the application.");
+                    if (r == true) {
+                        document.getElementById('GETemplate:GETemplate:mainForm:flag').value = false;
+                        document.getElementById('GETemplate:GETemplate:mainForm:redirectTxt').value = 'Main';
+                        deleteApplicant2();
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                function submitApplication() {
+                    document.getElementById('GETemplate:GETemplate:mainForm:redirectTxt').value = 'calculateLoan';
+                    pageRedir();
+                }
+                function isAlNumericWithHyphen(evt, field) {
+                    var charCode = (evt.which) ? evt.which : event.keyCode;
+                    if ((charCode == 08 || charCode == 45 || charCode == 8 || charCode == 189 || charCode == 39 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122) || (charCode >= 48 && charCode <= 57))))
+                        return true;
+                    return false;
+                }
+                function saveLoan(action) {
+                    document.getElementById("GETemplate:GETemplate:mainForm:header").value = action;
+                    UpdateAmount();
+                    validateLoan();
+                }
+                /*  Description: Function used for the header buttons "Save Application" & "Logout"
+                 *  Author: Jade Serrano
+                 *  Date Created: 09-APR-2014
+                 *  Input: None
+                 *  Return:
+                 */
+                function headerButtons() {
+                    var action = document.getElementById("GETemplate:GETemplate:mainForm:header").value;
+                    var loanValid = document.getElementById("GETemplate:GETemplate:mainForm:loanValidation").value;
+
+                    if (loanValid == "true") {
+                        if (action == 'register') {
+                            //action function
+                            headerRegister();
+                        } else if (action == 'logout') {
+                            //action function
+                            headerLogout();
+                        }
+                    }
+                }
+            </script>
+
+            <style>
+                .mainalert .errorM3 {
+                    background-color: #f7f9fa;
+                    border-color: #e9ecef;
+                    padding: 16px 45px 16px 30px;
+                    font-size: 16px;
+                    color: #c09853;
+                }
+
+                .loginlogout {
+                    float: right !important;
+                }
+
+                alert a.btn {
+                    letter-spacing: 1px;
+                }
+            </style>
+
+
+
+
+            <!-- Header Main Menu -->
+            <!-- Commenting this section Sprint 4 --->
+            <!--- <div id="warning" title="Session timeout warning." style=" display: none;">
+                              <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;">
+                              </span>Please save your Application before session times out.</p>
+                            </div>--->
+
+            <!-- Time out changed for Broker and Customer in Sprint 4 --->
+
+            <div id="warning" title="Do you want to continue?" style="display: none; font-size:11px !important; overflow:hidden;">
+                <p style="font-size:14px !important;line-height:12px;">
+                    <span class="" style="float: left; margin: 0 0px 20px 0;font-size:11px !important;"></span>
+                    <apex:outputText rendered="{!(isBrokerChannel)}">This application will time out in 10 minutes.
+                        <br/>
+                        <br/> Please click OK to continue. </apex:outputText>
+                    <apex:outputText rendered="{!Not(isBrokerChannel)}">
+                        This application will time out in 10 minutes. Please click OK to continue.
+                        <br/>
+                        <br/> Note: If you wish to resume later please save your application.
+                    </apex:outputText>
+                </p>
+            </div>
+            <apex:form id="mainForm">
+                <c:App_WebAnalyticAttributes basecontroller="{!this}" />
+                <!-- AFREEN 28-SEPT-2016 TQLQW-519 Web Analytics - Ensighten -->
+                <!--new header for appmain-->
+                <apex:inputHidden id="destinationPage" value="{!destinationPage}" />
+                <apex:inputHidden id="callingPage" value="{!callingPage}" />
+                <apex:inputHidden id="loanValidation" value="{!loanValidationResults}" />
+                <apex:inputHidden id="navFlag" />
+                <apex:inputHidden id="header" />
+                <header>
+
+
+                    <div id="header" class="header">
+                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                            <div class="row-fluid header-inner headerlogovr">
+
+                                <div class="mobilell">
+                                    <div class="loginlogout span3 removelmargin helplogindesk">
+                                        <apex:pageBlock >
+                                            <div class="span12 fleft">
+                                                <apex:commandButton value="{!$Label.CUI_header_save_application}" styleClass="btn btn-block btn-normalc buttonarrowimg" rendered="{!NOT(isRegistered) && NOT(isBrokerChannel)}"
+                                                    reRender="false" onClick="setNavigationFlag('false'); saveLoan('register');"
+                                                    onComplete="showOtherLoanPurpose();" />
+                                                <apex:commandButton value="{!$Label.CUI_header_logout}" styleClass="btn btn-block btn-normalc buttonarrowimg" onClick=" setNavigationFlag('false'); saveLoan('logout');"
+                                                    reRender="false" rendered="{!isRegistered}" onComplete="showOtherLoanPurpose();"
+                                                />
+                                            </div>
+                                        </apex:pageBlock>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- header-inner -->
+                        </apex:panelGroup>
+                        <!--START - Added by MDAVID - 03/01/2016 TQLQW - 104 Rebranding-->
+                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                            <apex:panelGroup rendered="{!NOT(isRegistered) && Not(isBrokerChannel)}">
+                                <div class="row-fluid header-inner headerlogovr">
+                                    <div class="mobilell">
+                                        <div class="loginlogout span3 removelmargin helplogindesk">
+                                            <apex:pageBlock >
+                                                <div class="span12 fleft">
+                                                    <button type="submit" onclick="setNavigationFlag('false'); saveLoan('register');return false;" class="btn btn-block btn-normalc btn-large GPrimary-button greenSave"
+                                                        reRender="false">Save Application
+                                                        <!--<span class="arrowrighticon" style="margin-left:20px"></span>-->
+                                                    </button>
+                                                </div>
+                                            </apex:pageBlock>
+                                        </div>
+                                    </div>
+                                </div>
+                            </apex:panelGroup>
+                            <apex:panelGroup rendered="{!(isRegistered)}">
+                                <div class="row-fluid header-inner headerlogovr" style="padding: 0 0 0 0 !important;">
+                                    <div class="mobilell">
+                                        <div class="loginlogout span3 removelmargin helplogindesk">
+                                            <apex:pageBlock >
+                                                <div class="span12 fleft">
+                                                    <button type="submit" onclick="setNavigationFlag('false'); saveLoan('logout');return false;" class="btn btn-block btn-normalc btn-large greenSave"
+                                                        reRender="false" style="float:right">Logout
+                                                        <span class="arrowrighticon" style="margin-left:20px"></span>
+                                                    </button>
+                                                </div>
+                                            </apex:pageBlock>
+                                        </div>
+                                    </div>
+                                </div>
+                            </apex:panelGroup>
+                        </apex:panelGroup>
+                        <!--END - Added by MDAVID - 03/01/2016 TQLQW - 104 Rebranding-->
+                    </div>
+                    <!-- row-fluid -->
+                    <div class="headerdivider" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display: block', 'display:none')}">
+                        <div style="height: 5px;"></div>
+                        <div class="divider10"></div>
+                    </div>
+
+                    <!-- created a separate header title for mobile version -->
+                    <!--<div class="headertitle GHeader-title" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">-->
+                    <!--    <h3 class="droid-normal dark">Personal loan <span class="clearright"></span>application</h3>-->
+                    <!--</div>-->
+                </header>
+                <!--end of new header-->
+
+                <section>
+
+                    <div class="maincontent ovrpme">
+                        <div class="row-fluid">
+                            <div class="mainalert span12" style="margin-bottom: 0px;">
+                                <apex:pageMessages id="error" escape="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <apex:inputHidden id="flag" />
+                    <apex:inputHidden id="redirectTxt" value="{!redirectTo}" />
+                    <apex:inputHidden id="loanPurposeSize" value="{!loanPurposeSize}" />
+                    <apex:inputHidden id="blackBox" value="{!blackBox}" />
+                    <apex:actionFunction name="validateLoan" action="{!validateLoanFields}" rerender="mainForm" status="pleasewait" oncomplete="showOtherLoanPurpose();headerButtons();"
+                    />
+                    <apex:actionFunction name="UpdateAmount" action="{!calculateLoanAmountTotal}" reRender="Exp_total" oncomplete="showOtherLoanPurpose();"
+                    />
+                    <apex:actionFunction name="deleteApplicant2" action="{!deleteApplicant}" />
+                    <apex:actionFunction name="addApplicant2" action="{!addApplicant2}" />
+                    <apex:actionFunction name="navigate" action="{!pageNavigation}" rerender="false" />
+                    <apex:actionFunction name="pageRedir" action="{!pageRedirect}" />
+                    <!-- BEGIN MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+                    <apex:actionFunction name="validateApplication" action="{!validateApply}" rerender="errorId, blackBox" oncomplete="setNavigationFlag(false);submitServiceCall();"
+                    />
+                    <apex:actionFunction name="submitServiceCall" action="{!submitServiceCallCustomer}" />
+                    <!-- END MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+                    <apex:actionFunction name="headerRegister" action="{!register}" />
+                    <apex:actionFunction name="headerLogout" action="{!logout}" />
+                    <!--START Added by MDAVID - 03/02/2016 TQLQW - 104 Rebranding-->
+                    <apex:actionFunction name="addLoanPurpose" action="{!addLoanPurpose}" rerender="loanForm,loanPurposeSize,loanPPageBlock,OtherPanelId"
+                        status="removeStatus" onComplete="showOtherLoanPurpose();" />
+                    <apex:actionFunction name="removeLoanPurpose" action="{!removeLoanPurpose}" rerender="loanForm,loanPurposeSize,loanPPageBlock"
+                        status="removeStatus" onComplete="showOtherLoanPurpose();" />
+                    <!--END Added by MDAVID - 03/02/2016 TQLQW - 104 Rebranding-->
+                    <apex:pageBlock id="loanPPageBlock">
+                        <div class="lp_area_mobile">
+                            <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_eligibility', 'maincontent lp_area lp_eligibility')}">
+                                <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'container-fluid headerbackground', 'row-fluid')}">
+                                    <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_area lp_eligibility', 'row-fluid span12 loanfields')}">
+                                        <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid', '')}">
+                                            <!-- Start of Content Here -->
+                                            <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid span12', '')}">
+                                                <div id="addfields" class="tablemainlist llfields {!if($site.Name!='Kiwibank', 'width800', '')}">
+                                                    <div class="headertitle" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                                                        <h3 class="droid-normal dark main-page-header">Personal loan
+                                                            <span class="clearright"></span>application</h3>
+                                                    </div>
+
+                                                    <!-- Start Loop-->
+                                                    <apex:repeat value="{!loanWrapList}" var="l" id="lw">
+                                                        <!-- <apex:pageBlockSection id="Loan_Purpose__c-1"> -->
+                                                        <c:APP_Main country="{!brand.country__c}" l="{!l}" id="component-1" />
+                                                        <!-- </apex:pageBlockSection> -->
+                                                    </apex:repeat>
+                                                    <div class="clearfix"></div>
+                                                    <div id="countIcons" class="span12 adjustmeicon">
+                                                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                                                            <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                                            <div class="minusplusicon miconad GRemove-loan">
+                                                                <apex:commandButton value=" " styleClass="minusfield" action="{!removeLoanPurpose}" rerender="loanForm,loanPurposeSize" rendered="{!if(loanPurposeSize >=2, true, false)}"
+                                                                    status="removeStatus" onComplete="showOtherLoanPurpose();"
+                                                                />
+                                                            </div>
+                                                            <div class="minusplusicon adconad mv_addicon {!if($site.Name=='Kiwibank', 'kiwidashfix', '')}" style="{!if($site.Name=='Kiwibank', 'margin-right: 230px !important;', '')}">
+                                                                <apex:commandButton value="Add Loan Purpose" styleClass="plusfield" action="{!addLoanPurpose}" rerender="loanForm,loanPurposeSize"
+                                                                    rendered="{!loanPurposeSize <=9}" status="addStatus" oncomplete="showOtherLoanPurpose();"
+                                                                />
+                                                            </div>
+                                                        </apex:panelGroup>
+                                                        <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                                                        <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                                                            <apex:panelGroup rendered="{!if(loanPurposeSize >=2, true, false)}">
+                                                                <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                                                <div class="minusplusicon miconad GRemove-loan" style="{!IF($CurrentPage.Name == 'app_main', if($site.Name!='Latitude', 'bottom: 1px;', 'margin-right: 0px !important; position: relative; left: 30px;') , '')}">
+                                                                    <span class="minusicon" onclick="removeLoanPurpose()"></span>
+                                                                </div>
+                                                            </apex:panelGroup>
+                                                            <apex:panelGroup rendered="{!loanPurposeSize <=9}">
+                                                                <div class="minusplusicon adconad mv_addicon" style="{!IF($site.Name == 'Latitude', 'margin-right: 0px !important;' , '')}">
+                                                                    <span class="plusicon" onclick="addLoanPurpose()"></span>
+                                                                </div>
+                                                            </apex:panelGroup>
+                                                        </apex:panelGroup>
+                                                    </div>
+                                                    <div class="clearfix"></div>
+                                                </div>
+                                                <!-- addfields -->
+                                            </div>
+                                            <!-- Product dropdown better start-->
+                                            <div class="span4" style="width: {!if($site.Name='Latitude','127px; font-size: 16px !important; color: #ffffff !important;','115px')};">
+                                                <apex:outputLabel rendered="{!IF($CurrentPage.parameters.form == 'broker', true, false)}" styleClass="gem-subtitle" style="{!if($site.Name=='Latitude','color: #ffffff !important; font-family: Lexia Book !important; font-size: 16px !important;','')} margin-left:695px">Product</apex:outputLabel>
+                                            </div>
+                                            <apex:outputPanel rendered="{!IF($CurrentPage.parameters.form == 'broker', true, false)}" style="width:222px;margin:auto;margin-left:785px"
+                                                layout="block" id="product_selected">
+                                                <apex:selectList styleClass="input-block-level isPicklistLoanTerm dropdownicon checkPreviousFields removebmargin" size="1"
+                                                    value="{!productSelected}">
+                                                    <apex:selectOptions value="{!productOptions}" />
+                                                </apex:selectList>
+                                                <!--  <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}" value="You must select a loan term."/> -->
+                                            </apex:outputPanel>
+                                            <!-- End -->
+                                            <div class="clearfix"></div>
+                                            <!--- Better Start -->
+                                            <apex:outputPanel rendered="{!IF($CurrentPage.parameters.subType== 'betterStart', true, false)}" >
+                                            <div id="demo" style="display:block;background-color:#CC0033 !important;width:500px;margin:auto;color:#ffffff !important;font-family:initital;padding-left:30px;">
+                                            </div>
+                                            </apex:outputPanel>
+                                            <!--- End --->                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                <div class="contaner-fluid loanamountdiv">
+                                    <div class="maincontent">
+                                        <div class="row-fluid">
+                                            <div class="computation {!if($site.Name!='Kiwibank', 'width800', '')}">
+                                                <div class="span5 dbtotal">
+                                                    <span class="totalname">Total loan amount:</span>
+                                                    <span class="total">
+                                                        <apex:outputText value="${0, number, ###,###,###,##0.00}" id="Exp_total">
+                                                            <apex:param value="{!totAmount}" />
+                                                        </apex:outputText>
+                                                        <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanAmountNotValid}" value="<br/>Error: Your preferred loan amount must be at least ${!validLPAmount}."
+                                                        />
+                                                        <!--UPDATED by RCADAPAN @ 08-MAR-2016 to merge Valid Total Loan Amount per Region - TQLQW-29-->
+                                                    </span>
+
+                                                </div>
+                                                <div class="span6 overfield pull-right removelmargin">
+                                                    <div class="span4" style="width: 127px">
+                                                        <apex:outputLabel styleClass="gem-subtitle">{!$Label.Over}</apex:outputLabel>
+                                                    </div>
+                                                    <div class="span6 input100pct" style="width: 127px">
+                                                        <apex:selectList styleClass="input-block-level isPicklistNone dropdownicon" id="loanterm" size="1" value="{!loanTermSelected}">
+                                                            <apex:selectOptions value="{!loanTermOptions}" />
+                                                        </apex:selectList>
+                                                        <apex:outputText styleClass="warningMessage" escape="false" rendered="{!loanTermNotValid}" value="Error: You must select a loan term."
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div class="clearfix"></div>
+                                            </div>
+                                            <!-- computation -->
+                                        </div>
+                                    </div>
+                                    <!-- end maincontent -->
+                                </div>
+                                <!-- end continer-fluid -->
+                            </div>
+                        </div>
+                    </apex:pageBlock>
+                    <div class="maincontent sidebar-left mobileCon">
+                        <div class="row-fluid width800">
+
+                            <!-- Start of Content Here -->
+
+                            <!-- sidebar -->
+                            <div class="span6 earlyfull sidebar dashboardarea dbshow">
+                                <!-- Sidebar -->
+                                <c:GEDDSidebar id="sideBar" />
+                            </div>
+                            <!-- span3 sidebar -->
+
+                            <!-- right column -->
+                            <!-- defect #1144 -devendra start-->
+                            <apex:outputpanel rendered="{!isDataComplete}">
+                                <div class="span6 earlyfull maindashboard mv_hidetotally2">
+                                    <div class="clearfix"></div>
+                                    <div class="divider10"></div>
+                                    <apex:pageMessages Id="errorId" />
+                                    <div class="clearfix"></div>
+                                    <div class="divider10"></div>
+                                    <h3>
+                                        <center>You're one click away!</center>
+                                    </h3>
+                                    <div class="clearfix"></div>
+                                    <div class="divider30"></div>
+                                    <p>
+                                        <h4>
+                                            <center>Take a moment to ensure that all your information is correct, and then click
+                                                the submit button below to complete your application.</center>
+                                        </h4>
+                                    </p>
+                                    <div class="divider30"></div>
+                                    <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), false, true)}">
+                                        <apex:commandButton onclick="setNavigationFlag('false');window.scroll(0,0);validateApplication();" styleClass="btn btn-large btn-normalc fright btn-activec buttonarrowimg removelmargin"
+                                            value="Submit" rerender="false" />
+                                    </apex:panelGroup>
+                                    <!-- Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                                    <apex:panelGroup rendered="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), true, false)}">
+                                        <button onclick="setNavigationFlag(true);window.scroll(0,0);validateApplication(); return false;" status="saveStatus" class="btn btn-large btn-normalc fright btn-activec removelmargin"
+                                            rerender="false">Submit
+                                            <span class="arrowrighticon" style="margin-left:20px"></span>
+                                        </button>
+                                    </apex:panelGroup>
+
+                                </div>
+                                <!-- span7 earlyfull -->
+                            </apex:outputpanel>
+
+                            <apex:outputpanel rendered="{!Not(isDataComplete)}">
+                                <div></div>
+                                <div class="span6 earlyfull maindashboard mv_hidetotally2">
+                                    <h2>Dashboard</h2>
+                                    <div class="divider10"></div>
+                                    <p>Please complete each box in any order you like. Once you complete a section, hit the
+                                        "Next" button to continue.
+                                    </p>
+                                    <div class="divider10"></div>
+                                    <apex:outputText rendered="{!if($site.Name = 'Latitude', true, false)}">
+                                        <p>Once you have completed all sections, hit the Submit button to submit your application.
+                                        </p>
+                                    </apex:outputText>
+                                    <!--<apex:outputText rendered="{!if(AND(isSoftQuoteApp= false, OR($site.Name = 'Gem',$site.Name = 'Kiwibank')), true, false)}" >
+                                    <p>Once you have completed all sections, hit the Get Quote button to get a quote for your application.
+                                    </p></apex:outputText>
+                                    <apex:outputText rendered="{!if(AND(isSoftQuoteApp= true, OR($site.Name = 'Gem',$site.Name = 'Kiwibank')), true, false)}" >
+                                    <p>Once you have completed all sections, hit the Submit 
+                                    button to submit your application.
+                                    </p></apex:outputText>-->
+                                </div>
+                                <!-- span7 earlyfull -->
+                            </apex:outputpanel>
+                            <!-- defect #1144 -devendra end-->
+
+                            <!-- End of Content -->
+                        </div>
+                        <!-- row-fluid -->
+                    </div>
+                    <!-- maincontent -->
+                </section>
+                <script type="text/javascript">
+                    function showOtherLoanPurpose() {
+                        var loanrepeat = document.getElementById("GETemplate:GETemplate:mainForm:loanPurposeSize");
+                        for (var i = 0; i < loanrepeat.value; i++) {
+                            var purpose = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                            var other = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:OtherPanelId");
+
+                            if (purpose.value == 'Other') {
+                                other.style.display = "block";
+                            } else {
+                                other.style.display = "none";
+                            }
+
+                        }
+                    }
+                    showOtherLoanPurpose();
+                </script>
+
+                <script>
+                    //Better Start
+                    if ("{!$CurrentPage.parameters.subType}" == "betterStart") {
+                        enableLoanPurpose();
+                        loanAmtBSAU();
+                    }
+
+
+                    function enableLoanPurpose() {
+                        var loansize = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                        for (var i = 0; i < 1; i++) {
+                            var firstLP = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c").disabled = true;
+                        }
+                        for (var i = 1; i < 15; i++) {
+                            //var option = document.getElementById("GETemplate:GETemplate:loanForm:lw:"+i+":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                            // option.value = 'Please Select';
+                            var lpSize = document.getElementById("GETemplate:GETemplate:loanForm:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c").disabled = false;
+
+                        }
+                    }
+
+
+                    function loanAmtBSAU() {
+                        if ("{!$CurrentPage.parameters.subType}" == "betterStart") {
+                            if ('{!brand.country__c}' == 'AU') {
+                                var loansize = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                                for (var i = 0; i < 1; i++) {
+                                    var firstLP = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+                                    var lpValue = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                                    if (firstLP.value < 20000 || lpValue.value != 'Debt consolidation') {
+                                        document.getElementById("demo").style.display = "block";
+                                        //document.getElementById("demo").innerHTML = "Better Start loans have a minimum loan amount of $20,000. If this amount meets your needs, please update the loan amount. Alternatively, please select one of our other loan types which you can view at: <a style= 'color:antiquewhite;text-decoration:underline;' href=https://www.latitudefinancial.com.au/loans/>https://www.latitudefinancial.com.au/loans/</a>";                
+                                        document.getElementById("demo").innerHTML = "A Better Start Personal Loan must be for Debt Consolidation for $20,000 or more";
+                                        return false;
+                                    } else if (firstLP.value >= 20000 && lpValue.value == 'Debt consolidation') {
+                                        document.getElementById("demo").style.display = "none";
+                                    }
+                                }
+                            }
+                            else if ('{!brand.country__c}' == 'NZ') {
+                                var loansizeNZ = document.getElementById("GETemplate:GETemplate:loanForm:loanPurposeSize");
+                                for (var i = 0; i < 1; i++) {
+                                    var firstLPNZ = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Loan_Amount__c");
+                                    var lpValueNZ = document.getElementById("GETemplate:GETemplate:mainForm:loanPPageBlock:lw:" + i + ":component-1:Loan_Purpose__c-mycomponent:Loan_Purpose__c____Value__c");
+                                    if (firstLPNZ.value < 20000 || lpValueNZ.value != 'Consolidation') {
+                                        document.getElementById("demo").style.display = "block";
+                                        document.getElementById("demo").innerHTML = "Better Start loans have a minimum loan amount of $20,000. If this amount meets your needs, please update the loan amount. Alternatively, please select one of our other loan types which you can view at: <a style= 'color:antiquewhite;text-decoration:underline;' href=https://www.latitudefinancial.com.au/loans/>https://www.latitudefinancial.com.au/loans/</a>";
+                                        return false;
+                                    } else if (firstLPNZ.value >= 20000 && lpValueNZ.value == 'Consolidation') {
+                                        document.getElementById("demo").style.display = "none";
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                    function warningLoanAmount() {
+                        loanAmtBSAU();
+                    }
+                       //End
+                </script>
+            </apex:form>
+
+
+            <script>
+                document.getElementById('GETemplate:GETemplate:mainForm:flag').value = true;
+
+                var j$ = jQuery.noConflict();
+
+                var timeout = "{!TimeOut}";
+                var warning = "{!Warning}";
+                var timeoutGap = timeout - warning;
+                var originalTimeOut = timeout;
+
+                j$(document).ready(function () {
+                    //Zero the idle timer on mouse movement or keypress.
+                    j$('#warning').dialog(undefined);
+                    j$('#warning').dialog().dialog('close');
+
+                    j$(this).mousemove(function (e) {
+                        timeout = originalTimeOut;
+                        //  j$('#warning').dialog('close');
+                    });
+                    j$(this).keypress(function (e) {
+                        timeout = originalTimeOut;
+                        // j$('#warning').dialog('close');
+                    });
+                });
+                function countDown() {
+                    if (timeout <= 0) {
+                        setNavigationFlag("false");
+                        setFlagFalse('Timeout');
+                        pageRedir();
+                    } else {
+                        timeout--;
+                        if (timeout == timeoutGap) {
+                            //alert('Please save your Application before session times out');
+                            j$(function () {
+                                j$("#warning").dialog({
+                                    resizable: false,
+                                    height: 180,
+                                    modal: true,
+                                    buttons: {
+                                        "OK": function () {
+                                            j$(this).dialog("close");
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                        setTimeout("countDown()", 1000);
+                    }
+                }
+                function pageRedirect(pageref) {
+                    var callingtile = pageref.value;
+                    document.getElementById('GETemplate:GETemplate:mainForm:destinationPage').value = callingtile;
+                    document.getElementById('GETemplate:GETemplate:mainForm:callingPage').value = 'Main';
+                    navigate();
+                }
+
+                function executeLoad() {
+                    showOtherLoanPurpose();
+                    countDown();
+                }
+                executeLoad();
+                window.onbeforeunload = function (e) {
+                    var flag = document.getElementById("GETemplate:GETemplate:mainForm:navFlag");
+                    if (flag.value == false) {
+                        return "Application has not been saved. Do you wish to exit?";
+                    }
+                }
+                function setNavigationFlag(val) {
+                    document.getElementById('GETemplate:GETemplate:mainForm:navFlag').value = val;
+                }
+            </script>
+
+
+
+            <!-- @title     Design OverRide for APP_Main VF Page -->
+            <!-- @author    gerome.teodosio@cloudsherpas.com     -->
+            <!--            gerome.h.teodosio@Accenture.com      -->
+
+            <!-- Include MobileStyles component to fix general mobile style issues -->
+            <c:APP_GSD_MobileStyles />
+
+            <style>
+                @media screen and (max-width: 415px) {
+                    .pbBody>.span12 {
+                        display: block !important;
+                    }
+                }
+            </style>
+
+            <apex:outputPanel rendered="{!$site.Name=='Kiwibank'}">
+                <style>
+                    @media screen and (max-width:768px) {
+                        .mobilell .loginlogout .buttonarrowimg {
+                            width: 92px !important;
+                        }
+                    }
+
+                    @media screen and (max-width: 350px) {
+                        .llfields .inpselfield {
+                            width: 62% !important;
+                            margin-top: 15px;
+                        }
+
+                        .llfields .pllabel.pllabel2 {
+                            padding-top: 20px !important;
+                        }
+
+                        .llfields .pllabel.pllabel2 label,
+                        .llfields .pllabel label {
+                            text-align: right !important;
+                        }
+
+                        .llfields .inpselfield:last-child {
+                            position: relative;
+                            left: 10px;
+                        }
+
+                        div#countIcons {
+                            background: transparent !important;
+                        }
+
+                        .mv_addicon input.plusfield {
+                            margin-top: 50px !important;
+                        }
+
+                        .minusplusicon.adconad.kiwidashfix {
+                            border: none !important;
+                        }
+
+                        section .maincontent.sidebar-left.mobileCon {
+                            margin-left: 0;
+                        }
+
+                        .computation .total {
+                            text-align: left !important;
+                        }
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <!-- Latitude brand styling specific for APP_Main VF Page -->
+            <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <link href="{!URLFOR($Resource.LatitudeIcons, '/LatitudeIcons/lat-iconfix.css')}" rel="stylesheet" />
+                <style>
+                    button.btn.btn-large.btn-normalc.fright.btn-activec.removelmargin {
+                        width: 170px !important;
+                    }
+
+                    @media screen and (min-width: 415px) {
+                        button.btn.btn-large.btn-block.removelmargin {
+                            width: 100% !important;
+                        }
+
+                        div#countIcons {
+                            width: 800px;
+                            margin-left: -80px;
+                        }
+
+                        .GAdd-02,
+                        .GMinus-02 {
+                            display: none !important;
+                        }
+
+                        #countIcons {
+                            display: block !important;
+                        }
+                        .minusplusicon.miconad {
+                            margin-left: 80px;
+                        }
+                        /*For Safari*/
+                        .minusplusicon.miconad:not(:root:root) {
+                            margin-left: 500px;
+                            margin-top: -85px;
+                        }
+                        .adconad:not(:root:root) {
+                            margin-right: -20%;
+                        }
+                        .miconad {
+                            margin-top: -55px;
+                        }
+                    }
+
+                    /*For Iphone 4 and 5*/
+
+                    @media screen and (max-width: 320px) and (orientation: portrait) {
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 30px !important;
+                            padding-left: 10px !important;
+                        }
+                        .minusplusicon {
+                            width: 30px;
+                        }
+                        .headertitle {
+                            margin-left: 65px;
+                        }
+                        .themelogo {
+                            margin-top: 10px;
+                            margin-left: 10px;
+                        }
+                        #header-logo {
+                            padding-left: 10px;
+                            height: 80px;
+                        }
+                        .maincontent,
+                        .ovrpme {
+                            padding-left: 0px !important;
+                        }
+                    }
+
+                    /*For Iphone 6*/
+
+                    @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 11px !important;
+                            padding-left: 10px !important;
+                        }
+                        .minusplusicon {
+                            width: 50px;
+                        }
+                        .headertitle {
+                            margin-left: 85px;
+                        }
+                        .themelogo {
+                            margin-top: 13px;
+                            margin-left: 10px;
+                        }
+                        #header-logo {
+                            padding-left: 10px;
+                            height: 80px;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                    }
+
+                    /*For Iphone 6+*/
+
+                    @media screen and (min-width: 376px) and (max-width: 414px) and (orientation: portrait) {
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 95%;
+                            padding-top: 10px !important;
+                            padding-left: 10px !important;
+                        }
+                        .themelogo {
+                            margin-top: 13px;
+                        }
+                        .headertitle {
+                            margin-left: 95px;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                    }
+
+                    /*For desktop*/
+
+                    @media screen and (min-width: 1200px) {
+                        .adconad {
+                            margin-top: -55px;
+                            margin-right: 0px !important;
+                        }
+                        .olp_field {
+                            margin-left: 43px !important;
+                        }
+                        .adconad {
+                            margin-top: -45px !important;
+                        }
+                    }
+
+                    /*For 1280x1024 Screen Resolution*/
+
+                    @media screen and (min-width: 1280px) and (max-width: 1280px) {
+                        .minusplusicon.miconad {
+                            margin-left: 210px !important;
+                        }
+                        .adconad {}
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <!-- Aussie brand styling specific for APP_Main VF Page -->
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <style>
+                    .boxlink {
+                        margin: 2px !important;
+                    }
+
+                    @media screen and (min-width: 415px) {
+                        #countIcons {
+                            margin-left: 50px;
+                        }
+                        .container-fluid {
+                            padding-left: 0px;
+                        }
+                    }
+
+                    @media screen and (max-width: 415px) {
+                        .minusplusicon.miconad {
+                            background-color: transparent;
+                            padding: 5px;
+                            width: 25px;
+                            margin-top: -69px;
+                            border-radius: 5px;
+                        }
+                        .minusplusicon {
+                            width: 30px;
+                        }
+                        h3.droid-normal.center.dark {
+                            display: none;
+                        }
+                        .adjustmeicon {
+                            background-color: transparent !important;
+                            margin: 0;
+                        }
+                    }
+
+                    /*For Iphone 4 and 5*/
+
+                    @media screen and (max-width: 320px) and (orientation: portrait) {
+                        .headertitle {
+                            position: absolute;
+                            top: 6px;
+                            width: 50% !important;
+                            margin: 0 auto;
+                            margin-left: 80px;
+                        }
+                        .mv_addicon {
+                            margin-top: 0px !important;
+                        }
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 81% !important;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 13px !important;
+                        }
+                        .minusplusicon.adconad.mv_addicon .plusfield {
+                            width: 100% !important;
+                            margin: 0px 0px !important;
+                        }
+                        .maincontent {
+                            margin-bottom: 18px !important;
+                        }
+                        .minusplusicon {
+                            width: 40px;
+                        }
+                        .olp_field {
+                            margin-left: 30px;
+                            padding-top: 5px;
+                        }
+                        .pllabel.pllabel2 {
+                            margin-left: 50px;
+                        }
+                        .span5.headertitle {
+                            margin-left: 40px !important;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 30px !important;
+                            padding-left: 4px !important;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                        .adjustmeicon {
+                            width: 98%;
+                        }
+                    }
+
+                    /*For Iphone 6*/
+
+                    @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                        .headertitle {
+                            position: absolute;
+                            top: 13px;
+                            width: 50% !important;
+                            margin: 0 auto;
+                            margin-left: 95px;
+                        }
+                        .minusplusicon {
+                            width: 40px;
+                        }
+                        .span5.headertitle {
+                            margin-left: 50px !important;
+                        }
+                        .pllabel2 {
+                            margin-left: 50px;
+                        }
+                        .olp_field {
+                            margin-left: 50px;
+                        }
+                        .mv_addicon {
+                            margin-top: 0px !important;
+                        }
+                        .minusplusicon.adconad {
+                            width: 85% !important;
+                            margin-left: 26px;
+                            padding: 5px 0px 34px 0px;
+                        }
+                        .computation {
+                            padding-top: 40px !important;
+                        }
+                        .minusplusicon.adconad.mv_addicon .plusfield {
+                            width: 91% !important;
+                            margin: 2px 15px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 30px !important;
+                            padding-left: 4px !important;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                        .adjustmeicon {
+                            width: 98%;
+                        }
+                        .inpselfield {
+                            width: 215px;
+                        }
+                    }
+
+                    /*For Iphone 6+*/
+
+                    @media screen and (min-width: 376px) and (max-width: 414px) and (orientation: portrait) {
+                        .computation {
+                            margin-top: 23px;
+                        }
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 67% !important;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 45px;
+                        }
+                        .mv_addicon {
+                            margin-top: 0px !important;
+                        }
+                        .minusplusicon.adconad.mv_addicon .plusfield {
+                            margin: 0px !important;
+                        }
+                        .olp_field {
+                            margin-left: 40px;
+                            padding-top: 5px !important;
+                        }
+                        .headertitle {
+                            margin-left: 110px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 30px !important;
+                            padding-left: 4px !important;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                        .adjustmeicon {
+                            width: 98%;
+                        }
+
+                    }
+
+                    .adconad {
+                        background-image: none !important;
+                    }
+
+                    .accordion-heading h4 a {
+                        background-color: #82807a;
+                        padding: 15px !important;
+                        color: #fff;
+                        font: 18px Arial, Verdana;
+                        text-decoration: none;
+                        background-image: url(../images/minus_icon.png);
+                        background-repeat: no-repeat;
+                        background-position: 98% 50%;
+                    }
+
+                    div#refine {
+                        margin-top: 20px;
+                    }
+
+                    li.ovrfix2.col1-2 {
+                        display: block;
+                    }
+
+                    .span12.removelmargin ul.no-bullets.eligibilitylabelyesno li:nth-child(7) {
+                        display: none;
+                    }
+
+                    @media screen and (min-width: 415px) {
+                        .row-fluid.span12.loanfields {
+                            padding-bottom: 50px;
+                        }
+                        .minusplusicon {
+                            width: 30px;
+                            margin-top: -107px;
+                            margin-left: 20px;
+                        }
+
+                        div#countIcons {
+                            margin-top: -20px;
+                            margin-left: 0px;
+                        }
+
+                        .minusplusicon.adconad.mv_addicon {
+                            margin-top: -107px !important;
+                            float: right;
+                            margin-right: 35% !important;
+                        }
+
+                        .btn.btn-block.btn-large.fright.btn-reset-m.btn-activec.fright.val_button.buttonarrowimg.nextBtn {
+                            margin-bottom: 15px;
+                        }
+                    }
+
+                    @media screen and (max-width: 415px) {
+                        .container-fluid.loanamountdiv {
+                            padding: 0 !important;
+                        }
+
+                        .minusplusicon.miconad {
+                            background-color: transparent !important;
+                        }
+
+                        .adjustmeicon {
+                            background-color: transparent !important;
+                            margin: 0;
+                        }
+
+                        .container-fluid.loanamountdiv .maincontent {
+                            margin-top: 45px !important;
+                        }
+
+                        .container-fluid.loanamountdiv .maincontent .row-fluid {
+                            margin-top: 65px;
+                        }
+
+                        .container-fluid.loanamountdiv .maincontent .row-fluid .computation {
+                            padding: 10px;
+                        }
+
+                        .minusplusicon.miconad {
+                            margin-top: -95px !important;
+                            margin-left: 15px;
+                        }
+
+                        .minusplusicon.adconad.mv_addicon .plusfield {
+                            width: 90%;
+                            margin: 0 15px;
+                        }
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <!-- Gem brand styling specific for APP_Main VF Page -->
+            <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <style>
+                    button.btn.btn-large.btn-normalc.fright.btn-activec.removelmargin {
+                        width: 170px !important;
+                    }
+
+                    .minusplusicon.miconad {
+                        background-color: transparent;
+                    }
+
+                    @media screen and (min-width: 415px) {
+                        button.btn.btn-block.btn-normalc.btn-large.GPrimary-button {
+                            width: 250px !important;
+                        }
+
+                        button.btn.btn-large.btn-block.removelmargin {
+                            width: 100% !important;
+                            height: 40px;
+                        }
+
+                        .maincontent.sidebar-left.mobileCon {
+                            margin: 0 auto !important;
+                        }
+
+                        h3.droid-normal.dark {
+                            color: #fff;
+                        }
+                        .miconad {
+                            margin-top: -85px;
+                            margin-left: 12%;
+                        }
+
+                    }
+
+                    @media screen and (max-width: 415px) {
+                        .themelogo {
+                            margin-left: 20px;
+                            margin-top: 15px;
+                            width: 80px;
+                        }
+                    }
+
+                    .minusplusicon.adconad.GAdd-02,
+                    .minusplusicon.miconad.GMinus-02 {
+                        display: none;
+                    }
+
+                    /*For Iphone 4 and 5*/
+
+                    @media screen and (max-width: 320px) and (orientation: portrait) {
+                        .minusplusicon {
+                            width: 30px;
+                        }
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 30px !important;
+                            padding-left: 10px !important;
+                        }
+                        .maincontent,
+                        .ovrpme,
+                        .footer-bottom-inner {
+                            padding-left: 0px !important;
+                        }
+                    }
+
+                    /*For Iphone 6*/
+
+                    @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 94%;
+                            padding-top: 11px !important;
+                            padding-left: 10px !important;
+                        }
+                    }
+
+                    /*For Iphone 6+*/
+
+                    @media screen and (min-width: 376px) and (max-width: 414px) and (orientation: portrait) {
+                        .minusplusicon.miconad {
+                            width: 25px;
+                        }
+                        .maincontent.sidebar-left.mobileCon {
+                            width: 95%;
+                            padding-top: 10px !important;
+                            padding-left: 10px !important;
+                        }
+                        .themelogo {
+                            margin-top: 13px;
+                        }
+                    }
+
+                    /*For desktop*/
+
+                    @media (min-width: 1200px) {
+                        .adconad {
+                            margin-right: 26%;
+                        }
+                        .olp_field {
+                            margin-left: 218px;
+                        }
+                    }
+                </style>
+            </apex:outputPanel>
+
+            <!-- Kiwibank brand styling specific for APP_Main VF Page -->
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <style>
+                    @media screen and (max-width: 415px) {
+                        .headertitle h3.droid-normal.center.dark {
+                            display: none;
+                        }
+
+                        #header-logo {
+                            height: 80px;
+                        }
+
+                        .mobilell .loginlogout .buttonarrowimg {
+                            margin-top: -70px !important;
+                        }
+
+                        .minusplusicon.miconad {
+                            background-color: transparent;
+                            padding: 5px;
+                            width: 25px;
+                            margin-top: -60px;
+                            border-radius: 5px;
+                        }
+
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 81%;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 0px;
+                        }
+                        .computation {
+                            padding: 0 !important;
+                            margin-top: 40px;
+                        }
+                        .mv_addicon {
+                            margin-top: 0px !important;
+                        }
+                        .adjustmeicon {
+                            border: none;
+                            background-color: #fff;
+                            margin-top: 0px;
+                            width: 100%;
+                            margin: 0px 0px;
+
+                        }
+                    }
+
+                    @media screen and (min-width: 415px) {
+                        .container-fluid {
+                            padding-left: 0px;
+                        }
+                        .adconad {
+                            margin-top: -96px;
+                            float: right;
+                            margin-right: 36%;
+                        }
+
+                        .row-fluid.span12.loanfields {
+                            padding-bottom: 50px;
+                        }
+
+                        .minusplusicon {
+                            width: 20px;
+                        }
+                    }
+
+                    /*For Iphone 4 and 5*/
+
+                    @media screen and (max-width: 320px) and (orientation: portrait) {
+                        .minusplusicon {
+                            width: 10px;
+                        }
+                        .pllabel,
+                        .pllabel2 {
+                            width: 80px !important;
+                            margin-right: 5px;
+                        }
+                        .headertitle {
+                            top: 10px !important;
+                            margin-left: 85px;
+                        }
+                        .pllabel label {
+                            padding-right: 0px;
+                        }
+                        .olp_field {
+                            padding-top: 0px;
+                        }
+                        .pllabel2 {
+                            margin-left: 20px;
+                        }
+                        .adjustmeicon {
+                            border: none;
+                            background-color: #fff;
+                            margin-top: 0px;
+                            width: 100%;
+                            margin: 0px 0px;
+                        }
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 81% !important;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 0px;
+                        }
+                        .computation {
+                            padding: 0 !important;
+                            margin-top: 81px !important;
+                        }
+                    }
+
+                    /*For Iphone 6*/
+
+                    @media screen and (min-width: 321px) and (max-width: 375px) and (orientation: portrait) {
+                        .minusplusicon {
+                            width: 40px;
+                        }
+                        .pllabel2 {
+                            margin-left: 50px !important;
+                        }
+                        .olp_field {
+                            padding-top: 0px !important;
+                        }
+                        .pllabel,
+                        .pllabel2 {
+                            width: 60px !important;
+                            padding: 8px 0px 16px 0px;
+                            margin-right: 10px;
+                        }
+                        .adjustmeicon {
+                            border: none;
+                            background-color: #fff;
+                            margin-top: 0px;
+                            width: 100%;
+                            margin: 0px 0px;
+                        }
+                        .computation {
+                            padding: 0 !important;
+                            margin-top: 87px !important;
+                            width: 100%;
+                        }
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 75% !important;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 13px !important;
+                        }
+                    }
+
+                    /*For Iphone 6+*/
+
+                    @media screen and (min-width: 376px) and (max-width: 425px) and (orientation: portrait) {
+                        .minusplusicon {
+                            width: 40px;
+                        }
+                        .pllabel2 {
+                            margin-left: 50px !important;
+                        }
+                        .olp_field {
+                            padding-top: 0px;
+                        }
+                        .pllabel,
+                        .pllabel2 {
+                            width: 60px !important;
+                        }
+                        .computation {
+                            margin-top: 90px;
+                        }
+                        .minusplusicon.adconad {
+                            float: none;
+                            margin: 0 auto;
+                            width: 67% !important;
+                            font-size: 15px;
+                            text-align: center;
+                            margin-left: 32px;
+                        }
+                    }
+
+                    /*For desktop*/
+
+                    @media (min-width: 1200px) {
+                        .olp_field {
+                            width: 419px !important;
+                        }
+                        .miconad {
+                            margin-top: -100px;
+                        }
+                    }
+                </style>
+            </apex:outputPanel>
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

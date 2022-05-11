@@ -1,0 +1,53 @@
+<apex:page id="statusHistoryPage" standardController="Application__c" extensions="APP_AlertStatusHistory_EXT_INT" 
+showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>   
+ 
+    <apex:form id="appHistoryForm">
+
+        <div align="center">
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+                    <apex:commandButton value="Refresh" action="{!applicationHistoryList}" 
+                    reRender="appHistoryForm" status="status" 
+            onclick="document.getElementById('appPageId:statusHistoryInclude:statusHistoryPage:appHistoryForm:'+
+            'loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="appHistoryPageBlock" title="Status History">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Applicant's Name</th>
+                    <th class="headerRow">Field</th>
+                    <th class="headerRow">Previous Value</th>
+                    <th class="headerRow">New Value</th>
+                    <th class="headerRow">Changed By</th>
+                    <th class="headerRow">Changed Date</th>
+                </tr>
+                <apex:repeat value="{!verifyPOICheckHistoryList}" var="h" id="appHistoryPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!h.Parent.Applicant__r.Full_Name__c}</td>
+                        <td class="dataCell">{!h.Field}</td>
+                        <td class="dataCell">{!h.OldValue}</td>
+                        <td class="dataCell">{!h.NewValue}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!h.CreatedById}"/>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!h.CreatedDate}"/>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,44 @@
+<!-- 
+/**
+* @author Original: Adrian Recio Cloud Sherpas
+* @date Original: 26 Feb 2013
+* @description To do list component
+*/
+-->
+<apex:component controller="HomeComponentController">
+
+	<apex:includeScript value="/soap/ajax/28.0/connection.js"/>
+	<apex:includeScript value="/support/console/28.0/integration.js"/>
+		
+	<script type="text/javascript">		
+		// Page redirect function
+		function todoLeadPlay(urlVar){
+			if(sforce.console.isInConsole()){
+				window.open(urlVar,"_self");
+				//sforce.console.openPrimaryTab(null, urlVar, true, "To do", null, null);
+			}else{
+				window.open(urlVar,"_self");
+				//window.open(urlVar,"_blank");
+				//sforce.console.openPrimaryTab(null, urlVar, true, "To do..", null, null);
+			}			
+		}
+	</script>
+	
+    <apex:pageBlock title="View To-Do List" tabStyle="Account">
+            <apex:pageBlockTable id="newsDT" value="{!tempList}" var="o">
+                <apex:column headerValue="Customer Name" value="{!o.AccName}" style="width: 30%;"/>
+                <apex:column headerValue="Play">
+                	<apex:outputLink onclick="todoLeadPlay('{!perspecSysURL}/apex/OpportunityResetPage?oppid={!o.OppId}&isDialer=false'); return false;" id="link" style="width: 10%;">
+                        <apex:image value="{!$Resource.Icon_small_play}"/>
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Lead Name" value="{!o.OppName}" style="width: 30%;"/>
+                <apex:column headerValue="Reminder Date/Time" style="width: 30%;">
+                    <apex:outputText value="{0,date,dd'/'MM'/'yyyy hh:mm}">
+                        <apex:param value="{!o.ActDueDate}"/> 
+                    </apex:outputText>
+                </apex:column>
+
+            </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:component>

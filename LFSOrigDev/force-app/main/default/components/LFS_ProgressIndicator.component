@@ -1,0 +1,419 @@
+<apex:component controller="APP_GEDDSidebarExt" id="sidebarId" allowDML="true">
+    <!-- START PROGRESS BAR -->
+    <style>
+        
+        .status_complete, .status_inprogress{
+        	background: none !important;
+        }
+        
+        .progressbarcont{
+            padding-bottom: 50px !important;
+            margin-top: 50px !important;
+            <!-- Commenting this section for Timeout helptext Sprint 4
+			margin-bottom: 50px !important; ---->
+            position: relative;
+            bottom: 20px !important;
+        }
+        
+        .progressbar{
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+        }
+        
+        .progressbar ul{
+            list-style-type: none;
+            height: 100%;
+        }
+        
+        .progressbar ul li{
+            display: inline-block;
+            float: left;
+            font-size: 20px;
+            min-width: 38px;
+            min-height: 38px;
+            width: 10.85%;
+            height: 11%
+        }
+        
+        .progressName{
+            display: none;
+        }
+        
+        .progressNum{
+            display: block;
+            min-height: 38px;
+            min-width: 38px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            vertical-align: middle;
+            color: #75787b;
+            background-color: #e6e6e6;
+            padding: 20%;
+        }
+        
+        .kiwi .progressNum{
+            background-color: #e7f6d6;
+            color: #353c2e;
+        }
+        
+        .status_complete .progressNum{
+            background-color: #319b42;
+            color: #ffffff;
+        }
+        
+        .gem .status_complete .progressNum{
+            background-color: #4465ad;
+        }
+        
+        .kiwi .status_complete .progressNum{
+            background-color: #6ab421;
+        }
+        
+        .status_inprogress .progressNum{
+            background-color: #ffffff;
+            color: #006ac6;
+        }
+        
+        .gem .status_inprogress .progressNum{
+            color: #4465ad;
+        }
+        
+        .kiwi .status_inprogress .progressNum{
+            color: #6ab421;
+        }
+        
+        .progressbar .greyline{
+            display: none;
+        }
+        
+        .progressbar .greyline hr{
+            width: 38px;
+            border-color: #969696;
+            border-width: 2px;
+            margin-top: 49px;
+        }
+        
+        #progressTitle{
+            font-family: 'Lexia', Helvetica, Arial, sans-serif;
+            color: #006AC6;
+            text-align: center;
+            padding: 3%;
+            width: 45.75%;
+        }
+        
+        .gem #progressTitle{
+            color: #4465ad;
+        }
+        
+        .kiwi #progressTitle{
+            color: #6ab421;
+            padding: 2%;
+        }
+        
+        .tick, .numtick{
+            display: none;
+        }
+        
+        .status_complete .numtick{
+            display: block;
+            height: 100%;
+            width: 20px;
+            margin: 0 auto;
+        }
+        
+        .status_complete .numbertxt{
+            display: none;
+        }
+        
+        @media screen and (max-width: 415px){
+        	header .headertitle{
+        		width: 100% !important;
+        		margin-left: 0 !important;
+        		margin-bottom: 20px !important;
+        	}
+        	
+        	.progressbarcont{
+        	    margin-top: 20px !important;
+        	}
+        }
+        
+        @media screen and (min-width: 480px){
+            .progressNum{
+            	padding: 25% 20%;
+            }
+        }
+        
+        @media screen and (min-width: 769px){
+            .progressbarcont{
+                max-width: 100%;
+                width: 100%;
+                background-color: #eeeeee;
+            }
+            
+            .progressbarcont.gem, .progressbarcont.kiwi{
+                background-color: #ffffff;
+            }
+            
+            .progressbar{
+                max-width: 800px;
+                width: 800px;
+                margin: 0 auto;
+            }
+            
+            .progressbar .greyline{
+                display: inline;
+                padding-top: 8px;
+                width: 38px !important;
+            }
+            
+            .numtick, .status_complete .numtick{
+                display: none;
+            }
+            
+            .status_complete .numbertxt{
+                display: block;
+            }
+            
+            #progressTitle{
+                display: none;
+            }
+            
+            .progressbar ul li{
+                width: 20%;
+                height: initial;
+            }
+            
+            .progressName{
+                display: block;
+            }
+            
+            .progressName p{
+                display: block;
+                font-size: 16px;
+                line-height: 12px;
+                text-align: center;
+                vertical-align: middle;
+                margin: 0;
+                margin-top: 15px;
+                color: #75787b;
+            }
+            
+            .status_inprogress .progressName p{
+                color: #006ac6;
+            }
+            
+            .gem .status_inprogress .progressName p{
+                color: #4465ad;
+            }
+            
+            .kiwi .status_inprogress .progressName p{
+                color: #6ab421;
+            }
+            
+            .progressName .verticalAdjust{
+                vertical-align: middle;
+            }
+            
+            .status_complete .progressName p{
+                color: #319b42;
+            }
+            
+            .gem .status_complete .progressName p{
+                color: #4465ad;
+            }
+            
+            .kiwi .status_complete .progressName p{
+                color: #6ab421;
+            }
+            
+            .progressNum{
+                display: block;
+                width: 60px;
+                height: 60px;
+                text-align: center;
+                vertical-align: middle;
+                padding: 0;
+                padding-top: 16px;
+                background-color: #e6e6e6;
+                font-size: 22px;
+                font-weight: bold;
+                color: #75787b;
+                -webkit-border-radius: 100%;
+                -moz-border-radius: 100%;
+                border-radius: 100%;
+                margin: 0 auto;
+            }
+            
+            .gem .progressNum{
+                padding-top: 16px;
+            }
+            
+            .kiwi .progressNum{
+                padding-top: 19px;
+            }
+            
+            .gem .progressNum, .kiwi .progressNum{
+                -webkit-border-radius: 0;
+                -moz-border-radius: 0;
+                border-radius: 0;
+            }
+            
+            .progressNum:hover, .progressNum:active, .progress:visited{
+                color: #75787b;
+            }
+            .complete .progressNum{
+                background-color: #319b42;
+                color: #ffffff;
+            }
+            
+            .gem .complete .progressNum{
+                background-color: #4465ad;
+            }
+            
+            .kiwi .complete .progressNum{
+                background-color: #6ab421;
+            }
+            
+            .status_inprogress .progressNum{
+                background-color: #ffffff;
+                color: #006ac6;
+                padding-top: 14px;
+            }
+            
+            .kiwi .status_inprogress .progressNum{
+                padding-top: 17px;
+            }
+            
+            .gem .status_inprogress .progressNum{
+                color: #4465ad;
+                border: 1px solid #88cdd3;
+            }
+            
+            .kiwi .status_inprogress .progressNum{
+                color: #6ab421;
+                border: 2px solid #6ab421;
+            }
+        }
+        
+        @media screen and (max-width: 320px){
+        	#progressTitle{
+        		width: 130px;
+        		font-size: 18px;
+        	}
+        
+        	header .headertitle{
+        		width: 100% !important;
+        		margin-left: 0px !important;
+        		margin-bottom: 25px !important;
+        	}
+        }
+    </style>
+    <div class="progressbarcont {!if($Site.Name = 'Kiwibank','kiwi','')} {!if($Site.Name = 'Gem', 'gem', '')}">
+        <div class="progressbar">
+            <ul>
+                <li id="progressTitle">Progress</li>
+                <li class="{!personalDetailsButtonClass}">
+                    <div class="progressNum active">
+                        <span class="numbertxt">1</span>
+                        <div class="numtick">
+                            <svg width="20px" height="18px" viewBox="0 0 24 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <!-- Generator: Sketch 39 (31667) - http://www.bohemiancoding.com/sketch -->
+                                <title>Shape</title>
+                                <desc>Created with Sketch.</desc>
+                                <defs></defs>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <path d="M22.9,3.3 L11.4,20.9 C11.3,21 11.3,21.1 11.3,21.1 C11.3,21.1 11.2,21.2 11,21.3 L10.9,21.4 C10.7,21.5 10.5,21.6 10.2,21.7 L10,21.7 C9.9,21.8 9.7,21.8 9.5,21.7 L9.1,21.7 C9,21.6 8.9,21.6 8.7,21.5 C8.6,21.4 8.5,21.4 8.4,21.4 C8.3,21.3 8.3,21.3 8.2,21.2 L1.4,15 C1,14.6 0.8,14.1 0.8,13.5 C0.8,12.9 0.9,12.4 1.3,12 C1.7,11.6 2.2,11.3 2.8,11.3 C3.4,11.3 3.9,11.5 4.3,11.9 L9.1,16.4 L19.4,1 C19.8,0.5 20.2,0.2 20.8,0.1 C21.4,-8.32667268e-16 21.9,0.1 22.3,0.4 C22.8,0.7 23,0.9 23,0.9 C23,0.9 23.1,1.2 23.2,1.7 C23.3,2.2 23.2,2.8 22.9,3.3 L22.9,3.3 Z" id="Shape" fill="#FFFFFF"></path>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="progressName">
+                        <p>About You</p>
+                    </div>
+                </li>
+                <li class="{!incomeButtonClass}">
+                    <div class="progressNum">
+                        <span class="numbertxt">2</span>
+                        <div class="numtick">
+                            <svg width="20px" height="18px" viewBox="0 0 24 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <!-- Generator: Sketch 39 (31667) - http://www.bohemiancoding.com/sketch -->
+                                <title>Shape</title>
+                                <desc>Created with Sketch.</desc>
+                                <defs></defs>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <path d="M22.9,3.3 L11.4,20.9 C11.3,21 11.3,21.1 11.3,21.1 C11.3,21.1 11.2,21.2 11,21.3 L10.9,21.4 C10.7,21.5 10.5,21.6 10.2,21.7 L10,21.7 C9.9,21.8 9.7,21.8 9.5,21.7 L9.1,21.7 C9,21.6 8.9,21.6 8.7,21.5 C8.6,21.4 8.5,21.4 8.4,21.4 C8.3,21.3 8.3,21.3 8.2,21.2 L1.4,15 C1,14.6 0.8,14.1 0.8,13.5 C0.8,12.9 0.9,12.4 1.3,12 C1.7,11.6 2.2,11.3 2.8,11.3 C3.4,11.3 3.9,11.5 4.3,11.9 L9.1,16.4 L19.4,1 C19.8,0.5 20.2,0.2 20.8,0.1 C21.4,-8.32667268e-16 21.9,0.1 22.3,0.4 C22.8,0.7 23,0.9 23,0.9 C23,0.9 23.1,1.2 23.2,1.7 C23.3,2.2 23.2,2.8 22.9,3.3 L22.9,3.3 Z" id="Shape" fill="#FFFFFF"></path>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="progressName">
+                        <p>Employment</p>
+                    </div>
+                </li>
+                <li class="{!expenseButtonClass}">
+                    
+                    <div class="progressNum">
+                        <span class="numbertxt">3</span>
+                        <div class="numtick">
+                            <svg width="20px" height="18px" viewBox="0 0 24 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <!-- Generator: Sketch 39 (31667) - http://www.bohemiancoding.com/sketch -->
+                                <title>Shape</title>
+                                <desc>Created with Sketch.</desc>
+                                <defs></defs>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <path d="M22.9,3.3 L11.4,20.9 C11.3,21 11.3,21.1 11.3,21.1 C11.3,21.1 11.2,21.2 11,21.3 L10.9,21.4 C10.7,21.5 10.5,21.6 10.2,21.7 L10,21.7 C9.9,21.8 9.7,21.8 9.5,21.7 L9.1,21.7 C9,21.6 8.9,21.6 8.7,21.5 C8.6,21.4 8.5,21.4 8.4,21.4 C8.3,21.3 8.3,21.3 8.2,21.2 L1.4,15 C1,14.6 0.8,14.1 0.8,13.5 C0.8,12.9 0.9,12.4 1.3,12 C1.7,11.6 2.2,11.3 2.8,11.3 C3.4,11.3 3.9,11.5 4.3,11.9 L9.1,16.4 L19.4,1 C19.8,0.5 20.2,0.2 20.8,0.1 C21.4,-8.32667268e-16 21.9,0.1 22.3,0.4 C22.8,0.7 23,0.9 23,0.9 C23,0.9 23.1,1.2 23.2,1.7 C23.3,2.2 23.2,2.8 22.9,3.3 L22.9,3.3 Z" id="Shape" fill="#FFFFFF"></path>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="progressName">
+                        <p>Expenses</p>
+                    </div>
+                </li>
+                <li class="{!assetButtonClass}">
+                    <div class="progressNum">
+                        <span class="numbertxt">4</span>
+                        <div class="numtick">
+                            <svg width="20px" height="18px" viewBox="0 0 24 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <!-- Generator: Sketch 39 (31667) - http://www.bohemiancoding.com/sketch -->
+                                <title>Shape</title>
+                                <desc>Created with Sketch.</desc>
+                                <defs></defs>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <path d="M22.9,3.3 L11.4,20.9 C11.3,21 11.3,21.1 11.3,21.1 C11.3,21.1 11.2,21.2 11,21.3 L10.9,21.4 C10.7,21.5 10.5,21.6 10.2,21.7 L10,21.7 C9.9,21.8 9.7,21.8 9.5,21.7 L9.1,21.7 C9,21.6 8.9,21.6 8.7,21.5 C8.6,21.4 8.5,21.4 8.4,21.4 C8.3,21.3 8.3,21.3 8.2,21.2 L1.4,15 C1,14.6 0.8,14.1 0.8,13.5 C0.8,12.9 0.9,12.4 1.3,12 C1.7,11.6 2.2,11.3 2.8,11.3 C3.4,11.3 3.9,11.5 4.3,11.9 L9.1,16.4 L19.4,1 C19.8,0.5 20.2,0.2 20.8,0.1 C21.4,-8.32667268e-16 21.9,0.1 22.3,0.4 C22.8,0.7 23,0.9 23,0.9 C23,0.9 23.1,1.2 23.2,1.7 C23.3,2.2 23.2,2.8 22.9,3.3 L22.9,3.3 Z" id="Shape" fill="#FFFFFF"></path>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="progressName">
+                        <p>Assets</p>
+                    </div>
+                </li>
+                <li class="{!debtButtonClass}">
+                    <div class="progressNum">
+                        <span class="numbertxt">5</span>
+                        <div class="numtick">
+                            <svg width="20px" height="18px" viewBox="0 0 24 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <!-- Generator: Sketch 39 (31667) - http://www.bohemiancoding.com/sketch -->
+                                <title>Shape</title>
+                                <desc>Created with Sketch.</desc>
+                                <defs></defs>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <path d="M22.9,3.3 L11.4,20.9 C11.3,21 11.3,21.1 11.3,21.1 C11.3,21.1 11.2,21.2 11,21.3 L10.9,21.4 C10.7,21.5 10.5,21.6 10.2,21.7 L10,21.7 C9.9,21.8 9.7,21.8 9.5,21.7 L9.1,21.7 C9,21.6 8.9,21.6 8.7,21.5 C8.6,21.4 8.5,21.4 8.4,21.4 C8.3,21.3 8.3,21.3 8.2,21.2 L1.4,15 C1,14.6 0.8,14.1 0.8,13.5 C0.8,12.9 0.9,12.4 1.3,12 C1.7,11.6 2.2,11.3 2.8,11.3 C3.4,11.3 3.9,11.5 4.3,11.9 L9.1,16.4 L19.4,1 C19.8,0.5 20.2,0.2 20.8,0.1 C21.4,-8.32667268e-16 21.9,0.1 22.3,0.4 C22.8,0.7 23,0.9 23,0.9 C23,0.9 23.1,1.2 23.2,1.7 C23.3,2.2 23.2,2.8 22.9,3.3 L22.9,3.3 Z" id="Shape" fill="#FFFFFF"></path>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="progressName">
+                        <p>Debts</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- END PROGRESS BAR -->
+</apex:component>

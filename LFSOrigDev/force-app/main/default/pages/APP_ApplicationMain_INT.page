@@ -1,0 +1,493 @@
+<!--
+/**
+ * @Description: Application (Staff UI)
+ * @Author: Mike Lasala
+ */ 
+Update: 2015-02-10 TQLQW-21 Kabir Singh - Disable Personal Reference Check for NZ
+-->
+<apex:page id="appPageId" standardController="Application__c" extensions="APP_ApplicationMain_INTCC" showHeader="false"
+ standardStylesheets="true" applyHtmlTag="false" applyBodyTag="false" 
+ docType="html-5.0" title="{Application__c.UID__C}"> 
+    <apex:includeScript value="/support/console/28.0/integration.js"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    
+    
+
+    <script type="text/javascript">
+        //Set the Tab Title in the console        
+        sforce.console.setTabTitle('{!Application__c.name}');    
+        
+        function isWithCharLimit(evt, field, maxlimit) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if(field.value.length >= maxlimit && charCode != 08) return false;
+            if(field.value.length >= maxlimit && charCode != 46 && charCode > 31) return false;
+            return true;
+        }
+    
+     sforce.connection.sessionId = "{!$Api.Session_ID}";
+        
+        //GLOBAL VARIABLES
+        var country = '{!JSENCODE($CurrentPage.parameters.country)}';
+        
+        //Opens a SubTab in the SCC. 
+        //@Param: url to open, title of the tab, set as active tab
+        function openSubtab1(subtabUrl, subTabTitle, isActive)
+        {
+           // Use the results primary tab id and open a new subtab
+           var openSubtab = function(result)
+           {            
+                sforce.console.openSubtab(result.id, subtabUrl, isActive, subTabTitle, null);    
+           };
+           sforce.console.getEnclosingPrimaryTabId(openSubtab);
+        }
+        
+        //sforce.console.getEnclosingTabId(closeSubtab);
+
+        function refreshTab(){
+            var refTab = function(result){             
+                sforce.console.refreshPrimaryTabById(result.id, true);
+            }
+            sforce.console.getEnclosingPrimaryTabId(refTab);
+        }  
+        
+        function refreshApplicationTab(){
+            var eventHandler = function (result) {
+            alert('Enclosing tab has refreshed:' + result.id
+            + 'and the object Id is:' + result.objectId);
+            };
+            sforce.console.onEnclosingTabRefresh(eventHandler);
+        }
+        
+        /* Change the Application Owner by calling a standard page*/
+        function changeOwner(){
+            window.location.href = '/{!applicationId}/a?isdtp=vw&saveURL={!applicationId}&retURL={!applicationId}';
+        }
+        
+        /* Check Application Response Code prior Generate Document */
+        function checkApplicationStatus(status){
+            acceptOffer();
+        }
+
+        function setCurrentTab(tabName){
+            document.getElementById('appPageId:formId:currentTabId').value = tabName;
+            refreshMainTab();
+        }
+    </script>
+
+    <script language="JavaScript">
+        function setBlackBox(){
+            // basic configuration
+            var io_install_stm = false; // do not install Active X
+            var io_exclude_stm = 12; // do not run Active X
+            var io_install_flash = false; // do not install Flash
+            var io_enable_rip = true; // enable detection of Real IP
+
+            var bb_data = ioGetBlackbox();
+            document.getElementById('appPageId:formId:blackBox').value = bb_data.blackbox;
+            submitApp();
+        }
+        function setNZQuoteFlag(){
+            submitNZApp();
+        }
+    </script>
+
+    <!--   <script language="JavaScript" src="https://ci-mpsnare.iovation.com/snare.js"> 
+    </script> --> 
+    
+    <script language="JavaScript" src="https://mpsnare.iesnare.com/snare.js">
+    </script>
+
+    <apex:tabPanel id="tabPanelId" value="{!currenTab}" switchType="client">
+
+        <apex:tab styleClass="tabstyle" label="Search" name="searchtab">
+             <apex:iframe src="APP_SearchAndMatch?id={!application.Id}&goBack=1" id="searchFrame" scrolling="true"/>
+        </apex:tab>
+
+        <apex:tab styleClass="tabstyle" label="Application" name="appTab">
+            <apex:form id="formId">
+                <apex:inputHidden value="{!blackboxTxt}" id="blackBox"/>
+                <apex:inputHidden value="{!application.FP_IP_Address__c}" id="Application__c___FP_IP_Address__c"/>
+            <!-- <apex:inputField value="{!application.PRS_RECORD_ID__c}" id="Application__c___PRS_RECORD_ID__c"/> -->
+                <apex:inputHidden value="{!application.id}" id="Application__c___id"/>
+                <apex:inputHidden value="{!currenTab}" id="currentTabId"/>
+                
+                <!-- Action Function updated by: Adrian Recio-->
+                <!-- Description: Added oncomplete function to add second instance layer for sync webservice call out -->
+                <!-- First action(acceptOffer) performs a DML which requires this fix to occur -->
+                <!-- Date: 22/09/2015 -->
+                <apex:actionFunction name="fireDocGenServiceCall" action="{!fireDocGenServiceCall}" />
+                <apex:actionFunction name="acceptOffer" action="{!acceptOffer}" oncomplete="fireDocGenServiceCall();"/>
+                
+                <!-- BEGIN MLASALA: 17-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+                <apex:actionFunction name="submitApp" action="{!updateFPfields}" 
+                rerender="blackBox,tabPanelId,submitApplication,formId" oncomplete="submitServiceCall();"/>
+                <apex:actionFunction name="submitServiceCall" action="{!submitServiceCall}"/>
+                <!-- END MLASALA: 17-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+
+                <!-- <apex:actionFunction name="refreshMainTab" action="{!displaySelectedTab}" reRender="tabPanelId"/> -->
+                <apex:actionFunction name="refreshMainTab" reRender="tabPanelId"/>
+                <!--Begin Madhu:26-07-19- NZ CR code-->
+                 <apex:actionFunction name="submitNZApp" action="{!SubmitQuoteNZFlag}" 
+                rerender="tabPanelId,submitApplicationNZ,formId" oncomplete="updateNZFlagServiceCall();"/>
+                <apex:actionFunction name="updateNZFlagServiceCall" action="{!CallUpdateService}"/>  
+                <!--End Madhu:26-07-19- NZ CR code-->
+                
+                <apex:pageMessages id="messages" escape="false"/>
+                <!--BEGIN - ADDED BY DYU 13-AUG-2015 - DISPLAY LIABILITY INFO IF NOT UPDATED -->
+                <apex:pageMessage summary="{!liabilityMessage}" severity="info" strength="3" rendered="{!debtAutoCreated}"/>
+                <!--END - ADDED BY DYU 13-AUG-2015 -->
+
+                <!-- BEGIN MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+                <!-- Added loader component -->
+                <apex:outputPanel id="loaderId" style="visibility:hidden;">
+                    <c:WaitPageLoadingDialog BackColor="#f7f9fa"
+                                             borderColor="#e9ecef"
+                                             borderSize="1"
+                                             height="100px"
+                                             width="200px"
+                                             margintop="-25px"
+                                             marginleft="-100px"
+                                             ImageUrl="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                                             Message=""/>
+                </apex:outputPanel>
+                <!-- END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+
+                <!--buttons-->
+                <div class="midmaintab">
+                    <div>
+                    <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+                    style="visibility:hidden;"/>
+                    <br/>
+                    <apex:actionStatus id="createUser">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="createUser" reRender="createUser" action="{!creatUser}" 
+                            value="Create User" disabled="{!showHideEditButton}" 
+                          onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <apex:actionStatus id="editApplication">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="editApplication" reRender="editApplication"  
+                            value="Edit Application" action="{!editApplication}" disabled="{!showHideEditButton}" 
+                          onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                       <!-- Changing Submit Application for NZ to Get Quote Button value
+                            Part of NZ CR Code Changes --->
+                    <apex:actionStatus id="submitApplication">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="submitApplication"
+                                                value="{!IF(application.Brand_Country__c!='NZ',  'Submit Application', 'Get Quote')}" 
+                            disabled="{!showHideSubmitButton}" rerender="false" 
+                            rendered="{!IF(OR(application.Submission_Status__c=='Not Submitted',
+                            application.Submission_Status__c=='Submission Failure',
+                            AND(application.Submission_Status__c=='Service Unavailable',doesAppResponseExists==false)),
+                            true,false)}"
+                              onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible';setBlackBox();document.getElementById('appPageId:formId:'+
+                            'loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                        
+                    
+   
+            
+                       
+                        
+
+                    <apex:actionStatus id="updateApplication">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="updateApplication"  value="Update Application" 
+                            action="{!updateApplication}" rerender="tabPanelId,updateApplication" 
+                            rendered="{!IF(OR(application.Submission_Status__c=='Response Received',
+                            application.Submission_Status__c=='Submitted',
+                            AND(application.Submission_Status__c=='Service Unavailable',doesAppResponseExists==true)),
+                            true,false)}" disabled="{!updateApplicationButton}" 
+                            onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible';document.getElementById('appPageId:formId:loaderId').style.visibility='visible';"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                        
+                        <!-- Adding Submit Application button for NZ
+Part of NZ CR Code Changes 
+and Save Quote button
+--->                     
+                      
+  <apex:actionStatus id="submitApplicationNZ">
+<apex:facet name="stop">
+<apex:commandButton status="submitApplicationNZ"
+            value="Submit Application NZ"                                                 
+            rerender="true"
+            disabled="{!showHideSubmitButtonNZ}"
+                rendered="{!IF(application.Status__c=='Quote Initial',true,false)}" 
+            onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible';setNZQuoteFlag();document.getElementById('appPageId:formId:'+
+                     'loadingGif').style.visibility='visible'"/>
+</apex:facet>
+<apex:facet name="start">
+<apex:commandButton value="Processing..." disabled="true"/>
+</apex:facet>
+</apex:actionStatus>
+
+<apex:actionStatus id="saveQuote">
+<apex:facet name="stop">
+<apex:commandButton status="saveQuote" reRender="saveQuote" 
+            value="Save Quote" action="{!saveQuote}"
+            rendered="{!IF(application.Status__c=='Quote Initial',true,false)}" 
+            disabled="{!showHideSaveQuoteButton}"                                               
+            onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible';
+                     document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'" 
+            oncomplete="document.getElementById('appPageId:formId:loaderId').style.visibility='hidden';
+                        document.getElementById('appPageId:formId:loadingGif').style.visibility='hidden'"/>
+<!-- END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->                            
+</apex:facet>
+<apex:facet name="start">
+<apex:commandButton value="Processing..." disabled="true"/>
+</apex:facet>
+</apex:actionStatus> 
+
+                    <apex:actionStatus id="verifyPoi">
+                        <apex:facet name="stop">
+
+                            <!-- BEGIN MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+                            <apex:commandButton status="verifyPoi" reRender="formId" styleClass="midbutton" 
+                            value="Verify POI" action="{!verifyPOI}" disabled="{!verifyPOIButton}"  
+                            onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible'; document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'" 
+                            oncomplete="document.getElementById('appPageId:formId:loaderId').style.visibility='hidden'; document.getElementById('appPageId:formId:loadingGif').style.visibility='hidden'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <apex:actionStatus id="generateDocument">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="generateDocument" reRender="generateDocument" 
+                            value="Generate Documents"
+                            onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible'; document.getElementById('appPageId:formId:loadingGif').style.visibility='visible';checkApplicationStatus('{!application.Response_Code__c}');return false;" 
+                            oncomplete="document.getElementById('appPageId:formId:loaderId').style.visibility='hidden'; document.getElementById('appPageId:formId:loadingGif').style.visibility='hidden'"
+                            disabled="{!showGenerateDoc}"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <apex:actionStatus id="closeApplication">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="closeApplication" reRender="closeApplication" 
+                            value="Close Application" action="{!cancelApplication}" disabled="{!showHideCloseButton}" 
+                          onclick="document.getElementById('appPageId:formId:loaderId').style.visibility='visible'; document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'" 
+                            oncomplete="document.getElementById('appPageId:formId:loaderId').style.visibility='hidden'; document.getElementById('appPageId:formId:loadingGif').style.visibility='hidden'"/>
+                            <!-- END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+                            
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <apex:actionStatus id="changeOwner">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="changeOwner" reRender="changeOwner" value="Change Owner" 
+                            disabled="{!changeOwnerButton}" 
+                            onClick="document.getElementById('appPageId:formId:'+
+                            'loadingGif').style.visibility='visible';changeOwner(); return false;"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                    
+                    <apex:actionStatus id="downloadCover">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Download Fax Cover Sheet" status="downloadCover" 
+                            rerender="downloadCover" disabled="{!faxCoverSheetButton}" 
+                            onclick="window.open('/apex/APP_FaxCoverSheet?id={!application.Id}', '_blank');"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="..." disabled="true"/>
+                        </apex:facet> 
+                    </apex:actionStatus>
+
+                    <!---Added by Fel Saliba, Oct 30,2014 - change of Brand -->
+   
+                    <apex:actionStatus id="changeBrand">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="changeBrand" reRender="changeBrand" value="Change Brand" 
+                            action="{!changeBrand}" 
+                            disabled="{!IF(application.Need_Deal_Reallocation__c == false, true,false)}" 
+                          onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                        
+                 
+                    
+                    
+                    <!-- BEGIN MLASALA: 29-FEB-16 - TQLQW-102 UNDERLYING WORKFLOW ENGINE AND WORKFLOW RULES -->
+                    <apex:actionStatus id="assignLPE">
+                        <apex:facet name="stop">
+                            <apex:commandButton status="assignLPE" reRender="formId" value="Assign to LPE Queue" action="{!assignToLPE}" disabled="{!NOT(isConditionallyApproved)}" 
+                            onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'"
+                            oncomplete="document.getElementById('appPageId:formId:loadingGif').style.visibility='hidden'"
+                            rendered="{!isTOMEnabled}"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Processing..." disabled="true"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                    <!-- END MLASALA: 29-FEB-16 - TQLQW-102 UNDERLYING WORKFLOW ENGINE AND WORKFLOW RULES -->
+                    
+                    <apex:actionStatus id="refreshApplication">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Refresh" styleClass="marginb_10" status="refreshApplication" 
+                            rerender="formId" image="{!URLFOR($Resource.staffuicss, 'images/refresh.png')}" 
+                            onclick="document.getElementById('appPageId:formId:loadingGif').style.visibility='visible'" 
+                            oncomplete="javascript:history.go(0)"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="..." disabled="true"/>
+                        </apex:facet> 
+                    </apex:actionStatus>
+                    
+                    </div>
+                </div>            
+                
+            </apex:form>
+            
+            <apex:include pageName="APP_Application_INT" id="applicationInclude"/>
+            
+        </apex:tab>
+        
+        <apex:tab styleClass="tabstyle" label="Decisioning" name="decisionTab">
+            <apex:tabPanel value="{!decisionSubTab}" switchType="client">
+                <apex:tab styleClass="tabstyle2" label="System/Manual Checks" name="attachTab">
+                    <apex:include pageName="APP_Decisioning_INT" id="decisioningInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2" label="Credit References" name="creditTab">            
+                    <apex:include pageName="APP_CreditReferences_INT" id="creditReferenceInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2" label="Personal References" name="personalRefTab" rendered="{!$Setup.Profile_Control__c.Personal_Reference_Check__c}">            
+                    <apex:include pageName="APP_Personal_References_INT" id="personalReferenceInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2" label="Credit File Check" name="creditFileTab">            
+                    <apex:include pageName="APP_Credit_File_Check_INT" id="creditFileCheckInclude"/>
+                </apex:tab>    
+                <apex:tab styleClass="tabstyle2" label="Proof of Income" name="proofIncomeTab">            
+                    <apex:include pageName="APP_ProofIncome_INT" id="proofIncomeInclude"/>
+                </apex:tab>   
+            </apex:tabPanel>
+        </apex:tab>
+        
+        <apex:tab styleClass="tabstyle" label="Offers" name="offerTab">
+            <apex:iframe src="OFF_OfferPresentation?id={!application.Id}" id="theIframe" scrolling="true" 
+            rendered="{!showOffers}"/>
+            <apex:form rendered="{!NOT(showOffers)}">
+                <apex:pageMessage summary="You are not authorised to access this page." severity="warning" 
+                strength="2"/>
+        <apex:pageMessages />
+            </apex:form>
+        </apex:tab>
+        
+        <apex:tab styleClass="tabstyle"  label="Documents" name="docTab">
+            <apex:tabPanel value="{!docSub}" switchType="client">
+                <apex:tab styleClass="tabstyle2" label="Documents" name="docSubTab">
+                    <apex:include pageName="APP_Document_ReadOnly_INT" id="docSubTab"/>
+                </apex:tab>  
+                <apex:tab styleClass="tabstyle2" label="Requested Documents" name="rdTab">
+                    <apex:include pageName="APP_RequestedDocument_INT" id="rdTab"/>
+                </apex:tab>
+                    <!--
+                Commented out by Lavanya Kavuri 14/04/15 as per the defect ID: 865 
+                <apex:tab styleClass="tabstyle2" label="Pre Doc Check-List" name="pdclTab" rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                    <apex:include pageName="APP_PreDocCheckList_INT" id="pdclTab"/>
+                </apex:tab>
+                -->  
+           </apex:tabPanel>
+        </apex:tab>        
+         
+        <apex:tab styleClass="tabstyle"  label="Activities" name="activitiesTab" id="activitiesTab">
+            <apex:tabPanel selectedTab="" switchType="client">
+                <apex:tab styleClass="tabstyle2" label="Workflows" name="workflowTab">
+                   <apex:include pageName="APP_Workflow_INT" id="workflowInclude"/>
+                </apex:tab>                         
+                <apex:tab styleClass="tabstyle2" label="Notes / Tasks / Events" name="notesTab">
+                    <apex:include pageName="APP_Notes_INT" id="notesInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2" label="Status History" name="statusTab">
+                   <apex:include pageName="APP_StatusHistory_INT" id="statusHistoryInclude"/>
+                </apex:tab>
+                <!-- BEGIN MLASALA: 08/10/15 PMIHM-1484 - MESSAGING WHEN INSURANCE FLUSHES & ACTIVITY TRACKING -->
+                <apex:tab styleClass="tabstyle2" label="Insurance History" name="insuranceTab">
+                   <apex:include pageName="APP_InsuranceHistory_INT" id="insuranceHistoryInclude"/>
+                </apex:tab>
+                <!-- END MLASALA: 08/10/15 PMIHM-1484 - MESSAGING WHEN INSURANCE FLUSHES & ACTIVITY TRACKING -->
+                
+                <!-- BEGIN MLASALA: 13-NOV-15 PMIHM-2214 SF AND ACTIVATE TO PERSIST MATCHES AND SUSPECTS -->
+                <apex:tab styleClass="tabstyle2" label="CLV Search History" name="searchHistoryTab">
+                   <apex:include pageName="APP_CLVSearchHistory_INT" id="searchHistoryInclude"/>
+                </apex:tab>
+                <!-- END MLASALA: 13-NOV-15 PMIHM-2214 SF AND ACTIVATE TO PERSIST MATCHES AND SUSPECTS -->
+                
+                <!-- BEGIN MLASALA: 16-JUN-16 TQLQW-33 Upsell Eligibility, Offer and Acceptance -->
+                <apex:tab styleClass="tabstyle2" label="Offer History" name="offerHistoryTab">
+                   <apex:include pageName="APP_OfferHistory_INT" id="offerHistoryInclude"/>
+                </apex:tab>
+                <!-- END MLASALA: 16-JUN-16 TQLQW-33 Upsell Eligibility, Offer and Acceptance -->
+                 <!-- BEGIN SUNEEL: 15-AUG-2020 Stage2 POI Automation POI Alert tab -->
+                <apex:tab styleClass="tabstyle2" label="POI Alert Status History" name="poiAlert">
+                   <apex:include pageName="APP_AlertStatusHistory_EXT_INT" id="POIAlert"/>
+                </apex:tab> 
+                <!-- END BEGIN SUNEEL: 15-AUG-2020 Stage2 POI Automation POI Alert tab -->
+            </apex:tabPanel>
+        </apex:tab>
+        
+        <apex:tab styleClass="tabstyle"  label="Settlement" name="settleTab">
+            <apex:tabPanel switchType="client" value="{!settlementTab}">
+                <apex:tab styleClass="tabstyle2" label="Disbursements" name="disburseTab" id="disbursementTab">  
+                    <apex:include pageName="APP_Disbursement_INT" id="disbursementInclude"/>   
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2"  label="Direct Debit" name="contractTab">
+                    <apex:include pageName="APP_DirectDebitDetails_INT" id="contractInclude"/>
+                </apex:tab>                   
+                <apex:tab styleClass="tabstyle2"  label="Security" name="securityTab">
+                    <apex:include pageName="APP_Collateral_INT" id="collateralInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2"  label="Fees" name="fessChargesTab">
+                    <apex:include pageName="APP_FeesAndCharges_INT" id="fessChargesInclude"/>
+                </apex:tab>             
+            </apex:tabPanel>                   
+        </apex:tab>
+
+        <apex:tab styleClass="tabstyle"  label="Compliance" name="complianceTab">
+            <apex:include pageName="APP_Compliance_INT" id="complianceInclude"/>
+        </apex:tab>
+        
+        <apex:tab styleClass="tabstyle"  label="Contract" name="contractTab" id="contractTab">
+            <apex:tabPanel switchType="client" value="{!contractTab}">
+                <apex:tab styleClass="tabstyle2"  label="Contract Generation" name="contractGenerationTab">
+                    <apex:include pageName="APP_ContractGeneration_INT" id="contractGenerationInclude"/>
+                </apex:tab>
+                <apex:tab styleClass="tabstyle2"  label="Contract Acceptance" name="contractAcceptanceTab">
+                    <apex:include pageName="APP_ContractAcceptanceINT" id="contractAcceptanceInclude"/>
+                </apex:tab>
+            </apex:tabPanel>
+        </apex:tab>
+        
+    </apex:tabPanel>
+</apex:page>

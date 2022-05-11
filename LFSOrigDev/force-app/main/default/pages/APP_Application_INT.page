@@ -1,0 +1,1353 @@
+<!--
+/**
+* @Description: Application page (Staff UI)
+
+* @Author: Mike Lasala
+* @Date Created: 28.JAN.2014
+* @History:
+  =====================================================================
+      01-28-14: Created - Mike
+      2015-02-09: Update - Tony Xu DBHZL203 NFL INFO
+      2015-03-23: Update - Neha Desor DBHZL203 NFL INFO
+      Mar-02-2016 : Update - Afreen Khan : updated the broker details on the Staff UI
+   =====================================================================
+ */ 
+-->
+<apex:page id="applicationPage" cache="false" standardController="Application__c" 
+extensions="APP_ApplicationExt_INT" showHeader="false">
+    
+    <script>
+        
+        function pageRedirect(action){
+            document.getElementById('appPageId:applicationInclude:applicationPage:mainForm:redirectTxt').value = action;
+            redirect();
+        }
+        
+        function pageRedirectWithApplicant(action, applicant){
+            document.getElementById('appPageId:applicationInclude:applicationPage:mainForm:redirectTxt').value = action;
+            document.getElementById('appPageId:applicationInclude:applicationPage:mainForm:redirectTo').value = applicant;
+            redirect();
+        }
+
+        function confirmDelete(){
+            if('{!isJoint}' == 'true'){
+                var r = confirm("Please confirm whether you wish to remove applicant 2 or Cancel to go back to the application.");
+                if (r==true){                    
+                    deleteApplicant2();
+                }
+            }           
+        }        
+
+    </script>
+    
+    <apex:form id="mainForm">
+        
+        <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+        <apex:inputHidden id="redirectTo" value="{!redirectWho}"/>
+        <apex:actionFunction name="redirect" action="{!pageRedirect}"/>
+        <apex:actionFunction name="deleteApplicant2" action="{!deleteApplicant}"/>
+        
+        <!-- Application Summary Section -->
+        <apex:pageBlock title="Application Summary"> 
+            <apex:pageBlockSection columns="2">
+            
+                <apex:outputField value="{!application.Brand_String__c}"/>
+                <!-- Hiding the below value as part of Better Start: Arshad 
+                <apex:outputField value="{!application.Application_Type__c}"/> -->
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Type"/>
+                    <apex:outputField value="{!application.Type_of_Product__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:outputField value="{!application.Payment_Frequency__c}"/>
+                
+                <!-- Added by Arshad as part of Better Start Project -->
+                <apex:outputField value="{!application.Product_SubType__c}"/> 
+<!--            <apex:outputField value="{!application.Product_SubType__c}" rendered="{!IF(application.Brand_Country__c == 'AU' && isBSOfferActive == true,true,false)}"/>
+                <apex:outputField value="{!application.Product_SubType__c}" rendered="{!IF(application.Brand_Country__c == 'NZ' && isBSOfferNZActive == true,true,false)}"/>
+-->                
+                <apex:outputField value="{!application.Broker__c}"/>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="PTDI" for="ptdi"/>
+                    <apex:outputField value="{!application.Loan_Insurance_Consent__c}" id="ptdi"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:outputField value="{!application.Channel__c}"/>
+
+                <apex:outputField value="{!application.Broker_First_Name_Captured__c}" rendered="{!application.Channel__c == 'Broker'}"/>
+                <apex:outputField value="{!application.Broker_Last_Name_Captured__c}"  rendered="{!application.Channel__c == 'Broker'}"/>
+                <apex:outputField value="{!application.Broker_Contact_Number__c}"  rendered="{!application.Channel__c == 'Broker'}"/>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Total Assets" for="totalAsset"/>
+                    <apex:outputText value="{0, number,$###,###,##0.00}" id="totalAsset">
+                        <apex:param value="{!totalAsset}"/>
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+            
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Monthly Expenses" for="totalExpenses"/>
+                    <apex:outputText value="{0, number,$###,###,##0.00}" id="totalExpenses">
+                        <apex:param value="{!totalExpense}"/>
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+               
+               <!-- <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Monthly Repayments" for="totatDebt"/>
+                    <apex:outputText value="{0, number,$###,###,##0.00}" id="totatDebt">
+                        <apex:param value="{!totalDebt}"/>
+                    </apex:outputText>
+                </apex:pageBlockSectionItem> -->
+
+                         <!-- BEGIN DSUNEEL 11-April-19 AU PL MMP -->       
+                         <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'NZ'}">     
+                         <!-- END DSUNEEL 11-April-19 AU PL MMP -->     
+                             <apex:outputLabel value="Monthly Repayments" for="totatDebt"/>     
+                            <apex:outputText value="{0, number,$###,###,##0.00}" id="totatDebt">        
+                                    <apex:param value="{!totalDebt}"/>      
+                            </apex:outputText>      
+                         </apex:pageBlockSectionItem>       
+                                
+                         <!-- BEGIN DSUNEEL 11-April-19 AU PL MMP -->       
+                         <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'AU'}">     
+                            <apex:outputLabel value="Monthly Repayments" for="totatDebt"/>      
+                            <apex:outputText value="{0, number,$###,###,##0.00}" id="totatDebt">        
+                                <apex:param value="{!application.Total_Net_Debt_Amount__c}"/>       
+                            </apex:outputText>      
+                        </apex:pageBlockSectionItem>        
+                         <!-- END DSUNEEL 11-April-19 AU PL MMP -->
+               
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Monthly Income" for="totalIncome"/>
+                    <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                        <apex:param value="{!totalIncome}"/>
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <!-- BEGIN MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+                    <apex:outputLabel value="{!$Label.Global_Brand} Application Number"/>
+                    <apex:outputField value="{!application.UID__c}"/>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$Label.Global_Brand} Account Number"/>
+                    <!-- END MLASALA: 22-MAR-16 TQLQW-127 Re-brand - Internal and Operational References in Salesforce -->
+                    <apex:outputField value="{!application.Contract_Account_Number__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- Jun09-2016 - Afreen - Added to include the 3rd Party application fields -->
+                <apex:outputField value="{!application.X3rd_Party_Application_Number__c}" />
+                <apex:outputField value="{!application.X3rd_Party_Quoted_Rate__c}" />
+                <apex:outputField value="{!application.X3rd_Party_Quoted_Risk_Grade__c}" />
+
+                <apex:pageBlockSectionItem rendered="{!$ObjectType.Application__c.fields.Promotional_Campaign__c.Accessible}">
+                    <apex:outputLabel value="Promotional Campaign"/>
+                    <apex:outputField value="{!application.Promotional_Campaign__c}"/>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem rendered="{!$ObjectType.Application__c.fields.Promo_Loan_Offer_Amount__c.Accessible}">
+                    <apex:outputLabel value="Promotional Offer Amount"/>
+                    <apex:outputField value="{!application.Promo_Loan_Offer_Amount__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- ADDED by RCADAPAN 18-MAR-2016 for TQLQW-29 -->
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Online Payment Eligible"/>
+                    <apex:inputCheckbox value="{!isStraightThrough}" disabled="true"/>
+                </apex:pageBlockSectionItem>
+                
+                <!-- BEGIN MLASALA: 15-JUN-16 TQLQW-368 Application Eligibility for Self-serve criteria -->
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType.Application__c.fields.Online_Self_Serve_Eligible__c.Label}"/>
+                    <apex:outputField value="{!application.Online_Self_Serve_Eligible__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- BEGIN MLASALA: 15-JUN-16 TQLQW-368 Application Eligibility for Self-serve criteria -->
+                
+                <!-- BEGIN MDAVID: 31-AUG-16 TQLQW-481 [PL - AU] PicStarter - MDAVID - 8/30/2016 -->
+                <apex:pageBlockSectionItem rendered="{!application.X3rd_Party_Application_Source__c == 'PicStarter'}">
+                    <apex:outputLabel value="PicStarter Photo Link"/>
+                    <apex:outputField value="{!application.X3rd_Party_Photo__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- END MDAVID: 31-AUG-16 TQLQW-481 [PL - AU] PicStarter - MDAVID - 8/30/2016 -->
+
+                <!-- BEGIN FAHAD: 7-SEPT-16 TQLQW-482 [PL - AU] -->
+                <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'AU'}">
+                    <apex:outputLabel value="{!$ObjectType.Application__c.fields.Score_Eligible__c.Label}"/>
+                    <apex:outputField value="{!application.Score_Eligible__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- END FAHAD: 7-SEPT-16 TQLQW-482 [PL - AU] -->     
+                
+                <!-- BEGIN RCADAPAN: 12-OCT-16 TQLQW-534 [PL - AU] -->
+                <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'AU'}">
+                    <apex:outputLabel value="{!$ObjectType.Application__c.fields.Is_e_POI_completed__c.Label}"/>
+                    <apex:outputField value="{!application.Is_e_POI_completed__c}"/>
+                </apex:pageBlockSectionItem>
+                <!-- END FAHAD: 7-SEPT-16 TQLQW-482 [PL - AU] -->  
+                
+                <!-- Begin Madhusudhan 09-SEPT-19 NZ CR code [PL - NZ]-->
+                 <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'NZ'}">
+                    <apex:outputLabel value="{!$ObjectType.Application__c.fields.Sub_status__c.Label}"/>
+                    <apex:outputField value="{!application.Sub_status__c}"/>
+                </apex:pageBlockSectionItem>
+                 <!-- End Madhusudhan 09-SEPT-19 NZ CR code [PL - NZ]-->
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        
+        <!-- Applicants Section -->
+        <apex:pageBlock title="Applicants">
+                            
+            <apex:tabPanel id="applicantTab" value="{!applicantTab}" switchType="client">
+                
+                <!-- Applicant 1 -->
+                <apex:tab label="Applicant 1"  name="applicant1Tab" styleClass="{!app1Status} subtab">
+                    
+                    <!-- Updated by: Adrian Recio -->
+                    <!-- Failed D&B Messaging for AU Applications -->
+                    <apex:outputPanel rendered="{!applicantList[0].GreenId_DB_Outcome__c!=null && 
+                                                  applicantList[0].GreenId_DB_Outcome__c!='VERIFIED' &&
+                                                  applicantList[0].GreenId_DB_Outcome__c!='VERIFIED_ADMIN' &&
+                                                  applicantList[0].GreenId_DB_Outcome__c!='VERIFIED_WITH_CHANGES' && 
+                                                  application.Brand_Country__c=='AU' &&
+                                                  $Setup.Profile_Control__c.Green_Id__c}">
+                            <div class="message warningM2" role="alert">
+                                <table class="messageTable" style="padding:0px;margin:0px;" border="0" cellpadding="0" cellspacing="0">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <td>
+                                                <img alt="warning" class="msgIcon" src="/s.gif" title="warning"/>
+                                            </td>
+                                            <td class="messageCell">
+                                                <div style='float:left;padding-left:10px;'>
+                                                    <apex:outputText value="D&B Check Failed."></apex:outputText>
+                                                </div>
+                                                <div style='float:left;padding-left:10px;'>
+                                                    <button onclick="return false;" title='{!$label.DNB_Failure_Message}'>?</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </apex:outputPanel>
+
+                    
+
+                    <apex:pageBlockSection columns="2">
+                         <apex:pageBlockSectionItem >
+                           <apex:outputLabel value="Applicant" for="applicant1Name"/>
+                           <apex:outputText value="{!applicantList[0].Title__c} {!applicantList[0].First_Name__c} {!applicantList[0].Last_Name__c}" 
+                           id="applicant1Name"/>
+                         </apex:pageBlockSectionItem>
+                         
+                        <!-- <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'NZ'}">
+                             <apex:outputLabel value="Monthly Income" for="totalIncome"/> 
+                             <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                 <apex:param value="{!applicantList[0].Total_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem> -->
+                         
+                         <apex:pageBlockSectionItem >
+                             <!-- Below line commented by Suneel POI Automation 30/01/2021 -->
+                            <!-- <apex:outputLabel value="Monthly Income" for="totalIncome"/> -->
+                            <apex:outputLabel value="Total Stated Monthly Income" for="totalIncome"/>
+                             <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                 <apex:param value="{!applicantList[0].Total_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>
+                         
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Address" for="applicant1Address"/>
+                             <apex:outputText value="{!applicantList[0].Unit_No_Res__c} {!applicantList[0].Street_No_Res__c} 
+                             {!applicantList[0].Street_Res__c} {!applicantList[0].Street_Type_Res__c} {!applicantList[0].Suburb_Res__c} 
+                             {!applicantList[0].City_Res__c} {!applicantList[0].Postcode_Res__c}" id="applicant1Address"/>
+                         </apex:pageBlockSectionItem>
+                         
+                         <!-- Added by Suneel POI Automation 30/01/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Verified Monthly Income" for="totalIncome"/>
+                             <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                 <apex:param value="{!applicantList[0].Total_POI_Amount_Verified__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>
+                         <!-- End -->
+                         
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Assets" for="totalAsset"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAsset">
+                                 <apex:param value="{!applicantList[0].Total_Assets__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>  
+                         
+                         <!-- Added by Suneel POI Automation 03/02/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Stated Additional Income" for="totalAdditionalIncome"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAdditionalIncome">
+                                 <apex:param value="{!applicantList[0].Additional_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>  
+                         <!-- End -->
+                                                                                                      
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Mobile" for="applicant1Mobile"/>
+                             <apex:outputText value="{!applicantList[0].Mobile__c}" id="applicant1Mobile"/>
+                         </apex:pageBlockSectionItem>
+                         
+                            <!-- Added by Suneel POI Automation 03/02/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Verified Additional Income" for="totalAdditionalVerifiedIncome"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAdditionalIncome">
+                                 <apex:param value="{!applicantList[0].Total_Verified_Additional_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>  
+                         <!-- End -->
+                         
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Monthly Expenses" for="totalExpense"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalExpense">
+                                 <apex:param value="{!applicantList[0].Total_Expense__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>                                
+                         
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Email" for="applicant1Email"/>
+                             <apex:outputText value="{!applicantList[0].Email_Address__c}" id="applicant1Email"/>
+                         </apex:pageBlockSectionItem>
+                         <!-- BEGIN DSUNEEL 11-April-19 AU PL MMP -->                            
+                         <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'NZ'}">
+                         <!-- END DSUNEEL 11-April-19 AU PL MMP -->                          
+                             <apex:outputLabel value="Monthly Repayments" for="totalDebt"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalDebt">
+                                 <apex:param value="{!applicantList[0].Total_Debts__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>
+
+                         <!-- BEGIN DSUNEEL 11-April-19 AU PL MMP -->       
+                         <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'AU'}">     
+                            <apex:outputLabel value="Monthly Repayments" for="totatDebt"/>      
+                            <apex:outputText value="{0, number,$###,###,##0.00}" id="totatDebt">        
+                                <apex:param value="{!application.Total_Net_Debt_Amount__c}"/>       
+                            </apex:outputText>      
+                        </apex:pageBlockSectionItem>        
+                         <!-- END DSUNEEL 11-April-19 AU PL MMP -->
+                                                  
+                         <!-- DBHZL206 -->
+                         <apex:pageBlockSectionItem rendered="{!$ObjectType.Applicant__c.fields.NFL__c.Accessible}" >
+                             <apex:outputLabel value="NFL" for="applicant1NFL"/>
+                             <apex:outputField value="{!applicantList[0].NFL__c}" id="applicant1NFL" />
+                         </apex:pageBlockSectionItem>
+                         
+                         <apex:pageBlockSectionItem rendered="{!$ObjectType.Applicant__c.fields.NFL_Expiry_Date__c.Accessible}">
+                             <apex:outputLabel value="NFL Expiry Date" for="applicant1NFLExpiryDate"/>
+                             <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" id="applicant1NFLExpiryDate">
+                            <apex:param value="{!applicantList[0].NFL_Expiry_Date__c}" />
+                            </apex:outputText>
+                         </apex:pageBlockSectionItem>
+
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Applicant ID" for="applicant1Name"/>
+                             <apex:outputText value="{!applicantList[0].Name}" id="applicant1Name"/>
+                         </apex:pageBlockSectionItem> 
+
+                         <apex:pageBlockSectionItem rendered="{!application.Brand_String__c == 'Kiwibank'}">
+                            <apex:outputLabel value="KB HL or Graduate" />
+                            <apex:outputField value="{!applicantList[0].KB_HL_or_Graduate__c}" />
+                        </apex:pageBlockSectionItem>
+                        
+                    </apex:pageBlockSection>
+                        
+                    <br/>
+                     
+                    <!-- Applicant sub tabs/details -->
+                    <apex:tabPanel selectedTab="" switchType="client">
+                        <!-- Personal Details -->
+                        <apex:tab label="Personal Details" name="PDTab" styleClass="{!app1AboutMe}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Personal Details" onclick="pageRedirect('applicant');" 
+                                rerender="false" disabled="{!editPersonalDetailsButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock >
+                                <apex:pageBlockSection >
+                                    <apex:outputField value="{!applicantList[0].Date_of_Birth__c}"/>
+                                    <apex:outputField value="{!applicantList[0].Drivers_Lic_No__c}"/>
+                                    <apex:outputField value="{!applicantList[0].Gender__c}"/>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="No Driver's Licence" for="noLicence"/>
+                                        <apex:outputField value="{!applicantList[0].Drivers_Lic_Flg__c}" id="noLicence"/>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:outputField value="{!applicantList[0].Home__c}"/>
+                                    <apex:outputField value="{!applicantList[0].Rel_Status__c}"/>
+                                    <apex:outputField value="{!applicantList[0].Work__c}"/>
+                                    <apex:outputField value="{!applicantList[0].Res_Status__c}"/>
+                                </apex:pageBlockSection>
+                            </apex:pageblock>
+                        </apex:tab>
+                        
+                        <!-- Income -->
+                        <apex:tab label="Income" name="BITab" styleClass="{!app1Income}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Income" onclick="pageRedirect('income');" rerender="false" 
+                                disabled="{!editIncomeButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock rendered="{!IF(NOT(incomeList.empty), true, false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Income</th>
+                                        <th class="headerRow">Employer</th>
+                                        <th class="headerRow">Occupation</th>
+                                        <th class="headerRow">Phone</th>
+                                        <th class="headerRow">Tenure</th>
+                                        <th class="headerRow">Amount</th>
+                                        <th class="headerRow">Interval</th>
+                                    </tr>
+                                    <apex:repeat value="{!incomeList}" var="i">
+                                        <tr class="dataRow">
+                                            <td class="dataCell">{!i.Income_Source__c}</td>
+                                            <td class="dataCell">{!i.Emp_Bus_Name__c}</td>
+                                            <td class="dataCell">{!i.Occupation__c}</td>
+                                            <td class="dataCell">{!i.Emp_Bus_Contact_No__c}</td>
+                                            <td class="dataCell">{!i.Duration__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!i.Income_Amount__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!i.Income_Interval__c}</td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <apex:outputText value="No Income found" rendered="{!IF(incomeList.empty, true, false)}"/>
+
+                        </apex:tab>
+                        
+                        <!-- Assets -->
+                        <apex:tab label="Assets" name="BATab" styleClass="{!app1Asset}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Asset" onclick="pageRedirect('asset');" rerender="false" 
+                                disabled="{!editAssetButton}"/>
+                            </div>
+
+                            <apex:pageBlock rendered="{!IF(NOT(assetList.empty), true, false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Asset</th>
+                                        <th class="headerRow">Value</th>
+                                        <th class="headerRow">Ownership</th>
+                                        <th class="headerRow">Make</th>
+                                        <th class="headerRow">Model</th>
+                                        <th class="headerRow">Year</th>
+                                    </tr>
+                                    <apex:repeat value="{!assetList}" var="a">
+                                        <tr class="dataRow">
+                                            <td class="dataCell">{!a.Asset_Category__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!a.Asset_Value__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!a.Ownership_Status__c}</td>
+                                            <td class="dataCell">{!a.Vehicle_Make__c}</td>
+                                            <td class="dataCell">{!a.Vehicle_Model__c}</td>
+                                            <td class="dataCell">{!a.Vehicle_Year__c}</td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <apex:outputText value="No Asset found" rendered="{!IF(assetList.empty, true, false)}"/>
+
+                        </apex:tab>
+                            
+                        <!-- Expense -->
+                        <apex:tab label="Expense" name="BETab" styleClass="{!app1Expense}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Expense" onclick="pageRedirect('expense');" 
+                                rerender="false" disabled="{!editExpenseButton}"/>
+                            </div>
+
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                       <!-- <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses</th>
+                                        <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses Interval</th> -->
+                                        <th class="headerRow">Primary mortgage, rent or board&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Primary mortgage, rent or board Interval</th>
+                                        <th class="headerRow">I Pay All Exp</th>
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                          <!--  <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Living_Exp__c}"/> 
+                                                </apex:outputText>
+                                            </td> 
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">{!e.Living_Exp_Int__c}</td> -->
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Rent_Board_Pay_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!e.Rent_Board_Pay_Int__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputField value="{!e.I_Pay_All_Exp__c}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- SECONDARY MORTGAGE EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Secondary mortgage, rent or board&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Secondary mortgage, rent or board Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Secondary_Mortgage_Rent__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Secondary_Mortgage_Rent__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Secondary_Mortgage_Rent_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF SECONDARY MORTGAGE EXPENSES SECTION -->
+
+
+                            <!-- PROPERTY RATES EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Property rates&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Property Rates Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Property_rates__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Property_rates__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Property_rates_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF PROPERTY RATES EXPENSES SECTION -->
+
+
+                            <!-- OTHER PROPERTY EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Utilities &amp; Other property expenses&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Utilities &amp; Other property expenses Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Other_Property_Expenses__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Other_Property_Expenses__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Other_Property_Expenses_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF OTHER PROPERTY EXPENSES SECTION -->
+
+                            <!-- FOOD GROCERIES EXPENSES NZ SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Food, groceries and entertainment&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Food, groceries and entertainment Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Food_Groc_Entert__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Food_Groc_Entert__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Food_Groc_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF FOOD GROCERIES EXPENSES NZ SECTION -->
+
+                            <!-- INSURANCE EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Health and life insurance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Health and life insurance Interval</th>
+                                        <!-- <th class="headerRow"></th> -->
+                                   </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Insurance_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Insurance_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Insurance_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF INSURANCE EXPENSES SECTION -->
+
+                            <!-- UTILITIES EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">General insurance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">General insurance Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Utilities_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Utilities_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Utilities_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF UTILITIES EXPENSES SECTION -->
+
+                            <!-- TRANSPORT EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Transport and auto&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Transport and auto Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Transport_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Transport_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Transport_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF TRANSPORT EXPENSES SECTION -->
+
+                            <!-- EDUCATION EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Education and childcare&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Education and childcare Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Education_and_child_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Education_and_child_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Education_and_child_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF EDUCATION  EXPENSES SECTION -->
+
+                            <!-- PERSONAL EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Personal, fitness and medical&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Personal, fitness and medical Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Personal_Other_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Personal_Other_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Personal_Other_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF PERSONAL EXPENSES SECTION -->                                                                                                                                                                                                   
+
+                            <!-- ANY ADDITIONAL EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'NZ',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Any additional expenses&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Any additional expenses Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Any_Additional_expenses__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Any_Additional_expenses__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Any_Additional_expenses_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF ANY ADDITIONAL EXPENSES SECTION -->                                                                                                                                                                                                   
+
+               <!---------------     END of NZ Expenses --------------------->
+
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                       <!-- <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses</th>
+                                        <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses Interval</th> -->
+                                        <th class="headerRow">Rent/board</th>
+                                        <th class="headerRow">Rent/board Interval</th>
+                                        <th class="headerRow">I Pay All Exp</th>
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                          <!--  <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Living_Exp__c}"/> 
+                                                </apex:outputText>
+                                            </td> 
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">{!e.Living_Exp_Int__c}</td> -->
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Rent_Board_Pay_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!e.Rent_Board_Pay_Int__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputField value="{!e.I_Pay_All_Exp__c}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+
+                            <!-- FOOD GROCERIES EXPENSES AU SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Food, groceries and entertainment&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Food, groceries and entertainment Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Food_Groc_Entert__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Food_Groc_Entert__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Food_Groc_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF FOOD GROCERIES EXPENSES AU SECTION -->
+
+                            <!-- INSURANCE EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Insurance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insurance Interval</th>
+                                        <!-- <th class="headerRow"></th> -->
+                                   </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Insurance_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Insurance_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Insurance_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF INSURANCE EXPENSES SECTION -->
+
+                            <!-- UTILITIES EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Utilities&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Utilities Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Utilities_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Utilities_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Utilities_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF UTILITIES EXPENSES SECTION -->
+
+                            <!-- TRANSPORT EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Transport&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transport Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Transport_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Transport_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Transport_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF TRANSPORT EXPENSES SECTION -->
+
+                            <!-- EDUCATION EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Education and childcare&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Education and childcare Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Education_and_child_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Education_and_child_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Education_and_child_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF EDUCATION  EXPENSES SECTION -->
+
+                            <!-- PERSONAL EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(application.Brand_Country__c == 'AU',NOT(expenseList.empty)),true,false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Personal / Other&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal / Other Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Personal_Other_Expense__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Personal_Other_Expense__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Personal_Other_Expense_Interval__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF PERSONAL EXPENSES SECTION -->                                                                                                                                                                                                   
+
+                            <!-- LIVING EXPENSES SECTION -->
+                            <apex:pageBlock rendered="{!IF(AND(OR(expenseList[0].Living_Exp__c == 0,expenseList[0].Living_Exp__c == NULL),OR(application.Brand_Country__c == 'AU',application.Brand_Country__c == 'NZ')), false,true)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Living Expenses&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                        <th class="headerRow">Living Expenses Interval</th>
+                                       <!-- <th class="headerRow"></th> -->
+                                    </tr>
+                                    <apex:repeat value="{!expenseList}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Living_Exp__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="padding-left: 54px;">{!e.Living_Exp_Int__c}</td>
+                                           <!-- <td class="dataCell"></td> -->
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <!-- END OF LIVING EXPENSES SECTION -->
+
+                            <apex:outputText value="No Expense found" rendered="{!IF(expenseList.empty, true, false)}"/>
+
+                        </apex:tab>
+                            
+                        <!-- Debts -->
+                        <apex:tab label="Debts" name="BDTab" styleClass="{!app1Debts}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Debts" onclick="pageRedirect('debt');" rerender="false" 
+                                disabled="{!editDebtButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock rendered="{!IF(NOT(debtList.empty), true, false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Debt</th>
+                                        <th class="headerRow">Financier List</th>
+                                        <th class="headerRow">Financier Name</th>
+                                        <th class="headerRow">Payout?</th>
+                                        <th class="headerRow">Card Overdraft Balance</th>
+                                        <th class="headerRow">Card Personal Balance</th>
+                                        <th class="headerRow">Car Personal Balance</th>
+                                        <!-- <th class="headerRow">Mortgage Balance</th> -->
+                                    </tr>
+                                    <apex:repeat value="{!debtList}" var="d">
+                                        <tr class="dataRow">
+                                            <td class="dataCell">{!d.Debt_Category__c}</td>
+                                            <td class="dataCell">{!d.Financier_List__c}</td>
+                                            <td class="dataCell" style="text-transform: capitalize;">{!d.Financier_Name__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputField value="{!d.Acknowledge_Payout__c}"/>
+                                            </td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!d.Card_Overdraft_Bal_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!d.Card_Personal_Bal_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!d.Car_Personal_Bal_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!d.Mortgage_Bal_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <apex:outputText value="No Debt found" rendered="{!IF(debtList.empty, true, false)}"/>
+
+                        </apex:tab>
+                            
+                        <!-- AML --> 
+                        <apex:tab label="AML" name="amlTab" id="amlId" styleClass="plainbutton">
+                            <div style="text-align:center; padding-bottom:23px;">
+                               <apex:commandButton value="{!IF(!amlList.empty, 'Edit AML', 'New AML')}" 
+                               onclick="pageRedirectWithApplicant('aml', '1');" rerender="false" disabled="{!newAMLButton}"/>
+                            </div>
+                            
+                            <apex:repeat value="{!amlList}" var="a" rendered="{!IF(NOT(amlList.empty), true, false)}">
+                                <apex:pageBlockSection columns="2" showHeader="true" title="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), 'Identification', 'Proof of Address')}">
+                                    <apex:outputField value="{!a.Identification__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.ID_No__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.POA_Type__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                    <apex:outputField value="{!a.POA_Reference_Number__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                    <apex:outputField value="{!a.POA_Issue_Date__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                    <apex:outputField value="{!a.ID_Issue_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.ID_Expiry_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.Issue_Country__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.ID_Expiry_State__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>                                                
+                                    <apex:outputField value="{!a.ID_Issuer__c}"/>
+                                    <apex:outputField value="{!a.Staff_ID_SSO__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.Staff_ID_Sighted_By__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.AML_Pos_Verified_Type__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                    <apex:outputField value="{!a.AML_Ver_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                </apex:pageBlockSection>
+                            </apex:repeat>
+                            
+                            <apex:outputText value="No AML found" rendered="{!IF(amlList.empty, true, false)}"/>
+
+                        </apex:tab>
+                            
+                    </apex:tabPanel>
+                    
+                </apex:tab>
+                
+                <!-- Applicant 2 -->
+                <apex:tab label="Applicant 2"  name="applicant2Tab" styleClass="{!app2Status} subtab" rendered="{!applicantList.size>1}">
+                    <div style="text-align:center; padding-bottom:23px;">
+                    <apex:commandButton styleClass="midbutton" value="Remove Applicant" onclick="confirmDelete();" 
+                    rendered="{!isJoint}" reRender="false" disabled="{!removeApplicantButton}"/>
+                    </div>
+                    
+                    <!-- Updated by: Adrian Recio -->
+                    <!-- Failed D&B Messaging for AU Applications -->
+                    <apex:outputPanel rendered="{!applicantList[1].GreenId_DB_Outcome__c!=null && 
+                                                  applicantList[1].GreenId_DB_Outcome__c!='VERIFIED' &&
+                                                  applicantList[1].GreenId_DB_Outcome__c!='VERIFIED_ADMIN' &&
+                                                  applicantList[1].GreenId_DB_Outcome__c!='VERIFIED_WITH_CHANGES' && 
+                                                  application.Brand_Country__c=='AU' &&
+                                                  $Setup.Profile_Control__c.Green_Id__c}">
+                            <div class="message warningM2" role="alert">
+                                <table class="messageTable" style="padding:0px;margin:0px;" border="0" cellpadding="0" cellspacing="0">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <td>
+                                                <img alt="warning" class="msgIcon" src="/s.gif" title="warning"/>
+                                            </td>
+                                            <td class="messageCell">
+                                                <div style='float:left;padding-left:10px;'>
+                                                    <apex:outputText value="D&B Check Failed."></apex:outputText>
+                                                </div>
+                                                <div style='float:left;padding-left:10px;'>
+                                                    <button onclick="return false;" title='{!$label.DNB_Failure_Message}'>?</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </apex:outputPanel>
+                    
+                    <apex:pageBlockSection columns="2">                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Applicant" for="applicant1Name"/>
+                            <apex:outputText value="{!applicantList[1].Title__c} {!applicantList[1].First_Name__c} 
+                            {!applicantList[1].Last_Name__c}" id="applicant1Name"/>
+                        </apex:pageBlockSectionItem>
+                        
+                      <!--  <apex:pageBlockSectionItem rendered="{!application.Brand_Country__c == 'NZ'}">
+                             <apex:outputLabel value="Monthly Income" for="totalIncome"/>
+                            <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                <apex:param value="{!applicantList[1].Total_Income__c}"/>
+                            </apex:outputText>
+                        </apex:pageBlockSectionItem> -->
+                        
+                        <apex:pageBlockSectionItem >
+                            <!-- Below line commented by Suneel POI Automation 30/01/2021 -->
+                            <!-- <apex:outputLabel value="Monthly Income" for="totalIncome"/> -->
+                            <apex:outputLabel value="Total Stated Monthly Income" for="totalIncome"/>
+                            <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                <apex:param value="{!applicantList[1].Total_Income__c}"/>
+                            </apex:outputText>
+                        </apex:pageBlockSectionItem>
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Address" for="applicant1Address"/>
+                            <apex:outputText value="{!applicantList[1].Unit_No_Res__c} {!applicantList[1].Street_No_Res__c} 
+                            {!applicantList[1].Street_Res__c} {!applicantList[1].Street_Type_Res__c} {!applicantList[1].Suburb_Res__c} 
+                            {!applicantList[1].City_Res__c} {!applicantList[1].Postcode_Res__c}" id="applicant1Address"/>
+                        </apex:pageBlockSectionItem>
+                        
+                         <!-- Added by Suneel POI Automation 30/01/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Verified Monthly Income" for="totalIncome"/>
+                             <apex:outputText value="{0, number,$###,###,##0.00}" id="totalIncome">
+                                 <apex:param value="{!applicantList[1].Total_POI_Amount_Verified__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>
+                         <!-- End -->
+                         
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Total Assets" for="totalAsset"/>
+                            <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAsset">
+                                <apex:param value="{!applicantList[1].Total_Assets__c}"/>
+                            </apex:outputText>
+                        </apex:pageBlockSectionItem>   
+                        
+                         <!-- Added by Suneel POI Automation 03/02/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Stated Additional Income" for="totalAdditionalIncome"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAdditionalIncome">
+                                 <apex:param value="{!applicantList[1].Additional_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>  
+                         <!-- End -->
+                                                           
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Mobile" for="applicant1Mobile"/>
+                            <apex:outputText value="{!applicantList[1].Mobile__c}" id="applicant1Mobile"/>
+                        </apex:pageBlockSectionItem>
+                        
+                          <!-- Added by Suneel POI Automation 03/02/2021 -->
+                         <apex:pageBlockSectionItem >
+                             <apex:outputLabel value="Total Verified Additional Income" for="totalAdditionalVerifiedIncome"/>
+                             <apex:outputText value="{0, number, $###,###,##0.00}" id="totalAdditionalIncome">
+                                 <apex:param value="{!applicantList[1].Total_Verified_Additional_Income__c}"/>
+                             </apex:outputText>
+                         </apex:pageBlockSectionItem>  
+                         <!-- End -->
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Monthly Expenses" for="totalExpense"/>
+                            <apex:outputText value="{0, number, $###,###,##0.00}" id="totalExpense">
+                                <apex:param value="{!applicantList[1].Total_Expense__c}"/>
+                            </apex:outputText>
+                        </apex:pageBlockSectionItem>                                
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Email" for="applicant1Email"/>
+                            <apex:outputText value="{!applicantList[1].Email_Address__c}" id="applicant1Email"/>
+                        </apex:pageBlockSectionItem>
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Monthly Repayments" for="totalDebt"/>
+                            <apex:outputText value="{0, number, $###,###,##0.00}" id="totalDebt">
+                                <apex:param value="{!applicantList[1].Total_Debts__c}"/>
+                            </apex:outputText>
+                        </apex:pageBlockSectionItem>
+                        
+                        <!-- DBHZL206 -->
+                        <apex:pageBlockSectionItem rendered="{!$ObjectType.Applicant__c.fields.NFL__c.Accessible}" >
+                            <apex:outputLabel value="NFL" for="applicant1NFL"/>
+                            <apex:outputField value="{!applicantList[1].NFL__c}" id="applicant2NFL" />
+                        </apex:pageBlockSectionItem>
+                        
+                        <apex:pageBlockSectionItem rendered="{!$ObjectType.Applicant__c.fields.NFL_Expiry_Date__c.Accessible}">
+                            <apex:outputLabel value="NFL Expiry Date" for="applicant2NFLExpiryDate"/>
+                            <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" id="applicant2NFLExpiryDate">
+                                <apex:param value="{!applicantList[1].NFL_Expiry_Date__c}" />
+                            </apex:outputText>
+                            
+                        </apex:pageBlockSectionItem>
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Applicant ID" for="applicant1Name"/>
+                            <apex:outputText value="{!applicantList[1].Name}" id="applicant1Name"/>
+                        </apex:pageBlockSectionItem>
+
+
+                        <apex:pageBlockSectionItem rendered="{!application.Brand_String__c == 'Kiwibank'}">
+                            <apex:outputLabel value="KB HL or Graduate" for="applicant1Name"/>
+                            <apex:outputField value="{!applicantList[1].KB_HL_or_Graduate__c}" />
+                        </apex:pageBlockSectionItem>
+
+                    </apex:pageBlockSection>
+                    
+                    <br/>
+                     
+                    <!-- Applicant sub tabs/details -->
+                    <apex:tabPanel selectedTab="" switchType="client">
+                        <!-- Personal Details -->
+                        <apex:tab label="Personal Details" name="PDTab" styleClass="{!app2AboutMe}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Personal Details" onclick="pageRedirect('applicant');" 
+                                rerender="false" disabled="{!editPersonalDetailsButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock >
+                                <apex:pageBlockSection >
+                                    <apex:outputField value="{!applicantList[1].Date_of_Birth__c}"/>
+                                    <apex:outputField value="{!applicantList[1].Drivers_Lic_No__c}"/>
+                                    <apex:outputField value="{!applicantList[1].Gender__c}"/>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="No Driver's Licence" for="noLicence"/>
+                                        <apex:outputField value="{!applicantList[1].Drivers_Lic_Flg__c}" id="noLicence"/>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:outputField value="{!applicantList[1].Home__c}"/>
+                                    <apex:outputField value="{!applicantList[1].Rel_Status__c}"/>
+                                    <apex:outputField value="{!applicantList[1].Work__c}"/>
+                                    <apex:outputField value="{!applicantList[1].Res_Status__c}"/>
+                                </apex:pageBlockSection>
+                            </apex:pageblock>
+                        </apex:tab>
+                        
+                        <!-- Income -->
+                        <apex:tab label="Income" name="BITab" styleClass="{!app2Income}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Income" onclick="pageRedirect('income');" 
+                                rerender="false" disabled="{!editIncomeButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock rendered="{!IF(NOT(incomeList2.empty), true, false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow">Income</th>
+                                        <th class="headerRow">Employer</th>
+                                        <th class="headerRow">Occupation</th>
+                                        <th class="headerRow">Phone</th>
+                                        <th class="headerRow">Tenure</th>
+                                        <th class="headerRow">Amount</th>
+                                        <th class="headerRow">Interval</th>
+                                    </tr>
+                                    <apex:repeat value="{!incomeList2}" var="i">
+                                        <tr class="dataRow">
+                                            <td class="dataCell">{!i.Income_Source__c}</td>
+                                            <td class="dataCell">{!i.Emp_Bus_Name__c}</td>
+                                            <td class="dataCell">{!i.Occupation__c}</td>
+                                            <td class="dataCell">{!i.Emp_Bus_Contact_No__c}</td>
+                                            <td class="dataCell">{!i.Duration__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!i.Income_Amount__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!i.Income_Interval__c}</td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <apex:outputText value="No Income found" rendered="{!IF(incomeList2.empty, true, false)}"/>
+
+                        </apex:tab>
+                        
+                        <!-- Assets -->
+                        <apex:tab label="Assets" name="BATab" styleClass="{!app2Asset}">
+                            <apex:outputText value="No Asset found"/>
+                        </apex:tab>
+                        
+                        <!-- Expense -->
+                        <!-- Commented as part of Responsible lending to show expenses at application level -->
+                      <!--  <apex:tab label="Expense" name="BETab" styleClass="{!app2Expense}">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="Edit Expense" onclick="pageRedirect('expense');" 
+                                rerender="false" disabled="{!editExpenseButton}"/>
+                            </div>
+                            
+                            <apex:pageBlock rendered="{!IF(NOT(expenseList2.empty), true, false)}">
+                                <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                    <tr class="headerRow">
+                                        <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses</th>
+                                        <th class="headerRow" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">Living Expenses Interval</th>
+                                        <th class="headerRow">Rent/board</th>
+                                        <th class="headerRow">Rent/board Interval</th>
+                                        <th class="headerRow">I Pay All Exp</th>
+                                    </tr>
+                                    <apex:repeat value="{!expenseList2}" var="e">
+                                        <tr class="dataRow">
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Living_Exp__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell" style="{!IF($ObjectType.Expense__c.fields.Living_Exp__c.Updateable, 'display:block', 'display:none')}">{!e.Living_Exp_Int__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputText value="{0, number,$###,###,##0.00}">
+                                                    <apex:param value="{!e.Rent_Board_Pay_Amt__c}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="dataCell">{!e.Rent_Board_Pay_Int__c}</td>
+                                            <td class="dataCell">
+                                                <apex:outputField value="{!e.I_Pay_All_Exp__c}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </table>
+                            </apex:pageBlock>
+                            
+                            <apex:outputText value="No Expense found" rendered="{!IF(expenseList2.empty, true, false)}"/> 
+                        </apex:tab> -->
+                        <!-- Commented as part of Responsible lending to show expense at application level -->
+                        
+                        <!-- EXPENSE -->
+                        <apex:tab label="Expense" name="BETab" styleClass="{!app2Expense}">
+                            <apex:outputText value="No Expense found"/>
+                        </apex:tab>
+                        
+                        
+                        <!-- Debts -->
+                        <apex:tab label="Debts" name="BDTab" styleClass="{!app2Debts}">
+                            <apex:outputText value="No Debt found"/>
+                        </apex:tab>
+                        
+                        <!-- AML --> 
+                        <apex:tab label="AML" name="amlTab" id="aml2Id" styleClass="plainbutton">
+                            <div style="text-align:center; padding-bottom:23px;">
+                                <apex:commandButton value="{!IF(!amlList2.empty, 'Edit AML', 'New AML')}" 
+                                onclick="pageRedirectWithApplicant('aml', '2');" rerender="false" disabled="{!newAMLButton2}"/>
+                            </div>
+                            
+                            <apex:repeat value="{!amlList2}" var="a" rendered="{!IF(NOT(amlList2.empty), true, false)}">
+                                <apex:pageBlockSection columns="2" showHeader="true" title="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), 'Identification', 'Proof of Address')}">
+                                    <apex:outputField value="{!a.Identification__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.ID_No__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.POA_Type__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                     <apex:outputField value="{!a.POA_Reference_Number__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                    <apex:outputField value="{!a.POA_Issue_Date__c}" rendered="{!IF(a.AML_Pos_Verified_Type__c == null, true, false)}"/>
+                                    <apex:outputField value="{!a.ID_Issue_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.ID_Expiry_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.Issue_Country__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.ID_Expiry_State__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>                                                
+                                     <apex:outputField value="{!a.ID_Issuer__c}"/>
+                                     <apex:outputField value="{!a.Staff_ID_SSO__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.Staff_ID_Sighted_By__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.AML_Pos_Verified_Type__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                     <apex:outputField value="{!a.AML_Ver_Date__c}" rendered="{!IF(OR(a.AML_Pos_Verified_Type__c != null, a.Id_Sequence_No__c != null), true, false)}"/>
+                                </apex:pageBlockSection>
+                            </apex:repeat>
+                            
+                            <apex:outputText value="No AML found" rendered="{!IF(amlList2.empty, true, false)}"/>
+
+                        </apex:tab>
+                    </apex:tabPanel>
+                </apex:tab>
+            </apex:tabPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

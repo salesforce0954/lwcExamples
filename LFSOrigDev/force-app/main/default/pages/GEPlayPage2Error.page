@@ -1,0 +1,5 @@
+<apex:page >
+  <!-- Begin Default Content REMOVE THIS -->
+  <h1>ERROR: The page you were trying to access has invalid parameter.</h1>
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

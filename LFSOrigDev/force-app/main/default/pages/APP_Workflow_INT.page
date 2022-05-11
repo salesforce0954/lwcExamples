@@ -1,0 +1,62 @@
+<apex:page id="workflowPage" standardController="Application__c" extensions="APP_Workflow_EXT_INT" 
+showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+
+    <apex:form id="workflowForm" styleClass="workFlowFormClass">
+
+        <div align="center">
+           <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+           style="visibility:hidden;"/>
+           <br/>
+           <apex:actionStatus id="status">
+               <apex:facet name="stop">
+                   <apex:commandButton value="Refresh" action="{!refreshWorkFlowList}" 
+                   reRender="workflowForm" status="status" 
+                   onclick="document.getElementById('appPageId:workflowInclude:workflowPage:workflowForm:loadingGif').style.visibility='visible'"/>
+               </apex:facet>
+               <apex:facet name="start">
+                   <apex:commandButton value="Refreshing..." disabled="true"/>
+               </apex:facet>
+           </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="workflowPageBlock" title="Workflow">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Type</th>
+                    <th class="headerRow">Status</th>
+                    <th class="headerRow">Priority</th>
+                    <th class="headerRow">Created By</th>
+                    <th class="headerRow">Created Date</th>
+                    <th class="headerRow">Description</th>
+                    <th class="headerRow">Assigned To</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!workflowList}" var="w" id="workflowPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!w.RecordType.Name}</td>
+                        <td class="dataCell">{!w.Status__c}</td>
+                        <td class="dataCell">{!w.Priority__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!w.CreatedById}"/>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!w.CreatedDate}"/>
+                        </td>
+                        <td class="dataCell">{!w.Description__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!w.Assigned_To_1__c}"/>
+                        </td>
+                        <td class="dataCell">
+                            <a onclick="openSubtab1('/{!URLENCODE(w.Id)}','{!URLENCODE(w.Name)}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

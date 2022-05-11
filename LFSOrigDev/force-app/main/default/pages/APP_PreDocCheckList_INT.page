@@ -1,0 +1,44 @@
+<!--
+/**
+ * @Description: Pre Doc Check-List for NZ Signup Letter(Staff UI)
+ * @Author: Devendra
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_PreDocCheckListExt_INT" showHeader="false">
+<style>
+.listCss{
+	margin-left:3%;
+}
+.customPadding{
+	padding:3px;
+}
+</style>
+<apex:form >
+<apex:actionFunction name="SavePreference" action="{!savePreference}" rerender="checkListBlock"/>
+<apex:pageblock id="checkListBlock">
+<div class="customPadding"><apex:inputcheckbox value="{!application.MarriageCertificateFlag__c}" onChange="SavePreference();"/><div style="display:inline;">Marriage Certificate</div></div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.NameChangeDocumenationFlag__c}" onChange="SavePreference();" /><div style="display:inline;">Name Change Documentation</div></div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.CreditCardStatementFlag__c}" onChange="SavePreference();"/><div style="display:inline;">
+	Credit Card Statement AND requires ability to also add<br/>
+		<div class="listCss">-Finance company name<br/>
+		-Multiple entries with one row per finance company entered<br/></div>
+	</div>
+</div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.CreditReferenceFlag__c}" onChange="SavePreference();"/><div style="display:inline;">
+	Credit Reference AND requires ability to also add<br/>
+		<div class="listCss">-Finance company name<br/>
+		-Multiple entries with one row per finance company entered<br/></div>
+		</div>
+</div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.ProofOfPaymentOfDefaultFlag__c}" onChange="SavePreference();"/><div style="display:inline;">Proof of Payment of Debt</div></div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.ProofOfPaymentFlag__c}" onChange="SavePreference();"/><div style="display:inline;">
+	Proof of Payment AND requires ability to also add<br/>
+		<div class="listCss">-Finance company name<br/>
+		-Multiple entries with one row per finance company entered<br/></div>
+		</div>
+</div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.ProofOfClearVehicleOwnershipFlag__c}" onChange="SavePreference();"/><div style="display:inline;">Proof of Clear Vehicle Ownership</div></div>
+<div class="customPadding"><apex:inputcheckbox value="{!application.CoOwnershipOfSecurityAuthorityFlag__c}" onChange="SavePreference();"/><div style="display:inline;">Co-Ownership of Security Authority</div></div>
+</apex:pageblock>
+</apex:form>
+</apex:page>

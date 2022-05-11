@@ -1,0 +1,365 @@
+<!--/*
+ * @Description: Contract Acceptance page Staff UI.
+ * @Author: Fel Saliba
+ * @Date Created: Feb-3-2014
+ * @History:
+   =====================================================================
+       02-03-14: Created - Fel
+   =====================================================================
+ */
+-->
+<apex:component allowDML="true" access="global" controller="APP_ContractAcceptanceChannel" id="APP_ContractAcceptance_INT">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+    
+    <style>
+        .refreshlink {color:#222;padding:6px 10px;background:#f5f5f5;margin-top:0px;float:left;border-radius:3px;}
+    </style>
+    
+    <script type="text/javascript">   
+
+        // Script variable declaration                       
+        var count = 0;  
+        var counter;
+        
+        // function to reset interval and reinstantiate a new interval 
+        // that calls mainInterval method polls value of contract account number every five seconds
+        function timerCount(){   
+          //Show loader
+          showloader();
+
+          // Reset interval counter if called again from create button
+          clearInterval(counter);  
+            
+          // Create recurssive interval that fires every 1 second
+          counter = setInterval(mainInterval, 1000);                                      
+        }
+        
+        // function that polls value of contract account number every five seconds
+        function mainInterval(){
+            count = count + 1;
+            if(count != {!timeoutSettings}){
+                // Every three seconds poll salesforce for response
+                if(count%3==0) {  
+                  // Refresh contract details for latest value in apex
+                  reloadContract();
+                   
+                  // Use get element to pull hidden field that holds account number refresh by reloadContract() method          
+                  var alInp = document.getElementById('{!$Component.contractAcceptanceForm.conInp}').value;   
+                             
+                  if(alInp != null && alInp != ''){
+                    // Refresh message and button visibility      
+                    refreshMsgButton();
+                    // Clear interval
+                    clearInterval(counter);
+
+                    //hide the loader
+                    hideloader();
+                  }   
+
+                }
+            }else{
+                clearInterval(counter); 
+                rerenderMPanel();
+                hideloader();
+            }
+        }
+        
+        //Method to show loader enhanced action status component.
+        function showloader(){
+          document.getElementById('showLoading').style.display = "block";
+          document.getElementById('appPageId:contractAcceptanceInclude:contractAcceptancePage:contractAcceptanceC:APP_ContractAcceptance_INT:contractAcceptanceForm:mainBlock:enhancedid:enhancedC:pleasewait.start').style.display = "block";
+        }
+        
+        //Method to hide loader enhanced action status component.
+        function hideloader(){
+          document.getElementById('showLoading').style.display = "none";
+          document.getElementById('appPageId:contractAcceptanceInclude:contractAcceptancePage:contractAcceptanceC:APP_ContractAcceptance_INT:contractAcceptanceForm:mainBlock:enhancedid:enhancedC:pleasewait.start').style.display = "none";
+        }        
+        
+        // Update related document function call to apex remote action
+        function updateRD(Id, field,fieldName) {
+          APP_ContractAcceptanceChannel.updateRelatedDocument1(Id,field.checked,fieldName, function(result, event){
+               isAllAccepted();
+            });
+          
+        }
+        
+        // Removed by: Adrian Recio
+        // Description: Action function is using a param to replace this method.
+        // Date: 23/09/2015
+
+        // Get related document Id from hidden input
+        /*
+        function getRDID(relId){
+            document.getElementById('{!$Component.contractAcceptanceForm.relDocId}').value = relId;
+        }
+        */
+
+        function checkValidation(){
+          //Show loader
+          showloader();
+          
+          var isValid = document.getElementById('{!$Component.contractAcceptanceForm.flag}').value;
+          if(isValid == 'true'){
+            timerCount();
+          }else{
+            hideloader();
+          }
+        }
+        
+        //Check if all checkboxes are checked.
+        function isAllChecked(){
+          
+          //Show loader
+          showloader();
+
+          var chks = document.getElementsByTagName("input");  
+          for(var i=0 ; i < chks.length ; i++){
+            if(chks[i].type.toLowerCase() == "checkbox" && chks[i].className.toLowerCase() == "acceptcheckbox"){
+                chks[i].disabled = 'True';
+            }
+          }
+        }
+
+    </script>
+
+
+    <apex:attribute name="application" type="String" required="true" access="global" assignTo="{!applicationId}" description="application Id"/>
+    <apex:form id="contractAcceptanceForm">
+
+        <!-- Hidden input variables -->
+        <!--
+          Removed by: Adrian Recio
+          Description: Action function is using a param to replace this hidden variable.
+          Date: 23/09/2015
+        -->
+        <!--
+        <apex:inputHidden id="relDocId" value="{!relatedDocumentId}" /> 
+        --> 
+        <apex:inputHidden id="conInp" value="{!contractAccntNumber}"/> 
+        <apex:inputHidden id="flag" value="{!validationFlag}"/> 
+        
+        <!-- Main Action Functions -->
+        <apex:actionFunction name="refreshMsgButton" rerender="accountNoPanel,buttonPanel"></apex:actionFunction>
+        <apex:actionFunction name="validateRD" action="{!validateRD}" rerender="outerPanel" status="updateStatus"/>
+        <apex:actionFunction name="isAllAccepted" action="{!isAllAccepted}" reRender="buttonPanel"/>     
+
+        <!-- Added by: Adrian Recio -->
+        <!-- Date: 22/09/2015 -->
+        <!-- Description: Retry function isolated from DMLs that is used in file retry button-->
+        <apex:actionFunction name="retryRelatedDocument" action="{!retryRelatedDocument}" oncomplete="fireDocGenServiceCallRetry();">
+          <apex:param name="relatedDocumentId" value="{!relatedDocumentId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="fireDocGenServiceCallRetry" action="{!fireDocGenServiceCallRetry}"/>        
+        
+        <!-- mainPanel, -->
+        <!-- Main Panel for rerender -->
+        <apex:outputPanel id="mainPanels" layout="block">
+            <apex:panelGrid columns="1" width="100%">
+                
+                
+        
+                <!-- Out of sync message -->
+                <apex:outputText value="Application out of sync." rendered="{!IF(app[0].Out_Of_Sync__c == true,true,false)}"/>
+                <apex:pageBlock id="mainBlock" rendered="{!IF(AND(app[0].Out_Of_Sync__c == false,
+                                                               OR(app[0].Response_Code__c == 'Pending Create Loan',
+                                                                  app[0].Response_Code__c == 'Pending FIA',
+                                                                  app[0].Response_Code__c == 'SAR',
+                                                                  app[0].Response_Code__c == 'SCR',
+                                                                  app[0].Response_Code__c == 'PCO', 
+                                                                  app[0].Response_Code__c == 'PCO Applicant 1 Pending', 
+                                                                  app[0].Response_Code__c == 'PCO Applicant 2 Pending',
+                                                                  app[0].Response_Code__c == 'FIA')),true,false)}">
+                                                                  
+                    <!-- Special action function for main panel rerendering and status loader display -->   
+                    <!-- This action function should be on this hierarchy to gain access to both. -->                           
+                    <apex:actionFunction name="rerenderMPanel" status="showLoading" reRender="mainPanels"></apex:actionFunction>
+                    <apex:actionFunction name="reloadContract" action="{!displayContractNumber}" status="showLoading" reRender="conInp"/>
+        
+                <!-- Main Apex Error message -->
+                <apex:pageMessages Id="messageId"/>                    
+                    <apex:panelGrid columns="1" width="100%">
+        
+                        <!-- Documents not found error message -->
+                        <apex:outputText value="No Documents found." rendered="{!IF(wrapperContract.size>0,false,true)}"/>
+                        <!-- PCO pr Pending FIA Response code required error message -->
+                        <apex:outputText value="Application status must be PCO or Pending FIA." rendered="{!IF(app[0].Response_Code__c != 'PCO' && 
+                                                                                                               app[0].Response_Code__c != 'PCO Applicant 1 Pending' && 
+                                                                                                               app[0].Response_Code__c != 'PCO Applicant 2 Pending' && 
+                                                                                                               app[0].Response_Code__c != 'Pending FIA' &&
+                                                                                                               app[0].Response_Code__c != 'Pending Create Loan' &&
+                                                                                                               app[0].Response_Code__c != 'FIA', true, false)}"/>
+                    
+                        <!-- Message for refresh page link -->                                                                                 
+                        <apex:outputPanel rendered="{!IsRefresh}">
+                            <strong>Loan Documents will be displayed and available for acceptance shortly – please hit refresh link.</strong> 
+                            <br/>
+                            <a onclick="rerenderMPanel();" style="cursor:pointer;cursor:hand;">Click to refresh the page</a> 
+                        </apex:outputPanel>
+                        
+                        <!-- Message for successful account creation -->
+                        <apex:outputPanel layout="block" Id="accountNoPanel">
+                            <apex:outputText value="Account Number {!contractAccntNumber} successfully created. Please complete the post-settlement checklist." rendered="{!IF(contractAccntNumber != null && app[0].Response_Code__c=='FIA',true,false)}"/>  
+                        </apex:outputPanel>
+                    </apex:panelGrid>
+                    
+                    <br/>
+                <!-- Action Status -->
+                <div id="showLoading" style="display:none">
+                      <c:EnhancedActionStatus BackColor="#efefef" borderColor="#336699" borderSize="3" height="10px" width="10px" ImageUrl="{!URLFOR($Resource.getheme,'images/loading-bar.gif')}" Message="Waiting..." id="enhancedid" messageStyle="color:#660000;font-size:11pt;font-weight:bold;visibility:hidden;" />
+                </div>                                        
+                    <!-- Show contract if:
+                         Application has valid response code 
+                         There's at least 1 related document
+                         All documents is received
+                         -->
+                    <apex:outputPanel rendered="{!IF(AND(wrapperContract.size>0,NOT(IsRefresh),LatestContractAccessStatus) || app[0].Response_Code__c=='FIA' || app[0].Response_Code__c=='Pending FIA' || app[0].Response_Code__c == 'Pending Create Loan',true,false)}"  id="TypePanel">
+                        <apex:outputPanel rendered="{!appType=='Joint'}">
+                            <strong>{!applicant1}, <apex:outputLabel >Applicant One</apex:outputLabel></strong><br/>
+                        </apex:outputPanel>                        
+                        <!-- Start Document Repeat -->
+                        <apex:repeat value="{!wrapperContract}" var="wc" id="contractRepeat">
+                          <br/>        
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                            <strong>Contract</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                            <strong>Objectives And Requirements</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                            <strong>Privacy</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                            <strong>Direct Debit</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                            <strong>EFT Disbursement</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                            <strong>Debt Consolidation</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                            <strong>Insurance</strong><br/>
+                          </apex:outputPanel>
+                          <apex:repeat value="{!wc.relDoc}" var="relDoc" id="documentRepeat">
+                              
+                              <apex:outputPanel rendered="{!IF(relDoc.Status__c == 'Received',true,false)}" id="statusPanel">
+                                  <apex:inputCheckbox value="{!relDoc.isAccepted__c}" id="check"
+                                                   onchange="updateRD('{!relDoc.Id}',this,'isAccepted');" 
+                                                   styleClass="acceptcheckbox"
+                                                    disabled="{!app[0].Acceptance_Channel__c == 'Online Acceptance' }"
+                                                   rendered="{!IF(OR(AND(app[0].Response_Code__c=='Pending FIA', app[0].Acceptance_Channel__c == 'Offline Acceptance'), app[0].Response_Code__c!='Pending FIA' && app[0].Response_Code__c!='FIA' && app[0].Response_Code__c != 'Pending Create Loan'),true,false)}"/>
+                                  <apex:outputField value="{!relDoc.isAccepted__c}" rendered="{!IF(AND(app[0].Response_Code__c=='Pending FIA', app[0].Acceptance_Channel__c == 'Online Acceptance') || app[0].Response_Code__c=='FIA' || app[0].Response_Code__c == 'Pending Create Loan',true,false)}"/>
+                                  <!-- Checkmarx -->
+                                  <!-- <apex:outputText rendered="{!IF(relDoc.Title__c == 'Financial Strength and Preferential Policyholder Disclosures Document' && wc.title != 'Debt Consolidation' && wc.title != 'Direct Debit' ,true,false)}"> The customer has acknowledged and accepted the &nbsp;<a href="#" onclick="window.open('{!JSENCODE(relDoc.AttachmentUrl__c)}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText>-->
+                                  <!-- 08-SEPT-2016 MLASALA Stored XSS Code Scan fix -->
+                                  <apex:outputText rendered="{!IF(wc.title != 'Debt Consolidation' && wc.title != 'Direct Debit',true,false)}"> The customer has acknowledged and accepted the &nbsp;<a href="#" onclick="window.open('{!JSENCODE(relDoc.AttachmentUrl__c)}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText>
+                                  <apex:outputText rendered="{!IF(wc.title == 'Debt Consolidation' || wc.title == 'Direct Debit',true,false)}"> The customer has acknowledged the &nbsp;<a href="#" onclick="window.open('{!relDoc.AttachmentUrl__c}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText><br/>
+                              </apex:outputPanel>
+                              
+                              <apex:outputPanel rendered="{!IF(relDoc.Status__c == 'Received',false,true)}">
+                                  Document {!relDoc.Title__c} pending. &nbsp;&nbsp;&nbsp;
+
+                                  <!--
+                                  <apex:commandButton value="Retry" onclick="getRDID('{!relDoc.Id}');" action="{!retryRelatedDocument}"/>
+                                  -->
+
+                                  <!-- Updated by: Adrian Recio
+                                       Description: created a two step retry to separate dml and callout in two methods.
+                                       Date: 22/09/2015 -->
+                                  <apex:commandButton value="Retry" onclick="retryRelatedDocument('{!relDoc.Id}'); return false;"/>
+                                  <br/>
+                              </apex:outputPanel>
+                          </apex:repeat><br/>
+                        </apex:repeat>  
+                        <!-- End Document Repeat -->
+                       <apex:outputPanel rendered="{!appType=='Joint'}">
+                       <hr/>
+                       <apex:outputPanel rendered="{!appType=='Joint'}">
+                            <strong>{!applicant2}, <apex:outputLabel >Applicant Joint</apex:outputLabel></strong><br/>
+                        </apex:outputPanel>                        
+                        <!-- Start Document Repeat -->
+                        <apex:repeat value="{!wrapperContract}" var="wc" id="contract2Repeat">
+                          <br/>        
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Contract',true,false)}">
+                            <strong>Contract</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Objectives & Requirements',true,false)}">
+                            <strong>Objectives And Requirements</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Privacy',true,false)}">
+                            <strong>Privacy</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Direct Debit',true,false)}">
+                            <strong>Direct Debit</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'EFT Disbursement',true,false)}">
+                            <strong>EFT Disbursement</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Debt Consolidation',true,false)}">
+                            <strong>Debt Consolidation</strong><br/>
+                          </apex:outputPanel>
+                
+                          <apex:outputPanel rendered="{!IF(wc.title == 'Insurance',true,false)}">
+                            <strong>Insurance</strong><br/>
+                          </apex:outputPanel>
+                          <apex:repeat value="{!wc.relDoc}" var="relDoc" id="documentRepeat">
+                              
+                              <apex:outputPanel rendered="{!IF(relDoc.Status__c == 'Received',true,false)}" id="statusPanel">
+                                  <apex:inputCheckbox value="{!relDoc.isAcceptedSec__c}" id="check"
+                                                   onchange="updateRD('{!relDoc.Id}',this,'isAcceptedSec');" 
+                                                   styleClass="acceptcheckbox"
+                                                   disabled="{!app[0].Acceptance_Channel__c == 'Online Acceptance'}"
+                                                   rendered="{!IF(OR(AND(app[0].Response_Code__c=='Pending FIA', app[0].Acceptance_Channel__c == 'Offline Acceptance'), app[0].Response_Code__c!='Pending FIA' && app[0].Response_Code__c!='FIA' && app[0].Response_Code__c != 'Pending Create Loan'),true,false)}"/>
+                                  <apex:outputField value="{!relDoc.isAcceptedSec__c}" rendered="{!IF(AND(app[0].Response_Code__c=='Pending FIA', app[0].Acceptance_Channel__c == 'Online Acceptance') || app[0].Response_Code__c=='FIA' || app[0].Response_Code__c == 'Pending Create Loan',true,false)}"/>
+                                 <!-- Checkmarx -->
+                                 <!--
+                                  <apex:outputText rendered="{!IF(wc.title != 'Debt Consolidation' && wc.title != 'Direct Debit',true,false)}"> The customer has acknowledged and accepted the &nbsp;<a href="#" onclick="window.open('{!URLEncode(relDoc.AttachmentUrl__c)}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText>
+                                  <apex:outputText rendered="{!IF(wc.title == 'Debt Consolidation' || wc.title == 'Direct Debit',true,false)}"> The customer has acknowledged the &nbsp;<a href="#" onclick="window.open('{!URLEncode(relDoc.AttachmentUrl__c)}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText><br/>
+                                  -->
+                                  <apex:outputText rendered="{!IF(wc.title != 'Debt Consolidation' && wc.title != 'Direct Debit',true,false)}"> The customer has acknowledged and accepted the &nbsp;<a href="#" onclick="window.open('{!relDoc.AttachmentUrl__c}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText>
+                                  <apex:outputText rendered="{!IF(wc.title == 'Debt Consolidation' || wc.title == 'Direct Debit',true,false)}"> The customer has acknowledged the &nbsp;<a href="#" onclick="window.open('{!relDoc.AttachmentUrl__c}','_blank');" style="color: #015BA7;">{!relDoc.Title__c}</a></apex:outputText><br/>
+                              </apex:outputPanel>
+                              
+                              <apex:outputPanel rendered="{!IF(relDoc.Status__c == 'Received',false,true)}">
+                                  Document {!relDoc.Title__c} pending. &nbsp;&nbsp;&nbsp;
+                                  <!--
+                                  <apex:commandButton value="Retry" onclick="getRDID('{!relDoc.Id}');" action="{!retryRelatedDocument}"/>
+                                  -->
+
+                                  <!-- Updated by: Adrian Recio
+                                       Description: created a two step retry to separate dml and callout in two methods.
+                                       Date: 22/09/2015 -->
+                                  <apex:commandButton value="Retry" onclick="retryRelatedDocument('{!relDoc.Id}'); return false;"/>
+                                  <br/>
+                              </apex:outputPanel>
+                          </apex:repeat><br/>
+                        </apex:repeat> 
+                        </apex:outputPanel> 
+                        </apex:outputPanel>
+
+                        <apex:outputPanel layout="block" Id="buttonPanel">
+                       <apex:commandButton id="accCreate" 
+                                  value="Create Account"   
+                                  action="{!validateRD}"
+                                  reRender="mainPanels,flag,accCreate"
+                                  disabled="{!IF(AND(LatestContractAccessStatus==true, wrapperContract.size>0), IF(NOT(allSecAccepted), IF(app[0].Application_Type__c != 'Joint', IF(OR(AND(app[0].Acceptance_Channel__c == 'Online Acceptance', app[0].Is_Accepted_Primary__c), app[0].Acceptance_Channel__c == 'Offline Acceptance'), false, true), IF(OR(AND(app[0].Acceptance_Channel__c == 'Online Acceptance', app[0].Is_Accepted_Primary__c, app[0].Is_Accepted_Secondary__c), app[0].Acceptance_Channel__c == 'Offline Acceptance'), false, true)), true), true)}" 
+                                  onclick="isAllChecked();"
+                                  oncomplete="checkValidation();" />
+                        </apex:outputPanel>
+              </apex:pageBlock>
+            </apex:panelGrid>
+        </apex:outputPanel>
+    </apex:form>
+</apex:component>

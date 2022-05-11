@@ -1,0 +1,1139 @@
+<!--
+* @Description: New Customer UI Online Contract Acceptance
+* @Author: Adrian Recio
+* @Date Created: 06-01-2016
+* @History:
+=====================================================================
+06-01-14: Created - Adrian Recio
+=====================================================================     
+-->
+<apex:component allowDML="true" access="global"
+    controller="APP_GSD_ContractAcceptanceChannel" id="APP_ContractAcceptance">
+
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}" > </apex:stylesheet>
+
+<!-- SF Ajax API -->
+<apex:includeScript value="/soap/ajax/34.0/connection.js"> </apex:includeScript>
+
+<!-- Jquery -->
+<apex:includeScript value="{!$Resource.jqueryMin214}" > </apex:includeScript>
+
+<!-- Knockout JS -->
+<apex:includeScript value="{!$Resource.Knockout_JS_v340}" > </apex:includeScript>
+<apex:includeScript value="{!$Resource.Knockout_JS_Mapping_v241}"></apex:includeScript> 
+    
+<!-- Bootstrap -->
+<apex:includeScript value="{!URLFOR($Resource.bootstrapstaffui, '/bootstrap/js/bootstrap.min.js')}" />
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapstaffui, '/bootstrap/css/bootstrap.min.css')}"/>
+
+    
+<!-- Bootstrap Core JavaScript -->
+<!--
+<apex:includeScript value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/js/bootstrap.min.js')}"> </apex:includeScript>
+-->
+<!-- Bootstrap Core CSS -->
+<!--
+<apex:stylesheet value="{!URLFOR($Resource.ge_web_template, '/ge_web_template/bower_components/bootstrap/dist/css/bootstrap.min.css')}"/>
+-->
+
+<style>
+
+    ul li:before {
+         content: '\25CF ';
+         color: #004a95;
+         padding-right: 0.5em;
+    }
+    
+    /* newly added */
+    a,
+    a:hover,
+    a:focus,
+    a:active,
+    a.active {
+        outline: 0 !important;
+    }
+    
+    ol {
+        padding-left: 15px;
+    }
+    
+    ul{
+      text-indent: -1.15em;
+      padding-left:20px;
+    }
+    /* end newly added */
+      
+   /* .indent_checkbox_txt {
+        text-indent: -1em;
+        padding-left: 15px;
+    }
+
+    .indent_text{
+       text-indent: -1em; 
+    }
+
+    .gap_body_content{
+        padding-bottom: 30px;
+    }
+    
+    .gap_body_content_top{
+        padding-top: 30px;
+    }
+    
+    .gap_text_left{
+        padding-left:5px;
+    }*/
+
+    
+    a,a label {
+        cursor: pointer;
+        color: #006ac6;
+    }    
+
+    span {
+        position: relative;
+    }
+    
+    span.disabled-detector {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        opacity: 0;
+    }
+    
+    input+span.disabled-detector {
+        display: none;
+    }
+    
+    input[disabled]+span.disabled-detector {
+        display: inline;
+    }
+    
+    ol>li::before {
+        content: "" !important;
+    }
+</style>
+
+
+
+<script>
+    
+    var hasClickedInsurance = false;
+    var hasClickedAccept = false;
+
+    $(document).ready(function () {
+        ko.applyBindings(my.viewModel); 
+        
+        // Hide Insurance Section if application doesn't have insurance
+
+        if($('#Insurance').length>0){
+            $('#insuranceBody').append($('#Insurance'));
+        }else{
+            $('#insuranceCom').hide();
+        }
+        
+        // Hide Acceptance Section if region is NZ
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        if('{!JSENCODE(IF($Setup.Profile_Country__c.NZ__c, "true", "false"))}' == "true"){
+            $("#acceptanceCom").hide();
+        }
+        
+        // On change of any visible checkbox, fire acccept button enable check
+        $('[type=checkbox]').change(function(){
+            acceptButtonAccess();
+        })
+        
+        // Set accept button access
+        acceptButtonAccess();
+        
+        // Populate disable detector
+        setDisableDetector();
+
+        // Document mouseout from checkbox
+        mouseInit();
+
+    });
+    
+
+    function mouseInit(){
+        $('#' + acceptBtnId()).mouseout(function( event ) {
+            // Hide other tool tips before show
+            $('#' + acceptBtnId()).tooltip('destroy');
+        });
+
+        $('.disabled-detector').mouseout(function( event ) {
+            // Hide other tool tips before show
+            $('.tooltip').tooltip('destroy');
+        });
+    }
+
+    function setDisableDetector(){
+        $(document).on("click", ".disabled-detector", function (e) {
+            var chk = $(this).parent().children('input[type="checkbox"]').get(0);
+        
+            checkboxClickHandler.call(chk, e);
+        }).on("click", 'input[type="checkbox"]', function (e) {
+            checkboxClickHandler.call(this, e);
+        });
+    }
+
+    function checkboxClickHandler(evt) {
+        if(this.disabled){
+            console.log('inputcheckbox dom:' + this);
+
+            // Hide other tool tips before show
+            $('.tooltip').tooltip('destroy');
+
+            // Show only one tooltip
+            $(this).tooltip('show');
+            console.log('Disable Click Fired.');
+
+            setTimeout(function(){ $(this).tooltip('hide'); }, 2000);
+        }else{
+            console.log('not disabled.');
+        }
+    }
+    
+    function acceptButtonAccess(){
+        var acceptButtonEnable = fireValidation();
+        if(acceptButtonEnable==true){
+            $('.mainAcceptBtn').prop('disabled', false);
+        }else{
+            $('.mainAcceptBtn').prop('disabled', true);
+        }
+    }
+    
+    function insuranceSecValid(){
+        if($('#Insurance').length>0){
+            return hasClickedInsurance;
+        }else{
+            return true;
+        }
+    }
+    
+    function acceptSecValid(){
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        if('{!JSENCODE(IF($Setup.Profile_Country__c.AU__c, "true", "false"))}' == "true"){
+            return hasClickedAccept;
+        }else{
+            return true;
+        }
+    }
+    
+    function regionClassName(){
+        var cStr = '';
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        if('{!JSENCODE(IF($Setup.Profile_Country__c.NZ__c, "true", "false"))}' == "true"){
+            cStr = '.mainCheckAcceptNZ';
+        }else{
+            cStr = '.mainCheckAcceptAU';
+        }
+        return cStr;
+    }
+    
+    function regionIdName(){
+        var cStr = '';
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        if('{!JSENCODE(IF($Setup.Profile_Country__c.NZ__c, "true", "false"))}' == "true"){
+            cStr = '#mainNZWrap';
+        }else{
+            cStr = '#mainAUWrap';
+        }
+        return cStr;
+    }
+    
+    
+    function validateDocumentSection(){        
+        var noMissingAccept = true;
+        var classString = regionClassName();
+        var idString = regionIdName(); 
+        
+        //console.log('class:' + classString);
+        //console.log('Id:' + idString);
+        console.log('Checkbox Sec1 Count:' + $(idString).find(classString).length);
+        
+        $(idString).find(classString).each(function(index, el) {
+            if($(this).prop('checked') == false){
+                noMissingAccept = false;
+                
+            }
+        } );
+        return noMissingAccept;
+    }
+    
+    function validateInsuranceSection(){
+        var noMissingInsurance = true;   
+        
+        console.log('Checkbox Sec2 Count:' + $('#insuranceBody').find(':checkbox').length);
+        
+        if($('#Insurance').length>0){
+            $('#insuranceBody').find(':checkbox').each(function(index, el) {
+                if($(this).prop('checked') == false){
+                    noMissingInsurance = false;
+                }
+            } ); 
+        } 
+        return noMissingInsurance;
+    }
+
+    function fireValidation(){
+        
+        var checkSecOne = validateDocumentSection();
+        var checkSecTwo = validateInsuranceSection();
+        var checkInsuranceSec = insuranceSecValid();
+        var checkAcceptanceSec = acceptSecValid();
+        
+        console.log('checkSecOne:' + checkSecOne);
+        console.log('checkSecTwo:' + checkSecTwo);
+        console.log('checkInsuranceSec:' + checkInsuranceSec);
+        console.log('checkAcceptanceSec:' + checkAcceptanceSec);
+        console.log('commandbuttonId:' + '#' + acceptBtnId());
+
+        if(checkSecOne==true && 
+           checkSecTwo==true &&
+           checkInsuranceSec == true &&
+           checkAcceptanceSec == true){
+            document.getElementById(acceptBtnId()).className = "GPrimary-button module5-label noOutline btnText";
+            console.log('validation success.');
+            return true;
+        }else{
+            document.getElementById(acceptBtnId()).className = "GPrimary-button-disabled module5-label noOutline btnText";
+            console.log('validation failed.');
+            return false; 
+        } 
+    }
+    
+  
+    function validateCheckBoxes(){   
+        var proceedToAcceptance = fireValidation();
+        
+        if(proceedToAcceptance){ 
+            console.log('acceptance method executed');
+            updateAllRelatedDocument(); 
+        }else{
+            $('#' + acceptBtnId()).tooltip('show');
+        }
+    }
+    
+  
+
+    
+    var conAppCtrl = function(){
+        var self = this;
+        
+        // Pull Related Document Wrap
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        var wrapOrigJSON = JSON.parse('{!JSENCODE(wrapConList)}');
+        console.log('wrapConList:' + JSON.stringify(wrapOrigJSON)); 
+        self.wrapConList = ko.mapping.fromJS(wrapOrigJSON); 
+        console.log('applicantVar_observe:' + self.wrapConList);
+        
+        // Pull Application
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix 
+        var wrapAppOrigJSON = JSON.parse('{!JSENCODE(appJSONVar)}');
+        console.log('wrapAppOrigJSON:' + JSON.stringify(wrapAppOrigJSON)); 
+        self.appVar = ko.mapping.fromJS(wrapAppOrigJSON);
+        console.log('appVar_observe:' + self.appVar);
+        
+        // Pull Applicant
+        var wrapApplicantOrigJSON = JSON.parse('{!applicantJSONVar}');
+        console.log('wrapApplicantOrigJSON:' + JSON.stringify(wrapApplicantOrigJSON)); 
+        self.applicantVar = ko.mapping.fromJS(wrapApplicantOrigJSON);
+        console.log('applicantVar_observe:' + self.applicantVar);
+        
+        // Region Visibility Flags
+        self.nzPrimary = ("true" == "{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}");
+        self.nzNonPrimary = ("true" == "{!AND($Setup.Profile_Country__c.NZ__c,NOT(isPrimary))}");  
+        self.auPrimary = ("true" == "{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}");
+        self.auNonPrimary = ("true" == "{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}");
+        
+        console.log('nzPrimary:' + '{!AND($Setup.Profile_Country__c.NZ__c,isPrimary)}');
+        console.log('nzNonPrimary:' + '{!AND($Setup.Profile_Country__c.NZ__c,NOT(isPrimary))}');
+        console.log('auPrimary:' + '{!AND($Setup.Profile_Country__c.AU__c,isPrimary)}');
+        console.log('auNonPrimary:' + '{!AND($Setup.Profile_Country__c.AU__c,NOT(isPrimary))}');
+        
+        self.sitePrefix = "{!$Site.Prefix}";
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        self.appType="{!JSENCODE(applicationMain.Application_Type__c)}";
+        self.isPrimary = ko.observable('{!isPrimary}');
+                
+        self.auTitleCheck = function(titleUnWrap){
+            var titleWrap = titleUnWrap();
+            if (['Objectives & Requirements','Contract','Privacy', 'Direct Debit',
+                 'EFT Disbursement','Debt Consolidation','Insurance'].indexOf(titleWrap) >= 0) {
+                return true;
+            }else{
+                return false;
+            }
+        }
+        
+        self.nzTitleCheck = function(titleUnWrap){
+            var titleWrap = titleUnWrap();
+            if (['Contract', 'Objectives & Requirements', 'Privacy', 'Direct Debit','Direct Debit Form',
+                 'EFT Disbursement','Debt Consolidation','Insurance','SignUp Letter','SignUp Letter KiwiBank',
+                 'Terms & Conditions'].indexOf(titleWrap) >= 0) {
+                return true;
+            }else{
+                return false;
+            }
+        }
+        
+        self.formatURL = function(atURLWrap){
+            var atURLUnWrap = atURLWrap();
+            if(atURLUnWrap.indexOf('http')>-1){
+                return atURLUnWrap;
+            }else{
+                return '{!$Site.Prefix}' + atURLUnWrap;
+            }
+        }
+        
+        self.enableInsuranceCheckBox = function(dataVar){
+            console.log('Is Primary:' + self.isPrimary());
+            
+            if(self.isPrimary()=='true'){
+                self.appVar.Is_Insurance_Acknowledgement_Enabled__c(true);
+            }else{
+                
+                self.appVar.Is_Insurance_Acknowledgement_Enabled_2nd__c(true);
+            }
+             
+            Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_ContractAcceptanceChannel.enableInsuranceCheckBoxRA}",
+                                                       self.appVar.Id(),self.isPrimary(), 
+                                                       function(result, event){
+                                                           console.log("Type:" + event.type);
+                                                           console.log("Message:" + event.message);
+                                                           console.log("Status:" + event.status);
+                                                           console.log("Value:" + result);
+                                                           
+                                                       },{escape: true});
+            window.open(self.formatURL(dataVar.AttachmentUrl__c));
+        }
+        
+        self.enableInsurance = function(dataVar){
+            var IsPrimary = false;
+            
+            if(self.auPrimary||self.nzPrimary){
+                dataVar.isEnabled__c(true);
+                IsPrimary = true;
+            }
+            
+            if(self.auNonPrimary||self.nzNonPrimary){ 
+                dataVar.isEnabled_Sec__c(true);     
+            }
+           
+             Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_ContractAcceptanceChannel.enableCheckboxRA}",
+                                                       dataVar.Id(),IsPrimary, 
+                                                       function(result, event){
+                                                           console.log("Type:" + event.type);
+                                                           console.log("Message:" + event.message);
+                                                           console.log("Status:" + event.status);
+                                                           console.log("Value:" + result);
+                                                           
+                                                       },{escape: true});
+            window.open("{!pdsFsgLink}");
+        }
+        
+        self.enableCA = function(dataVar){
+
+            var IsPrimary = false;
+            
+            if(self.auPrimary||self.nzPrimary){
+                dataVar.isEnabled__c(true);
+                IsPrimary = true;
+            }
+            
+            if(self.auNonPrimary||self.nzNonPrimary){ 
+                dataVar.isEnabled_Sec__c(true);     
+            }
+           
+             Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.APP_GSD_ContractAcceptanceChannel.enableCheckboxRA}",
+                                                       dataVar.Id(),IsPrimary, 
+                                                       function(result, event){
+                                                           console.log("Type:" + event.type);
+                                                           console.log("Message:" + event.message);
+                                                           console.log("Status:" + event.status);
+                                                           console.log("Value:" + result);
+                                                           
+                                                       },{escape: true});
+            window.open(self.formatURL(dataVar.AttachmentUrl__c));
+
+            setDisableDetector();
+        }
+    }  
+
+    var my = { viewModel: new conAppCtrl() };
+    
+    
+    function toggleCollapse(chevCount) {
+  
+        var chev1 = $('#iconCAcceptArrUpDown' + chevCount);
+        chev1.toggleClass('icon_arrow_up icon_arrow_down');
+        var chev2 = $('#iconCAcceptEdit' + chevCount);
+        chev2.toggleClass('icon_edit_white icon_edit');
+        
+        var chev3 = $('#accordCAccept' + chevCount + 'Lbla1'); 
+        chev3.toggleClass('module5-label lat-blue module5-label lat-white');
+        var chev4 = $('#accordCAccept' + chevCount + 'Lbla2');
+        chev4.toggleClass('small-text-bold lat-white small-text-bold lat-blue');  
+
+        $('i.icon_arrow_up').not(chev1).removeClass('icon_arrow_up').addClass('icon_arrow_down');
+        $('i.icon_edit_white').not(chev2).removeClass('icon_edit_white').addClass('icon_edit');
+        $('span.module5-label').not(chev3).removeClass('lat-white').addClass('lat-blue');
+        $('span.small-text-bold').not(chev4).removeClass('lat-white').addClass('lat-blue');
+    }    
+</script>
+
+
+
+    <apex:attribute name="application" type="String" required="true"
+        access="global" assignTo="{!applicationId}"
+        description="application Id" />
+
+      
+      
+    <apex:form id="contractAcceptanceForm">
+        
+
+        <!-- Panel Section -->
+        <div class="container">
+         <div class="row">
+
+
+        <apex:outputPanel rendered="{!IF(applicationMain.Out_Of_Sync__c == true,true,false)}">
+       
+            <div class="body-label lat-dark-grey center-block text-center">
+                <!--
+                    Application out of sync.
+                -->
+                Your documents cannot be loaded at this stage. Please contact us on&nbsp;
+                <apex:outputText rendered="{!$Site.Name=='Latitude'}">
+                    1800 803 051.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Gem'}">
+                    0800 500 505.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Aussie'}">
+                    1300 138 251.
+                </apex:outputText>
+                <apex:outputText rendered="{!$Site.Name=='Kiwibank'}">
+                    0800 54 94 54.
+                </apex:outputText>
+            </div>
+ 
+        </apex:outputPanel>
+       
+
+        <apex:pageBlock id="messageId"
+            rendered="{!AND(applicationMain.Out_Of_Sync__c == false, 
+                            applicationMain.Acceptance_Channel__c == 'Online Acceptance', 
+                                OR( applicationMain.Response_Code__c == 'PCO',
+                                    applicationMain.Response_Code__c == 'PCO Applicant 1 Pending', 
+                                    applicationMain.Response_Code__c == 'PCO Applicant 2 Pending'))}">
+        
+            <apex:outputPanel rendered="{!OR(IsRefresh,wrapperContract.size==0)}"> 
+          
+                   <div class="body-label lat-dark-grey center-block text-center">
+                        <!--
+                       Loan Documents will be displayed and available for acceptance shortly. Please hit refresh link.&nbsp;
+                       <a onclick="location = location" >Click to refresh the page</a>
+                       -->
+                       Loan documents are still being loaded. Please click <a onclick="location = location" >refresh</a> to reload the page.
+                   </div>
+         
+     
+            </apex:outputPanel>
+      
+            
+    
+               <apex:outputPanel rendered="{!AND(NOT(IsRefresh),wrapperContract.size>0)}"> 
+
+            <!--
+               <div class="container">
+            -->
+           <div class="panel-group container" id="accordion" role="tablist" aria-multiselectable="true">
+             
+
+
+               <div tabindex="-1" class="panel noOutline" Id="documentCom">
+                   <div class="accordion-heading" id="headingOne" >
+                      <div class="accordion">
+                        <a class="accordion-toggle down up" onclick="toggleCollapse(1);" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptOne" tabindex="-1">
+                            <i id="iconCAcceptEdit1" class="icn icon_edit_white icon_size pull-left"></i>
+                         
+                          <div class="accordion-header-lg-text gap-text">
+                            <span id="accordCAccept1Lbla1" class="module5-label">Key Information</span>
+                          </div>
+                      
+                          <div class="accordion-header-lg-texta">
+                            <i id="iconCAcceptArrUpDown1" class="indicator icon_arrow_up icon_size pull-right" ></i>
+                          <span id="accordCAccept1Lbla2" class="small-text-bold uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                         </div>
+                        </a>
+                      </div>
+                    </div>   
+                   
+                
+
+                <div class="accordion-body collapse in" id="collapseCAcceptOne">
+                    <div class="accordion-inner">
+                            <!-- NZ Single and Joint Start-->
+                            <apex:outputPanel rendered="{!$Setup.Profile_Country__c.NZ__c}">
+                                                <!--
+                                                <p>
+                                                    <strong>Please open and carefully read</strong> the documents below that will make up your consumer credit contract and confirm acceptance of the offer.
+                                                    <br />
+                                                    We highly recommend you print and/or save a copy of these documents for future reference. Once your loan contract has been accepted, should you require a copy of these documents after this time, please contact us on {!contactNumber}.
+                                                    <br />
+                                                </p>
+                                                <p>
+                                                    If you have trouble viewing these documents, you may need to download a PDF Reader,&nbsp;
+                                                    <a href="http://get.adobe.com/uk/reader/" target="_blank">click here</a> to download.
+                                                </p>
+
+                                                <p id="notifyUser" >Please open and read the document before acknowledging.</p>
+                                                -->
+
+                                              
+                                              <div class="body-label lat-dark-grey gap_body_content">
+                                                 We need you to read and acknowledge each of the documents below, before accepting the loan contract. They're in PDF format.
+                                                 <a href="http://get.adobe.com/uk/reader/" class="underline-sm" target="_blank">Click here to download Adobe Reader</a> - it's free if you need it.
+                                              </div>
+
+                                                <div Id="mainNZWrap">
+                                                    <div data-bind="foreach: wrapConList" >
+                                                        <div data-bind="attr: { Id: title() }">
+                                                            <div class="body-label-bold lat-dark-grey" data-bind="visible:title()!='Insurance'"> 
+                                                            <b>
+                                                            <div class="body-label-bold lat-dark-grey" data-bind="text:title,visible:$root.nzTitleCheck(title)"/>
+                                                            </b>
+                                                            </div>
+                                                            <div data-bind="foreach:relDoc">
+                                                                <div>
+                                                                    <span> 
+                                                                        <!-- Joint Error Property Removed -->
+                                                                        <!-- checked:isAccepted__c, -->
+                                                                        <input class="mainCheckAcceptNZ" type="checkbox" 
+                                                                               data-toggle="tooltip"
+                                                                               title="Please open and read the document before acknowledging."
+                                                                               data-bind="enable:(isEnabled__c()&&$root.nzPrimary) || (isEnabled_Sec__c()&&$root.nzNonPrimary)"/> 
+                                                                                <span class="disabled-detector"></span>
+                                                                    </span>
+                                                                    <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:($root.appType=='Joint'&&Title__c() != 'Disclosure Statement')||$root.appType=='Single'">
+                                                                        I acknowledge and accept the <a class="underline-sm" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                                                    </span>
+                                                                
+                                                                    <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:$root.appType=='Joint'&&Title__c() == 'Disclosure Statement'"> 
+                                                                        I have read the <a class="underline-sm" data-bind="text:'Disclosure Statement',click:function(){$root.enableCA($data)}" target="_blank" ></a>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                </div>
+                            </apex:outputPanel>
+                            <!--NZ Single and Joint End  -->
+                              
+                            <!--AU Single and Joint Start -->
+                            <apex:outputPanel rendered="{!$Setup.Profile_Country__c.AU__c}">
+                            <!--
+                                <p >
+                                    Your loan has been approved.  Simply accept your contract and we will transfer your money to your nominated account within 2 business days. 
+                                    <br />
+                       
+                                    You must review all of these documents before you can accept the loan contract.  We highly recommend you print and/or save a copy of these documents for future reference. Once your loan contract has been accepted, should you require a copy of these documents after this time, please contact your local branch.
+                                    <br />
+                                </p>
+
+                                <p>
+                                    If you have trouble viewing these documents, you may need to download a PDF Reader,&nbsp;
+                                    <a href="http://get.adobe.com/uk/reader/" target="_blank">click here</a> to download.
+                                </p>
+
+                                <p id="notifyUser" >Please open and read the document before acknowledging.</p>
+                           -->
+                           
+                             <div class="body-label lat-dark-grey gap_body_content">
+                                 We need you to read and acknowledge each of the documents below, before accepting the loan contract. They're in PDF format.
+                                 <a href="http://get.adobe.com/uk/reader/" class="underline-sm" target="_blank">Click here to download Adobe Reader</a> - it's free if you need it.
+                              </div>
+
+                        
+                                <div Id="mainAUWrap">
+                                        <div data-bind="foreach: wrapConList">
+                                          
+                                          <div data-bind="attr: { Id: title() }">
+
+                                          <div class="body-label-bold lat-dark-grey" style="padding-top:10px;" data-bind="visible:title()!='Insurance'"> 
+
+                                              <b>
+                                       
+                                              <div class="body-label-bold lat-dark-grey"  data-bind="text:title(),visible:$root.auTitleCheck(title)"/>
+                                     
+
+                                              <div class="body-label-bold lat-dark-grey" data-bind="text:'Contract',visible:title() == 'Disclosure Statement'">
+                                              </div> 
+                                              </b>
+                                          </div>
+                                    
+                                            <div data-bind="foreach:relDoc()">
+                                                    
+                                                  
+                                                
+                                                    <span class="body-label lat-dark-grey">
+                                                        <span>
+                                                            <!-- Joint Error Property Removed -->
+                                                            <!-- checked:isAccepted__c, -->
+                                                            <input class="mainCheckAcceptAU" type="checkbox" 
+                                                                    data-toggle="tooltip"
+                                                                    title="Please open and read the document before acknowledging."
+                                                                   data-bind="enable:(isEnabled__c()&&$root.auPrimary) || (isEnabled_Sec__c()&&$root.auNonPrimary)"/> 
+                                                            <span class="disabled-detector"></span>
+                                                        </span>
+
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'O and Rs'"> 
+                                                           I acknowledge and accept that the  
+                                                            <a class="underline-sm" data-bind="click:function(){$root.enableCA($data)}" target="_blank">
+                                                                Objectives and Requirements</a> are complete and are an accurate representation in respect to this proposed loan contract
+                                                            
+                                                        </span>
+                                                        
+                                                
+                                                        
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Contract'"> 
+                                                            I acknowledge and accept the
+                                                            <a class="underline-sm" data-bind="click:function(){$root.enableCA($data)}" target="_blank">
+                                                                Loan Contract Schedule</a> 
+                                                          
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Disclosure Statement'"> 
+                                                            I have read the 
+                                                            <a class="underline-sm" data-bind="click:function(){$root.enableCA($data)}" target="_blank">Disclosure Statement</a>
+                                                         
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Complaints Brochure'"> 
+                                                            I acknowledge receipt of, and have read and understand the 
+                                                            <a class="underline-sm" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>
+                                                           
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Credit Guide'"> 
+                                                            I acknowledge receipt of, and have read and understand the 
+                                                            <a class="underline-sm" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>
+                                                      
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Loan Protect for Personal Loans'"> 
+                                                            I acknowledge receipt of, and have read and understand, all the 
+                                                            <a class="underline-sm" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>document
+                                                           
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Privacy'"> 
+                                                            I acknowledge and accept the
+                                                            <a class="underline-sm" data-bind="text:Title__c() + ' Policy',click:function(){$root.enableCA($data)}" target="_blank"/>
+                                                          
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Direct Debit'"> 
+                                                            I acknowledge and accept the
+                                                            <a class="underline-sm" data-bind="text:Title__c() + ' Request and Service Agreement',click:function(){$root.enableCA($data)}" target="_blank"/>
+                                                          
+                                                        </span>
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'Decrease Authority'"> 
+                                                            I acknowledge and accept the
+                                                            <a class="underline-sm" data-bind="text:Title__c,click:function(){$root.enableCA($data)}" target="_blank"/>
+                                                          
+                                                        </span>
+                                                        
+                                                         <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() == 'LPI Complaints Brochure'"> 
+                                                            I acknowledge receipt of, and have read and understand the
+                                                                <a class="underline-sm" data-bind="click:function(){$root.enableCA($data)}" target="_blank">
+                                                               Loan Protection Insurance Complaints Guide</a>
+                                                         
+                                                        </span>
+                                                        
+                                                        <span class="body-label lat-dark-grey gap_text_left" data-bind="visible:Title__c() != 'O and Rs' && 
+                                                                            Title__c() != 'Contract' &&
+                                                                            Title__c() != 'Complaints Brochure' &&
+                                                                            Title__c() != 'Credit Guide'&&
+                                                                            Title__c() != 'Loan Protect for Personal Loans'&&
+                                                                            Title__c() != 'LPI'&&
+                                                                            Title__c() != 'LPI Complaints Brochure'&&
+                                                                            Title__c() != 'Privacy'&&
+                                                                            Title__c() != 'Direct Debit'&&
+                                                                            Title__c() != 'Disclosure Statement'&& 
+                                                                            Title__c() != 'Decrease Authority'">
+                                                            
+                                                            I acknowledge and accept the
+                                                            <a class="underline-sm" data-bind="text:Title__c(),click:function(){$root.enableCA($data)}" target="_blank"></a>
+                                                           
+                                                        </span>
+                                                        
+                                                          <span class="body-label lat-dark-grey gap_text_left gap_text_left" data-bind="visible:Title__c() == 'LPI'"> 
+
+                                                            I acknowledge receipt of, and have read and understand the combined 
+                                                           
+                                                                <a class="underline-sm" data-bind="click:function(){$root.enableInsurance($data)}" target="_blank" >
+                                                                 Financial Services Guide, Product Disclosure Statement and Policy Document.</a>
+                                                                 
+                                                             
+                    
+                                                                    <div class="body-label lat-dark-grey gap_body_content_top">
+                                                                        <div class="body-label lat-dark-grey" >I have decided to purchase
+                                                                            Loan Protection offered by {!brandName} and confirm that:</div>
+                                                                        <ol>
+                                                                            <li class="body-label lat-dark-grey">I understand that Loan Protection is an optional
+                                                                                insurance and not a condition of obtaining the loan;</li>
+                                                                            <li class="body-label lat-dark-grey">The loan repayments were quoted to me both with and
+                                                                                without insurance premiums;</li>
+                                                                            <li class="body-label lat-dark-grey">I understand that, by adding Loan Protection to my
+                                                                                loan contract, I will be charged interest on the Total Amount
+                                                                                borrowed;</li>
+                                                                            <li class="body-label lat-dark-grey">I have received the 'Combined Financial Services
+                                                                                Guide (FSG), Product Disclosure Statement (PDS) and Policy'
+                                                                                for Loan Protection and that any advice given to me in
+                                                                                relation to this product was general in nature, allowing me
+                                                                                to decide whether it meets my needs;</li>
+                                                                            <li class="body-label lat-dark-grey">I consent to the matters described under the heading
+                                                                                'Privacy notice and consent? in the Combined FSG, PDS and
+                                                                                Policy;</li>
+                                                                            <li class="body-label lat-dark-grey">I am aware that there are policy exclusions as set
+                                                                                out in the Combined FSG, PDS and Policy and that there is a
+                                                                                30 day cooling-off period;</li>
+                                                                            <li class="body-label lat-dark-grey">I confirm the appointment of the Credit Provider as
+                                                                                my agent as set out on page 4 of the Loan Contract Schedule
+                                                                                (i.e. for the purposes of cancellation of this insurance and
+                                                                                the recovery of any premium refunds due to me), and that this
+                                                                                appointment is effective from the time of my acceptance of
+                                                                                the loan offer; and</li>
+                                                                            <li class="body-label lat-dark-grey">I wish to apply for the below Loan Protection:<br />
+                                                                                <ul style="list-style-type: none; margin-left: 10px; !important">
+                                                                                    <apex:outputPanel rendered="{!hasLife}">
+                                                                                        <li class="body-label lat-dark-grey">Single Death Cover</li>
+                                                                                    </apex:outputPanel>
+                                                                                    <apex:outputPanel rendered="{!hasDisability}">
+                                                                                        <li class="body-label lat-dark-grey">Single Disability Plus Cover</li>
+                                                                                    </apex:outputPanel>
+                                                                                    <apex:outputPanel rendered="{!hasIUI}">
+                                                                                        <li class="body-label lat-dark-grey">Single Involuntary Unemployment Cover</li>
+                                                                                    </apex:outputPanel>
+                                                                                </ul>
+                                                                            </li>
+                                                                        </ol>
+                                                                    </div>
+                                                                    
+                                                                    <div class="indent_checkbox_txt">
+                                                                     
+                                                                     
+                                                                         <apex:outputPanel rendered="{!isPrimary}">
+                                                                            <input type="checkbox" 
+                                                                                   data-toggle="tooltip"
+                                                                                   title="Please open and read the document before acknowledging."
+                                                                                   data-bind="checked:$root.appVar.Insurance_Acknowledgement__c,
+                                                                                              enable:$root.appVar.Is_Insurance_Acknowledgement_Enabled__c()"/> 
+                                                                            <span class="disabled-detector"></span>
+                                                                         </apex:outputPanel>
+                                                                            
+                                                                         <apex:outputPanel rendered="{!NOT(isPrimary)}">
+                                                                            <input type="checkbox" 
+                                                                                   data-toggle="tooltip"
+                                                                                   title="Please open and read the document before acknowledging."
+                                                                                   data-bind="checked:$root.appVar.Insurance_Acknowledgement_Secondary__c,
+                                                                                              enable:$root.appVar.Is_Insurance_Acknowledgement_Enabled_2nd__c()"/> 
+                                                                            <span class="disabled-detector"></span>
+                                                                         </apex:outputPanel>
+                                                                         
+                                                                     
+                                                                   
+                                                                        <span class="body-label lat-dark-grey gap_text_left">
+                                                                            I have read and understood the information contained on
+                                                                            the
+                                                                    
+                                                                            <a class="underline-sm" data-bind="click:function(){$root.enableInsuranceCheckBox($data)}" 
+                                                                                target="_blank" >Application Form</a>
+                                                                            under the heading 'PLEASE READ CAREFULLY THE INFORMATION
+                                                                            DETAILED BELOW BEFORE SIGNING/ACKNOWLEDGING' and agree to
+                                                                            include Loan Protection in my Loan.
+                                                                        </span>
+                                                                    </div>
+                                                                  
+                                                        </span>
+
+                                                    </span>
+                                                 <br/>     
+                                            
+                                            </div>
+                                        </div>
+                                   </div>
+                            </div>
+                        </apex:outputPanel>
+                  </div>
+                </div>
+        </div><!-- End Main Document Accordion -->
+    
+        <div class="panel accordion-heading" Id="insuranceCom" >
+            <div class="accordion">
+              <a onclick="hasClickedInsurance=true;acceptButtonAccess();toggleCollapse(2);" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptTwo" tabindex="-1">
+                <i id="iconCAcceptEdit2" class="icon_edit icon_size pull-left"></i>
+                <div class="accordion-header-lg-text gap-text">
+                  <span id="accordCAccept2Lbla1" class="module5-label">Insurance</span>
+                </div>
+                
+                <div class="accordion-header-lg-texta">
+                    <i id="iconCAcceptArrUpDown2" class="icon_arrow_down icon_size pull-right"></i>
+                    <span id="accordCAccept2Lbla2" class="small-text-bold lat-blue uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                </div>
+              </a>
+            </div>
+
+             <div class="accordion-body collapse" id="collapseCAcceptTwo">
+                <div class="accordion-inner"  Id="insuranceBody">
+               
+                </div>
+            </div>
+
+          </div>
+         
+          
+         
+        
+         <div class="panel accordion-heading" Id="acceptanceCom" >
+                <div class="accordion">
+                  <a onclick="hasClickedAccept=true;acceptButtonAccess();toggleCollapse(3);" class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#collapseCAcceptThree" tabindex="-1">
+                    <i id="iconCAcceptEdit3" class="icon_edit icon_size pull-left"></i>
+                    <div class="accordion-header-lg-text gap-text">
+                      <span id="accordCAccept3Lbla1" class="module5-label">My acceptance</span>
+                    </div>
+                    
+                    <div class="accordion-header-lg-texta">
+                    <i id="iconCAcceptArrUpDown3" class="icon_arrow_down icon_size pull-right"></i>
+                    <span id="accordCAccept3Lbla2" class="small-text-bold lat-blue uppercase pull-right GAccordion-status gap-right-text">You must read</span>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="accordion-body collapse" id="collapseCAcceptThree">
+            <div class="accordion-inner">
+                 <!-- Start of Contract Acceptance Information -->
+                            <div>
+                                <div class="body-label lat-dark-grey">
+                                    By clicking "<span class="body-label-bold lat-dark-grey">I Accept</span>" below:
+                                </div>
+                              
+                                <ol class="body-label lat-dark-grey">
+                                    <li class="body-label lat-dark-grey">I accept the offer on the Terms and Conditions in the &nbsp;<apex:outputLink styleClass="underline-sm" value="{!contractUrl}" target="_blank">Loan Contract Schedule</apex:outputLink>
+                                        and the Loan Contract Terms and Conditions. I confirm the offer
+                                        meets my objectives and requirements.
+                                    </li>
+                                    <li class="body-label lat-dark-grey">I agree that all the information I have provided to
+                                        {!brandName} about me, or about any other matters relating to my
+                                        loan, is true and not misleading. I am also not aware of any
+                                        impending adverse change to my financial situation which will
+                                        impact on my ability to meet my obligations under the proposed
+                                        loan contract. I acknowledge that {!brandName} may rely on this
+                                        information when deciding whether to offer to lend to me.</li>
+                                    <li class="body-label lat-dark-grey">I acknowledge that I have been given an opportunity to
+                                        read and retain a copy of:
+                                        <ul class="body-label lat-dark-grey">
+                                            <li class="body-label lat-dark-grey">The Credit Guide;</li>
+                                            <li class="body-label lat-dark-grey">The Loan Contract Schedule; and</li>
+                                            <li class="body-label lat-dark-grey">The Loan Contract terms and Conditions (including the "Things you should know"). 
+                                                I consent to {!brandName} giving the above document and any
+                                                other documents I request, such as a statement or a copy of a
+                                                document to me by electronic means. This may include giving
+                                                the documents by email or by notifying me by email or SMS that
+                                                the documents are available for retrieval from the
+                                                {!brandName} website.</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                                <div class="body-label lat-dark-grey">I acknowledge that {!brandName} has advised me that in
+                                    consenting to the provision of such documents by electronic
+                                    means:</div>
+                                <ol type="a">
+                                    <li class="body-label lat-dark-grey">Such documents will not be provided in paper form; and</li>
+                                    <li class="body-label lat-dark-grey">I should regularly check electronic communications for
+                                        documents; and</li>
+                                    <li class="body-label lat-dark-grey">My consent to the giving of documents by electronic
+                                        means may be withdrawn at any time.</li>
+                                </ol>
+                            </div>
+                            
+                            
+                            <hr class="hr-solid-border"></hr>
+                            
+                            <div style="">
+                                <div
+                                    class="body-label-bold lat-dark-grey">
+                                    <div class="body-label-bold lat-dark-grey">Before you accept:</div>
+                                    <ul class="body-label lat-dark-grey">
+                                        <li class="body-label lat-dark-grey">Read the contract document so that you know exactly
+                                            what contract you are entering into and what you will have to
+                                            do under the contract.</li>
+                                        <li class="body-label lat-dark-grey">You should also read the information statement: "Things
+                                            you should know".</li>
+                                        <li class="body-label lat-dark-grey">Save a copy of the contract document.</li>
+                                        <li class="body-label lat-dark-grey">Do not click the "I accept" button if there is anything
+                                            you do not understand.</li>
+                                    </ul>
+                                </div>
+        
+                                <hr class="hr-solid-border"></hr>
+        
+                                <div>
+                                    <div>
+                                        <div class="body-label-bold lat-dark-grey">Things you should know:</div>
+                                        <ul>
+                                            <li class="body-label lat-dark-grey">Once you click the "I accept" button this contract
+                                                document, you will be bound by it. However, you may end the
+                                                contract before you obtain any credit, or a card or other
+                                                means is used to obtain goods or services for which credit is
+                                                to be provided under the contract by telling the credit
+                                                provider, i.e. Latitude, in writing, but you will still be
+                                                liable for any fees or charges already incurred.</li>
+                                            <li class="body-label lat-dark-grey">You do not have to take out consumer credit insurance
+                                                unless you want to. However, if this contract document says
+                                                so, you must take out insurance over any mortgaged property
+                                                that is used as security, such as a house or car.</li>
+                                            <li class="body-label lat-dark-grey">If you are to take out insurance, the credit provider
+                                                cannot insist on any particular insurance company. </li>
+                                            <li class="body-label lat-dark-grey">
+                                                If this contract document says so, the credit provider can vary the
+                                                annual percentage rate (this interest rate), the repayments
+                                                and the fees and charges and can add new fees and charges
+                                                without your consent.</li>
+                                            <li class="body-label lat-dark-grey">If this contract document says so, the credit provider
+                                                can charge a fee if you pay out your contract early.</li>
+                                        </ul>
+                                    </div>
+                                  <!--
+                                    <div class="alert alert-info fright">
+                                        <div>
+                                          
+                                            <p>By clicking "I Accept" I agree to the terms and
+                                                conditions outlined above.</p>
+    
+                                        </div>
+                                    </div>
+                                 -->
+        
+                                </div>
+                               
+                            </div>
+                        <!-- End of Contract Acceptance Information -->
+              </div>
+            </div>
+
+        </div>
+      
+        
+            
+          </div>                      
+     
+            </apex:outputPanel>
+        </apex:pageBlock>
+        <!--AU Single and Joint End -->
+        
+        <apex:outputPanel rendered="{!AND(NOT(applicationMain.Out_of_Sync__c),NOT(isRefresh),wrapperContract.size>0) }">
+
+            <div class="container">
+                <div class="gap_body_content_top">
+                    <div class="body-label lat-dark-grey">By clicking "I Accept" I agree to the terms and
+                       conditions outlined above. Please make sure that you firstly open all 
+                       sections and links above, and then provide your acceptance to each item.</div>
+
+                </div>
+            </div>
+            
+            
+            <div class="container pull-right">
+             <div class="row">
+              <div class="pull-right">
+                
+                <script>
+                    function acceptBtnId() {
+                        //return '{!$Component.accCreate }';
+                        return 'accCreate';
+                    }
+                </script>
+                <!--
+                    <apex:commandButton id="accCreate" status="acceptContract"
+                                        reRender="acceptContract,messageId" value="I Accept"
+                                        onclick="validateCheckBoxes(); return false;" 
+                                        rendered="{!AND(true,wrapperContract.size>0)}" 
+                                        styleClass="GPrimary-button body-label noOutline pull-right arrowrighticon 
+                                                    GSecondary-button-disabled"/>
+                    -->
+
+                  <div class="pull-right confirmMarginB margin-top vertical-align">
+                    <button id="accCreate" 
+                                        data-toggle="tooltip"
+                                        title="Please open each of the above sections and complete the required acknowledgements."
+                                        onclick="validateCheckBoxes(); return false;" 
+                                        class="GPrimary-button-disabled module5-label noOutline btnText">I Accept
+                                        <i class="pull-right icon_arrow_right_gray icon_size btnChevGapToText"></i>
+                    </button>      
+
+                         
+              </div>
+              </div>
+             </div>
+            </div>
+
+        </apex:outputPanel>
+
+        </div>
+        </div>
+
+        <apex:actionfunction name="updateAllRelatedDocument"
+            action="{!updateAllRelatedDocument}" >
+        </apex:actionfunction>
+        
+
+     <script>
+            $(document).ready(function () { 
+        
+            var mode;
+            var checkMode = function () {
+                
+                //mobile
+            if ($(window).width() <= 414 ) {  
+                 $("#progresslbl").removeClass('aligntext');
+                 $("#toplogo").removeClass('aligntext');
+                 $("#logout").removeClass('aligntext');
+                 $("#profile").hide();
+                
+                //desktop
+            } else{
+                $("#progresslbl").addClass('aligntext');
+                $("#toplogo").addClass('aligntext');
+                $("#logout").addClass('aligntext');
+                $("#toprow").addClass('hdr');
+                $("#profile").show();
+            }
+        };
+        
+          var compareMode = function () {
+                if (mode !== checkMode()) {
+                    mode = checkMode();
+        
+                    $('.mode-informer').text(mode).animate({
+                        bottom: '100'
+                    }, 100, function () {
+                        $('.mode-informer').animate({bottom: 10}, 100)
+                    });
+                }
+            };
+        
+            $(window).on('resize', function () {
+                compareMode()
+            });
+        
+            compareMode();
+            });
+
+                
+        </script>
+
+       
+    </apex:form>
+</apex:component>

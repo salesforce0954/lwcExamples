@@ -1,0 +1,264 @@
+<!--
+    * @Description: Application Registration Page
+    * @Date Created: 2013
+    * @History:
+    =====================================================================
+        22-MAR-16: Updated - Davey - TQLQW 100 - Update the heading text
+    ===================================================================== 
+-->
+<apex:page id="communitiesSelfRegPage" showHeader="false" standardController="Application__c" extensions="APP_RegisterCC" title="{!$Label.site.user_registration}" standardStylesheets="false" applyHtmlTag="true" applyBodyTag="true" docType="html-5.0">
+
+    <apex:composition template="{!$Site.Template}">
+
+        <apex:define name="GEDDBody">
+                <header>
+                    <div style="height: 5px; {!if($site.Name=='Latitude', 'background-color: #006ac6;', '')}"></div>
+                    <div class="divider10"></div>
+                </header>
+                <section>
+
+                    <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                    <div class="maincontent GMob-container">
+
+                        <div class="row-fluid">
+
+                            <apex:form id="theForm" forceSSL="true">
+
+                                <apex:pageBlock id="User-1">
+
+                                    <!-- email -->
+                                    <apex:inputHidden id="User___Email" value="{!em}"/>
+                                    <!-- user date of birth -->
+                                    <apex:inputHidden id="User___Date_of_Birth__c" value="{!dob}"/>
+
+                                    <!-- validation flag from controller -->
+                                    <apex:inputHidden id="validationFlag" value="{!validate}"/>
+                                    <!-- action function to update user/applicant and redirect to app main -->
+                                    <apex:actionFunction name="registerUserMethod" action="{!registerUser}"/>
+                                    <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                    <div class="row-fluid span12 page-register GDeMargin">
+                                        
+                                        <!-- reBrand by gerome.teodosio@cloudsherpas.com -->
+                                        <!--<div class="headertitle" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                                            <h3 class="droid-normal dark" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'color: #fff', '')}">Personal loan <span class="clearright"></span>application</h3>
+                                        </div>-->
+
+                                        <div class="span5 regbox fright">
+                                            <!-- START OF UPDATE by DYU 22-MAR-2016 TQLQW 100 Update text heading -->
+                                            <h3>Setup your account</h3>
+                                            <h5>Please create an account so you can return to track your loan status and progress.</h5>
+                                            <!-- END OF UPDATE -->
+
+                                            <!-- error messages -->
+                                            <apex:pageMessages id="error"/>
+
+                                            <!-- email -->
+                                            <apex:outputLabel value="{!$Label.site.email}" styleClass="pix40 labelrightdark"/>
+                                            <apex:inputText id="email" styleClass="validate[required] input-block-level number" value="{!email}" label="{!$Label.site.email}"/>
+                                            
+                                            <!-- date of birth -->
+                                            <apex:outputLabel value="Date of Birth" for="dob" styleClass="pix40 labelrightdark" />
+                                            
+                                            <div class="clearfix"></div>
+                                            
+                                            <div class="span4 sovrd ddplist">
+
+                                                <!-- date -->
+                                                <apex:selectList id="dd" size="1" value="{!birthDate}" styleClass="input-block-level">
+                                                    <apex:selectOptions value="{!DateOptions}"/>
+                                                </apex:selectList>
+
+                                            </div>
+                                            
+                                            <div class="span5 ddplist">
+
+                                                <!-- month -->
+                                                <apex:selectList id="mm" size="1" value="{!birthMonth}" styleClass="input-block-level">
+                                                    <apex:actionSupport event="onchange" id="b" action="{!setDate}" rerender="dd"/>
+                                                    <apex:selectOptions value="{!monthOptions}"/>
+                                                </apex:selectList>
+
+                                            </div>
+                                            
+                                            <div class="span3">
+                                                <!-- year -->
+                                                <apex:inputText id="yyyy" styleClass="input-block-level number" maxlength="4" value="{!birthYear}" onkeypress="return isNumberKey(event);"/>
+                                            </div>
+                                            
+                                            <div class="clearfix"></div>
+                                            
+                                            <!-- password -->
+                                            <apex:outputLabel value="{!$Label.site.password}" for="password" styleClass="pix40 labelrightdark" />
+                                            <apex:inputSecret id="password" value="{!password}" styleClass="input-block-level number" />
+                                            <apex:outputText style="font-size:13px;font-style:italic" value="{!$Label.Password_Criteria}"> </apex:outputText>
+                                            <div class="clearfix"></div>
+                                            
+                                            <!-- confirm password -->
+                                            <apex:outputLabel value="{!$Label.site.confirm_password}" for="confirmPassword" styleClass="pix40 labelrightdark" />
+                                            <apex:inputSecret id="confirmPassword" value="{!confirmPassword}" styleClass="input-block-level number" />
+
+                                            <div class="divider10"></div>
+
+                                            <!-- submit button -->
+                                            <apex:commandButton styleClass="btn btn-violet btn-block btn-reg span6 remvallmargin buttonarrowimg GPrimary-button" value="{!$Label.site.submit}" id="submit" action="{!validate}" rerender="error, validationFlag" onclick="compileEmail();compilteDob();" oncomplete="checkValidation();"/>
+                                            <div class="divider10"></div>
+                                        </div>
+
+                                        <div class="divider30 rimview"></div>
+
+                                    </div>
+
+                                    <div class="clearfix"></div>
+                                    <div class="divider20 rimview"></div>
+
+                                <!-- important for perspecsys -->
+                                <input id="PRS_Save" type="hidden" name="PRS_Save" value="Save"/>
+                                </apex:pageBlock>
+
+                            </apex:form>
+
+                            <div class="divider10"></div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+        </apex:define>
+
+    </apex:composition>
+
+    <script>
+        dob();
+        function dob(){
+
+            //alert('dob');
+
+            var dob = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:User___Date_of_Birth__c').value;
+            //alert('dob:dob: '+dob);
+            
+            if(dob == '00-00-0000'){
+
+                var dd = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:dd').value = 'Select';
+                //alert('dob:dd: '+dd);
+                var mm = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:mm').value = 'Select';
+                //alert('dob:mm: '+mm);
+                var yyyy = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:yyyy').value = '';
+                //alert('dob:yyyy: '+yyyy);
+
+            }else{
+
+                var arr = dob.split('-');
+                //alert('dob:arr: '+arr);
+
+                var dd = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:dd').value = arr[0];
+                //alert('dob:dd: '+dd);
+                var mm = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:mm').value = arr[1];
+                //alert('dob:mm: '+mm);
+                var yyyy = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:yyyy').value = arr[2];
+                //alert('dob:yyyy: '+yyyy);
+
+            }
+
+        }
+
+        function isNumberKey(evt){
+
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode> 31
+              && (charCode < 48 || charCode> 57))
+                return false;
+            if(charCode == 46) {
+                return false
+            }
+            else{
+                return true;
+            }
+
+        }
+
+        /*  Description: Method to check form validation and alert when true
+         *  Author: Mike Lasala
+         *  Date Created: JUN-19-2014 test
+         */
+        function checkValidation(){
+
+            //alert('checkValidation');
+
+            var flag = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:validationFlag').value;
+            //alert('checkValidation:flag: '+flag);
+            
+            if(flag == 'true'){
+                alert('Application successfully saved'); 
+                registerUserMethod();                        
+            }else{
+               //alert('checkValidation:false');
+               return false;
+            }
+        }
+
+        function compileEmail(){
+
+            //alert('compileEmail');
+
+            var email = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:email').value
+
+            var em = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:User___Email').value = email;
+            //alert('compileEmail:em: '+em);
+
+        }
+
+        function compilteDob(){
+
+            //alert('compilteDob');
+
+            var dd = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:dd').value;
+            //alert('compilteDob:dd: '+dd);
+            var mm = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:mm').value;
+            //alert('compilteDob:mm: '+mm);
+            var yyyy = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:yyyy').value;
+            //alert('compilteDob:yyyy: '+yyyy);
+
+            var dob = document.getElementById('communitiesSelfRegPage:GETemplate:theForm:User-1:User___Date_of_Birth__c').value = dd+'-'+mm+'-'+yyyy;
+            //alert('compilteDob:dob: '+dob);                       
+
+        }
+
+    </script>
+    
+    
+    <!-- @title     Design OverRide for APP_Register VF Page -->
+    <!-- @author    gerome.teodosio@cloudsherpas.com         -->
+    <!--            gerome.h.teodosio@Accenture.com          -->
+        
+    <!-- Include StylePicker component to fix general brand style issues -->
+    <c:APP_GSD_StylePicker />
+    
+    <style>
+        @media screen and (max-width: 415px) {
+            .pbBody > .span12 {
+              display: block !important;
+            }
+        }
+    </style>
+    
+    <!-- Kiwibank brand styling specific for APP_Register VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+       <style>
+                div#header-logo {
+                    height: 0;
+                }
+        </style>
+   </apex:outputPanel>
+   
+   <!-- Aussie brand styling specific for APP_Register VF Page -->
+    <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+        <style>
+            .btn.btn-violet.btn-block.btn-reg.span6.remvallmargin.buttonarrowimg.GPrimary-button {
+                background-repeat: no-repeat !important;
+            }
+        </style>
+   </apex:outputPanel>
+   
+</apex:page>

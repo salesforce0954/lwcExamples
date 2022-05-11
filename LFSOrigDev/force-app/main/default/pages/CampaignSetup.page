@@ -1,0 +1,56 @@
+<!-- 
+/**
+* @author Original: Adrian Recio Cloud Sherpas
+* @date Original: 05 Feb 2013
+* @description Branch Configuration Page
+*/
+-->
+<apex:page controller="CampaignSetupController" showheader="false">
+
+	<apex:includeScript value="{!$Resource.jquery}" />
+	<apex:includeScript value="{!$Resource.jquery_ui}" />
+
+	<script>
+    function checkAllAtt(cb){
+        var inputElemnt = document.getElementsByTagName("input");
+        for(var i=0;i<inputElemnt.length;i++){
+           if(inputElemnt[i].id.indexOf("attCheck")!=-1)
+           inputElemnt[i].checked = cb.checked;
+        }
+    }
+</script>
+
+	<apex:form >
+
+		<apex:actionFunction action="{!setupCheckAll}" name="setupCheckAll2"
+			rerender="selectAllId" />
+
+		<apex:pageBlock id="mainBlock">
+
+			<apex:outPutPanel id="outPanelId">
+				<apex:pageBlockTable id="tableId" value="{!CampaignWrapperList}"
+					var="c" width="50%">
+					<apex:column headerValue="">
+						<apex:facet name="header">
+							<apex:inputCheckbox id="selectAllId" onclick="checkAllAtt(this)"
+								value="{!isSelectAll}" />
+						</apex:facet>
+						<apex:inputCheckbox selected="{!c.IsSelected}" id="attCheck"
+							onClick="setupCheckAll2();" />
+					</apex:column>
+					<apex:column headerValue="Campaign Name">
+                    {!c.campaignVar.Name}
+                </apex:column>
+				</apex:pageBlockTable>
+			</apex:outPutPanel>
+			<apex:pageBlockButtons location="bottom">
+				<apex:commandButton action="{!saveCampaignAssignment}" value="Save"
+					id="saveButton"
+					onComplete="$('[id$=modalCampaign]').dialog('destroy');" />
+				<apex:commandButton value="Cancel" id="cancelButton"
+					onComplete="$('[id$=modalCampaign]').dialog('close');" />
+			</apex:pageBlockButtons>
+
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

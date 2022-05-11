@@ -1,0 +1,96 @@
+<apex:page standardController="Application__c" extensions="APP_CreditReferences_EXT_INT" id="creditRef" 
+showHeader="false" sidebar="false" action="{!creditRefList}">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>
+    
+    <script>
+        function openSubtab(subtabUrl, subTabTitle, isActive)
+        {
+           // Use the results primary tab id and open a new subtab
+           var openSubtab = function(result)
+           {            
+                sforce.console.openSubtab(result.id, subtabUrl, isActive, subTabTitle, null);    
+           };
+           sforce.console.getEnclosingPrimaryTabId(openSubtab);
+         }                 
+    </script>
+    
+    <apex:form id="creditId">
+        <apex:actionFunction name="refreshCredit" action="{!creditRefList}" rerender="creditId"/>
+        <br/>
+        <div align="center">
+        
+        <!-- loading bar -->
+        <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+        style="visibility:hidden;"/>
+        <br/>
+
+        <!-- new button -->
+        <apex:actionStatus id="status">
+            <apex:facet name="stop">
+                <!-- refresh button -->
+                <apex:commandButton value="Refresh" 
+                onClick="document.getElementById('appPageId:creditReferenceInclude:creditRef:creditId:'+
+                'loadingGif').style.visibility='visible'; refreshCredit();" reRender="false" status="status"/>
+            </apex:facet>
+            <apex:facet name="start">
+                <apex:commandButton value="Refreshing..." disabled="true"/>
+            </apex:facet>
+        </apex:actionStatus>
+        
+        </div>
+        <br/>
+
+        <apex:pageBlock id="creditPageBlock" title="Credit References">
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="headerRow">Company</th>
+                    <th class="headerRow">Account #</th>
+                    <th class="headerRow">Name</th>
+                    <th class="headerRow">Open Date</th>
+                    <th class="headerRow">End Date</th>
+                    <th class="headerRow">Term</th>
+                    <th class="headerRow">Balance $</th>
+                    <th class="headerRow">Monthly Repayment</th>
+                    <th class="headerRow">Rate %</th>
+                    <th class="headerRow">Conduct</th>
+                    <th class="headerRow">Action</th>
+                </tr>
+                <apex:repeat value="{!creditRefList}" var="c" id="creditPageBlockTable">
+                    <tr class="dataRow">
+                        <td class="dataCell">{!c.Company__c}</td>
+                        <td class="dataCell">{!c.Contract_Account_No__c}</td>
+                        <td class="dataCell">{!c.Name_on_Contract__c}</td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                <apex:param value="{!c.Open_Date__c}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0,date,dd'/'MM'/'yyyy}">
+                                <apex:param value="{!c.End_Date__c}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">{!c.Contract_Term__c}</td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0, number,$###,###,##0.00}">
+                                <apex:param value="{!c.Current_Balance__c}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">
+                            <apex:outputText value="{0, number,$###,###,##0.00}">
+                                <apex:param value="{!c.Repayments__c}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="dataCell">{!c.Interest_Rate__c}%</td>
+                        <td class="dataCell">{!c.Account_Conduct__c}</td>
+                        <td class="dataCell">
+                            <a onclick="openSubtab('/{!c.Id}','{!c.Name}', 'true');return false" id="eventlink" style="cursor:pointer">
+                                <u>View</u>
+                            </a>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

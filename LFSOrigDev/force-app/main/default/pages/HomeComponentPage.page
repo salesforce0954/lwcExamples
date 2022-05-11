@@ -1,0 +1,12 @@
+<!-- 
+/**
+* @author Original: Adrian Recio Cloud Sherpas
+* @date Original: 26 Feb 2013
+* @description Page to hold home page components
+*/
+-->
+
+<apex:page showHeader="false" sidebar="false">
+<c:ToDoListComponent />
+<c:RecentLeadComponent />
+</apex:page>

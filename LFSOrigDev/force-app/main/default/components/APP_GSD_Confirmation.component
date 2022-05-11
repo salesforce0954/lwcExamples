@@ -1,0 +1,121 @@
+<apex:component >
+    <div class="container" id="toprow">
+      <div class="hidden-xs">
+    	<div class="confirmMarginB btnLRMargin">
+    	  <button id="backDesktopBtn" class="GSecondary-button body-label lat-blue noOutline btnText" onClick="displaySection('insurance'); return false;"><i class="icon_arrow_left icon_size pull-left"></i>Back</button>
+    	  <button id="doneDesktopBtn" class="GPrimary-button body-label lat-white noOutline pull-right js-modal" disabled="true" type="button" onClick="sendInsurancePageForConfirmation(); return false;">Next<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+    	  <div class="modal-proceed modal__content js-modal__content">
+    		    <button class="btn-modal-close" role="button">
+    			    <span class="icon-close-modal"></span>
+    		    </button>
+    		<br/>
+    		<div class="module1-label lat-blue text-center">All good?</div>
+    		<div class="center-block mid-content"> <span class="body-label lat-dark-grey"><span id="insConfirmationSubMessageDesk"></span></span> </div>
+    		<div class="gap-content"></div>
+    		<div id="insuranceOffer">
+    		  <apex:panelGroup rendered="{!if($Site.Name = 'Gem', 'true', 'false')}">
+    		    <div class="lat-blue module3-label">Loan Summary:</div>
+    		  </apex:panelGroup>
+    		  <div> <span class="body-label">Loan amount:
+    		  <span class="lat-dark-grey upsellLoanAmount"/></span> </div>
+    		  <div> <span class="body-label">Total loan amount:
+    		  <span class="lat-dark-grey upsellLoanAmountWithFees"/></span> </div>
+    		  <div> <span class="body-label">Term of loan:
+    			<span class="lat-dark-grey upsellLoanTerm"/></span> </div>
+    		  <div> <span class="body-label">Interest rate:
+    			<span class="lat-dark-grey upsellInterestRate"/></span> </div>
+    		  <div> <span class="body-label">Minimum monthly repayments:
+    			<span class="lat-dark-grey upsellMMP"/></span> </div>
+    			<br/>
+    		  <a id="changeupselld" class="docLink lat-blue body-label btn-proceed-close" onClick="displaySection('insurance');" style="text-decoration: underline !important">Change</a> </div>
+    		<div class="gap-content"></div>
+    		<div id="insuranceOffer">
+    		    <div class="lat-blue {!IF($site.Name = $label.NZ_Site_Name,'module3-label','body-label bold-label')}">Insurance:</div>
+    		  <div id="basicCoverConfirm" class="hidden">
+    			<div id="insBasicListD" class="body-label"></div></div>
+    		  
+    		  <div id="fullCoverConfirm" class="hidden">
+    			<div id="insFullListD" class="body-label"></div></div>
+    		  <div id="noCoverConfirm" class="hidden">
+    			<div class="body-label"> No Insurance has been selected. </div></div>
+    		    <span id="insNZConMsgD" class="body-label hidden"></span><br/>
+    		    <a class="docLink lat-blue body-label btn-proceed-close" style="text-decoration: underline !important">Change</a></div>
+    		    <br/>
+    		<div id="insCallUsAUDivD" class="hidden text-center"> <span>{!$Label.APP_GSD_CallUS_AU}</span><div><span id="insCallUsAUD" class="text--primary"></span></div> </div>
+    		<div id="insCallUsNZDivD" class="hidden text-center"> <span id="insCallUsNZD" class="text--primary"></span> 
+    			<span class="module1-label lat-blue">Change of mind?</span>
+    			<div><span class="body-label">Just give us a call on</span></div> 
+    			<div><span class="body-label lat-blue" id="nzconnumdes"></span></div>
+    			<span class="body-label" >That's what we're here for!</span>
+    		</div>
+    		<div class="btn-proceed-container">
+    		  <button class="GPrimary-button body-label lat-white noOutline btn-proceed" onClick="this.disabled=true;">I'm happy to proceed!<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+    		</div>
+    	  </div>
+    	</div>
+      </div>
+      <div class="hiddenDiv visible-xs">
+    	<div class="pull-right confirmMarginB btnLRMargin btnAlign">
+    	  <button id="doneMobileBtn" style="line-height: 31px;" disabled="true" type="button" class="GPrimary-button body-label lat-white noOutline gapBetweenBtn js-modal confirmMarginB" onClick="sendInsurancePageForConfirmation(); return false;"><span class="nxtBtnMarginL">Next</span><i class="icon_arrow_right_blue icon_size pull-right nxtBtnMarginR"></i></button>
+    	  <button id="backMobileBtn" style="margin-right: 20px !important;line-height: 31px;" class="GSecondary-button body-label lat-blue noOutline btnText" onClick="displaySection('insurance'); return false;"><i class="icon_arrow_left icon_size pull-left backBtnMarginL"></i><span class="backBtnMarginR">Back</span></button>
+    	  <div class="modal-proceed modal__content js-modal__content">
+    		<button class="btn-modal-close" role="button">
+    			<span class="icon-close-modal"></span>
+    		 </button>
+    		 <br/>
+    		 <div class="text-center">
+    		    <div class="modal-heading text--primary ">All good?</div><span class="module5-label-mob" id="insConSubMsgMob"></span>
+    		 </div>
+    		 <div class="container">
+                <div class="text-center" id="nextStatic">
+                    <apex:panelGroup rendered="{!if($Site.Name = 'Gem', 'true', 'false')}">
+                  <div> <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_size center-block img-responsive icon_brand_down_arrow_width"/></div>
+                  </apex:panelGroup>
+                </div>
+             </div>
+    		<div class="center-block mid-content"> <span class="body-label lat-dark-grey"></span> </div>
+    		<div class="gap-content"></div>
+    		<div id="upsellOffer">
+    		  <div> <span class="body-label"><span style="font-weight: bold;">Loan amount: </span>
+    			<span class="lat-dark-grey upsellLoanAmount"/></span> </div>
+    			<div> <span class="body-label"><span style="font-weight: bold;">Total loan amount: </span>
+    			<span class="lat-dark-grey upsellLoanAmountWithFees"/></span> </div>
+    		  <div> <span class="body-label"><span style="font-weight: bold;">Term of loan: </span>
+    			<span class="lat-dark-grey upsellLoanTerm"/></span> </div>
+    		  <div> <span class="body-label"><span style="font-weight: bold;">Interest rate: </span>
+    			<span class="lat-dark-grey upsellInterestRate"/></span> </div>
+    		  <div> <span class="body-label"><span style="font-weight: bold;">Minimum monthly repayments:</span>
+    			<span class="lat-dark-grey upsellMMP"/></span> </div>
+    		  <a id="changeupsellm" class="docLink lat-blue body-label btn-proceed-close" onClick="displaySection('insurance');" style="text-decoration: underline !important">Change</a> </div>
+    		<div class="gap-content"></div>
+    		<div id="insuranceOffer">
+    		  <div id="basicCoverConfirmMobile" class="hidden"> <span class="body-label text--primary insuranceLabel">Insurance</span>
+    		  <span><i class="icon_check icon_size pull-right"></i></span>
+    		  <br/>
+    			<span id="insBasicListM" class="body-label"></span></div>
+    		  <div id="fullCoverConfirmMobile" class="hidden"> <span class="body-label text--primary insuranceLabel">Insurance</span>
+    		  <span><i class="icon_check icon_size pull-right"></i></span>
+    		  <br/>
+    			<span id="insFullListM" class="body-label"></span></div>
+    		  <div id="noCoverConfirmMobile" class="hidden"> <span class="body-label text--primary insuranceLabel">Insurance</span>
+    		  <span><i class="icon_check icon_size pull-right"></i></span>
+    		  <br/>
+    			<span class="body-label"> No Insurance has been selected. </span></div>
+    		    <span id="insNZConMsgM" class="body-label hidden"></span><br/>
+    		    <a class="docLink lat-blue body-label btn-proceed-close" style="text-decoration: underline !important">Change</a></div>
+    		    <br/>
+        		<div id="insCallUsAUDivM" class="hidden text-center"> <span>{!$Label.APP_GSD_CallUS_AU}</span>&nbsp;<span class="text--primary" id="insCallUsAUM"></span></div>
+        		<div id="insCallUsNZDivM" class="hidden text-center"> <span id="insCallUsNZM" class="text--primary"></span> 
+        		<br/>
+    			<div class="module4-label-mob lat-blue">Change of mind?</div>
+    			<span class="text" style="font-size: 12px;font-weight:200;line-height: 24px;">Just give us a call on <div><span class="lat-blue" id="nzconnummob"></span></div></span>
+    			<span class="text" style="font-size: 12px;font-weight:200;line-height: 24px;">That's what we're here for!</span>
+    		</div>
+    		<div class="btn-proceed-container">
+    		  <button id="confirmationButton" class="GPrimary-button body-label lat-white noOutline btn-proceed" onClick="this.disabled=true;">I'm happy to proceed!<i class="icon_arrow_right_blue icon_size pull-right loan-margin-left"></i></button>
+    		</div>
+    	  </div>
+    	</div>
+      </div>
+    </div>
+</apex:component>

@@ -1,0 +1,557 @@
+<!--
+    * @Description: PL Transformation POA Response Page
+    * @Author: Afreen Khan
+    * @Date Created: 15-FEB-2016
+    * @History:
+    =====================================================================
+        15-FEB-16: Created - Afreen Khan
+    ===================================================================== 
+-->
+<apex:page showHeader="false" sidebar="false" controller="APP_GSD_POA_Response_Ext" standardStylesheets="false">
+
+    <apex:includeScript value="{!$Resource.jqueryMin214}"/>
+    <apex:includeScript value="{!$Resource.APP_GSD_Shared}"/>
+
+    <script>
+        //Variables used inside the shared includeScript. Cannot access visualforce merge fields inside static resource
+        var applicant2Profile = '{!JSENCODE($Profile.Name)}';           //Used to identify whether logged in applicant is primary
+        var brand = '{!JSENCODE($User.Brand__c)}';                      //Used to identify whether user's assigned brand matches with site's brand name
+        var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+        var baseURL = '{!JSENCODE($Site.BaseSecureUrl)}';               //Portal prefix URL
+        var applicationId = '{!JSENCODE($CurrentPage.parameters.id)}';
+        
+        //PLEASE CHANGE VALUE TO PAGE'S CONTROLLER/EXTENSION
+        var className = 'APP_GSD_POA_Response_Ext';                     //Used for calling remote action for base controller
+        
+    	// Green Id Access Flag
+    	//MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+    	var greenIdSetup = '{!JSENCODE(IF($Setup.Profile_Control__c.Green_Id__c, "true", "false"))}';
+
+    
+        //Call method in static resource which will retrieve application data and determine access control
+        getApplicationData(applicationId);
+    </script>    
+
+    <style>
+        
+        /*----- Accordion -----*/
+        .accordion, .accordion * {
+            -webkit-box-sizing:border-box; 
+            -moz-box-sizing:border-box; 
+            box-sizing:border-box;
+        }
+        .accordion {
+            /*overflow:hidden;*/
+            box-shadow:0px 1px 3px rgba(0,0,0,0.25);
+            border-radius:3px;
+            /*background:#f7f7f7;*/
+        }
+         
+        /*----- Section Titles -----*/
+        .accordion-section-title {
+            width:100%;
+            padding:15px;
+            display:inline-block;
+            border-bottom:1px solid #848484 !important;
+            background:#6E6E6E;
+            transition:all linear 0.15s;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section-title.active, .accordion-section-title:hover {
+            background:#848484;
+            /* Type */
+            text-decoration:none;
+            color:#fff;
+        }
+        .accordion-section:last-child .accordion-section-title {
+            border-bottom:none;
+        }
+        
+        /*----- Section Content -----*/
+        .accordion-section-content {
+            padding:15px;
+            display:none;
+        }
+        .1{
+            transition:all linear 0.15s;
+        }
+        .child {
+            padding:15px;
+            display:none;
+        }
+        
+        /*don't add in desktop.css*/
+        ul li {
+            color: #75787b !important; 
+        }
+    </style>
+    <html>
+
+        <form>
+            <apex:include pageName="APP_GSD_BrandScript"/>
+            
+            <!-- PAGE TITLE -->
+            <title>Confirm Your Address</title>
+        
+            <!-- LOAN DETAILS COMPONENT -->
+            <c:APP_GSD_LoanDetailComponent />
+        
+            <!-- HEADER -->
+            <div id="poaMessage" class="container">
+                <div class="row" id="thumbsRow">
+                   <div class="thumbsup_margin middle-content-margin">
+                       <span id="thumbsUp" class="icon_confirm_address icon_middle_width_lg center-block img-responsive"/>
+                    </div>
+                    
+                    <!-- GREETINGS -->
+                    <!-- Apr-04- 2016  Afreen - below greeting is not required on pages other than landing page-->
+                    <!--<div id="greetings" class="text-center center-block">  
+                        <span class="module1-label lat-blue" >Hi {!$User.FirstName}!</span>
+                    </div>-->
+                    
+                    <div class="secondary-margin text-center center-block">
+                      <span id="" class="module1-label lat-blue"><span id="poaMessageHeader"></span></span>
+                    </div>
+                    <div class="center-block mid-content">
+                      <span id="intro" class="intro-label lat-dark-grey"><div id="poaSubHeader"></div></span>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+              <div class="text-center">
+                <div class="middle-content-margin">
+                  <span id="brandArrow" class="icon_brand_down_arrow icon_brand_down_arrow_width_lg center-block img-responsive"></span>
+                </div>
+                <div class="gap-content"></div>
+              </div>
+            </div>
+
+            <!-- Green Id -->
+            <div id="greenId" class="container" style="display:none;">
+                <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">1.</span>
+                      <span id="" class="module3-label lat-blue"><span id="greenIdHeader">Confirm address online.</span></span>
+                </div>
+                <div style="text-align: left;" >
+                      <span id="intro" class="intro-label lat-dark-grey"><span id="greenIdSubHeader">Simply follow the steps below to complete your ID verification online.</span></span>
+                </div> 
+                <apex:include pageName="GreenId_SimpleUI"/>
+            </div>
+            
+            
+            
+            <div class="POASectionGap"></div>
+            
+            <!-- POA VERIFICATION METHODS -->
+            <div id="poaMethod" class="container">
+                <div class="center-block panel-gap-bottom30 textGapToCircle">
+                      <span Id="secTwo" class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">2.</span>
+                      <span id="" class="module3-label lat-blue"><span id="poaMethodHeader"></span></span>
+                </div>
+                <div style="text-align: left;" class="panel-gap-bottom30">
+                      <span id="intro" class="intro-label lat-dark-grey"><span id="poaMethodSubHeader"></span></span>
+                </div> 
+
+                <!-- POA VERIFICATION METHODS SECTION -->
+                <div id="poaMethodsSection">
+                    <div class="accordion">
+                        <div class="accordion-heading" onclick="toggleUpDownArrow('poaMethodOption1Accordion')"> 
+                          <div class="">
+                            <a class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#poaMethodOption1Accordion" tabindex="-1">
+                                <i id="poaMethodOption1AccordionEdit" class="icon_size icon_lg pull-left icon_edit"></i>
+                              <div class="accordion-header-sm-text gap-text">
+                                <span id="accord2Lbla1" class="module5-label"><span id="poaMethod1Header"></span></span>
+                              </div>
+                              <div class="accordion-header-sm-texta">
+                                <i id="poaMethodOption1AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="accordion-body collapse" id="poaMethodOption1Accordion">
+                            <div class="accordion-inner">
+                           
+                            <apex:include pageName="APP_GSD_FileUpload"/>
+                         
+                            </div>
+                        </div>
+                    </div>
+                    <div style="height: 10px;"></div>
+                    <div class="accordion">
+                        <div class="accordion-heading" onclick="toggleUpDownArrow('poaMethodOption2Accordion')"> 
+                          <div class="">
+                            <a class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#poaMethodOption2Accordion" tabindex="-1">
+                                <i id="poaMethodOption2AccordionEdit" class="icon_size icon_lg pull-left icon_edit gap-text"></i>
+                              <div class="accordion-header-sm-text gap-text">
+                                <span id="accord2Lbla2" class="module5-label"><span id="poaMethod2Header"></span></span>
+                              </div>
+                              <div class="accordion-header-sm-texta">
+                                <i id="poaMethodOption2AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down gap-right-text" ></i>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="accordion-body collapse" id="poaMethodOption2Accordion">
+                            <div class="accordion-inner">
+                                <span class="body-label lat-dark-grey">
+                                    <span id="poaAddress"></span>
+                                </span>
+                            
+                                <span class="body-label lat-dark-grey">
+                                    <span id="poaMethod2SubHeader"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>   
+                </div>
+            </div>
+
+            
+           	<div class="POASectionGap"></div>
+            
+            <!-- POA DOCUMENTS -->
+            <div id="poaDocuments" class="container">
+               <div class="center-block panel-gap-bottom30 textGapToCircle">
+                        <span Id="secThree" class="{!if($site.Name = 'Latitude', 'module3-label GSection-heading lat-light-grey-bg indent_2ndline circle_gap', 'module3-label lat-blue')}">3.</span>
+                        <span id="" class="module3-label lat-blue"><span id="poaDocumentsHeader"></span></span>
+                    </div>
+                    <div style="text-align: left;" class="panel-gap-bottom30">
+                          <span id="intro" class="intro-label lat-dark-grey"><span id="poaDocumentsSubHeader"></span></span>
+                    </div> 
+
+                <!-- POA DOCUMENTS SECTION -->
+                <div id="poaDocumentSection">
+                    <div class="accordion">
+                       <div class="accordion-heading" onclick="toggleUpDownArrow('poaDocOption1Accordion')"> 
+                          <div class="">
+                            <a class="accordion-toggle down up collapsed" data-parent="#accordion" data-toggle="collapse" href="#poaDocOption1Accordion" tabindex="-1">
+                                <i id="poaDocOption1AccordionEdit" class="icon_size icon_lg pull-left icon_edit gap-text"></i>
+                              <div class="accordion-header-sm-text">
+                                <span id="accord1Lbla1" class="module5-label gap-text"><span id="poaDoc1Header"></span></span>
+                              </div>
+                              <div class="accordion-header-sm-texta">
+                                <i id="poaDocOption1AccordionArrow" class="icon_size icon_lg pull-right icon_arrow_down" ></i>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="accordion-body collapse" id="poaDocOption1Accordion">
+                            <div class="accordion-inner">
+                                <div id="poaDoc1NZ">
+                                </div>
+                                <br/>
+                                <span id="intro" class="body-label lat-dark-grey"><span id="poaDoc1SubHeader"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            
+            <br/>
+            <div class="container" id="toprow">
+                <div class="hidden-xs">
+                    <div class="pull-right confirmMarginB btnLRMargin vertical-align btnAlign">
+                        <button class="GSecondary-button module5-label lat-blue noOutline btnText" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;"><i class="icon_arrow_left icon_size pull-left btnChevGap"></i>Back</button>
+                        <button class="GPrimary-button module5-label lat-white noOutline gapBetweenBtn" id="btnNext" onclick="redirect('APP_GSD_Response'); return false;">Done<i class="icon_arrow_right_blue icon_size pull-right btnChevGapToText"></i></button>
+                    </div>
+                </div>
+                <div class="hiddenDiv visible-xs">
+                    <div>
+                        <button class="GPrimary-button module5-label lat-white btnBMargin" id="btnNext" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;width:100%;display:inline !important">Done</button>
+                    </div>
+                     <div>
+                        <button class="GTertiary-button module5-label lat-white" onclick="redirect('APP_GSD_Response'); return false;" style="line-height:30px;width:100%;display:inline !important">Back</button>
+                    </div>
+                </div>
+            </div>
+            <br/>
+             <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+                <c:GEDDFooter />
+             </apex:outputPanel>
+             <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+                <c:GENZDDFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Aussie'}">
+                <c:AussieFooter />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+                <c:KiwiFooter />
+            </apex:outputPanel>
+        </form>
+
+    </html>
+    <script>
+        var appPOA = [];
+        
+        /*  Description: retrieve Application record
+        *
+        */
+        function getApplicationDetail(){
+             Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POA_Response_Ext.queryApplicationRecord}',
+            '{!JSENCODE($CurrentPage.parameters.id)}',
+            function(result, event){
+                if(event.status){
+                    setPanelContent(result);
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+
+        /* @Description : Setting the page content
+        *
+        */
+        function setPanelContent(application){
+            console.log("!@#APPLICATION: " + JSON.stringify(application));
+            // SET WORDINGS PER BRAND
+            if(application.Brand_Country__c == "AU"){ // POA is exclusively for NZ Application, but for formality and future purposes, included the AU region as well.
+                // SET WORDINGS
+                $("#poaDocumentsHeader").html("{!$Label.APP_GSD_POA_Doc_Header}");
+                $("#poaDocumentsSubHeader").html("{!$Label.APP_GSD_POA_Doc_SubHeader}");
+                $("#poaDoc1Header").html("{!$Label.APP_GSD_POA_Doc_1_Header}");
+                $("#poaDoc1SubHeader").html("{!$Label.APP_GSD_POA_Doc_1_SubHeader}");
+                $("#poaMethodHeader").html("{!$Label.APP_GSD_POA_Method_Header}")
+                $("#poaMethodSubHeader").html("{!$Label.APP_GSD_POA_Method_SubHeader}")
+                $("#poaMethod1Header").html("{!$Label.APP_GSD_POA_Method_1_Header}");
+                $("#poaMethod2Header").html("{!$Label.APP_GSD_POA_Method_2_Header}");
+                $("#poaMethod2SubHeader").html("{!$Label.APP_GSD_POA_Method_2_SubHeader}");
+            }
+            else if(application.Brand_Country__c == "NZ"){
+                // SET WORDINGS
+                $("#poaDocumentsHeader").html("{!$Label.APP_GSD_POA_Doc_Header}");
+                $("#poaDocumentsSubHeader").html("{!$Label.APP_GSD_POA_Doc_SubHeader}");
+                $("#poaDoc1Header").html("{!$Label.APP_GSD_POA_Doc_1_Header}");
+                $("#poaDoc1SubHeader").html("{!$Label.APP_GSD_POA_Doc_1_SubHeader}");
+                $("#poaMethodHeader").html("{!$Label.APP_GSD_POA_Method_Header}")
+                $("#poaMethodSubHeader").html("{!$Label.APP_GSD_POA_Method_SubHeader}")
+                $("#poaMethod1Header").html("{!$Label.APP_GSD_POA_Method_1_Header}");
+                $("#poaMethod2Header").html("{!$Label.APP_GSD_POA_Method_2_Header}");
+                $("#poaMethod2SubHeader").html("{!$Label.APP_GSD_POA_Method_2_SubHeader}");
+
+                if(application.Brand_String__c == "{!brandGEM}"){
+                    $("#poaAddress").html("{!$Label.APP_GSD_POA_Address_GEM}");
+                }
+                else if(application.Brand_String__c == "{!brandKiwi}"){
+                    $("#poaAddress").html("{!$Label.APP_GSD_POA_Address_Kiwi}");
+                }
+
+            }
+
+            // SET HEADERS
+            for(var i=0; i < application.Applicant__r.length; i++){
+                var respCode = application.Applicant__r[i].Response_Code__c;
+                var bCountry = application.Brand_Country__c;
+                var appName = application.Applicant__r[i].First_Name__c;
+                var appEmail = application.Applicant__r[i].Email_Address__c; // Added Email_Address__c by Russell Cadapan for Fix Pack 1 @ 28/04/2016
+                getMetaPerApplicant(respCode, bCountry, appName, i, appEmail);
+            }
+            setPOADocuments();
+        }
+        
+        /* @Description : Getting the list of documnets from Meta Documents object
+        *
+        */
+        function setPOADocuments(){
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.APP_GSD_POA_Response_Ext.queryPOADocumentList}',
+            
+            function(result, event){
+                if(event.status){
+                    for(var i=0; i< result.length; i++){
+                        formatResult(result[i]);
+                    }
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true}
+            );
+        }
+
+        function getMetaPerApplicant(resCode, country, applicantName, c, applicantEmail){
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.APP_GSD_POA_Response_Ext.retrieveResponseMeta}',resCode,country,
+            function(result, event){
+                if(event.status){
+                    if(result.POA__c){
+                        appPOA.push(applicantEmail + "/" + applicantName);
+                    }
+                    setHeaders();
+                } else if(event.type === 'exception'){
+                    console.log('exception: '+event.message+', '+event.where);
+                } else {
+                    console.log(event.message);
+                }
+            },
+            {escape: true});
+        }
+
+
+        function setHeaders(){
+            if(appPOA.length == 1){
+                if(appPOA[0].split("/")[0] == "{!$User.Email__c}"){
+                    $("#poaMessageHeader").html("{!$Label.APP_GSD_POA_Header}");
+                }
+                else{
+                    $("#poaMessageHeader").html("We need to confirm " + appPOA[0].split("/")[1] + "'s address.");
+                }
+            }
+            else{
+                $("#poaMessageHeader").html("{!$Label.APP_GSD_POA_SubHeader}");
+            }
+        }
+
+        /* @Description : Formatting the list of documnets on the screen
+        *
+        */
+        function formatResult(result){
+            $("#poaDoc1NZ").append('<div class="body-label lat-dark-grey"><div class="docList"><a class="lat-blue underline-sm" style="cursor:pointer">'+result.Document_Type__c+'</a><div class="child" style="display: none;" >'+ formatHTML(result.Description__c)+'</div></div></div>' );
+        }
+
+
+
+        function formatHTML(rawHTML){
+            return $('<div />').html(rawHTML).text();
+        }
+
+        $( document ).ready(function() {
+            getApplicationDetail();
+            $('#contId1').removeClass('container');
+           // $('#GFUploadId').removeClass('fUploadTextMarginTop GIdentity-panel-buttons');
+            $('#GFUploadId').addClass('fUploadTextMarginTop');
+            
+        });
+
+        /* @Description : Event Binding with all the hyperlinks  present within div.docList
+        *
+        */
+        $("body").on("click", "div.docList a",function (event){
+            var clicked = $(this); 
+            var childDiv = clicked.parent(".docList").find("div");
+            console.log('div length'+ childDiv.length)
+            console.log('div style'+ childDiv.css("display"));
+            if(childDiv.css("display") == "block"){
+                childDiv.css("display", "none");
+            }else {
+                childDiv.css("display", "block");
+            }
+        })
+        
+        function toggleSubtext1(e) {
+            $(e.target)
+                .prev('.accordion-heading')
+                .find("span")
+            
+             if('accordion-toggle down up collapsed'){
+                
+                    $("#accord1Lbla1").toggleClass('module5-label lat-blue');
+                    $("#accord2Lbla1").toggleClass('module5-label lat-blue');
+                    $("#accord2Lbla2").toggleClass('module5-label lat-blue'); 
+                }
+        }
+        $('#accordion').on('hidden.bs.collapse', toggleSubtext1);
+        $('#accordion').on('shown.bs.collapse', toggleSubtext1);
+        
+        function toggleUpDownArrow(accordionId) {
+            //Commented out by MDAVID - 4/14/16
+            // if (accordionId == 'poaDocOption1Accordion') {
+            //     $("#poaDocOption1AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down ');
+            //     $("#poaDocOption1AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else if (accordionId == 'poaMethodOption1Accordion'){
+            //     $("#poaMethodOption1AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#poaMethodOption1AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } else if (accordionId == 'poaMethodOption2Accordion'){
+            //     $("#poaMethodOption2AccordionArrow").toggleClass('icon_arrow_up icon_arrow_down');
+            //     $("#poaMethodOption2AccordionEdit").toggleClass('icon_edit_white icon_edit');
+            // } 
+         }
+        
+        //Added by MDAVID - 4/14/16
+        var siteName = "{!$Site.Name}"; 
+        if (siteName == 'Gem') { 
+            
+            //for poaDocOption1AccordionHeader
+            if ($("#poaDocOption1AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#poaDocOption1AccordionHeader').hover(function() {
+                    $("#poaDocOption1AccordionArrow").removeClass('icon_arrow_down');
+                    $("#poaDocOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#poaDocOption1AccordionEdit").removeClass('icon_edit');
+                    $("#poaDocOption1AccordionEdit").addClass('icon_edit_white');
+                
+                }, function() {
+                    $("#poaDocOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#poaDocOption1AccordionArrow").addClass('icon_arrow_down');
+                    $("#poaDocOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#poaDocOption1AccordionEdit").addClass('icon_edit');
+                });
+            }
+            
+            $('#poaDocOption1AccordionHeader').hover(function() {
+                if ($("#poaDocOption1AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#poaDocOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#poaDocOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#poaDocOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#poaDocOption1AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+            
+            //for poaMethodOption1AccordionHeader
+            if ($("#poaMethodOption1AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#poaMethodOption1AccordionHeader').hover(function() {
+                    $("#poaMethodOption1AccordionArrow").removeClass('icon_arrow_down');
+                    $("#poaMethodOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#poaMethodOption1AccordionEdit").removeClass('icon_edit');
+                    $("#poaMethodOption1AccordionEdit").addClass('icon_edit_white');
+                
+                }, function() {
+                    $("#poaMethodOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#poaMethodOption1AccordionArrow").addClass('icon_arrow_down');
+                    $("#poaMethodOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#poaMethodOption1AccordionEdit").addClass('icon_edit');
+             });
+            }
+            
+            $('#poaMethodOption1AccordionHeader').hover(function() {
+                if ($("#poaMethodOption1AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#poaMethodOption1AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#poaMethodOption1AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#poaMethodOption1AccordionEdit").removeClass('icon_edit_white');
+                    $("#poaMethodOption1AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+                
+            //for poaMethodOption2AccordionHeader
+            if ($("#poaMethodOption2AccordionHeader").attr("class") == 'accordion-toggle down up collapsed') {
+                $('#poaMethodOption2AccordionHeader').hover(function() {
+                    $("#poaMethodOption2AccordionArrow").toggleClass('icon_arrow_down icon_arrow_down_white');
+                    $("#poaMethodOption2AccordionEdit").toggleClass('icon_edit icon_edit_white');
+                }, function() {
+                    $("#poaMethodOption2AccordionArrow").toggleClass('icon_arrow_down icon_arrow_down_white');
+                    $("#poaMethodOption2AccordionEdit").toggleClass('icon_edit icon_edit_white');
+             });
+            }
+                
+            $('#poaMethodOption2AccordionHeader').hover(function() {
+                if ($("#poaMethodOption2AccordionHeader").attr("class") == 'accordion-toggle down up') {
+                    $("#poaMethodOption2AccordionArrow").removeClass('icon_arrow_down_white');
+                    $("#poaMethodOption2AccordionArrow").addClass('icon_arrow_down_white');
+                    $("#poaMethodOption2AccordionEdit").removeClass('icon_edit_white');
+                    $("#poaMethodOption2AccordionEdit").addClass('icon_edit_white');
+                }
+            });
+        }
+
+       </script>
+       
+      
+</apex:page>

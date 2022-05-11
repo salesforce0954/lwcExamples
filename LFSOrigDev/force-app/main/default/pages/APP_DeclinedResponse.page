@@ -1,0 +1,41 @@
+<!--
+/*
+ * @Description: Declined post submit page (Customer UI)
+ * @Author: Mike Lasala
+ * @Date Created: 20.MAR.2014
+ * @History:
+  =====================================================================
+      03-20-14: Created - Mike
+  =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_Complete_Ext" showHeader="false" sidebar="false" 
+standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" >
+
+    <section>
+        <div class="maincontent">
+            <div class="row-fluid">
+                <div class="divider10"></div>
+                <div class="span12 txtalignc">
+                
+                    <h2>Sorry.</h2>
+    
+                    <div class="divider30 clearfix"></div>
+    
+                    <p>Unfortunately, based on what you’ve told us, we’re unable to lend to you at this time.</p>
+    
+                    <div class="divider30 clearfix"></div>
+
+                    <div class="divider30 clearfix"></div>
+
+                    <button type="button" onClick="window.location.href='{!homePage}'" 
+                    class="btn btn-large btn-reset-m btn-normalc fright buttonarrowimg">{!brandName} Homepage</button>
+
+                    <div class="divider30 clearfix"></div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+</apex:page>

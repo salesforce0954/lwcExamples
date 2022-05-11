@@ -1,0 +1,268 @@
+<!--
+/**
+* @Description: Loan Purpose component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Mike
+      06-12-14: Added jQuery validation plugin styleclass - Davey
+      11-25-14: Added code to display loan purpose as per region - Vijay
+      02-29-16: TQLQW - 104 Rebranding - MDAVID
+      08-29-16: Matt Gould - Added required validation classes
+        28/03/2019 - Sprint 3 Keypad on Number field 
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_LoanPurpose" id="Loan_Purpose__c-mycomponent">
+    
+    <!-- MLASALA 11-OCT-2016 Added for previous button for all pages -->
+    <apex:actionFunction name="previousPage" action="{!backPage}" rerender="false"/>
+    
+    <apex:attribute name="l" description="This is the value for the component." type="LoanWrapper" required="true"/>
+    <!-- added by vijay line 18-->
+    <apex:attribute name="country" description="region name" type="string" required="true" assignTo="{!Region}"/>
+    <apex:attribute name="loanSize" description="This is the value for the component." type="Integer" />
+    
+    <!-- First row -->
+    <div class="span12" style="{!if($Site.Name = 'Kiwibank','margin-top:25px;','')}">
+        <apex:outputPanel id="multipleLoanPurposePanel">
+
+            <div class="minusplusicon"><!-- container for minus icon --></div>
+            
+            <!-- page specific styles for Latitude button -->
+            <apex:outputPanel rendered="{!$Site.Name=='Latitude'}">
+             <style>
+                 
+                @media screen and (min-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02 {
+                        float: left;
+                        margin-top: 0px !important;
+                        margin-left: 40px !important;
+                    }
+                    
+                    .minusplusicon.miconad.GMinus-02 {
+                        margin-left: -80px;
+                        margin-top: 0px;
+                    }
+                    
+                    div#countIcons {
+                        display: none;
+                    }
+                }
+                
+                @media screen and (max-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02,
+                    .minusplusicon.miconad.GMinus-02 {
+                        display: none;
+                    }
+                    
+                    div#countIcons {
+                        display: block;
+                    }
+                }
+            </style>
+            </apex:outputPanel>
+            <!-- page specific styles for GEM button -->
+            <apex:outputPanel rendered="{!$Site.Name=='Gem'}">
+             <style>
+                @media screen and (min-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02 {
+                        float: left;
+                        margin-top: 0px !important;
+                        margin-left: 40px !important;
+                    }
+                    
+                    .minusplusicon.miconad.GMinus-02 {
+                        margin-left: -80px;
+                        margin-top: 0px;
+                    }
+                }
+                
+                @media screen and (max-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02,
+                    .minusplusicon.miconad.GMinus-02 {
+                        display: none;
+                    }
+                    
+                    div#countIcons {
+                        display: block;
+                    }
+                }
+            </style>
+            </apex:outputPanel>
+            
+            <!-- page specific styles for GEM button -->
+            <apex:outputPanel rendered="{!$Site.Name=='Kiwibank'}">
+             <style>
+                @media screen and (min-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02 {
+                        float: left;
+                        margin-top: 0px !important;
+                        margin-left: 40px !important;
+                    }
+                    
+                    .minusplusicon.miconad.GMinus-02 {
+                        margin-left: -80px;
+                        margin-top: 0px;
+                    }
+                }
+                
+                @media screen and (max-width: 415px) {
+                    .minusplusicon.adconad.GAdd-02,
+                    .minusplusicon.miconad.GMinus-02 {
+                        display: none;
+                    }
+                    
+                    div#countIcons {
+                        display: block;
+                    }
+                }
+            </style>
+            </apex:outputPanel>
+            <!-- @test code restructre by @gerome.teodosio@cloudsherpas.com 061116.1135-->
+            <!--<apex:outputPanel id="minusIcon" rendered="{!OR($Site.Name=='Latitude',$Site.Name=='Gem')}">
+                <div class="minusplusicon miconad GMinus-02">
+                    <span class="minusicon" onclick="removeLoanPurpose()"></span>
+                </div>
+            </apex:outputPanel>-->
+            <!-- @endtest -->
+            
+            <div class="pllabel" style="{!if($site.Name=='Kiwibank', 'padding-top: 5px; width: 62px !important;', '')}{!IF(AND($CurrentPage.Name == 'app_main', $site.Name=='Latitude'), 'margin-left: 88px' , '')}"><!-- container for label -->
+                <label>{!if($site.Name = 'Kiwibank', 'I would like','I need')}</label>
+            </div>
+            
+            <div class="inpselfield input100pct"><!-- container for input or select -->
+                <apex:inputText html-mobile-input="number" html-inputmode="numeric" html-pattern="[0-9.]*" value="{!l.loan.Loan_Amount__c}" id="Loan_Purpose__c____Loan_Amount__c" onfocus="trimField(this);" onblur="calculateTotalLoanAmount(this);" styleClass="input-block-level currencysymbol isRequired isAmount isNumberAmount checkPreviousFields" style="margin-bottom: 0px !important;" onkeypress="return isNumberKey(event)" onChange="warningLoanAmount();"/>
+                <apex:outputText styleClass="warningMessage ovrwmlp" escape="false" rendered="{!l.amtNotValid}" value="Error: Please enter your preferred loan amount."/>
+                
+            </div>
+            
+            <div class="pllabel pllabel2"><!-- container for label -->
+                <label>for </label>
+            </div>
+            
+            <div class="inpselfield input100pct"><!-- container for input or select -->
+                <apex:actionRegion >
+                
+                <!--warningLoanPurpose();-->
+                    <apex:selectList styleClass="isPicklistPurpose dropdownicon isPicklistPleaseSelect checkPreviousFields forReason " size="1" value="{!l.loan.Value__c}" id="Loan_Purpose__c____Value__c"  onChange="showOtherLoanPurpose();selectProductLoan();showAlertMessage();" >
+                        <apex:actionSupport event="onchange" reRender="OtherPanelId" />
+                        <!-- Below line added for Better Start 
+                        <apex:actionSupport event="onchange" action="{!productOptions}" reRender="OtherPanelId" />-->
+                        <!-- End -->
+<!--Commented the below select option by suneel as part of Save and Switch 1% 
+                        <apex:selectOptions value="{!loanPurposeOptionsMain}"/>  -->   
+                        <!-- Added the below two select options by Suneel as part of Save and Switch 1% pa -->
+                        <apex:selectOptions value="{!loanPurposeOptionsMain}"  rendered="{!OR($Site.Name=='Latitude',$Site.Name=='Kiwibank')}"/> 
+                        <apex:selectOptions value="{!loanPurposeOptionsForGem}" rendered="{!OR($Site.Name=='Gem')}" /> </apex:selectList>   
+                        <div id="warningPicklistPurpose{!loanSize}" style="background-color:#f9b845;display:none;width:100%;margin:0 auto; color: black; padding: 5px 10px !important;"></div>
+                        <apex:outputText styleClass="warningMessage ovrwmlp" escape="false" rendered="{!l.loanPurposeNotValid}" value="Error: You must select a loan purpose."/>
+                </apex:actionRegion>
+            </div>
+            <!-- @test code restructre by @gerome.teodosio@cloudsherpas.com 061116.1135-->
+            <apex:outputPanel id="addIcon"  rendered="{!OR($Site.Name=='Latitude',$Site.Name=='Gem')}">
+                <div id="addIcon" class="minusplusicon adconad {!if(OR($site.Name=='Kiwibank', $site.Name=='Aussie'), 'mv_addicon', 'GAdd-02')}">
+                    <span class="{!if($site.Name=='Kiwibank', 'plusfield', 'plusicon')}" onclick="addLoanPurpose()"></span>
+                    <span class="GAdd-loan">Add Loan Purpose</span>
+                </div>
+            </apex:outputPanel>
+            <apex:outputPanel id="minusIcon" rendered="{!OR($Site.Name=='Latitude',$Site.Name=='Gem')}">
+                <div class="minusplusicon miconad GMinus-02">
+                    <span class="minusicon" onclick="removeLoanPurpose()"></span>
+                </div>
+            </apex:outputPanel>
+            <!-- @endtest --> 
+            
+            <!--<div class="minusplusicon minusplusiconrmv"><!-- container plus icon </div>-->
+        </apex:outputPanel>
+
+        <div class="clearfix"></div>
+
+        <apex:outputPanel id="OtherPanelId" styleClass="otherlp_area">
+            <!-- 2nd Row -->               
+                <div class="pllabel pllabel2 olp_field"><!-- container for label -->
+                    <apex:outputLabel styleClass="gem-subtitle">{!$Label.Other_Loan_Purpose}</apex:outputLabel>
+                </div>
+                
+                <div class="inpselfield input100pct"><!-- container for input or select -->
+                    <apex:inputText styleClass="input-block-level isRequired" value="{!l.loan.Other_Loan_Purpose__c}" id="Loan_Purpose__c____Other_Loan_Purpose__c" maxlength="20" style="margin-bottom: 0px !important"/>
+                    <apex:outputText styleClass="warningMessage ovrwmlp" rendered="{!l.loanPurNotValid}" value="Error: Please enter your Other loan purpose."/> 
+                </div>
+            <div class="clearfix"></div>
+        </apex:outputPanel>
+    </div><!-- end span12 first row -->
+
+    <script type="text/javascript">
+          
+        function changePickVal(){
+            $('[id*=Loan_Purpose__c____Value__c] option[value="Please Select"]').text("Select");
+        }
+        changePickVal();
+               
+        
+        /*  Description: Populate onload values array
+         *  Author: Mike Lasala
+         *  Date Created: 11-OCT-2016
+         */
+        function populateOnLoadvalues(element){
+            var onLoadArray = [];
+            
+            $(':input', element).each(function(){
+                if(this.type != 'hidden' && 
+                   this.type != 'submit'){
+                    
+                    onLoadArray.push(this.value);
+                }
+            });
+            
+            return onLoadArray;
+        }
+        
+        /*  Description: Check onload and onbeforeunload values changes
+         *  Author: Mike Lasala
+         *  Date Created: 11-OCT-2016
+         */
+        function checkFields(element){
+            var onExitValues = [];
+            var hasValue = false;
+            
+            //Populate onbeforeunload array
+            $(':input', element).each(function(){
+                if(this.type != 'hidden' && 
+                   this.type != 'submit'){
+                    console.log(this.type+' '+this.id+': '+this.value);
+                    onExitValues.push(this.value);
+                }
+            });
+            
+            //Compare arrays to check if any value has changed
+            for(var i=0; i<onLoadValues.length; i++){
+                if(onLoadValues[i] != onExitValues[i]){
+                    //console.log(onLoadValues[i]+' == '+onExitValues[i]);
+                    hasValue = true;
+                }
+            }
+            
+            if(hasValue){
+                //Display alert if changes are present
+                var proceed = confirm("Any changes will not be saved. Do you wish to proceed?");
+                
+                //Proceed to previous page when confirmed
+                if(proceed){
+                    previousPage();
+                    // console.log('BACK');
+                }
+            } else {    //Proceed to previous page when there are no changes
+                previousPage();
+                // console.log('BACK');
+            }
+        }
+      
+       window.onload = function(){
+                showAlertMessage();
+
+       }
+    </script>
+    
+</apex:component>

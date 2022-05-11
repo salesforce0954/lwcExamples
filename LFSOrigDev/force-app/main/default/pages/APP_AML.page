@@ -1,0 +1,1089 @@
+<!--
+/**
+* @Description: AML page
+* @Author: Fel Saliba
+* @Date Created: 16.DEC.2013
+* @History:
+  =====================================================================
+      12-16-13: Created - Fel
+      04-20-15: Updated Defect 896 - Add client side validation to ID number for NZ Driver Licence type - DY
+      07-29-15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS - Mike
+      2015-09-17: Tony Xu - Changed @future callout to Sync Callout
+   =====================================================================
+ */ 
+-->
+<apex:page standardController="Application__c" extensions="APP_AMLEXT" showHeader="false" id="amlPageId">
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    <script>var res = true;</script>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+    <!--
+    <script>var jquery1 = jQuery.noConflict( true );</script>
+    -->
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+    <apex:includeScript value="{!$Resource.jqueryValidateScript}"/>    
+    <style>
+        ul.subchek {}
+        ul.subchek li {display:inline-block;width:450px}
+        ul.subchek li label {width:130px;float:left}
+        .bottombutton {margin:0 auto;}
+        ul {list-style-type:none;}
+        ul .navbutton {display:inline-block; float:left; padding-right:2px; padding-left:1px; margin-left:1px;}
+        .clearall {clear:both;}
+        .bPageBlock .detailList .dataCol {width:100%;}
+    </style>
+
+    <div class="stui_AML">
+    
+        <apex:form id="formId" styleClass="validateLoanForm">
+
+            <apex:actionFunction name="saveAMLMethod" action="{!saveAML}" reRender="errorId" oncomplete="enableSave();"/>
+            
+            <!-- BEGIN MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+            <!-- BEGIN MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+            <apex:actionFunction name="verifyAMLMethod" action="{!verifyAML}" rerender="errorId" oncomplete="if({!isValid} == true){verifyMethod();}"/>
+            <apex:actionFunction name="verifyPOAMethod" action="{!verifyPOA}" rerender="errorId" oncomplete="if({!isValid} == true){verifyMethod();}"/>
+            <apex:actionFunction name="isPOAMethod" action="{!isPOA}" rerender="false"/>
+            
+            <!-- TXU 2015-09-17 New Web Service Callout Method for Sync Callout -->
+            <apex:actionFunction name="verifyAMLCallout" action="{!verifyAMLCallout}" rerender="errorID" oncomplete="redirectMethod();"/>
+            <apex:actionFunction name="redirectHome" action="{!redirectToMainPage}"/>
+            <!-- END MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+            
+            <!-- loader component -->
+            <apex:outputPanel id="loaderId" style="visibility:hidden;">
+                <c:WaitPageLoadingDialog BackColor="#f7f9fa"
+                                         borderColor="#e9ecef"
+                                         borderSize="1"
+                                         height="100px"
+                                         width="200px"
+                                         margintop="-25px"
+                                         marginleft="-100px"
+                                         ImageUrl="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}"
+                                         Message=""/>
+            </apex:outputPanel>
+            <!-- END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+
+            <apex:inputHidden value="{!isAml2Exposed}" id="aml2"/>
+            
+            <apex:pageBlock title="AML" id="amlPageBlock">
+                <apex:pageMessages id="errorId"/>
+                
+                <apex:pageBlockSection columns="1" rendered="{!isNZ}" id="verTypeBlock">
+                    <apex:pageBlockSectionItem id="verTypePanel">
+                      <apex:outputPanel >
+                        <div class="fleft">
+                            <label  class="width130 txtright">Verification Type</label>
+                            <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                        </div>
+                        <div class="fleft">
+                            <apex:inputField styleClass="width125" value="{!applicnt.Verification_Method__c}" onchange="isPOAMethod();displaySection(this.value);" id="Applicant__c___Verification_Method__c"/>
+                        </div>
+                      </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" rendered="{!IF(OR(NOT(isNZ), 
+                                                                     AND(isNZ, OR(applicnt.Verification_Method__c == 'Manual AML', 
+                                                                                  AND(applicnt.Verification_Method__c == 'Proof of Address', 
+                                                                                      aml1.aml.AML_Pos_Verified_Type__c = null
+                                                                                      )
+                                                                                  )
+                                                                        )
+                                                                    ), true, false)}">
+                        <apex:pageBlockSectionItem >
+                          <apex:outputPanel >
+                            <div class="fleft">
+                                <label  class="width130 txtright">Verification Method</label>
+                                <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <script>
+                                    function pullVeriTypeId(){
+                                        return "{!$Component.AML__c___AML_Pos_Verified_Type__c}";
+                                    }
+                                </script>
+                                <apex:inputField onchange="verifyVisibility(document.getElementById(pullVeriTypeId()).value);" id="AML__c___AML_Pos_Verified_Type__c" value="{!aml1.aml.AML_Pos_Verified_Type__c}"/>
+                            </div> 
+                          </apex:outputPanel>    
+                        </apex:pageBlockSectionItem> 
+                    </apex:pageBlockSection>
+
+                <div id="amlSection">
+                    
+                    <div style="{!IF(OR(aml1.aml.Id_Sequence_No__c == 1, AND(aml1.aml.Id_Sequence_No__c == 0, NOT(CONTAINS(aml1.aml.Identification__c, 'SuperGold')))),'display:block','display:none')}" id="id1">
+                        <apex:pageBlockSection columns="1" id="AML__c-1" title="Primary Identification" collapsible="false">
+                            <apex:outputPanel >
+                              <div class="fleft">
+                                <label  class="width130 txtright">Identification</label>
+                                <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                              </div>
+                              <div class="fleft">
+                                <apex:inputField styleClass="amainselect width450" value="{!aml1.aml.ID_1__c}" onchange="checkValue1(this);setRequiredBars();" id="AML__c___Identification__c"/>
+                              </div>
+                              <div class="clearall"></div>
+                              
+                              <div class="fleft">
+                                    <label  class="width130 txtright">ID No.</label>
+                                     <apex:outputPanel styleClass="requiredBlocknull" id="idNo" ></apex:outputPanel>     
+                              </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml1.aml.ID_No__c}" id="AML__c___ID_No__c" />
+                              </div>
+                              <div class="clearall"></div>
+                              <div id="idVersionClass" style="display:none;">
+                                <div class="fleft">
+                                  <label  class="width130 txtright">{!IF($ObjectType.AML__c.fields.Version__c.Accessible, 'Version', '')}</label>
+                                  <apex:outputPanel styleClass="requiredBlocknull" id="idVersion" ></apex:outputPanel>     
+                                </div>
+                                <div class="fleft">
+                                  <apex:inputField styleClass="width100" value="{!aml1.aml.Version__c}" id="AML__c___Version__c" />
+                                </div>
+                              </div>
+                                <div class="clearall"></div>
+                              <div class="fleft">
+                                  <label  class="width130 txtright">Issue Date</label>
+                                  <apex:outputPanel styleClass="requiredBlocknull"  id="issueDate"></apex:outputPanel>                
+                              </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml1.aml.ID_Issue_Date__c}" id="AML__c___ID_Issue_Date__c"/>
+                              </div>
+                            
+                              <div class="fleft">
+                                  <label  class="width90 txtright">Expiry Date</label>
+                                  <apex:outputPanel styleClass="requiredBlocknull" id="expDate"></apex:outputPanel>
+                              </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml1.aml.ID_Expiry_Date__c}" id="AML__c___ID_Expiry_Date__c"/>
+                              </div>
+                                <div class="clearall"></div>
+                                
+                               <div class="fleft">
+                                  <label  class="width130 txtright">Issue Country</label>
+                                  <apex:outputPanel styleClass="requiredBlocknull" id="issueCountry"></apex:outputPanel>                           
+                               </div>
+                               <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml1.aml.Issue_Country__c}" id="AML__c___ID_Issue_Country__c"/>
+                               </div>
+                                 <div id="NZResidencyNumClass"  style="display:none;">
+                                <div class="fleft">
+                                    <label  class="width170 txtright">{!IF(isNZ, 'NZ Residency Number', 'Issue State')}</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="issueState"></apex:outputPanel>
+                                </div>
+                                <div class="fleft">
+                                    <apex:inputField styleClass="width100" rendered="{!isNZ}" value="{!aml1.aml.NZ_Residency_Number__c}" id="AML__c___NZ_Residency_Number__c"/>
+                                    <apex:inputField styleClass="width100" rendered="{!NOT(isNZ)}" value="{!aml1.aml.ID_Expiry_State__c}" id="AML__c___ID_Expiry_State__c"/>
+                                </div>
+                                </div>
+                                <div class="clearall"></div>
+                              <div class="fleft">
+                                    <label  class="width130 txtright">Issuer</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull"  id="issuer"></apex:outputPanel>
+                              </div>
+                              <div class="fleft">
+                                    <!--<apex:inputField styleClass="width100" value="{!aml1.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c"/>-->
+                                    <apex:inputText styleClass="width100" value="{!aml1.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c" maxlength="15"/>
+                              </div>
+                              <div class="clearall"></div>                                    
+                              <div class="fleft">
+                                  <apex:inputField value="{!aml1.aml.PRS_RECORD_ID__c}" id="AML__c___PRS_RECORD_ID__c"/>
+                              </div>                                  
+                            </apex:outputPanel>
+                        </apex:pageblockSection>
+                    </div>
+                    
+                    
+                    <div style="{!IF(OR(AND(aml2.aml.Id_Sequence_No__c == 2,aml2.aml.Identification__c != 'Please Select'), AND(aml2.aml.Id_Sequence_No__c == 0, CONTAINS(aml2.aml.Identification__c, 'SuperGold'))),'display:block','display:none')}" id="id2">
+                        <apex:pageBlockSection columns="2" id="AML__c-2" title="Secondary Identification" collapsible="false">
+                          <apex:outputPanel >
+                            
+                            <div class="fleft">
+                                <label  class="width130 txtright">Identification</label>
+                                <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="amainselect width450" value="{!aml2.aml.ID_2__c}" onchange="checkValue2(this);setRequiredBars2();" id="AML__c___Identification__c"/>
+                            </div>
+                            <div class="clearall"></div>
+                              
+                            <div class="fleft">
+                                <label  class="width130 txtright">ID No.</label>
+                                <apex:outputPanel styleClass="requiredBlocknull" id="idNo"></apex:outputPanel>      
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!aml2.aml.ID_No__c}" id="AML__c___ID_No__c"/>
+                            </div>
+                            <div class="clearall"></div>
+                            
+                            <div class="fleft">
+                                <label  class="width130 txtright">Issue Date</label>
+                                <apex:outputPanel styleClass="requiredBlocknull" id="issueDate"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!aml2.aml.ID_Issue_Date__c}" id="AML__c___ID_Issue_Date__c"/>
+                            </div>
+
+                            <div class="fleft">
+                                <label  class="width80 txtright">Expiry Date</label>
+                                <apex:outputPanel styleClass="requiredBlocknull"  id="expDate"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!aml2.aml.ID_Expiry_Date__c}" id="AML__c___ID_Expiry_Date__c"/>
+                            </div>
+                            <div class="clearall"></div>
+                                
+                            <div class="fleft">
+                                <label  class="width130 txtright">Issue Country</label>            
+                                <apex:outputPanel styleClass="requiredBlocknull"  id="issueCountry"></apex:outputPanel>           
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!aml2.aml.Issue_Country__c}" id="AML__c___ID_Issue_Country__c"/>
+                            </div>
+                            
+                            <div class="fleft">
+                                <label  class="width170 txtright">{!IF(isNZ, '', 'Issue State')}</label>
+                                <apex:outputPanel styleClass="requiredBlocknull" id="issueState"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!aml2.aml.ID_Expiry_State__c}" id="AML__c___ID_Expiry_State__c"/>
+                            </div>
+                            <div class="clearall"></div>
+                            
+                            <div class="fleft">
+                                <label  class="width130 txtright">Issuer</label>
+                                <apex:outputPanel styleClass="requiredBlocknull" id="issuer"></apex:outputPanel>
+                            </div>
+                            
+                            <div class="fleft">
+                                <!--<apex:inputField styleClass="width100" value="{!aml2.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c"/>-->
+                                <apex:inputText styleClass="width100" value="{!aml2.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c" maxlength="15"/>
+                            </div>
+                            <div class="clearall"></div>
+                            
+                            <div class="fleft">
+                                <apex:inputField value="{!aml2.aml.PRS_RECORD_ID__c}" id="AML__c___PRS_RECORD_ID__c"/>
+                            </div>
+                          </apex:outputPanel>
+                        </apex:pageBlockSection>
+                    </div>
+
+                    <div style="{!IF(AND(aml3.aml.Id_Sequence_No__c == 3,aml3.aml.Identification__c != 'Please Select'),'display:block','display:none')}" id="id3">
+                        <apex:pageBlockSection columns="2" id="AML__c-3" title="Tertiary Identification" collapsible="false">
+                            <apex:outputPanel >
+                              
+                              <div class="fleft">
+                                  <label  class="width130 txtright">Identification</label>
+                                  <apex:outputPanel styleClass="requiredBlock2"></apex:outputPanel>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="amainselect width450" value="{!aml3.aml.ID_3__c}" onchange="populateCountryForId3();setRequiredBars3();" id="AML__c___Identification__c"/>
+                            </div>
+                            <div class="clearall"></div>
+                              
+                              <div class="fleft">
+                                  <label  class="width130 txtright">ID No.</label>
+                                  <apex:outputPanel styleClass="requiredBlocknull" id="idNo"></apex:outputPanel>
+                              </div>
+                              <!-- Added below rendered condition for Spring 19 release Suneel 13/01/2019 -->
+                              <apex:outputPanel rendered="{!NOT(isNZ)}">
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml3.aml.ID_No__c}" id="AML__c___ID_No__c"/>
+                              </div>
+                              </apex:outputPanel>
+                              <div class="clearall"></div>
+
+                              <div class="fleft">
+                                    <label  class="width130 txtright">Issue Date</label>    
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="issueDate"></apex:outputPanel>  
+                                </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml3.aml.ID_Issue_Date__c}" id="AML__c___ID_Issue_Date__c"/>
+                              </div>
+
+                              <div class="fleft">
+                                  <label  class="width80 txtright">Expiry Date</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="expDate"></apex:outputPanel>
+                              </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml3.aml.ID_Expiry_Date__c}" id="AML__c___ID_Expiry_Date__c"/>
+                              </div>
+                                <div class="clearall"></div>
+                                
+                               <div class="fleft">
+                                  <label  class="width130 txtright">Issue Country</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="issueCountry"></apex:outputPanel>
+                                </div>
+                                <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml3.aml.Issue_Country__c}" id="AML__c___ID_Issue_Country__c"/>
+                                </div>
+
+                              <div class="fleft">
+                                    <label  class="width170 txtright">Issue State</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="issueState"></apex:outputPanel>
+                              </div>
+                              <div class="fleft">
+                                    <apex:inputField styleClass="width100" value="{!aml3.aml.ID_Expiry_State__c}" id="AML__c___ID_Expiry_State__c"/>
+                              </div>
+                                <div class="clearall"></div>
+                                
+                                <div class="fleft">
+                                    <label  class="width130 txtright">Issuer</label>
+                                    <apex:outputPanel styleClass="requiredBlocknull" id="issuer"></apex:outputPanel>
+                                </div>
+                                
+                                <div class="fleft">
+                                    <!--<apex:inputField styleClass="width100" value="{!aml3.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c"/>-->
+                                    <apex:inputText styleClass="width100" value="{!aml3.aml.ID_Issuer__c}" id="AML__c___ID_Issuer__c" maxlength="15"/>
+                                </div>
+                                <div class="clearall"></div>
+                                <div class="fleft">
+                              <apex:inputField value="{!aml3.aml.PRS_RECORD_ID__c}" id="AML__c___PRS_RECORD_ID__c"/>
+                              </div>
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                    </div>
+                
+                </div>
+                
+                <!-- POA SECTION -->
+                <div id="poaSection">
+
+                    <apex:pageBlockSection columns="2" id="POA-1" title="Proof of Address" collapsible="false" rendered="{!isNZ}">
+                        <apex:outputPanel >
+                        
+                            <!-- TYPE -->
+                            <div class="fleft">
+                                <label class="width130 txtright">POA Type</label>
+                                <apex:outputPanel styleClass="requiredBlock2"/>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="amainselect width350" value="{!poa.aml.POA_Type__c}" id="AML__c___POA_Type__c"/>
+                            </div>
+                            <div class="clearall"/>
+                            
+                            <!-- REFERENCE NUMBER -->
+                            <div class="fleft">
+                                <label class="width130 txtright">Reference No.</label>
+                                <apex:outputPanel styleClass="requiredBlock2" id="idNo"/>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField value="{!poa.aml.POA_Reference_Number__c}"/>
+                            </div>  
+                            <div class="clearall"/>
+                            
+                            <!-- ISSUE DATE-->
+                            <div class="fleft">
+                                <label class="width130 txtright">Issue Date</label>
+                                <apex:outputPanel styleClass="requiredBlock2"/>
+                            </div>
+                            <div class="fleft">
+                                <apex:inputField styleClass="width100" value="{!poa.aml.POA_Issue_Date__c}"/>
+                            </div>  
+                            <div class="clearall"/>
+                            
+                            <!-- ISSUER -->
+                            <div class="fleft">
+                                <label class="width130 txtright">Issuer</label>
+                                <apex:outputPanel styleClass="requiredBlock2"/>
+                            </div>
+                            <div class="fleft">
+                                <!--<apex:inputField styleClass="width100" value="{!poa.aml.ID_Issuer__c}"/>-->
+                                <apex:inputText styleClass="width100" value="{!poa.aml.ID_Issuer__c}" maxlength="15"/>
+                            </div>  
+                            <div class="clearall"/>
+                            
+                            <apex:inputField value="{!poa.aml.PRS_RECORD_ID__c}" id="AML__c___PRS_RECORD_ID__c"/>
+                        </apex:outputPanel> 
+                    </apex:pageBlockSection>
+                </div>
+                
+                <apex:outputPanel >
+                    <div Id="greenIdSection" style="display:none;margin-left:40px;margin-right:30px;">
+                        <apex:pageBlockSection >
+                            <apex:include pageName="GreenId_SimpleUI"/>
+                        </apex:pageBlockSection>
+                    </div>
+                </apex:outputPanel>
+                
+                <apex:pageBlockButtons id="buttons">
+                    <apex:outputPanel id="btnHidePanel">
+                        <apex:commandButton onclick="add();" id="addId" value="New" rerender="false"/>
+                        <apex:commandButton onclick="removeId2();" id="removeId" value="Remove" rerender="false"/>
+                        <apex:commandButton onclick="save();" id="saveId" value="Save & Close" rerender="false" styleClass="btnSubmitLoan" oncomplete="javascript:checkApp('Save');return false;"/>
+                        
+                        <!-- BEGIN MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+                        <!-- BEGIN MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+                        <apex:commandButton onclick="checkApp('Verify');" id="verifyId" value="Verify AML" rerender="loaderId" styleClass="btnSubmitLoan" 
+                                            disabled="{!NOT(isOutstanding)}"/>
+                        <apex:commandButton onclick="checkApp('POA');" id="verifypoaId" value="Verify POA" rerender="loaderId" styleClass="btnSubmitLoan" 
+                                            style="display:{!IF(isNZ, 'inline-block','none')}" disabled="{!NOT(isOutstanding)}">
+                        <!-- END MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT -->
+                        <!-- END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS -->
+                        
+                        </apex:commandButton>
+                        <apex:commandButton action="{!cancel}" id="cancelId" value="Cancel" rerender="false"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel id="btnHidePanelGI">
+                        <apex:commandButton id="reverifyAML" onclick="document.getElementById('amlPageId:formId:loaderId').style.visibility='visible'; 
+                                                                      verifyGreenIdResult(); return false;" value="Verify AML" disabled="{!NOT(isOutstanding)}"/>
+                        <apex:commandButton id="cancelIdGI" action="{!cancel}"  value="Cancel" rerender="false"/>
+                    </apex:outputPanel>
+                </apex:pageBlockButtons>
+                                
+          </apex:pageBlock>
+        </apex:form>
+    
+    </div>
+
+    <script>
+        $j(document).ready(function(){
+            $j('[id*=AML__c___AML_Pos_Verified_Type__c] option[value=""]').text("Please Select");
+            $j('[id*=AML__c___Identification__c] option[value=""]').text("Please Select");
+            
+            if('{!isNZ}' == 'true'){
+                $j('[id*=Applicant__c___Verification_Method__c] option[value=""]').text("Please Select");
+                $j('[id*=AML__c___POA_Type__c] option[value=""]').text("Please Select");
+            }
+
+            var idvalue=document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___Identification__c').value;
+            if(idvalue == 'Overseas Passport' || idvalue == 'Driving Licence' || idvalue == 'AUS Passport'){
+                document.getElementById('NZResidencyNumClass').style.display = "block";
+            }else{
+                document.getElementById('NZResidencyNumClass').style.display = "none";
+            }
+            if(idvalue == 'NZ Driver Licence'){
+                document.getElementById('idVersionClass').style.display = "block";
+            }else{
+                document.getElementById('idVersionClass').style.display = "none";
+            }
+            
+        });
+        
+        function toggleGreenIdButton(IsGreenId){
+            var toggleBtnGreenId;
+            var toggleBtnAML;
+            
+            if(IsGreenId==true){
+                toggleBtnGreenId = "inline-block";
+                toggleBtnAML = "none";
+            }else{
+                toggleBtnGreenId = "none";
+                toggleBtnAML ="inline-block";
+            }
+            document.getElementById("amlPageId:formId:amlPageBlock:buttons:bottom:btnHidePanel").style.display = toggleBtnAML;
+            document.getElementById("amlPageId:formId:amlPageBlock:buttons:btnHidePanel").style.display = toggleBtnAML;
+            
+            document.getElementById("amlPageId:formId:amlPageBlock:buttons:bottom:btnHidePanelGI").style.display = toggleBtnGreenId;
+            document.getElementById("amlPageId:formId:amlPageBlock:buttons:btnHidePanelGI").style.display = toggleBtnGreenId;
+            
+        }
+    
+        function verifyVisibility(veriMethodVar){
+            if(veriMethodVar=='Electronic'){
+                document.getElementById('greenIdSection').style.display = "block";
+                
+                console.log("applicant VM:{!applicant.Verification_Method__c}");
+                //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                console.log("applicnt VM:{!JSENCODE(applicnt.Verification_Method__c)}");
+                
+                document.getElementById('amlSection').style.display = "none";
+
+                if(Boolean("{!isNZ}")){
+                    document.getElementById('poaSection').style.display = "none";
+                }
+                
+                toggleGreenIdButton(true);
+                
+            }else{
+                document.getElementById('greenIdSection').style.display = "none";
+                //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+                if("{!JSENCODE(applicnt.Verification_Method__c)}"!="Proof of Address"){
+                    document.getElementById('amlSection').style.display = "block";
+                }
+                if(Boolean("{!isNZ}")){
+                    document.getElementById('poaSection').style.display = "block";
+                }
+                
+                toggleGreenIdButton(false);
+            }
+        }
+    
+        function displaySection(value){
+            if('{!isNZ}' == 'true'){
+
+                document.getElementById('amlPageId:formId:amlPageBlock:verTypeBlock:verTypePanel:Applicant__c___Verification_Method__c').disabled = true;
+                document.getElementById('poaSection').style.display = 'block';
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none"; 
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:saveId').style.display = "inline-block";
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:saveId').style.display = "inline-block";
+
+                if(value == 'Manual AML'){
+
+                    document.getElementById('amlSection').style.display = 'block';
+    
+                    if('{!application.Status__c}' != 'New'){
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifyId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifyId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifypoaId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifypoaId').style.display = "none";
+                    }
+
+                } else if(value == 'Proof of Address'){
+
+                    document.getElementById('amlSection').style.display = 'none';
+
+                    if('{!application.Status__c}' != 'New'){
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifyId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifyId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifypoaId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifypoaId').style.display = "inline-block";
+                    }
+
+                } else {
+                    document.getElementById('amlSection').style.display = 'none';
+                    document.getElementById('poaSection').style.display = 'none';
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:saveId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:saveId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifyId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifyId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:verifypoaId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:verifypoaId').style.display = "none";
+                }
+
+            } else {
+                document.getElementById('poaSection').style.display = 'none';
+            }
+        }
+
+        //Added by DYU 04-20-15 - Validate using client side validation before saving
+        function checkApp(val){
+          //validate if validation is successful
+          if(res && val == 'Save'){
+            saveAMLMethod();
+          }else{
+            if(val == 'Save'){
+              enableSave();
+            }
+          }
+          //validate when verifying AML
+          if(res && val == 'Verify'){
+            
+            //BEGIN MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS
+            document.getElementById('amlPageId:formId:loaderId').style.visibility='visible';
+            verifyAMLMethod();
+          } else if(res && val == 'POA'){
+            document.getElementById('amlPageId:formId:loaderId').style.visibility='visible';
+            //END MLASALA: 07/29/15: PMIHM-1693 - REASSESS ERROR CODES TO PREVENT LOCKING OF APPLICATIONS
+
+            verifyPOAMethod();
+          }
+        }
+
+        function save(){
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:saveId').disabled = true;
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:saveId').disabled = true;
+            //saveAMLMethod();
+        }
+
+        function enableSave(){
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:saveId').disabled = false;
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:saveId').disabled = false;
+        }
+        
+        function checkValue1(field){
+            if(field.value == 'Birth Certificate'){
+               document.getElementById('id2').style.display = "block";
+               document.getElementById('id3').style.display = "block";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none"; 
+               document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c').value = "Australia";              
+            }
+            else{
+                removeId2();
+                if(field.value != 'Overseas Passport' && field.value !='Australia/Cook Islands/Tokelau/Niue Passport'){
+                   if(field.value == 'Please Select'){
+                       document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c').value = ""; 
+                   }
+                   else{
+                       document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c').value = '{!country}';
+                   }
+                  clearFields(3);
+                   document.getElementById('id3').style.display = "none";
+                   var check = checkFields(2);
+                   if('{!isNZ}' != 'true' && check == true || 
+                     ('{!isNZ}' == 'true' && field.value != 'Overseas Passport' && 
+                      (field.value == 'NZ Birth Certificate' || field.value == 'NZ Certificate of Citizenship'))){
+                        
+                        document.getElementById('id2').style.display = "block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___Identification__c').value = "SuperGold card with Photo";
+                        document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___ID_Issue_Country__c').value = '{!country}';
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";                        
+                        setRequiredBars2();
+                   } 
+                   else{
+                       document.getElementById('id2').style.display = "none";
+                       
+                   }    
+                }
+                else if(field.value == 'Overseas Passport' || field.value == 'Please Select' || field.value =='Australia/Cook Islands/Tokelau/Niue Passport'){
+                     document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c').value = "";
+                     clearFields(3);
+                     document.getElementById('id3').style.display = "none";
+                     var check = checkFields(2);
+                     if('{!isNZ}' != 'true' && check == true){
+                         document.getElementById('id2').style.display = "block";
+                     } 
+                     else{
+                         document.getElementById('id2').style.display = "none";                 
+                     }
+                     
+                }
+                
+                if(field.value == 'Overseas Passport' || field.value == 'Driving Licence' || field.value == 'AUS Passport'){
+                    document.getElementById('NZResidencyNumClass').style.display = "block";
+                }else{
+                    document.getElementById('NZResidencyNumClass').style.display = "none";
+                }
+                if(field.value == 'NZ Driver Licence'){
+                    document.getElementById('idVersionClass').style.display = "block";
+                }else{
+                    document.getElementById('idVersionClass').style.display = "none";
+                }
+                
+                if('{!isNZ}' != 'true'){
+                    if(document.getElementById('id2').style.display == "none"){
+                        
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "inline-block";
+                        
+                    }
+                }
+            }
+            setRequiredFields();
+        }
+
+        function setRequiredFields(){
+          var id1 = document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___Identification__c");
+          var requiredClass = "required";
+          var unrequiredClass = "";
+          if(id1.value == "Driving Licence" || id1.value == "Learning Permit" || id1.value == "Proof of Age" || id1.value == "AUS Passport" || id1.value == "Overseas Passport" || id1.value == "Pension Card" || id1.value == "WA Driver Licence"){
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_No__c").className = "required";
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_Date__c").className = "required";
+              if('{!isNZ}' != 'true'){
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_State__c").className = "required";
+              }
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c").className = "required";
+
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Date__c").className = "unrequired";
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issuer__c").className = "unrequired";
+
+          }else if(id1.value == "Centrelink Statement" || id1.value == "ATO Assessment Notice" || id1.value == "Rates Notice" || id1.value == "Utility Bill" || id1.value == "Insurance - Home and Contents OR Comprehensive Motor Vehicle" || id1.value == "Electoral Roll Confirmation Letter" || id1.value == "Birth Certificate"){
+              
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Date__c").className = "required";
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issuer__c").className = "required";
+
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_No__c").className = "unrequired";
+
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_Date__c").className = "unrequired";
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_State__c").className = "unrequired";
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c").className = "unrequired";
+          }else{
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Date__c").className = "unrequired";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issuer__c").className = "unrequired";
+            /*Updated by DYU 04-20-15 - Defect 896 - add client side validation to check driver's license
+              format and number of characters allowed for NZ Driver Licence type only
+            */
+            if(id1.value == 'NZ Driver Licence'){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_No__c").className = "NZDriverLicenceMinlength8 isNZDriverLicense";
+            }else{
+              document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_No__c").className = "unrequired";  
+            }
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_Date__c").className = "unrequired";
+            
+            if('{!isNZ}' != 'true'){
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Expiry_State__c").className = "unrequired";
+            }
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_Issue_Country__c").className = "unrequired";
+          }
+        } 
+        
+        function checkValue2(field){
+            if(field.value != 'Overseas Passport'){
+               if(field.value == 'Please Select'){
+                   document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___ID_Issue_Country__c').value = "";
+               }
+               else{
+                   document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___ID_Issue_Country__c').value = "{!country}";
+               }
+               var idValue1 = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-1:AML__c___Identification__c').value;
+               if(idValue1 == 'Birth Certificate'){
+                   document.getElementById('id3').style.display = "block";
+               }
+               else{
+                   clearFields(3);
+                   document.getElementById('id3').style.display = "none";
+               }     
+            }
+            if(field.value == 'Birth Certificate'){
+               document.getElementById('id3').style.display = "none";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "inline-block";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "inline-block";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+               document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";  
+               document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___ID_Issue_Country__c').value = "Australia";             
+            }
+            else if(field.value == 'Overseas Passport' || field.value == 'Please Select'){
+                 document.getElementById('amlPageId:formId:amlPageBlock:AML__c-2:AML__c___ID_Issue_Country__c').value = "";             
+            }        
+        }
+        
+        function add(){
+            document.getElementById("amlPageId:formId:aml2").value = true;
+            document.getElementById('id2').style.display = "block";        
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "inline-block";
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "inline-block";
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";
+            
+        }
+        
+        function removeId2(){
+            clearFields(2);        
+            document.getElementById("amlPageId:formId:aml2").value = false;
+            document.getElementById('id2').style.display = "none";
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+            if('{!isNZ}' != 'true'){
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "inline-block";
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "inline-block";
+            }
+        }
+
+        function checkFields(ctr){
+            var issuer = '';
+            if(ctr == 3){
+                issuer = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-3:AML__c___ID_Issuer__c').value; 
+            }
+            if('{!isNZ}' != 'true' && ctr < 3){
+                var expiry = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Expiry_State__c').value;
+                var country = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Issue_Country__c').value;
+                var state = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Expiry_State__c').value;
+            }
+            var idValue = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___Identification__c').value;
+            var idNo = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_No__c').value;
+            var issueDate = document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Issue_Date__c').value;
+            
+            if(ctr == 3){ 
+                if(idValue != 'Please Select' || !isBlank(idNo) || !isBlank(issueDate) || !isBlank(issuer)){            
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            
+            if(ctr < 3){
+            
+                if((idValue != 'Please Select' && idValue != '') || !isBlank(idNo) || !isBlank(issueDate) || !isBlank(expiry) || !isBlank(country) || !isBlank(state)){ //     
+                    return true;
+                }
+                else{
+                    return false
+                }
+            
+            }        
+        }
+        function populateCountryForId3(){
+            var id3 = document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:AML__c___Identification__c");
+            
+            if(id3.value != "Overseas Passport"){
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:AML__c___ID_Issue_Country__c").value = "Australia";
+            }else{
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:AML__c___ID_Issue_Country__c").value = "";
+            }
+        }
+        function clearFields(ctr){
+            //if(ctr == 3){
+            //    document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Issuer__c').value = '';
+            //}
+            if('{!isNZ}' != 'true' && ctr < 3){
+                document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Expiry_Date__c').value = '';
+                document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Issue_Country__c').value = '';
+                document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Expiry_State__c').value = '--None--';
+            }
+            //Added the below condition for Spring 19 release Suneel 13/01/2019
+            if('{!isNZ}' != 'true' || '{!NOT(isNZ)}' == 'true'){
+            document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___Identification__c').value = 'Please Select'
+            document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_No__c').value = '';
+            document.getElementById('amlPageId:formId:amlPageBlock:AML__c-'+ctr+':AML__c___ID_Issue_Date__c').value = '';  }         
+        }
+        
+        function isBlank(str) {
+            return (!str || /^\s*$/.test(str));
+        }
+
+        window.onload = function hideButtons(){
+            if(document.getElementById('id1').style.display == "block" && document.getElementById('id2').style.display == "block" && document.getElementById('id3').style.display == "block"){
+                document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";
+            }
+            else{
+                if(document.getElementById('id2').style.display == "block"){
+                    if('{!isNZ}' != 'true'){
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "inline-block";
+                    }
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";
+                }
+                else{
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:removeId').style.display = "none";
+                    document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:removeId').style.display = "none";
+                    if('{!isNZ}' != 'true'){
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "inline-block";
+                        document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "inline-block";
+                    } else {
+                        //if("{!JSENCODE(applicnt.Verification_Method__c)}" == "Proof of Address"){ //UPDATED 20-AUG-2015 MDAVID - CODE SCAN FIX ADDED JSENCODE
+                            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "none";
+                            document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "none";
+                        /*} else {
+                            document.getElementById('amlPageId:formId:amlPageBlock:buttons:bottom:addId').style.display = "inline-block";
+                            document.getElementById('amlPageId:formId:amlPageBlock:buttons:addId').style.display = "inline-block";
+                        }*/
+
+                        //Added by DYU 04-20-15 Decect 896 - Assign validation classes to ID Number on load 
+                        if(document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___Identification__c").value == 'NZ Driver Licence'){
+                         document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___ID_No__c").className = "NZDriverLicenceMinlength8 isNZDriverLicense";
+                        }
+                    }
+                }    
+            }
+            
+            // Default Electronic onload
+            document.getElementById(pullVeriTypeId()).value = 'Electronic';
+            verifyVisibility('Electronic');
+        }   
+
+        function setRequiredBars(){
+          var primaryId = document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:AML__c___Identification__c");
+          
+          if('{!isNZ}' == 'true'){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlock2";
+          }
+          
+          if(primaryId.value == "Driving Licence"
+            || primaryId.value == "Learning Permit"
+            || primaryId.value == "Proof of Age"
+            || primaryId.value == "Pension Card"
+            || primaryId.value == "WA Driver Licence"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "Centrelink Statement"
+            || primaryId.value == "ATO Assessment Notice"
+            || primaryId.value == "Rates Notice"
+            || primaryId.value == "Utility Bill"
+            || primaryId.value == "Insurance - Home and Contents OR Comprehensive Motor Vehicle"
+            || primaryId.value == "Electoral Roll Confirmation Letter"
+            || primaryId.value == "Birth Certificate"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlock2";
+          }else if(primaryId.value == "AUS Passport" || primaryId.value == "Overseas Passport"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+            if('{!isNZ}' == 'true'){
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlock2";
+            }
+          }else if(primaryId.value == "AUS Passport"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "NZ Driver Licence"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idVersion").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "NZ Passport" || primaryId.value == "NZ Firearms Licence"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idVersion").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "Australia/Cook Islands/Tokelau/Niue Passport"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idVersion").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "NZ Birth Certificate" || primaryId.value == "NZ Certificate of Citizenship"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idVersion").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "Other"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idVersion").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+          }else{
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issuer").className = "requiredBlocknull";
+            if('{!isNZ}' == 'true'){
+                document.getElementById("amlPageId:formId:amlPageBlock:AML__c-1:issueState").className = "requiredBlocknull";
+            }
+          }
+        }
+        function setRequiredBars2(){
+          var primaryId = document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:AML__c___Identification__c");
+          if(primaryId.value == "Driving Licence"
+            || primaryId.value == "Learning Permit"
+            || primaryId.value == "Proof of Age"
+            || primaryId.value == "Pension Card"
+            || primaryId.value == "WA Driver Licence"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueState").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "Centrelink Statement"
+            || primaryId.value == "ATO Assessment Notice"
+            || primaryId.value == "Rates Notice"
+            || primaryId.value == "Utility Bill"
+            || primaryId.value == "Insurance - Home and Contents OR Comprehensive Motor Vehicle"
+            || primaryId.value == "Electoral Roll Confirmation Letter"
+            || primaryId.value == "Birth Certificate"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issuer").className = "requiredBlock2";
+          }else if(primaryId.value == "AUS Passport" || primaryId.value == "Overseas Passport"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "SuperGold card with Photo"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issuer").className = "requiredBlocknull";
+          }
+          else{
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-2:issuer").className = "requiredBlocknull";
+          }
+        }
+        function setRequiredBars3(){
+          var primaryId = document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:AML__c___Identification__c");
+          if(primaryId.value == "Driving Licence"
+            || primaryId.value == "Learning Permit"
+            || primaryId.value == "Proof of Age"
+            || primaryId.value == "Pension Card"
+            || primaryId.value == "WA Driver Licence"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueState").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issuer").className = "requiredBlocknull";
+          }else if(primaryId.value == "Centrelink Statement"
+            || primaryId.value == "ATO Assessment Notice"
+            || primaryId.value == "Rates Notice"
+            || primaryId.value == "Utility Bill"
+            || primaryId.value == "Insurance - Home and Contents OR Comprehensive Motor Vehicle"
+            || primaryId.value == "Electoral Roll Confirmation Letter"
+            || primaryId.value == "Birth Certificate"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issuer").className = "requiredBlock2";
+          }else if(primaryId.value == "AUS Passport" || primaryId.value == "Overseas Passport"){
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:idNo").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:expDate").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueCountry").className = "requiredBlock2";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issuer").className = "requiredBlocknull";
+          }
+          else{
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:idNo").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:expDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueState").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueCountry").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issueDate").className = "requiredBlocknull";
+            document.getElementById("amlPageId:formId:amlPageBlock:AML__c-3:issuer").className = "requiredBlocknull";
+          }
+        }
+
+        setRequiredBars();
+        setRequiredBars2();
+        setRequiredBars3();
+        //MLASALA 08-SEPT-2016 Stored XSS Code Scan fix
+        displaySection('{!JSENCODE(applicnt.Verification_Method__c)}');
+    
+        //BEGIN MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT 
+        function verifyMethod(){
+            document.getElementById('amlPageId:formId:loaderId').style.visibility='visible';
+            verifyAMLCallout();
+        }
+        
+        function redirectMethod(){
+            document.getElementById('amlPageId:formId:loaderId').style.visibility='visible';
+            setInterval('redirectHome();', 10000);
+        }
+        //END MLASALA: 23-SEPT-15 - ASYNC TO SYNC CALL OUT 
+    </script>
+    
+</apex:page>

@@ -1,0 +1,140 @@
+<apex:page renderas="PDF" standardController="Promotions__c">
+
+<table border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+        <tr>
+            <td width="699" colspan="2" style="width:524.5pt;border:solid white 1.0pt; border-bottom:solid white 2.0pt;padding:0in 5.4pt 0in 5.4pt">
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputLabel style="font-size:24.0pt;font-family:sans-serif;color:black;"  >
+                        {!Promotions__c.Promotion_Group_Account_Name__c}
+                    </apex:outputLabel>
+                </p>
+            </td>
+        </tr>    
+        <tr>
+            <td width="699" colspan="2" style="width:524.5pt;border:solid white 1.0pt; border-bottom:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt">
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputLabel style="font-size:34.0pt;font-family:sans-serif;color:white;"  >
+                        {!Promotions__c.Name}
+                    </apex:outputLabel>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="699" colspan="2" style="width:524.5pt;border-top:none;border-left:solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in; margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputText value="{0,date,dd MMMMM - }" style="font-size:28.0pt;font-family:sans-serif; color:white">
+                        <apex:param value="{!Promotions__c.Start_Date__c}" /> 
+                    </apex:outputText>
+                      
+                    <apex:outputText value="{0,date,dd MMMMM  yyyy}" style="font-size:28.0pt;font-family:sans-serif; color:white">
+                        <apex:param value="{!Promotions__c.End_Date__c}" />
+                    </apex:outputText>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="208" style="width:155.95pt;border-top:solid white 1.0pt;border-left:solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt; background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in; margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputLabel escape="false" style="font-weight:bold; font-size:22.0pt;font-family:sans-serif;color:white"> 
+                        Promotion
+                    </apex:outputLabel>
+                </p>
+            </td>
+            <td width="491" style="width:368.55pt;border:solid white 1.0pt;border-left:none;background:#D3DFEE;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputText value="{0, number,###,###,##0}" style="font-size:28.0pt;font-family:sans-serif; color:#1F497D">
+                        <apex:param value="{!Promotions__c.Term_Value__c}" />
+                    </apex:outputText>
+
+                    <apex:outputLabel escape="false" style="font-size:28.0pt;font-family:sans-serif;color:#1F497D">
+                       {!Promotions__c.Term_Period__c} <br/>
+                        {!Promotions__c.Promotion_Type__c}
+                    </apex:outputLabel>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="208" style="width:155.95pt;border-top:solid white 1.0pt;border-left: solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt; background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                     <apex:outputLabel style="font-weight:bold; font-size:22.0pt;font-family:sans-serif;color:white">
+                         Categories
+                     </apex:outputLabel>
+                </p>
+            </td>
+            <td width="491" style="width:368.55pt;border-top:none;border-left:none; border-bottom:solid white 1.0pt;border-right:solid white 1.0pt;background:#A7BFDE;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputLabel style="font-size:28.0pt;font-family:sans-serif;color:#1F497D" >
+                        {!Promotions__c.Product_Categories__c}
+                    </apex:outputLabel>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="208" style="width:155.95pt;border-top:solid white 1.0pt;border-left:solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal">
+                    <apex:outputLabel style=" font-weight:bold; font-size:22.0pt;font-family:sans-serif;color:white">
+                         Minimum Purchase 
+                    </apex:outputLabel>
+                </p>
+            </td>
+            <td width="491" style="width:368.55pt;border-top:none;border-left:none;border-bottom:solid white 1.0pt;border-right:solid white 1.0pt;background:#D3DFEE;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputText value="{0, number,$###,###,##0}" style="font-size:28.0pt;font-family:sans-serif; color:#1F497D">
+                        <apex:param value="{!Promotions__c.Minimum_Purchase__c}" />
+                    </apex:outputText>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="208" style="width:155.95pt;border-top:solid white 1.0pt;border-left:solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputLabel style="font-weight:bold;font-size:22.0pt;font-family:sans-serif;color:white;" >
+                        Merchant Service Free
+                    </apex:outputLabel>
+                    <br/>
+                    <apex:outputLabel style="font-size:16.0pt;font-family:sans-serif;color:white">
+                        (including GST)
+                    </apex:outputLabel>
+                </p>
+            </td>
+            <td width="491" style="width:368.55pt;border-top:none;border-left:none;border-bottom:solid white 1.0pt;border-right:solid white 1.0pt;background:#A7BFDE;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal" >
+                    <apex:outputText escape="false" value="{!Promotions__c.MSF__c}%" style="font-size:28.0pt;font-family:sans-serif; color:#1F497D">
+                        
+                    </apex:outputText>                   
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td width="208" style="width:155.95pt;border:solid white 1.0pt;border-right:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt">
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal">
+                    <apex:outputLabel style="font-weight:bold; font-size:22.0pt;font-family:sans-serif;color:white"> 
+                        Channels
+                    </apex:outputLabel>
+                </p>
+            </td>
+            <td width="491" style="width:368.55pt;border-top:none;border-left:none;border-bottom:solid white 1.0pt;border-right:solid white 1.0pt;background:#D3DFEE;padding:0in 5.4pt 0in 5.4pt" >
+                <p align="center" style="margin-top:7.0pt;margin-right:0in;margin-bottom:7.0pt;margin-left:0in;text-align:center;line-height:normal">
+                    <apex:outputLabel style="font-size:28.0pt;font-family:sans-serif;color:#1F497D">
+                        {!Promotions__c.Channels__c}
+                    </apex:outputLabel>
+                </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<table style="margin-top:50px;">
+    <tr >
+        <td width="491" style="width:200pt;border-top:solid white 1.0pt;border-left:solid white 1.0pt;border-bottom:none;border-right:solid white 3.0pt;background:#3B73B9;padding:0in 5.4pt 0in 5.4pt" >
+            <apex:outputLabel escape="false" style="font-weight:bold; font-size:14.0pt;font-family:sans-serif;color:white"> 
+                Questions?
+                Contact your Account Manager or <br/>
+                call 1300 361 921
+            </apex:outputLabel>
+        </td>
+        <td><apex:image id="theImage" value="{!$Resource.GE_Cards}" /></td>
+    </tr>
+</table>
+</apex:page>

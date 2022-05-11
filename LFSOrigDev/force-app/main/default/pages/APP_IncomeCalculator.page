@@ -1,0 +1,11 @@
+<apex:page controller="APP_IncomeCalculator">
+    <apex:form >
+        <apex:pageBlock title="Income Calculator">
+            <c:APP_ProofIncomeDetail_INT Id="incomeCalculator"
+            fromCalculatorPage="true"
+            icVarList="{!icList}"
+            saveFiredVar="false" pageCounterVar="1"
+            recordTypeVar="AU"></c:APP_ProofIncomeDetail_INT>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,765 @@
+<!-- 
+ * @Description: Customer UI File Upload
+ * @Author: Adrian Recio
+ * @Date Created: 18/3/2014
+ * @History:
+ * Modified Lavanya Kavuri 29/04/2015 - Added the productId variable for the hidden input field.
+ * Modified Adrian Recio 13/08/2015 - (PMIHM - 1729,PMIHM - 1104) Full page revision to support document preview, bulk upload, layout changes, document queue to allow multiple document selection, client validations, and convert file upload method to http post. Document preview and queue for bulk upload capability is implemented using jQuery Multiple File Upload Plugin v1.48 api. This jquery library is a share/free ware from Fyneworks.com with MIT License.
+ -->
+<apex:page standardController="Application__c"  extensions="APP_CustomerUIFileUpload_Ext" sidebar="false" showHeader="false" id="fileUploadId" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" cache="false">
+<apex:includeScript value="{!$Resource.jQuery11}" />
+<apex:includeScript value="{!$Resource.multiFileSelectPlugin}" />
+<apex:includeScript value="{!URLFOR($Resource.bootstrapstaffui, '/bootstrap/js/bootstrap.min.js')}" />
+
+    <!-- Modal -->
+  <div class="modal fade" id="myModal">
+   <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Upload Error</h4>
+      </div>
+      <div class="modal-body">
+        <p Id="modal-TxtMsg"></p>
+      </div>
+      <div class="modal-footer">
+          
+        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+          <!--
+        <button type="button" class="btn btn-primary">Save changes</button>
+		-->      
+		</div>
+    </div><!-- /.modal-content -->
+   </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+    
+<apex:composition template="{!$Site.template}">
+    <apex:define name="GEDDBody">
+        <!-- File upload document preview style classes -->
+         <style>
+             	.modal, .modal.fade.in {
+                    top: 20%; 
+                }
+             	.modal-content{
+             		background:white;
+             	}
+             	
+             	.modal-backdrop {
+                  z-index: -1;
+                }
+             
+              .loanfields {height:150px;}
+
+              .thumbImg {
+                height: 80px;
+                border: 1px solid #000;
+                margin: 0px 5px 0 0;
+              }
+             
+             .thumbDoc {
+                height: 80px;
+                border: 1px solid #000;
+                margin: 0px 5px 0 0;
+              }
+
+             .headerSide{
+                font-size:18px;
+                color: #3B73B9;
+                margin-bottom: 8px;
+             }
+             .uploadSide{
+                border:1px solid #3b73b9;
+                padding-bottom:5px;
+                padding-top: 20px;
+                padding-left: 10px;
+                padding-right:10px;
+                margin-top: 10px;
+                float:left;
+                margin-bottom: 25px;
+             }
+
+             .bottomComp{
+                text-align: justify;
+                border-top:1px solid #3b73b9;
+                padding-top: 5px;
+                padding-bottom: 7px;
+             }
+
+             .uploadSec{
+                margin-bottom: 20px
+             }
+    
+             a.aDisabled { 
+                color:#7c7c7c !important; 
+             }
+
+             a.aSuccess { 
+                color:#339966; 
+                font-size:25px;
+             }
+
+             .disableFSelect{
+                background-color: #e6e6e6 !important;
+             }
+
+             .selectorSize{
+                height:25px !important; 
+                width: 80px !important;
+             }
+
+             .hFontPriority{
+                font-size: 29px !important;
+                line-height: 25px;
+             }
+             
+             .bFontPriority{
+             	font-weight:normal !important;
+             	font-size: 15px !important;
+             }
+
+             .kiwiBtn {  
+                padding-left: 15px !important; 
+             	padding-right: 25px !important; 
+             }
+           
+        </style>
+
+        <!-- Begin main fileupload scripts -->  
+        <script>
+
+        // Set jquery no conflict   
+        $.noConflict();
+
+        // Fire init event here when document finish loading
+        
+        window.onload = function () {      
+            // Add kiwi specific fix for page buttons to 
+            // adjust alignments since button image is not visible
+            if('{!$Site.template}'=='Kiwi_bank_template'){
+                $( '.bFontPriority' ).addClass('kiwiBtn');
+            }
+        }
+        
+
+        // Static Resource Variables
+        var wordLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "wordLogo.jpg")}';
+        var pdfLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "pdfLogo.jpg")}';
+        var genLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "genDocLogo.jpg")}';
+        var tifLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "tifLogo.png")}';
+        var tiffLogoLnk = '{!URLFOR($Resource.fileUploadLogo, "tiffLogo.png")}';
+
+        // Global Variable Declaration
+        var i;              // Current File Index
+        var currFile;       // Current File Object
+        var currIndx;       // Current File Section Index
+        var compList;       // Current List of Input File Components for Submit
+        var currInputFile;  // Current Input File Component
+        var uSuccessCount;  // Total Count of Successful file upload
+        var uFailedCount;   // Total Count of Failed file upload
+        var totalFileCount; // Total File count for upload
+        
+        var hasFConn;		// has failed connection
+        var hasDown;		// Server down flag
+        var hasRetry;       // Retry flag
+        var hasCorrupt;     // Corrupt file flag
+        var hasSupport;     // File not supported flag
+        var hasBig;         // File big flag
+
+        var urlVar="{!fileUploadClass.uploadEndPoint}";        // File upload endpoint URL
+        var hasFEnabled = false;							   // Finish button status
+
+        /* Description: Initialize file upload global variables.
+        				Flush previews upload values.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: 
+         *  Return: 
+         */
+        function initUpload(indxVar){
+            if(urlVar==''){
+                $('#modal-TxtMsg').text('File upload server is currently not available. Please contact your administrator.');
+				$('#myModal').modal('show');
+                window.scrollTo(0, 0);
+                //alert('File upload server is currently not available. Please contact your administrator.');
+                return false;
+            }
+            
+            hasFConn = false;
+            hasDown = false;
+            hasRetry = false;
+            hasCorrupt = false;
+            hasSupport = false;
+            hasBig = false;
+            totalFileCount=0;
+            uSuccessCount=0;
+            uFailedCount=0;
+            i=0;
+            currIndx=indxVar;
+            pullFCompList(indxVar,i);
+        }
+
+         /* Description: Method to pull file name based on fake directory.
+                         Using the value property of inputfield only displays the
+                         fake directory with the actual filename. This method uses
+                         it to pull the actual file name. Browser standards doesn't 
+                         expose file directory. 
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: original file name
+         *  Return: short hand file name string
+         */
+        function genFileName(fileValue){
+             var fullPath = fileValue.value;
+             if (fullPath) {
+                 var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+                 var filename = fullPath.substring(startIndex);
+                 if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+                     filename = filename.substring(1);
+                     return filename;
+                 }
+             }
+             return null;
+         }
+
+        /* Description: On click of upload, make loader visible and empty file upload msg.
+                        Disable all input components.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: section indx
+         *  Return: NA
+         */
+        function showLoaderBulk(indx){
+            $("#uploadMsg" + indx).text('');
+            $('input').prop('disabled', true);
+            $('.mainFInput').addClass('disableFSelect');
+            $('a').addClass('aDisabled');
+            $('a').css("pointer-events", "none");
+            document.getElementById('showLoading' + indx).style.display = "block";
+        }
+        
+        /* Description: On complete of upload, make loader hidden and empty file upload msg.
+                        Enable all input components.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: section indx
+         *  Return: NA
+         */
+        function hideLoaderBulk(indx){
+            document.getElementById('showLoading' + indx).style.display = "none";
+            $('input').not('input[Id="' + getFinishBtnId() + '"]').prop('disabled', false);
+            $('.mainFInput').removeClass('disableFSelect');
+            $('a').removeClass('aDisabled');
+            $('a').css("pointer-events", "auto");
+            // Enable finish button if there is at least on successful upload
+            if(uSuccessCount>0 || hasFEnabled == true){
+                enableFinishBtn();
+            }
+        }
+
+        /* Description: Method to pull all input file components valid for upload.
+                        List will remove all empty input files.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: currend section index, current file index
+         *  Return: short hand file name string
+         */
+        function pullFCompList(currIndx,i){
+            compList = $( "input[Id^='files" + currIndx + "']"  );
+            var nullIndx;
+            for(indx = 0; indx<compList.length; indx++){
+                if(compList[indx].files[0]==null){
+                    nullIndx = indx;
+                    break;
+                }
+            }
+            compList.splice(nullIndx, 1);
+            totalFileCount = compList.length;
+            if(totalFileCount==0){
+                $('#modal-TxtMsg').text('Please select at least one file for upload.');
+				$('#myModal').modal('show');
+                window.scrollTo(0, 0);
+                //alert('Please select at least one file for upload.');
+            }else{
+                // Main Upload method
+                processUpload(i);
+            }
+        }
+
+        /* Description: Main method to perform UI adjustment for start - end of upload.
+                        Peform file input global variable assignment.
+                        Calls recurrsive method to generate sf related document and upload to server.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: current file list index
+         *  Return: NA
+         */
+        function processUpload(i){
+            if(i<totalFileCount) {
+                showLoaderBulk(currIndx);   // Show Loader
+                var genFileNameVar = genFileName(compList[i]);  // Genearte File Name                               
+                currInputFile = compList[i];    // Assign component to global variable 
+                currFile = compList[i].files[0];    // Assign file value to global variable
+
+                sendUploadedFile(genFileNameVar,false); // Recursive method to perform post to file upload server
+            }else{
+                hideLoaderBulk(currIndx);   // Hide Loader
+            }
+        }
+
+        /* Description: Recursive method to perform sf related docu generation and server post 
+                        to perform the actual upload containing file data and details linked to the 
+                        generated sf record.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: generated file name, flag that determines event type
+         *  Return: 
+         */
+        function sendUploadedFile(genFileNameVar,fLoadTurn){
+                if(fLoadTurn==false){
+                    insertRelatedDocument(genFileNameVar,$('#docType' + currIndx).val(),$('#docCategory' + currIndx).val());
+                }else if(currFile!=null){
+                    //https://fileupload-perftest.au.money.ge.com/fileupload/income/salesforceRequest  
+                    var urlVar = "{!fileUploadClass.uploadEndPoint}"; 
+                    var file = currFile;
+                    var xhr = new XMLHttpRequest();                                      
+                    var intCompId = currInputFile.getAttribute("Id");
+                    var connHandler = function(){
+                        //alert('Related Document Id:' + document.getElementById('sfDocId').value);
+                        //alert('Status:' + this.status);
+                        //alert('Response Text:' + this.responseText);
+                        if(this.status==200){
+                            uSuccessCount++;
+                            $( "#thumb" + intCompId).text( "✔" ).addClass('aSuccess');
+                            $("#thumb" + intCompId).removeClass('MultiFile-remove');
+                            $( "#" + intCompId).remove();
+                        }else if(this.status==0){
+                            uFailedCount++;
+                        	deleteRelatedDocument(document.getElementById('sfDocId').value);
+                            hasFConn = true;
+
+                            // Reset all flags and stop call if at least on 
+                            // file failed because of server connection error.
+                            i=totalFileCount-1;
+                            uFailedCount = totalFileCount - uSuccessCount;
+                        }else{
+                            uFailedCount++;
+                            // Clear related document
+                            deleteRelatedDocument(document.getElementById('sfDocId').value);
+                            // Set at least one retry flag
+                            if(this.status==209){
+                                hasRetry = true;
+                            }
+
+                            // Set at least one corrupt
+                            if(this.status==222 ){
+                                hasCorrupt = true;
+                            } 
+
+                            // Set at least one file too big
+                            if(this.status==220 ){
+                                hasBig = true;
+                            } 
+
+                            // Set at least one file not supported
+                            if(this.status==221 ){
+                                hasSupport = true;
+                            } 
+                            
+                            // Server not available
+                            if(this.status==503 ){
+                                hasDown = true;
+                            } 
+                        }
+
+                        if(i==(totalFileCount-1)){
+                            var successP = '';
+                            var currSCountVar = $("#successCount" + currIndx).val();
+                            var newSTotal = 0;
+
+                            if(currSCountVar!=""&&currSCountVar!=null){
+                                newSTotal = parseInt(currSCountVar) + parseInt(uSuccessCount);
+                            }else{
+                                newSTotal = parseInt(uSuccessCount);
+                            }
+
+                            $("#successCount" + currIndx).val(newSTotal);
+
+                            if(newSTotal>1){
+                                successP = 's';
+                            }
+     
+                            if(uFailedCount>0){
+                                $( "#uBtnSpan" + currIndx  ).children().prop('value', 'Retry');
+                            }else{
+                                $( "#uBtnSpan" + currIndx  ).children().prop('value', 'Upload');
+                            }
+
+                            var failAddMsg = '';
+
+                            // Updated by: Adrian Recio
+                            // Change Description: Updated fail messaging for connection, server, and retry fail.
+                            // Change Date: 31/08/2015
+
+                            // Assign right message depending on response code
+                            if(hasFConn){
+                            	//failAddMsg = 'Server connection currently unavailable.';
+                                //failAddMsg = 'Unfortunately a system error has occurred. We are unable to process your document upload at this time. We 
+                                //apologise for any inconvenience caused.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            } else if(hasDown){
+                            	//failAddMsg = 'File upload server currently unavailable.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            }else if(hasRetry){
+                                //failAddMsg = 'Upload fail. Please try again later.';
+                                failAddMsg = 'A system error has occurred, please try again.';
+                            }else if(hasCorrupt){
+                                failAddMsg = 'Your document is corrupted. Please use another document.';
+                            }else if(hasBig){
+                                failAddMsg = 'Your document is larger than 10MB. Please use a smaller document.';
+                            }else if(hasSupport){
+                                failAddMsg = 'Your document file format is unsupported. Please use another document.';
+                            }
+
+                            var errorTextVar = newSTotal + ' file' + successP + ' successfully uploaded and ' + uFailedCount + ' failed' + '. ' + failAddMsg;
+                            $("#uploadMsg" + currIndx).text(errorTextVar); 
+
+                            // Redirect to main upload method
+                            i=i+1;
+                            processUpload(i);
+                        }else{
+                            // Fire next file for upload
+                            i=i+1;
+                            processUpload(i);
+                        }
+                    }// End on load method
+                    
+                    // Assign success function
+                    xhr.onload = connHandler;
+                    // Assign error function  
+                    xhr.onerror = connHandler;
+                    
+                    xhr.file = file; 
+                    xhr.open('post', urlVar, true);
+                    
+                    var formData = new FormData();
+                    formData.append("firstName", document.getElementById('fnameId').value);
+                    formData.append("lastName", document.getElementById('lnameId').value); 
+                    formData.append("appNum", document.getElementById('appNumId').value); 
+                    formData.append("timestamp", document.getElementById('timeId').value);
+                    formData.append("product", document.getElementById('prodId').value); 
+                    formData.append("sfDocId", document.getElementById('sfDocId').value);
+                    formData.append("file", file);
+                    
+                    try{
+                        xhr.send(formData);  
+                    }catch(e){
+                        $("#uploadMsg" + currIndx).text('Error with upload page. Please contact your administrator.');
+                        // Clear related document
+                        deleteRelatedDocument(document.getElementById('sfDocId').value);
+                    } 
+
+                    // Fire processUpload method here if concurrent upload is necessary.
+                    // Upload is currently performed in a queued approach to minimize callout traffic
+                }
+        }
+
+        /* Description: Method that performs upload validation on click of finish button.
+                        Validation ensures that there are no pending uploads before clicking finish.
+         *  Author: Adrian Recio
+         *  Date Created: 08-AUG-2015
+         *  Param: NA
+         *  Return: NA
+         */
+        function validateUpload(){
+            var removeCompList = $(".MultiFile-remove");
+            if(removeCompList.length>0){
+                $('#modal-TxtMsg').text("Please check that all selected documents have been uploaded before finishing.");
+				$('#myModal').modal('show');
+                window.scrollTo(0, 0);
+                //alert("Please check that all selected documents have been uploaded before finishing.");
+            }else{
+                redirectToCompletePage();
+            }
+         }
+
+         /*  Description: Function used for the header buttons "Save Application" & "Logout"
+          *  Author: Jade Serrano
+          *  Date Created: 06-MAY-2014
+          *  Input: None
+          *  Return:
+          */
+         function headerButtons(action){
+            if(action == 'logout'){
+                //action function
+                headerLogout();
+            }
+         }
+     </script>
+
+          <section>
+          <!--header-->
+          <header>
+              <div id="header" class="header">
+                  <div class="row-fluid header-inner headerlogovr">
+                      <div class="mobilell">
+                          <div class="loginlogout span4 fright removelmargin helplogindesk">
+                              <apex:pageBlock id="pageBlockId">
+                                  <div class="span5 fright">
+                                      <apex:form id="headerform">
+                                          <apex:actionFunction name="headerLogout" action="{!logout}"/>
+                                          <apex:commandButton value="{!$Label.CUI_header_logout}" styleClass="btn btn-block btn-normalc buttonarrowimg" onClick="headerButtons('logout')" rendered="{!isRegistered}" rerender="false"/>
+                                      </apex:form>
+                                  </div>
+                              </apex:pageBlock>
+                          </div>
+                      </div>
+                  </div><!-- header-inner -->
+              </div><!-- row-fluid -->
+              <div class="divider10"></div>
+          </header>
+          <!--header end-->
+
+             <div class="maincontent">
+                <div class="row-fluid">
+                    <div class="row-fluid span12 loanfields">
+                        <div class="tablemainlist llfields" id="addfields">
+                        
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="clearfix"></div>   
+                </div>
+            </div>
+            
+            <div class="maincontent sidebar-left">
+                <div class="row-fluid">
+                
+                    <!-- sidebar -->
+                    <div class="span4 earlyfull sidebar dashboardarea dbshow">
+                        <apex:form >
+                            <!-- Sidebar -->
+                            
+                            <c:GEDDSidebar responseCode="{!responseCodeControlType}"/>
+                            
+                            
+                        </apex:form>
+
+                        <div class="uploadSide">
+
+                                <div class="uploadSec">
+                                <h2 class="headerSide">Upload your documents</h2>
+                               
+                                    <apex:outputText >
+                                            <span>Use the upload button to upload each document required. 
+                                            We recommend uploading all documents in the one session.</span>
+                                    </apex:outputText>
+                                </div>    
+                                    
+                                    
+                                <div class="uploadSec">
+                                <h2 class="headerSide">When you're finished</h2>
+                                    
+                                    <apex:outputText >
+                                            <span>Click the Finish button to send us your documents. 
+                                                  We'll review them as soon as possible and will let you know 
+                                        		  when your loan contract is ready for you to accept.</span>
+                                    </apex:outputText>
+                                  
+                                
+                                </div>
+                                <div class="uploadSec">
+                                <h2 class="headerSide">Would you like help?</h2>
+                                  
+                                    <apex:outputText >
+                                            <span>Call {!brand.Contact_Number__c} and quote reference number
+                                            {!application.UID__c} if you have any questions.</span>
+                                    </apex:outputText>
+                                </div>
+
+                                <div class="bottomComp">
+                                    <span> Upload your documents here anytime. The document formats we accept are: gif, png, jpg, jpeg, tif, tiff, bmp, doc, docx, pdf, and the maximum file size for each file is 10mb each </span>
+                                </div>
+                       </div>
+                    </div><!-- span3 sidebar -->
+
+                 
+                            
+                     
+                    <!-- column -->
+                    <div class="span8 earlyfull sidebar defaultpage">
+                        <apex:form enctype="multipart/form-data">
+
+                                 <!-- Insert Related Document to sf which values will be passed to ge -->
+                                 <!-- file upload server including the customer file via ajax post-->
+                                <apex:actionFunction name="insertRelatedDocument" action="{!fileUploadClass.insertRelatedDocument}" id="insertRelatedDocument" 
+                                                     rerender="scriptPanel" oncomplete="sendUploadedFile(null,true);">
+                                     <apex:param assignto="{!fileUploadClass.title}" name="title" value=""/>
+                                     <apex:param assignto="{!fileUploadClass.type}" name="type" value=""/>
+                                     <apex:param assignto="{!fileUploadClass.category}" name="category" value=""/>
+                                 </apex:actionFunction> 
+
+                                 <!-- Delete related document record based on delRelId param -->
+                                 <apex:actionFunction name="deleteRelatedDocument" rerender="false" action="{!fileUploadClass.deleteRelatedDocument}">
+                                     <apex:param assignto="{!fileUploadClass.delRelId}" name="delRelId" value=""/>
+                                 </apex:actionFunction> 
+
+                                 <!-- Redirect to Application complete page -->
+                                <apex:actionFunction name="redirectToCompletePage" rerender="false" action="{!redirectToCompletePage}"/>
+
+                                <div Id="mainBlock">
+                                    <div >
+                                        <h2 class="hFontPriority">Upload Documents</h2>
+                                    </div>
+                                    
+                                    <apex:outputPanel >
+                                        <apex:outputPanel layout="block"> 
+                                            <apex:variable var="currentIndex" value="{!0}"/>
+                                            <apex:repeat value="{!rdMainList}" var="rdVar" >
+                                                <!-- Doc Type Hidden Parameter -->
+                                                <input Id="docType{!currentIndex+1}" value="{!rdVar.Document_Type__c}" type="hidden"/>
+                                                <!-- Category Hidden Parameter -->
+                                                <input Id="docCategory{!currentIndex+1}" value="{!rdVar.Category__c}" type="hidden"/>
+                                                <!-- Total Upload Count Hidden Parameter -->
+                                                <input Id="successCount{!currentIndex+1}" type="hidden"/>
+
+                                                 <div class="bordertb">    
+                                                         <apex:outputPanel layout="block" style="{!IF(rdVar.Document_Type__c == 'Workers Compensation Statement', 'height:50px', 'height:40px')}">
+                                                                <h3>
+                                                                    <apex:outputText value="{!rdVar.Document_Type__c}"/> 
+                                                                </h3>
+                                                         </apex:outputPanel>                                              
+                                                         <apex:outputPanel layout="block" style="padding-left:20px;">
+                                                            
+                                                            <apex:outputPanel layout="block">
+                                                                <li>
+                                                                    <apex:outputText value="{!IF(rdVar.Applicant__c!=null,rdVar.Applicant__r.First_Name__c + ' ' + rdVar.Applicant__r.Last_Name__c + ' is required to submit this document.','This document is required for both applicants.')}"></apex:outputText>
+                                                                </li>
+                                                            </apex:outputPanel>
+                                                            
+                                                            <apex:outputPanel layout="block">
+                                                                <li>
+                                                                    <apex:outputText value="{!IF(rdVar.Number_Required__c == '1', rdVar.Number_Required__c + ' copy is required.',rdVar.Number_Required__c + ' copies are required.')}"></apex:outputText>
+                                                                </li>
+                                                            </apex:outputPanel>
+
+                                                            <apex:outputPanel layout="block" rendered="{!IF(rdVar.Description__c!= null,true,false)}">
+                                                                <apex:outputText value="{!(rdVar.Description__c)}" escape="false"></apex:outputText>
+                                                            </apex:outputPanel>
+                                                         </apex:outputPanel>
+                                                     
+                                                        <apex:outputPanel layout="block" style="padding-left:7px;" >
+                                                            <!-- Input File Selector  -->
+                                                            <span style="display: inline-block !important;">
+        
+                                                                <div class="bFontPriority mainFInput fileUpload btn btn-activec" >
+                                                                    <span style="white-space: nowrap;">Select File</span>
+
+                                                                   
+                                                                    <input id="files{!currentIndex+1}" accept="gif|png|jpg|jpeg|tif|tiff|bmp|doc|docx|pdf" style="background-color:red !important;" type="file" class="upload" name="files{!currentIndex+1}[]"/>
+                                                                    
+                                                                </div> 
+                                                           </span>
+   
+                                                            <!-- Upload Button -->
+                                                             <span Id="uBtnSpan{!currentIndex+1}" style="display: inline-block !important;">
+                                                                 <apex:commandButton Id="uploadBtn" value="Upload" onClick="initUpload('{!currentIndex+1}'); return false;" styleClass="bFontPriority btn btn-large btn-reset-m btn-activec buttonarrowimg"/>
+                                                            </span>
+                                                            
+                                                            <!-- Upload Loader -->
+                                                            <span style="display: inline-block;">
+                                                                 <div id="showLoading{!currentIndex+1}" style="display:none;padding-left:20px;text-align:center;font-weight:bold;">
+                                                                    <apex:image url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" />
+                                                                 </div>
+
+                                                            </span>
+                                                        </apex:outputPanel>
+
+                                                        <!-- Upload Message -->
+                                                        <apex:outputPanel layout="block" style="padding-left:20px;" >
+                                                             <b>
+                                                                 <p id="uploadMsg{!currentIndex+1}">
+                                                                 </p>
+                                                             </b>
+                                                         </apex:outputPanel>
+                                                     
+                                                     <apex:outputPanel layout="block" style="padding-left:20px;" >
+                                                         <!-- Empty Div Container that will hold image and document preview --> 
+                                                        <div width="100%" id="list{!currentIndex+1}">
+                                                               
+                                                        </div>
+                                                    </apex:outputPanel>
+                                    
+                                                    <!-- For every file upload component add file plugin property to allow -->
+                                                    <!-- queued document selection and display preview in dev container above -->
+                                                    <script>
+                                                     	
+                                                        $(function(){ // wait for document to load 
+                                                            $('#files{!currentIndex+1}').MultiFile({ list: '#list{!currentIndex+1}' 
+                                                                                                    }); 
+                                                                                                   }); 
+                                                    </script>
+
+                                                 </div>
+                                            <apex:variable var="currentIndex" value="{!currentIndex+1}"></apex:variable>
+                                        </apex:repeat>
+                                    </apex:outputPanel>
+                                    </apex:outputPanel>    
+                                </div>
+                                </apex:form>
+                        
+                       <!-- Panel to hold requested document value result from controller -->
+                       <!-- We are just using a normal controller method that's why this approach is necessary -->
+                       <!-- Existing design doesn't use remote action methods that's why this design is in place -- >
+                       <!-- Time for implementation is limited that's why reusing this existing design is necessary -->
+                       <!-- Future revisions should consider remote action methods to bind controller results with javascript intead of action functions -->
+                       <apex:outputPanel id="scriptPanel">
+                          <input style="display: none;" name="firstName" value="{!fileUploadClass.applicantFirstName}" id="fnameId"/>
+                          <input style="display: none;" name="lastName" value="{!fileUploadClass.applicantLastName}" id="lnameId"/>
+                          <input style="display: none;" name="appNum" value="{!fileUploadClass.applicationUniqueID}" id="appNumId"/>
+                          <input style="display: none;" name="timestamp" value="{!fileUploadClass.getDateStamp}" id="timeId"/>
+                          <!-- Modified by Lavanya Kavuri, 29-04-2015, added the productId, to fix the Bug AML - 1212 -->
+                          <input style="display: none;" name="product" value="{!fileUploadClass.productId}" id="prodId"/>
+                          <input style="display: none;" name="sfDocId" value="{!fileUploadClass.recordIdSaved}" id="sfDocId"/>
+                        </apex:outputPanel>  
+                        
+
+                        <!-- Exit upload button -->
+                        <apex:form >
+                            <apex:outputPanel layout="block" style="height:100px;padding-top:50px;">   
+                                <apex:commandButton Id="finishBtnId" disabled="true" value="Finish" onClick="validateUpload(); return false;" style="float:right;" styleClass="btn btn-large btn-reset-m btn-normalc fright buttonarrowimg"></apex:commandButton>
+
+                                <script>
+                                	/* Description: Getter method for finish button Id
+                                     *  Author: Adrian Recio
+                                     *  Date Created: 08-AUG-2015
+                                     *  Param: NA
+                                     *  Return: NA
+                                     */
+                                	function getFinishBtnId(){
+                                    	return '{!$Component.finishBtnId}'; 
+                                    }
+                                     /* Description: Method to enable finish button. 
+                                                     Method should be in the same hierarchy with the 
+                                                     finish button component to reference vf generated Id.
+                                     *  Author: Adrian Recio
+                                     *  Date Created: 08-AUG-2015
+                                     *  Param: NA
+                                     *  Return: NA
+                                     */
+                                    function enableFinishBtn(){
+                                        $('input[Id="' + getFinishBtnId() + '"]').prop('disabled', false);
+                                        hasFEnabled = true;
+                                    }
+                                </script>
+                            </apex:outputPanel>
+                        </apex:form>
+                    </div>
+                </div><!-- row-fluid -->
+            </div><!-- maincontent -->
+        </section><!-- end of main content -->
+</apex:define>
+</apex:composition>
+    
+   
+</apex:page>

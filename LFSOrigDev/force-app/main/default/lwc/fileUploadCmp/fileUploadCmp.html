@@ -1,0 +1,66 @@
+<template>
+    <div class="slds-m-vertical_large">
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2">
+                <div class="slds-box slds-text-align_center">
+                    <lightning-input type="file" label="Attachments" onchange={handleFileChange} class="uploader" multiple></lightning-input>
+                    <!--<div class="slds-p-around_small ">
+                        <button class="slds-button slds-button_brand" onclick={handleUploadDemo} disabled={buttonUploadDisabled}>Upload</button>
+                    </div>-->
+                </div>
+                <div class="fu_description">
+                    <p><b>Accepted file types:</b> PDF, Word Doc, JPG, PNG, GIF, TIFF, TIF, (Max 10MB per file)</p>
+                </div>
+                <!--div class="slds-text-color_error">
+                    <template if:true={fileErrorHasValue}>
+                        <p>{fileErrorText}</p>
+                    </template>
+                </div>-->
+            </div>
+            <template if:true={fileNotEmpty}>
+                <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2">
+                    <div class="slds-box">
+                        <ol>
+                            <template for:each={files} for:item="f" for:index="index">
+                                <div key={f.file.name} class="slds-p-around_medium slds-border_bottom">
+                                    <div class="slds-grid slds-gutters slds-wrap">
+                                        <div class="slds-col slds-size_4-of-5">
+                                            <p>{f.file.name}</p>
+                                        </div>
+                                        <div class="slds-col slds-text-align_center">
+                                            <template if:true={f.success}>
+                                                <lightning-icon icon-name="utility:success" alternative-text="Success!" variant="success" size="small" title="success variant"></lightning-icon>
+                                            </template>
+                                            <template if:true={f.error}>
+                                                <lightning-icon icon-name="utility:error" alternative-text="Error!" variant="error" size="small" title="error variant"></lightning-icon>
+                                            </template>
+                                            <template if:true={f.inQueue}>
+                                                <div class="slds-progress-ring">
+                                                    <div class="slds-progress-ring__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40">
+                                                        <svg viewBox="-1 -1 2 2">
+                                                            <path class="slds-progress-ring__path" d={f.d}></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="slds-progress-ring__content"></div>
+                                                </div>  
+                                            </template>                                    
+                                        </div>
+                                        <template if:true={f.showRemove}>
+                                            <div class="slds-col slds-text-align_center">
+                                                <lightning-button-icon icon-name="utility:delete"  
+                                                alternative-text="Delete" 
+                                                title="Delete" 
+                                                data-keyindex={index} 
+                                                onclick={handleRemoveAttachment}></lightning-button-icon> 
+                                            </div>  
+                                        </template>
+                                    </div>                    
+                                </div>
+                            </template>
+                        </ol>
+                    </div>
+                </div>            
+            </template>            
+        </div>
+    </div>
+</template>

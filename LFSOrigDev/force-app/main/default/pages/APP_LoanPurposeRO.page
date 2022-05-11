@@ -1,0 +1,125 @@
+<apex:page standardController="Application__c" extensions="APP_MainExt" showHeader="false" id="GETheme" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" doctype="html-5.0">
+ 
+         <!--Scripts-->
+        <apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+     
+        <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+            <!--<div class="mainwrapper">-->
+     
+                <section>
+                <apex:form id="mainForm" >
+                    <!--new header for appmain-->
+                   
+                    
+                       
+                        <div class="maincontent ovrpme">
+                            <div class="row-fluid">
+                                <div class="mainalert span12">
+                                    <apex:pageMessages id="error"/>
+                                </div>
+                            </div>
+                        </div> 
+                <!--<div class="divider10"/>-->
+                <div class="headerbanner lp_area_mobile"> <!--Added by MDAVID - 03/16/2016 TQLQW - 104 Rebranding - For Mobile-->
+                    <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_eligibility', 'maincontent lp_area lp_eligibility')}">
+                    <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), '.container-fluid headerbackground', 'row-fluid')}">
+                        <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'lp_area lp_eligibility', 'row-fluid span12 loanfields')}">
+                        <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid', '')}">   
+                                <!-- Start of Content Here -->
+                            <div class="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'row-fluid span12', '')}">
+                                    <div id="addfields" class="tablemainlist llfields width800">
+                                    <div class="headertitle" style="{!if(OR($site.Name = 'Latitude', $site.Name = 'Gem'), 'display:block', 'display:none')}">
+                                        <h3 class="droid-normal dark main-page-header">Personal loan <span class="clearright"></span>application</h3>
+                                    </div>
+                                        <apex:pageBlock id="loanPPageBlock">
+                                            
+                                            <!-- Start Loop-->
+                                            <apex:repeat value="{!loanWrapList}" var="l" id="lw">                                               
+                                                <c:APP_MainSubmitWait l="{!l}" id="component-1"/>
+                                            </apex:repeat>
+                                            <div class="clearfix"></div>
+                                            <!--Added by MDAVID - 02/29/2016 TQLQW - 104 Rebranding-->
+                                            <div class="span12"></div>
+                                            <div class="clearfix"></div>
+                                            <div class="divider5"></div>                                            
+                                        </apex:pageBlock>
+                                    </div><!-- addfields -->
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                </div>
+                            </div>
+                        </div>
+    
+                                
+                                <!-- Commented out by MDAVID - 03/04/2016 TQLQW - 104 Rebranding
+                                <div class="row-fluid">
+                                    <div class="computation">
+                                        <div class="span5 dbtotal">
+                                            <span class="totalname">Total loan amount:</span>
+                                            <span class="total">
+                                                <span class="totalinner">
+                                                    <apex:outputText value="${0, number, ###,###,###,###}" id="Exp_total">
+                                                        <apex:param value="{!totAmount}"/>
+                                                    </apex:outputText> 
+                                                </span>
+                                            </span>
+                                            
+                                        </div>
+                                        <div class="span5 overfield">
+                                            <div class="span4 overyearslabel">
+                                                    <apex:outputLabel >{!$Label.Over} </apex:outputLabel>
+                                            </div>
+                                            <div class="span6 mv_overyears">
+                                                    <apex:outputText value="{!loanTermSelected}"/>  
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    
+                                </div>-->
+                                <div class=".continer-fluid loanamountdiv">
+                                <div class="maincontent">
+                                    <div class="row-fluid">
+                                    <div class="computation">
+                                        <div class="span5 dbtotal">
+                                            <span class="totalname">Total loan amount:</span>
+                                            <span class="total">
+                                                <span class="totalinner">
+                                                    <apex:outputText value="${0, number, ###,###,###,###}" id="Exp_total">
+                                                        <apex:param value="{!totAmount}"/>
+                                                    </apex:outputText> 
+                                                </span>
+                                            </span>
+                                </div>
+                                        <div class="span5 overfield">
+                                            <div class="span4 overyearslabel" style="width: 127px;">
+                                                    <apex:outputLabel >{!$Label.Over} </apex:outputLabel>
+                                            </div>
+                                            <div class="span6 mv_overyears" style="width: 50% !important;">
+                                                    <apex:outputText value="{!loanTermSelected}"/>  
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                        </div><!-- computation -->
+                            </div>
+                        </div><!-- end maincontent -->
+                </div>
+                </div>
+                </div>
+                                <div class="divider30"></div>
+                            <!--</div> -->
+                        <!--</div><!-- end maincontent -->
+                        
+                </apex:form>
+                            
+                    </section>
+                    
+     
+            
+            <!--</div><!-- end mainwrapper -->
+       
+</apex:page>

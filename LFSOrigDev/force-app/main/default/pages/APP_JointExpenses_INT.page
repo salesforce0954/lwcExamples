@@ -1,0 +1,186 @@
+<!--
+/**
+* @Description: Joint Application Expense page (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 20.NOV.2013
+* @History:
+  =====================================================================
+      11-20-13: Created - Mike
+      12-02-13: Applied single set of fields - Mike
+      01-15-14: Refactored to cater single and joint applications - Mike
+      01-29-14: Refactored to cater component
+      02-11-14: Added tab level errors - Mike
+      04-09-15: Updated - Include client side validations - DYU
+   =====================================================================
+ */ 
+-->
+<apex:page id="expensePage" cache="false" standardController="Application__c" extensions="APP_JointExpensesExt_INT" sidebar="false" showHeader="false" title="Expenses">
+<!-- Added by DYU 04-09-15 - JQUERY Validate Plugin -->
+<apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery-2.1.1.min.js')}"/>
+ <script>var jquery1 = jQuery.noConflict( true ); var res = true;</script>
+<apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'jquery.validate.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.jQueryValidatePlugin, 'additional-methods.js')}"/>
+<apex:includeScript value="{!$Resource.jqueryValidateScript}"/>
+
+<apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/staff-ui.css')}"/>
+    
+    <script>
+        function isAlphabeticKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode <= 32 || charCode == 189 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)))
+            return true;
+            
+            return false;
+        }
+        function isCharacterKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode <= 32 || charCode == 189 || charCode == 45 || ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)))
+            return true;
+            
+            return false;
+        }
+        function inputOnlyNumbers(evt){
+            var e = window.event || evt; // for trans-browser compatibility  
+            var charCode = e.which || e.keyCode;  
+            if ((charCode > 47 && charCode < 58) || charCode == 8 || charCode == 45 || charCode == 46){
+                return true;  
+            }  
+            return false;  
+        }
+
+
+        function checkExpenseFields(action){
+            document.getElementById('expensePage:mainForm:redirectTxt').value = action;
+            document.getElementById('expensePage:mainForm:flag').value = false;
+            validateExpense();
+        }
+        
+        function isNumberKey(evt, field) {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57)){
+                return false;
+            }
+            if(charCode == 8){
+                return true;
+            }
+            if(charCode == 46){
+                return false;
+            }
+            else{
+                return true;
+            }
+        }
+        
+        function isNumberKeyWithPlus(evt, field){
+            var charCode = (evt.which) ? evt.which : event.keyCode
+            if (charCode != 43 && charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+
+        //Added by DYU 04-09-15 - Function after client side validations has been triggered
+        function checkApp(val){
+            //save or next button
+            if(res && (val == 'Save' || val == 'Next')){
+                checkExpenseFields(val);
+            }else{
+                document.getElementById('expensePage:mainForm:expensePageBlock:loadingGif').style.visibility='hidden'
+            }
+            //enable save and next button
+            if(val == 'Next')
+                document.getElementById('expensePage:mainForm:expensePageBlock:nextBtn').disabled = false;
+            //enable save button
+            if(val == 'Save'){
+                
+                document.getElementById('expensePage:mainForm:expensePageBlock:saveBtn').disabled = false;            
+            }
+        }       
+    </script>
+    
+    <div>
+        <apex:actionStatus id="pleasewait" layout="block">
+            <apex:facet name="start">
+                <img src="{!$Resource.LoadingDialog}" />
+            </apex:facet> 
+        </apex:actionStatus>
+    </div>
+    
+    <apex:form id="mainForm" styleClass="validateLoanForm">
+        
+        <apex:inputHidden id="flag"/>
+        <apex:inputHidden id="redirectTxt" value="{!redirectTo}"/>
+        
+        <apex:actionFunction name="validateExpense" action="{!pageRedirect}" rerender="expensePageBlock" />
+
+        <apex:actionFunction name="getTotalExpense" action="{!recomputeTotalExpense}" rerender="totalExpenseId"/>
+        
+        <apex:pageBlock id="expensePageBlock" title="Expenses">
+            
+            <apex:pageMessages />
+            
+            <apex:tabPanel id="tabPanelId" switchType="client" styleClass="subtabBlue stui_JE">
+            
+                <apex:tab label="Applicant 1" name="applicant1Tab">
+                    <apex:outputPanel id="expense1">
+                        <apex:pageblocksection id="Expense__c-1" columns="1">
+                            <c:APP_JointExpense_INT expenseWrapper="{!expenseWrapper}" jointIndicator="{!isJoint}" country="{!brand.Country__c}" id="component-1"/>
+                        </apex:pageblocksection>
+                    </apex:outputPanel>
+                </apex:tab> 
+                
+               <!-- <apex:tab label="Applicant 2" name="applicant2Tab" rendered="{!applicantList.size>1}">
+                    <apex:outputPanel id="expense2">
+                        <apex:pageblocksection id="Expense__c-2" columns="1">
+                            <c:APP_JointExpense_INT expenseWrapper="{!expense2Wrapper}" jointIndicator="{!isJoint}" country="{!brand.Country__c}" id="component-2"/>
+                        </apex:pageblocksection>
+                    </apex:outputPanel>
+                </apex:tab> -->
+                
+            </apex:tabPanel>
+            
+            <div align="center">
+                <div>
+                        <div align="center">
+                            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" style="visibility:hidden;"/>
+                        </div>
+                        <apex:actionStatus id="status2">
+                            <apex:facet name="stop">
+                                <apex:commandButton value="Save & Next" id="nextBtn" styleClass="btnSubmitLoan" rendered="{!IF(Mode == 'Edit', false, true)}" rerender="false" onclick="document.getElementById('expensePage:mainForm:expensePageBlock:loadingGif').style.visibility='visible'; this.disabled='true';" onComplete="checkApp('Next'); return false;" status="status2"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandButton value="Processing..." disabled="true"/>
+                            </apex:facet>                         
+                        </apex:actionStatus>                   
+                        <apex:actionStatus id="status">
+                            <apex:facet name="stop">
+                                <apex:commandButton value="Save & Close" styleClass="btnSubmitLoan" rerender="false" id="saveBtn" onclick="document.getElementById('expensePage:mainForm:expensePageBlock:loadingGif').style.visibility='visible'; this.disabled='true';" onComplete="checkApp('Save'); return false;;" status="status"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandButton value="Saving..." disabled="true"/>
+                            </apex:facet>                         
+                        </apex:actionStatus>                        
+                        <apex:actionStatus id="status4">
+                            <apex:facet name="stop">
+                                <apex:commandButton value="Back" id="backBtn1" oncomplete="checkExpenseFields('Back');" reRender="status4" status="status4" onclick="document.getElementById('expensePage:mainForm:expensePageBlock:loadingGif').style.visibility='visible'"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandButton value="Processing..." disabled="true"/>
+                            </apex:facet>                         
+                        </apex:actionStatus>
+                        <apex:actionStatus id="status3">
+                            <apex:facet name="stop">
+                                <apex:commandButton value="Cancel" id="closeBtn" reRender="status3" status="status3" onclick="document.getElementById('expensePage:mainForm:expensePageBlock:loadingGif').style.visibility='visible'" oncomplete="checkExpenseFields('Cancel');"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandButton value="Cancelling..." disabled="true"/>
+                            </apex:facet>                         
+                        </apex:actionStatus>
+                    </div>
+            </div>
+            
+        </apex:pageBlock>
+        
+    </apex:form>
+    
+</apex:page>

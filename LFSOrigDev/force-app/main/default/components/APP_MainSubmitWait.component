@@ -1,0 +1,62 @@
+<!--
+/**
+* @Description: Loan Purpose component (Staff UI)
+* @Author: Mike Lasala
+* @Date Created: 31.JAN.2014
+* @History:
+  =====================================================================
+      01-31-14: Created - Mac
+  =====================================================================
+ */ 
+-->
+<apex:component controller="APP_LoanPurpose" id="Loan_Purpose__c-mycomponent">
+    
+    <apex:attribute name="l" description="This is the value for the component." type="LoanWrapper" required="true"/>
+    
+    <!-- First row -->
+    <div class="span12">
+        <apex:outputPanel id="multipleLoanPurposePanel">
+
+            <div class="minusplusicon"><!-- container for minus icon --></div>
+            
+            <div class="pllabel"><!-- container for label -->
+                <label style="font-weight: 200;">I need  </label>
+            </div>
+            
+            <!--<div class="inpselfield"><!-- container for input or select -->
+            <!--UPDATED by RUSSELL CADAPAN for Defect-644 -->
+            <div class="inpselfield">
+                <apex:outputLabel value="$ {!l.loan.Loan_Amount__c}" id="Loan_Purpose__c____Loan_Amount__c" styleClass="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Gem'), 'inpselfieldrebranding', '')}"/>               
+            </div>
+            <!-- END for Defect - 644 -->
+            <div class="pllabel pllabel2"><!-- container for label -->
+                <label style="font-weight: 200;">for </label>
+            </div>
+            
+            <div class="inpselfield" ><!-- container for input or select -->                
+                	<apex:outputLabel value="{!l.loan.Value__c}" id="Loan_Purpose__c____Value__c" style="white-space: nowrap;" styleClass="{!if(OR($Site.Name = 'Latitude', $Site.Name = 'Gem'), 'inpselfieldrebranding', '')}"/>                                        
+            </div>
+                        
+        </apex:outputPanel>
+
+        <div class="clearfix"></div>
+
+        <apex:outputPanel id="OtherPanelId">
+            <!-- 2nd Row -->
+
+            <apex:outputPanel rendered="{!IF(l.loan.Value__c == 'Other',true,false)}">
+                
+                <div class="pllabel pllabel2 olp_field"><!-- container for label -->
+                    <apex:outputLabel >{!$Label.Other_Loan_Purpose}</apex:outputLabel>
+                </div>
+                
+                <div class="inpselfield"><!-- container for input or select -->
+                    <apex:outputLabel styleClass="input-block-level" value="{!l.loan.Other_Loan_Purpose__c}" id="Loan_Purpose__c____Other_Loan_Purpose__c"/>                    
+                </div>
+            </apex:outputPanel>
+            
+            <div class="clearfix"></div>
+            
+        </apex:outputPanel>
+    </div><!-- end span12 first row -->
+</apex:component>

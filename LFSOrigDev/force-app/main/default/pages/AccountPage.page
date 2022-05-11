@@ -1,0 +1,297 @@
+<!-- 
+/**
+* @author Original: Dan Crisologo Cloud Sherpas
+* @date Original: 18 Feb 2013
+* @description 
+*/
+-->
+
+<apex:page id="AccountPage" controller="AccountPageController" sidebar="false" showHeader="false">
+    <head>
+        <style>
+            body .pbBody table.list tr.headerRow td, body .pbBody table.list tr.headerRow th {
+                text-align: center !important;
+            }
+            .ct{
+                text-align:center;
+            }
+            
+            .pbSubheader{
+                background-color: #3948B8!important;
+            }
+             .bPageBlock{
+        border-top: 2px solid #808080;
+        }
+        </style>
+    </head>
+    <apex:form id="AccountForm" >
+    <apex:pageMessages />
+    
+    <div width="100%">
+    <apex:PageBlock title="Auto Loans" Id="ploanBlk" >
+        <!-- ===== PERSONAL LOANS SECTION ===== -->
+        <!-- <strong><apex:outPutText value="Personal Loans"  /></strong> -->
+        <apex:pageBlockTable width="100%" value="{!listPersonalLoan}" var="personalLoan" styleClass="ct">
+            <apex:column >
+                <apex:facet name="header">
+                    Account<br/>Number
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Account_Number__c}"/>
+            </apex:column>
+            
+            <apex:column >
+                <apex:facet name="header">
+                    Contract<br/>Date
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Contract_Date__c}" style="text-align: right;"/>
+            </apex:column>
+            
+            <apex:column >
+                <apex:facet name="header">
+                    Maturity<br/>Date
+                </apex:facet>
+                <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" style="text-align: right;">
+                        <apex:param value="{!personalLoan.Maturity_Date__c}"/> 
+                </apex:outputText>
+            </apex:column>
+            
+            <apex:column >
+                <apex:facet name="header">
+                    Opening<br/>Balance
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Opening_Balance__c}" style="text-align: right;"/>
+            </apex:column>
+
+            <apex:column >
+                <apex:facet name="header">
+                    Current<br/>Balance
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Current_Balance__c}" style="text-align: right;"/>
+            </apex:column>
+            
+            <apex:column >
+                <apex:facet name="header">
+                    Interest <br/>Rate
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Interest_Rate__c}" style="text-align: right;"/>
+            </apex:column>
+            
+            <apex:column >
+                <apex:facet name="header">
+                    Monthly <br/>Installment
+                </apex:facet>
+                <apex:outputText value="{!personalLoan.Monthly_Installment__c}" style="text-align: right;"/>
+            </apex:column>
+
+            <apex:column headerValue="More Details" style="text-align: center;">
+                <apex:facet name="header">
+                    More <br/>Details
+                </apex:facet>
+                <apex:commandButton value="Info" action="{!repopulateChosenPersonalLoan}" rerender="ploanBlk">
+                    <apex:param name="personLoanId" value="{!personalLoan.Id}" assignTo="{!chosenPersonalLoanId}"/>
+                </apex:commandButton>
+            </apex:column>  
+        </apex:pageBlockTable>
+
+        <!-- ===== PERSONAL LOAN SECTION (Collapsible) ===== -->
+        <apex:outputPanel rendered="{!showPersonalLoan}"  id="personalLoanOP">
+            <apex:pageBlockSection id="personalLoanInfo" title="Extra Information" columns="2" collapsible="true">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Account Number:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Account_Number__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Contract Date:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Contract_Date__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Maturity Date:"/>
+                        <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" style="text-align: right;">
+                                <apex:param value="{!chosenPersonalLoan.Maturity_Date__c}"/> 
+                        </apex:outputText>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Opening Balance:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Opening_Balance__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Current Balance:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Current_Balance__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Interest Rate (Rate):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Interest_Rate__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Monthly Installment (Instl):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Monthly_Installment__c}" 
+                        style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Delinquency (1-14):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Delinquency_1_14__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Delinquency (15+):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Delinquency_15__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Delinquency (30+):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Delinquency_30__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Goods Financed (Goods):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Goods_Financed_Goods__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Next Amount Due:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Next_Amount_Due__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Last Amount Paid:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Last_Amount_Paid__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Credit Score:"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Credit_Score__c}" style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Balloon Payment (Ball/Resid'l):"/>
+                        <apex:outputText value="{!chosenPersonalLoan.Balloon_Payment_Ball_Resid_l__c}" 
+                        style="text-align: right;"/>
+                    </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:outputPanel>
+     </apex:PageBlock>
+     
+     
+    <apex:PageBlock Title="Personal  Loans" Id="aloanBlk"> 
+        <!-- ===== AUTO LOANS SECTION ===== -->
+        <br />
+        <!--  <strong><apex:outPutText value="Auto Loans"/></strong> -->
+
+        <apex:pageBlockTable value="{!listAutoLoan}" var="autoLoan" styleClass="ct">
+            <apex:column >
+                <apex:facet name="header">
+                    Account <br/>Number
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Account_Number__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Contract <br/>Date
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Contract_Date__c}" style="text-align: right;"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Maturity <br/>Date
+                </apex:facet>
+               <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" style="text-align: right;">
+                        <apex:param value="{!autoLoan.maturity_date__c}"/> 
+                </apex:outputText>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Note <br/>Amount
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Note_Amount__c}" style="text-align: right;"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Principle <br/>Balance
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Principle_balance__c}" style="text-align: right;"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Interest <br/>Rate
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Interest_Rate__c}" style="text-align: right;"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    Payment <br/>Amount
+                </apex:facet>
+                <apex:outputText value="{!autoLoan.Payment_amount__c}" style="text-align: right;"/>
+            </apex:column>                   
+            <apex:column >
+                <apex:facet name="header">
+                    More <br/>Details
+                </apex:facet>
+                <apex:commandButton value="Info" action="{!repopulateChosenAutoLoan}" rerender="aloanBlk">
+                    <apex:param name="autoLoanId" value="{!autoLoan.Id}" assignTo="{!chosenAutoLoanId}"/>
+                </apex:commandButton>
+            </apex:column>
+        </apex:pageBlockTable>
+        
+        <!-- ===== AUTO LOAN SECTION (Collapsible) ===== -->
+        <apex:outputPanel rendered="{!showAutoLoan}"  id="autoLoanOP">
+            <apex:pageBlockSection id="autoLoanInfo" title="Extra Information" columns="2" collapsible="true">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Account Number:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Account_Number__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Contract Date:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Contract_Date__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Maturity Date:"/>
+                    <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" style="text-align: right;">
+                        <apex:param value="{!chosenAutoLoan.maturity_date__c}"/> 
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Note Amount:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Note_Amount__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Principle Balance:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Principle_balance__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Interest Rate:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Interest_Rate__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Payment Amount:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Payment_amount__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Time past due (CY1):"/>
+                    <apex:outputText value="{!chosenAutoLoan.Times_past_due_CY1__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Time past due (CY2):"/>
+                    <apex:outputText value="{!chosenAutoLoan.Times_past_due_CY2__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Time past due (CY3):"/>
+                    <apex:outputText value="{!chosenAutoLoan.Times_past_due_CY3__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Next Payment Amount:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Next_Payment_Amount__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Credit Score:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Credit_Score__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Due Date:"/>
+                    <apex:outputText value="{!chosenAutoLoan.Due_Date__c}" style="text-align: right;"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Date last transaction:"/>
+                    <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" style="text-align: right;">
+                        <apex:param value="{!chosenAutoLoan.Date_last_Transaction__c}"/> 
+                    </apex:outputText>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:outputPanel>
+    </apex:PageBlock>
+    </div>
+    </apex:form>
+    
+</apex:page>

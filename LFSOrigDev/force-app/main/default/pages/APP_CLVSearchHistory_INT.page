@@ -1,0 +1,85 @@
+<!--
+/**
+* @Description: Applicant CLV Search History page (Staff UI)
+
+* @Author: Mike Lasala
+* @Date Created: 13.NOV.2015
+* @History:
+  =====================================================================
+      13-11-15: CREATED - MLASALA
+  =====================================================================
+ */ 
+-->
+<apex:page id="searchHistoryPage" standardController="Application__c" extensions="APP_CLVSearchHistoryExt_INT" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.staffuicss, '/appstaffui.css')}"/>   
+
+    <apex:form id="searchHistoryForm">
+
+        <div align="center">
+
+            <!-- LOADER IMAGE -->
+            <apex:image id="loadingGif" url="{!URLFOR($Resource.getheme, 'images/loading-bar.gif')}" 
+            style="visibility:hidden;"/>
+            <br/>
+            <apex:actionStatus id="status">
+                <apex:facet name="stop">
+
+                    <!-- REFRESH BUTTON -->
+                    <apex:commandButton value="Refresh" action="{!refresh}" reRender="searchHistoryForm" status="status" onclick="document.getElementById('appPageId:searchHistoryInclude:searchHistoryPage:searchHistoryForm:loadingGif').style.visibility='visible'"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:commandButton value="Refreshing..." disabled="true"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <br/>
+
+        <apex:pageBlock id="searchHistoryPageBlock" title="CLV Search History">
+
+            <!-- SEARCH HISTORY TABLE -->
+            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+
+                    <!-- SEARCH HISTORY COLUMNS -->
+                    <th class="headerRow">Name</th>
+                    <th class="headerRow">Date of Birth</th>
+                    <th class="headerRow">Residential Address</th>
+                    <th class="headerRow">Mobile Number</th>
+                    <th class="headerRow">DL Number</th>
+                    <th class="headerRow">CLV Number</th>
+                    <th class="headerRow">Applicant</th>
+                    <th class="headerRow">Match Grade</th>
+                    <th class="headerRow">Match Flag</th>
+                    <th class="headerRow">Search Performed</th>
+                    <th class="headerRow">Search Date</th>
+                </tr>
+
+                <apex:repeat value="{!searchHistoryList}" var="i" id="searchHistoryPageBlockTable">
+                    <tr class="dataRow">
+
+                        <!-- SEARCH HISTORY FIELDS -->
+                        <td class="dataCell">{!i.Applicant_CLV__r.Title__c} {!i.Applicant_CLV__r.First_Name__c} {!i.Applicant_CLV__r.Middle_Name__c} {!i.Applicant_CLV__r.Surname__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.Date_of_Birth__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.Street_Address__c} {!i.Applicant_CLV__r.Suburb__c} {!i.Applicant_CLV__r.Town__c} {!i.Applicant_CLV__r.State__c}-{!i.Applicant_CLV__r.Post_Code__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.Mobile__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.Drivers_License__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.CLV__c}</td>
+                        <td class="dataCell">Applicant {!i.Applicant_CLV__r.Applicant_Bucket__c}</td>
+                        <td class="dataCell">{!i.Applicant_CLV__r.Match_Grade__c}</td>
+                        <td class="dataCell">
+                            <input type="checkbox" checked="checked" disabled="true" style="display: {!IF(i.New_Value__c == 'true', 'block', 'none')}"/>
+                            <input type="checkbox" disabled="true" style="display: {!IF(i.New_Value__c != 'true', 'block', 'none')}"/>
+                        </td>
+                        <td class="dataCell">{!i.Previous_Value__c}</td>
+                        <td class="dataCell">
+                            <apex:outputField value="{!i.CreatedDate}"/>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </apex:pageBlock>
+
+    </apex:form>
+
+</apex:page>

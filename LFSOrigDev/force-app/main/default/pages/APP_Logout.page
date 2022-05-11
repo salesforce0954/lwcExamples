@@ -1,0 +1,81 @@
+<apex:page controller="APP_LogoutExt" showHeader="false" sidebar="false" standardStylesheets="false">
+
+<apex:stylesheet value="{!URLFOR($Resource.JQUERY10, '/jquery-ui-1.10.3.custom/css/redmond/jquery-ui-1.10.3.custom.min.css')}" />
+
+<apex:composition template="{!$Site.Template}"><!--template="GETemplate">-->
+
+    <apex:define name="GEDDBody">
+
+        <section>
+
+            <div class="divider50"></div>
+            <div class="nodisplay divider50"></div>
+
+            <apex:form >
+
+                <div class="maincontent">
+                    <div class="row-fluid">
+                        <div class="row-fluid span12 txtalignc">
+                            <h2  style="{!buttonStyle}"> You've logged out </h2>
+                            <div class="divider20"></div>
+                            <p>Come back and complete your Personal Loan application anytime. We're here 24 hours a day seven days a week.</p>
+                            <div class="divider30"></div>
+                            <div class="row-fluid">
+                                <div class="span12"></div>
+                                <div class="span12">
+                                    <a href="{!homeURL}" style="{!footerTextStyle}">Visit the homepage</a>
+                                </div>
+                            </div>  
+                        </div>  
+                    </div><!--end of row fluid-->   
+                </div><!--end of main-content-->    
+
+            </apex:form>  
+            <br/>
+
+        </section>
+
+        <div class="nodisplay divider30"></div>
+        <div class="nodisplay divider30"></div>
+        <div class="nodisplay divider50"></div>
+        <div class="nodisplay divider50"></div>
+        <div class="nodisplay divider50"></div>
+
+    </apex:define>
+
+</apex:composition>
+
+<apex:iframe src="{!$Site.Prefix}/secur/logout.jsp" height="1" width="1" />
+
+<script>
+ 
+    function redirectToLogin(){
+     
+        window.parent.location="{!$Site.Prefix}/APP_Login";
+
+    }
+     
+   // setTimeout("redirectToLogin()", 3000);
+ 	
+ 	/*  Description: Redirect to eligibility page if broker parameter is present
+     *  Author: Mike Lasala
+     *  Date Created: 16-NOV-2016
+     *  Input: None
+     */
+ 	function redirectToBrokerForm(){
+        var quoteIdFromUrl = '{!$CurrentPage.parameters.qId}';
+ 		if('{!$CurrentPage.parameters.broker}' == 'true'){
+            /*Added the Quote Id check for Soft Quote enhancement. This will be invoked when a Broker is redirected 
+              from the Broker Portal to PL application form.*/
+            if(quoteIdFromUrl != '' && quoteIdFromUrl != undefined){
+            	window.parent.location="{!$Site.Prefix}?form=broker"+"&qId="+encodeURIComponent(quoteIdFromUrl);
+ 			}else{
+				console.log('$$$ broker: ','{!$Site.Prefix}');
+				window.parent.location="{!$Site.Prefix}?form=broker";
+            }
+ 		}
+    }
+    redirectToBrokerForm();
+</script>
+
+</apex:page>
