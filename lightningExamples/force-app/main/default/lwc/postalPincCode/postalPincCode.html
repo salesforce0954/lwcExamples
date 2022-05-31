@@ -1,0 +1,37 @@
+<template>
+
+    <lightning-input type="text" onchange={handleBranchName}></lightning-input>
+    <lightning-button label="Get Details" onclick={getBranchDetails}></lightning-button>
+
+    <template if:true={result}>
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+            <template for:each={postalDetailsResult} for:item="postalResult">
+                    <tr key={postalResult.Message}>
+                        <td>{postalResult.Message}</td>
+                        <td>{postalResult.Status}</td>
+                    </tr>
+            </template>
+        </table>
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <template for:each={postalDetails} for:item="postal">
+            
+
+            <tr key={postal.Name}>
+                <td>{postal.Name}</td>
+                <td>{postal.Description}</td>
+                <td>{postal.BranchType}</td>
+                <td>{postal.Pincode}</td>
+                <td>{postal.DeliveryStatus}</td>
+                <td>{postal.Circle}</td>
+                <td>{postal.District}</td>
+                <td>{postal.Division}</td>
+                <td>{postal.Region}</td>
+                <td>{postal.State}</td>
+                <td>{postal.Country}</td>
+            </tr>
+        </template>
+    </table>
+    </template>
+
+    
+</template>
