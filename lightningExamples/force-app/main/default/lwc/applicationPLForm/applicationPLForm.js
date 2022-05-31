@@ -3,6 +3,11 @@ import { createRecord, getFieldValue } from 'lightning/uiRecordApi';
 import APPLICANT_ELIGIBLE from '@salesforce/schema/Application__c.is_Applicant_Eligible__c'
 import APPLICANT_OBJECT from '@salesforce/schema/Application__c'
 import { NavigationMixin } from 'lightning/navigation';
+import { getObjectInfo } from 'lightning/uiObjectInfoApi';
+import { getPicklistValues } from 'lightning/uiObjectInfoApi';
+import USER_COUNTRY from '@salesforce/schema/User.Country'
+
+
 
 export default class ApplicationPLForm extends NavigationMixin(LightningElement) {
 
@@ -11,8 +16,44 @@ export default class ApplicationPLForm extends NavigationMixin(LightningElement)
     @track sessionValue;
     @api applicationId;
     @track applicantType;
+    @track auRecordType;
+    @track nzRecordType;
+    @track cityValues;
+    @track userCountry;
+
     
-   
+    
+    @track objectInformation;
+    connectedCallback(){
+        console.log('Object '+this.objectInformation);
+    }
+    
+   @wire(getObjectInfo,{objectApiName:'Application__c'})
+   objectInfo({data,error}){
+       if(data){
+           this.objectInformation= data;
+           for (const [key, value] of Object.entries(this.objectInformation.recordTypeInfos)) {
+            console.log(`${key}: ${value.name}`);
+            if(value.name == 'AU'){
+                console.log(1);
+               this.auRecordType = value.recordTypeId;
+            }else if(value.name == 'NZ'){
+                console.log(2);
+                this.nzRecordType = value.recordTypdId;
+            }
+            
+          }
+       }
+   }
+
+   @wire(getPicklistValues, { recordTypeId: '$nzRecordType', fieldApiName: 'City__c' })
+   handleTitleValues({ error, data }) {
+       if (data) {
+           this.cityValues = data.values
+       } else if (error) {
+           console.log(JSON.stringify(error));
+       }
+   }
 
     handleApplicantEligible(event){
         this.isApplicantEligible = event.target.value;

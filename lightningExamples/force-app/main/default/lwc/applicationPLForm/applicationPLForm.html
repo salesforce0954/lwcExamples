@@ -19,12 +19,14 @@
             <input type="text" value={isApplicantEligible}/>
         </template>   -->   
         
-        <lightning-record-edit-form class="Application" object-api-name="Application__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicationId}>
+        <lightning-record-edit-form class="Application"  object-api-name="Application__c" onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} record-id={applicationId}>
             <lightning-input-field field-name="Id" value={applicationId} class="slds-hide" ></lightning-input-field>
             <lightning-input-field field-name="is_Applicant_Eligible__c" onchange={handleApplicantEligible} required>            </lightning-input-field>
 
             <lightning-input-field field-name="Applicant_Type__c" onchange={handleApplicantType} required></lightning-input-field>
+            <lightning-input-field field-name="City__c"  ></lightning-input-field>
             <lightning-button variant="brand" type="submit" name="save" label="Save"  onclick={handleSubmitButtonClick}></lightning-button>
+        
         </lightning-record-edit-form>
     
     </lightning-card>

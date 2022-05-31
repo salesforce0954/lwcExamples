@@ -1,7 +1,7 @@
 <template>
     <lightning-card title="PL Application Eligibility Criteria">
         <lightning-record-edit-form object-api-name="Application__c" onsuccess={handleSuccess} onerror={handleError} onsubmit={handleSubmit}>
-            <lightning-input-field field-name="is_Applicant_Eligible__c" onchange={handleEligible}></lightning-input-field>
+            <lightning-input-field class="isEligible" field-name="is_Applicant_Eligible__c" onchange={handleEligible}></lightning-input-field>
         </lightning-record-edit-form>
     </lightning-card>
 </template>
