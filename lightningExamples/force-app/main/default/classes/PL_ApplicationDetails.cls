@@ -5,7 +5,6 @@ public class PL_ApplicationDetails{
       
       @AuraEnabled(Cacheable=true)
       public static Application__c getApplicationInfo(Id appId){
-        system.debug('Test');
           Application__c app = [select Applicant_Type__c,is_Applicant_Eligible__c from Application__c where id=:appId];
           return app;     
       }
